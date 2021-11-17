@@ -85,7 +85,7 @@ class BaseTestSimpleABCISkill(AEATestCaseMany, BaseTendermintTestClass):
             self.add_private_key("ethereum", "ethereum_private_key.txt")
             self.set_config("agent.default_ledger", "ethereum")
             self.set_config("agent.required_ledgers", '["ethereum"]', type_="list")
-            self.add_item("skill", "valory/simple_abci:0.1.0", local=False)
+            self.add_item("skill", "valory/simple_abci:0.1.0", local=self.IS_LOCAL)
             self.set_config(
                 "vendor.valory.connections.abci.config.target_skill_id",
                 "valory/simple_abci:0.1.0",

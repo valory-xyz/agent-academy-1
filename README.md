@@ -12,5 +12,11 @@ Valory's Agent Academy 1 - participant repo
 To run the test:
 
 ``` bash
-pytest tests/test_simple_abci.py
+pytest tests/test_simple_abci.py::TestABCIPriceEstimationSingleAgent
+```
+
+or
+
+``` bash
+pytest tests/test_simple_abci.py::TestABCIPriceEstimationSingleAgent
 ```
