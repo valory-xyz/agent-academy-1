@@ -38,10 +38,10 @@ clean-test:
 
 .PHONY: lint
 lint:
-	black packages
-	isort packages
-	flake8 packages
-	darglint packages
+	black packages/valory tests scripts
+	isort packages tests scripts
+	flake8 packages tests scripts
+	darglint packages/valory/agents packages/valory/connections packages/valory/contracts packages/valory/skills tests
 
 .PHONY: pylint
 pylint:
@@ -53,7 +53,7 @@ hashes:
 
 .PHONY: static
 static:
-	mypy packages --disallow-untyped-defs
+	mypy packages tests --disallow-untyped-defs
 
 v := $(shell pip -V | grep virtualenvs)
 
