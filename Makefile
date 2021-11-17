@@ -47,6 +47,10 @@ lint:
 pylint:
 	pylint -j4 packages
 
+.PHONY: hashes
+hashes:
+	python scripts/generate_ipfs_hashes.py --vendor valory
+
 .PHONY: static
 static:
 	mypy packages --disallow-untyped-defs
