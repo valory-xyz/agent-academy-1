@@ -30,5 +30,5 @@ pytest tests/test_simple_abci.py::TestABCIPriceEstimationSingleAgent
 or
 
 ``` bash
-pytest tests/test_simple_abci.py::TestABCIPriceEstimationSingleAgent
+pytest tests/test_simple_abci.py::TestABCIPriceEstimationTwoAgents
 ```
