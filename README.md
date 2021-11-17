@@ -9,6 +9,18 @@ Valory's Agent Academy 1 - participant repo
 
 # Simple ABCI example
 
+Create a virtual environment with all development dependencies: 
+
+```bash
+make new_env
+```
+
+Enter virtual environment:
+
+``` bash
+pipenv shell
+```
+
 To run the test:
 
 ``` bash
