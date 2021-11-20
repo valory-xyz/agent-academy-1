@@ -35,4 +35,4 @@ pytest tests/test_simple_abci.py::TestSimpleABCITwoAgents
 
 ## Useful commands:
 
-Check out the `Makefile` for useful commands, e.g. `make lint`, `make static` and `make pylint`, as well as `make hashes`.
+Check out the `Makefile` for useful commands, e.g. `make lint`, `make static` and `make pylint`, as well as `make hashes`. To run all tests use `make test`.
