@@ -3,9 +3,9 @@ Valory's Agent Academy 1 - participant repo
 
 ## Requirements
 
-- `Python >= 3.7`
-- [Tendermint](https://docs.tendermint.com/master/introduction/install.html)
-- [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `>=v0.6.0`
+- Python `>=3.7`
+- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.11`
+- [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==0.6.0`
 
 ## Simple ABCI example
 
@@ -24,13 +24,13 @@ pipenv shell
 To run the test:
 
 ``` bash
-pytest tests/test_simple_abci.py::TestABCIPriceEstimationSingleAgent
+pytest tests/test_simple_abci.py::TestSimpleABCISingleAgent
 ```
 
 or
 
 ``` bash
-pytest tests/test_simple_abci.py::TestABCIPriceEstimationTwoAgents
+pytest tests/test_simple_abci.py::TestSimpleABCITwoAgents
 ```
 
 ## Useful commands:
