@@ -44,6 +44,12 @@ from packages.valory.skills.simple_abci.rounds import (
     ResetAndPauseRound,
     SelectKeeperAStartupRound,
     SimpleAbciApp,
+    ObservationRound,
+    DecisionRound,
+    TransactionRound,
+    ConfirmationRound,
+    ReselectTransactionKeeper,
+    ReselectConfirmationKeeper
 )
 
 
@@ -145,12 +151,12 @@ class RegistrationBehaviour(SimpleABCIBaseState):
         """
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             payload = RegistrationPayload(self.context.agent_address)
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -173,14 +179,14 @@ class RandomnessBehaviour(SimpleABCIBaseState):
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
             with benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             api_specs = self.context.randomness_api.get_spec()
             http_message, http_dialogue = self._build_http_request_message(
@@ -198,7 +204,7 @@ class RandomnessBehaviour(SimpleABCIBaseState):
                 observation["randomness"],
             )
             with benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
@@ -242,7 +248,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
         """
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             keeper_address = random_selection(
                 sorted(self.period_state.participants),
@@ -253,7 +259,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
             payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -322,6 +328,81 @@ class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
         RandomnessAtStartupBehaviour,  # type: ignore
         SelectKeeperAAtStartupBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
+    }
+
+    def setup(self) -> None:
+        """Set up the behaviour."""
+        super().setup()
+        benchmark_tool.logger = self.context.logger
+
+
+# TODO: refactor the following code into another agent/skill
+
+
+class ObservationRoundBehaviour(SimpleABCIBaseState):
+    state_id = "observation"
+    matching_round = ObservationRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class DecisionRoundBehaviour(SimpleABCIBaseState):
+    state_id = "decision"
+    matching_round = DecisionRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class TransactionRoundBehaviour(SimpleABCIBaseState):
+    state_id = "transaction"
+    matching_round = TransactionRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class ConfirmationRoundBehaviour(SimpleABCIBaseState):
+    state_id = "confirmation"
+    matching_round = ConfirmationRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class ReselectTransactionKeeperBehaviour(SelectKeeperBehaviour):
+    state_id = "reselect_transaction_keeper"
+    matching_round = ConfirmationRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class ReselectConfirmationKeeperBehaviour(SelectKeeperBehaviour):
+    state_id = "reselect_confirmation_keeper"
+    matching_round = ConfirmationRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the El Collectooor abci app."""
+
+    initial_state_cls = TendermintHealthcheckBehaviour
+    abci_app_cls = SimpleAbciApp
+    behaviour_states: Set[Type[SimpleABCIBaseState]] = {
+        TendermintHealthcheckBehaviour,  #
+        RegistrationBehaviour,
+        RandomnessAtStartupBehaviour,
+        SelectKeeperAAtStartupBehaviour,
+        ObservationRoundBehaviour,
+        DecisionRoundBehaviour,
+        TransactionRoundBehaviour,
+        ReselectTransactionKeeper,
+        ConfirmationRoundBehaviour,
+        ReselectConfirmationKeeper,
     }
 
     def setup(self) -> None:

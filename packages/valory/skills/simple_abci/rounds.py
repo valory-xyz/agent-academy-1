@@ -42,7 +42,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
     CollectDifferentUntilAllRound,
-    CollectSameUntilThresholdRound,
+    CollectSameUntilThresholdRound, EventType,
 )
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
@@ -80,14 +80,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     """
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-        most_voted_randomness: Optional[str] = None,
-        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-        most_voted_keeper_address: Optional[str] = None,
+            self,
+            participants: Optional[AbstractSet[str]] = None,
+            period_count: Optional[int] = None,
+            period_setup_params: Optional[Dict] = None,
+            participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
+            most_voted_randomness: Optional[str] = None,
+            participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
+            most_voted_keeper_address: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -221,7 +221,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRoun
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -247,7 +247,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound)
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -283,7 +283,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -306,7 +306,8 @@ class SimpleAbciApp(AbciApp[Event]):
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
             Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessStartupRound,  # we can have some agents on either side of an epoch, so we retry
+            Event.NO_MAJORITY: RandomnessStartupRound,
+            # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperAStartupRound: {
             Event.DONE: ResetAndPauseRound,
@@ -316,6 +317,143 @@ class SimpleAbciApp(AbciApp[Event]):
         ResetAndPauseRound: {
             Event.DONE: RandomnessStartupRound,
             Event.RESET_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
+    }
+
+
+# TODO: refactor the following code into another agent/skill
+
+class ObservationRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
+    round_id = "observation"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_project_id=MappingProxyType(self.collection),
+                most_voted_project_id=self.most_voted_payload,  # TODO: define a "no new project found" payload
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class DecisionRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
+    round_id = "decision"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_decision=MappingProxyType(self.collection),
+                most_voted_decision=self.most_voted_payload,  # it can be binary at this point
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class TransactionRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
+    round_id = "transaction"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_transaction=MappingProxyType(self.collection),
+                most_voted_transaction=self.most_voted_payload,  # it can be binary at this point
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class ConfirmationRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_confirmation=MappingProxyType(self.collection),
+                most_voted_confirmation=self.most_voted_payload,  # it can be binary at this point
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class ReselectTransactionKeeper(SelectKeeperRound):
+    round_id = "reselect_keeper_for_transaction"
+
+
+class ReselectConfirmationKeeper(SelectKeeperRound):
+    round_id = "reselect_keeper_for_confirmation"
+
+
+class ElCollectooorAbciApp(AbciApp[Event]):
+    """El Collectooor is getting a fresh haircut."""
+
+    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    transition_function: AbciAppTransitionFunction = {
+        RegistrationRound: {
+            Event.DONE: RandomnessStartupRound
+        },
+        RandomnessStartupRound: {
+            Event.DONE: SelectKeeperAStartupRound,
+            Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RandomnessStartupRound,
+            # we can have some agents on either side of an epoch, so we retry
+        },
+        SelectKeeperAStartupRound: {
+            Event.DONE: ObservationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
+        },
+        ObservationRound: {
+            Event.DONE: DecisionRound,
+            Event.ROUND_TIMEOUT: ObservationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: ObservationRound,  # TODO: consider starting over from Registration
+        },
+        DecisionRound: {
+            Event.DONE: TransactionRound,
+            Event.ROUND_TIMEOUT: ObservationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: ObservationRound,  # if the round has no majority we start from registration
+        },
+        TransactionRound: {
+            Event.DONE: ConfirmationRound,
+            Event.ROUND_TIMEOUT: ObservationRound,
+            Event.NO_MAJORITY: ReselectTransactionKeeper,
+        },
+        ReselectTransactionKeeper: {
+            Event.DONE: TransactionRound,
+            Event.ROUND_TIMEOUT: ReselectTransactionKeeper,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ConfirmationRound: {
+            Event.DONE: ObservationRound,
+            Event.ROUND_TIMEOUT: ConfirmationRound,
+            Event.NO_MAJORITY: ReselectConfirmationKeeper,  # maybe the keeper misbehaved
+        },
+        ReselectConfirmationKeeper: {
+            Event.DONE: ConfirmationRound,
+            Event.ROUND_TIMEOUT: ReselectConfirmationKeeper,
             Event.NO_MAJORITY: RegistrationRound,
         },
     }
