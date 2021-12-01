@@ -44,7 +44,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound, EventType,
 )
-from packages.valory.skills.simple_abci.payloads import (
+from packages.valory.skills.elcollectooor_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
@@ -157,7 +157,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
 
 
-class SimpleABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
+class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the simple abci skill."""
 
     @property
@@ -174,7 +174,7 @@ class SimpleABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
         return self.period_state, Event.NO_MAJORITY
 
 
-class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
+class RegistrationRound(CollectDifferentUntilAllRound, ElCollectooorABCIAbstractRound):
     """
     This class represents the registration round.
 
@@ -199,7 +199,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, SimpleABCIAbstractRound):
         return None
 
 
-class BaseRandomnessRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
+class BaseRandomnessRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
     """
     This class represents the randomness round.
 
@@ -227,7 +227,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRoun
         return None
 
 
-class SelectKeeperRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
+class SelectKeeperRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
     """
     This class represents the select keeper round.
 
@@ -265,7 +265,7 @@ class SelectKeeperAStartupRound(SelectKeeperRound):
     round_id = "select_keeper_a_startup"
 
 
-class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
+class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
     """This class represents the base reset round."""
 
     allowed_tx_type = ResetPayload.transaction_type
@@ -289,19 +289,92 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
         return None
 
 
-class ResetAndPauseRound(BaseResetRound):
-    """This class represents the 'consensus-reached' round (the final round)."""
+class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    round_id = "observation"
 
-    round_id = "reset_and_pause"
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_project_id=MappingProxyType(self.collection),
+                most_voted_project_id=self.most_voted_payload,  # TODO: define a "no new project found" payload
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
-class SimpleAbciApp(AbciApp[Event]):
-    """Simple ABCI application."""
+class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    round_id = "decision"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_decision=MappingProxyType(self.collection),
+                most_voted_decision=self.most_voted_payload,  # it can be binary at this point
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    round_id = "transaction"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_transaction=MappingProxyType(self.collection),
+                most_voted_transaction=self.most_voted_payload,  # it can be binary at this point
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class ConfirmationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_confirmation=MappingProxyType(self.collection),
+                most_voted_confirmation=self.most_voted_payload,  # it can be binary at this point
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class ReselectTransactionKeeper(SelectKeeperRound):
+    round_id = "reselect_keeper_for_transaction"
+
+
+class ReselectConfirmationKeeper(SelectKeeperRound):
+    round_id = "reselect_keeper_for_confirmation"
+
+
+class ElCollectooorAbciApp(AbciApp[Event]):
+    """El Collectooor is getting a fresh haircut."""
 
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
-            Event.DONE: RandomnessStartupRound,
+            Event.DONE: RandomnessStartupRound
         },
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
@@ -310,13 +383,38 @@ class SimpleAbciApp(AbciApp[Event]):
             # we can have some agents on either side of an epoch, so we retry
         },
         SelectKeeperAStartupRound: {
-            Event.DONE: ResetAndPauseRound,
+            Event.DONE: ObservationRound,
             Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
             Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
         },
-        ResetAndPauseRound: {
-            Event.DONE: RandomnessStartupRound,
-            Event.RESET_TIMEOUT: RegistrationRound,
+        ObservationRound: {
+            Event.DONE: DecisionRound,
+            Event.ROUND_TIMEOUT: ObservationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: ObservationRound,  # TODO: consider starting over from Registration
+        },
+        DecisionRound: {
+            Event.DONE: TransactionRound,
+            Event.ROUND_TIMEOUT: ObservationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: ObservationRound,  # if the round has no majority we start from registration
+        },
+        TransactionRound: {
+            Event.DONE: ConfirmationRound,
+            Event.ROUND_TIMEOUT: ObservationRound,
+            Event.NO_MAJORITY: ReselectTransactionKeeper,
+        },
+        ReselectTransactionKeeper: {
+            Event.DONE: TransactionRound,
+            Event.ROUND_TIMEOUT: ReselectTransactionKeeper,
+            Event.NO_MAJORITY: RegistrationRound,
+        },
+        ConfirmationRound: {
+            Event.DONE: ObservationRound,
+            Event.ROUND_TIMEOUT: ConfirmationRound,
+            Event.NO_MAJORITY: ReselectConfirmationKeeper,  # maybe the keeper misbehaved
+        },
+        ReselectConfirmationKeeper: {
+            Event.DONE: ConfirmationRound,
+            Event.ROUND_TIMEOUT: ReselectConfirmationKeeper,
             Event.NO_MAJORITY: RegistrationRound,
         },
     }

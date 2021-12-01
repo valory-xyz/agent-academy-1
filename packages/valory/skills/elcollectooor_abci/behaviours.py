@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the behaviours for the 'simple_abci' skill."""
+"""This module contains the behaviours for the 'elcollectooor_abci' skill."""
 
 import datetime
 import json
@@ -37,13 +37,11 @@ from packages.valory.skills.simple_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
 )
-from packages.valory.skills.simple_abci.rounds import (
+from packages.valory.skills.elcollectooor_abci.rounds import (
     PeriodState,
     RandomnessStartupRound,
     RegistrationRound,
-    ResetAndPauseRound,
     SelectKeeperAStartupRound,
-    SimpleAbciApp,
     ObservationRound,
     DecisionRound,
     TransactionRound,
@@ -69,7 +67,7 @@ def random_selection(elements: List[str], randomness: float) -> str:
 benchmark_tool = BenchmarkTool()
 
 
-class SimpleABCIBaseState(BaseState, ABC):
+class ElCollectooorABCIBaseState(BaseState, ABC):
     """Base state behaviour for the simple abci skill."""
 
     @property
@@ -83,7 +81,7 @@ class SimpleABCIBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class TendermintHealthcheckBehaviour(SimpleABCIBaseState):
+class TendermintHealthcheckBehaviour(ElCollectooorABCIBaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
@@ -134,7 +132,7 @@ class TendermintHealthcheckBehaviour(SimpleABCIBaseState):
         self.set_done()
 
 
-class RegistrationBehaviour(SimpleABCIBaseState):
+class RegistrationBehaviour(ElCollectooorABCIBaseState):
     """Register to the next round."""
 
     state_id = "register"
@@ -165,7 +163,7 @@ class RegistrationBehaviour(SimpleABCIBaseState):
         self.set_done()
 
 
-class RandomnessBehaviour(SimpleABCIBaseState):
+class RandomnessBehaviour(ElCollectooorABCIBaseState):
     """Check whether Tendermint nodes are running."""
 
     def async_act(self) -> Generator:
@@ -234,7 +232,7 @@ class RandomnessAtStartupBehaviour(RandomnessBehaviour):
     matching_round = RandomnessStartupRound
 
 
-class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
+class SelectKeeperBehaviour(ElCollectooorABCIBaseState, ABC):
     """Select the keeper agent."""
 
     def async_act(self) -> Generator:
@@ -275,7 +273,7 @@ class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
     matching_round = SelectKeeperAStartupRound
 
 
-class BaseResetBehaviour(SimpleABCIBaseState):
+class BaseResetBehaviour(ElCollectooorABCIBaseState):
     """Reset state."""
 
     pause = True
@@ -310,25 +308,70 @@ class BaseResetBehaviour(SimpleABCIBaseState):
         self.set_done()
 
 
-class ResetAndPauseBehaviour(BaseResetBehaviour):
-    """Reset state."""
+class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
+    state_id = "observation"
+    matching_round = ObservationRound
 
-    matching_round = ResetAndPauseRound
-    state_id = "reset_and_pause"
-    pause = True
+    def async_act(self) -> Generator:
+        pass
 
 
-class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the simple abci app."""
+class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
+    state_id = "decision"
+    matching_round = DecisionRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
+    state_id = "transaction"
+    matching_round = TransactionRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class ConfirmationRoundBehaviour(ElCollectooorABCIBaseState):
+    state_id = "confirmation"
+    matching_round = ConfirmationRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class ReselectTransactionKeeperBehaviour(SelectKeeperBehaviour):
+    state_id = "reselect_transaction_keeper"
+    matching_round = ConfirmationRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class ReselectConfirmationKeeperBehaviour(SelectKeeperBehaviour):
+    state_id = "reselect_confirmation_keeper"
+    matching_round = ConfirmationRound
+
+    def async_act(self) -> Generator:
+        pass
+
+
+class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the El Collectooor abci app."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls = SimpleAbciApp  # type: ignore
-    behaviour_states: Set[Type[SimpleABCIBaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        RandomnessAtStartupBehaviour,  # type: ignore
-        SelectKeeperAAtStartupBehaviour,  # type: ignore
-        ResetAndPauseBehaviour,  # type: ignore
+    abci_app_cls = ElCollectooorAbciApp
+    behaviour_states: Set[Type[ElCollectooorABCIBaseState]] = {
+        TendermintHealthcheckBehaviour,  #
+        RegistrationBehaviour,
+        RandomnessAtStartupBehaviour,
+        SelectKeeperAAtStartupBehaviour,
+        ObservationRoundBehaviour,
+        DecisionRoundBehaviour,
+        TransactionRoundBehaviour,
+        ReselectTransactionKeeper,
+        ConfirmationRoundBehaviour,
+        ReselectConfirmationKeeper,
     }
 
     def setup(self) -> None:
