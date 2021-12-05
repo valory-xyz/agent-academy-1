@@ -49,7 +49,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
-    TransactionType,
+    TransactionType, ObservationPayload, DecisionPayload,
 )
 
 
@@ -60,6 +60,8 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     RESET_TIMEOUT = "reset_timeout"
+    DECIDED_YES = "decided_yes"
+    DECIDED_NO = "decided_no"
 
 
 def encode_float(value: float) -> bytes:
@@ -88,6 +90,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             most_voted_randomness: Optional[str] = None,
             participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
             most_voted_keeper_address: Optional[str] = None,
+            participant_to_project: Optional[Mapping[str, ObservationPayload]] = None,
+            most_voted_project: Optional[Dict] = None,
+
+            participant_to_decision: Optional[Mapping[str, DecisionPayload]] = None,
+            most_voted_decision: Optional[int] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -99,6 +106,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         self._most_voted_randomness = most_voted_randomness
         self._most_voted_keeper_address = most_voted_keeper_address
         self._participant_to_selection = participant_to_selection
+
+        # observation round
+        self._most_voted_project = most_voted_project
+        self._participant_to_project = participant_to_project
+
+        # decision round
+        self._most_voted_decision = most_voted_decision
+        self._participant_to_decision = participant_to_decision
 
     @property
     def keeper_randomness(self) -> float:
@@ -155,6 +170,42 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'participant_to_selection' field is None",
         )
         return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
+
+    @property
+    def participant_to_project(self) -> Mapping[str, ObservationPayload]:
+        """Get the participant_to_project."""
+        enforce(
+            self._participant_to_project is not None,
+            "'participant_to_project' field is None",
+        )
+        return cast(Mapping[str, ObservationPayload], self._participant_to_project)
+
+    @property
+    def most_voted_project(self) -> Dict:
+        """Get the participant_to_project."""
+        enforce(
+            self._most_voted_project is not None and type(self._most_voted_project) == dict,
+            "'most_voted_project' field is None, or is not a dict",
+        )
+        return self._most_voted_project
+
+    @property
+    def participant_to_decision(self):
+        """Get the participant_to_decision."""
+        enforce(
+            self._participant_to_decision is not None,
+            "'participant_to_decision' field is None",
+        )
+        return self._participant_to_decision
+
+    @property
+    def most_voted_decision(self):
+        """Get the most_voted_decision."""
+        enforce(
+            self._most_voted_decision is not None,
+            "'most_voted_decision' field is None",
+        )
+        return self._most_voted_decision
 
 
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -291,13 +342,14 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
 
 class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
     round_id = "observation"
+    payload_attribute = "project_details"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
-                participant_to_project_id=MappingProxyType(self.collection),
-                most_voted_project_id=self.most_voted_payload,  # TODO: define a "no new project found" payload
+                participant_to_project=MappingProxyType(self.collection),
+                most_voted_project=self.most_voted_payload,  # TODO: define a "no new project found" payload
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -309,6 +361,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
 
 class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
     round_id = "decision"
+    payload_attribute = "decision"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
         """Process the end of the block."""
@@ -317,7 +370,12 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
                 participant_to_decision=MappingProxyType(self.collection),
                 most_voted_decision=self.most_voted_payload,  # it can be binary at this point
             )
-            return state, Event.DONE
+
+            if self.most_voted_payload == 0:
+                return state, Event.DECIDED_NO
+
+            return state, Event.DECIDED_YES
+
         if not self.is_majority_possible(
                 self.collection, self.period_state.nb_participants
         ):
@@ -393,7 +451,8 @@ class ElCollectooorAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ObservationRound,  # TODO: consider starting over from Registration
         },
         DecisionRound: {
-            Event.DONE: TransactionRound,
+            Event.DECIDED_YES: TransactionRound,
+            Event.DECIDED_NO: ObservationRound,  # decided to not purchase
             Event.ROUND_TIMEOUT: ObservationRound,  # if the round times out we restart
             Event.NO_MAJORITY: ObservationRound,  # if the round has no majority we start from registration
         },

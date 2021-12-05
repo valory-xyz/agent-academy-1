@@ -32,13 +32,15 @@ class TransactionType(Enum):
     RANDOMNESS = "randomness"
     SELECT_KEEPER = "select_keeper"
     RESET = "reset"
+    OBSERVATION = "observation"
+    DECISION = "decision"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
         return self.value
 
 
-class BaseSimpleAbciPayload(BaseTxPayload, ABC):
+class BaseElCollectooorAbciPayload(BaseTxPayload, ABC):
     """Base class for the simple abci demo."""
 
     def __hash__(self) -> int:
@@ -46,19 +48,19 @@ class BaseSimpleAbciPayload(BaseTxPayload, ABC):
         return hash(tuple(sorted(self.data.items())))
 
 
-class RegistrationPayload(BaseSimpleAbciPayload):
+class RegistrationPayload(BaseElCollectooorAbciPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
 
 
-class RandomnessPayload(BaseSimpleAbciPayload):
+class RandomnessPayload(BaseElCollectooorAbciPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     transaction_type = TransactionType.RANDOMNESS
 
     def __init__(
-        self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
+            self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
@@ -87,7 +89,7 @@ class RandomnessPayload(BaseSimpleAbciPayload):
         return dict(round_id=self._round_id, randomness=self._randomness)
 
 
-class SelectKeeperPayload(BaseSimpleAbciPayload):
+class SelectKeeperPayload(BaseElCollectooorAbciPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
     transaction_type = TransactionType.SELECT_KEEPER
@@ -113,13 +115,13 @@ class SelectKeeperPayload(BaseSimpleAbciPayload):
         return dict(keeper=self.keeper)
 
 
-class ResetPayload(BaseSimpleAbciPayload):
+class ResetPayload(BaseElCollectooorAbciPayload):
     """Represent a transaction payload of type 'reset'."""
 
     transaction_type = TransactionType.RESET
 
     def __init__(
-        self, sender: str, period_count: int, id_: Optional[str] = None
+            self, sender: str, period_count: int, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'rest' transaction payload.
 
@@ -139,3 +141,58 @@ class ResetPayload(BaseSimpleAbciPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(period_count=self.period_count)
+
+
+class ObservationPayload(BaseElCollectooorAbciPayload):
+    transaction_type = TransactionType.OBSERVATION
+
+    """Represent a transaction payload of type 'observation'."""
+
+    def __init__(
+            self, sender: str, project_details: Dict, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'rest' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param project_id: the observed project id
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._project_details = project_details
+
+    @property
+    def project_details(self):
+        return self._project_details
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return self.project_details
+
+
+class DecisionPayload(BaseElCollectooorAbciPayload):
+    transaction_type = TransactionType.DECISION
+
+    """Represent a transaction payload of type 'observation'."""
+
+    def __init__(
+            self, sender: str, decision: int, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'rest' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param decision: the decision 0 for NO, any other value YES
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._decision = decision
+
+    @property
+    def decision(self) -> int:
+        """Get the decision."""
+        return self._decision
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(decision=self.decision)

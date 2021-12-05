@@ -17,38 +17,51 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the behaviours for the 'elcollectooor_abci' skill."""
+"""This module contains the behaviour_classes for the 'elcollectooor_abci' skill."""
 
 import datetime
 import json
 from abc import ABC
 from math import floor
-from typing import Generator, List, Optional, Set, Type, cast
+from typing import Generator, List, Optional, Set, Type, cast, Callable, Any, AbstractSet, Dict
 
+from packages.valory.connections.ledger.contract_dispatcher import ContractApiDialogues
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.protocols.contract_api.dialogues import ContractApiDialogue
+from packages.valory.skills.abstract_round_abci.base import LEDGER_API_ADDRESS, BasePeriodState
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.simple_abci.models import Params, SharedState
-from packages.valory.skills.simple_abci.payloads import (
-    RandomnessPayload,
-    RegistrationPayload,
-    ResetPayload,
-    SelectKeeperPayload,
+from packages.valory.skills.elcollectooor_abci.behaviour_classes.confirmation_round_behaviour import (
+    ConfirmationRoundBehaviour
+)
+from packages.valory.skills.elcollectooor_abci.behaviour_classes.decision_round_behavoiur import (
+    DecisionRoundBehaviour
+)
+from packages.valory.skills.elcollectooor_abci.behaviour_classes.observation_round_behaviour import (
+    ObservationRoundBehaviour
+)
+from packages.valory.skills.elcollectooor_abci.behaviour_classes.transaction_round_behaviour import (
+    TransactionRoundBehaviour
 )
 from packages.valory.skills.elcollectooor_abci.rounds import (
     PeriodState,
     RandomnessStartupRound,
     RegistrationRound,
     SelectKeeperAStartupRound,
-    ObservationRound,
-    DecisionRound,
-    TransactionRound,
     ConfirmationRound,
     ReselectTransactionKeeper,
     ReselectConfirmationKeeper,
     ElCollectooorAbciApp
+)
+from packages.valory.skills.simple_abci.models import Params, SharedState, Requests
+from packages.valory.skills.simple_abci.payloads import (
+    RandomnessPayload,
+    RegistrationPayload,
+    ResetPayload,
+    SelectKeeperPayload,
 )
 
 
@@ -69,6 +82,57 @@ benchmark_tool = BenchmarkTool()
 
 class ElCollectooorABCIBaseState(BaseState, ABC):
     """Base state behaviour for the simple abci skill."""
+
+    def _send_contract_api_request(  # pylint: disable=too-many-arguments
+            self,
+            request_callback: Callable,
+            performative: ContractApiMessage.Performative,
+            contract_address: Optional[str],
+            contract_id: str,
+            contract_callable: str,
+            **kwargs: Any,
+    ) -> Generator[Any]:
+        """
+        Request contract safe transaction hash
+
+        :param request_callback: the request callback handler
+        :param performative: the message performative
+        :param contract_address: the contract address
+        :param contract_id: the contract id
+        :param contract_callable: the callable to call on the contract
+        :param kwargs: keyword argument for the contract api request
+        """
+        contract_api_dialogues = cast(
+            ContractApiDialogues, self.context.contract_api_dialogues
+        )
+        kwargs = {
+            "performative": performative,
+            "counterparty": str(LEDGER_API_ADDRESS),
+            "ledger_id": self.context.default_ledger_id,
+            "contract_id": contract_id,
+            "callable": contract_callable,
+            "kwargs": ContractApiMessage.Kwargs(kwargs),
+        }
+
+        if contract_address is not None:
+            kwargs["contract_address"] = contract_address
+
+        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
+            **kwargs
+        )
+        contract_api_dialogue = cast(
+            ContractApiDialogue,
+            contract_api_dialogue,
+        )
+        contract_api_dialogue.terms = self._get_default_terms()
+        request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
+        cast(Requests, self.context.requests).request_id_to_callback[
+            request_nonce
+        ] = request_callback
+        self.context.outbox.put_message(message=contract_api_msg)
+
+        response = yield from self.wait_for_message()
+        return response
 
     @property
     def period_state(self) -> PeriodState:
@@ -306,38 +370,6 @@ class BaseResetBehaviour(ElCollectooorABCIBaseState):
         yield from self.send_a2a_transaction(payload)
         yield from self.wait_until_round_end()
         self.set_done()
-
-
-class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
-    state_id = "observation"
-    matching_round = ObservationRound
-
-    def async_act(self) -> Generator:
-        pass
-
-
-class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
-    state_id = "decision"
-    matching_round = DecisionRound
-
-    def async_act(self) -> Generator:
-        pass
-
-
-class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
-    state_id = "transaction"
-    matching_round = TransactionRound
-
-    def async_act(self) -> Generator:
-        pass
-
-
-class ConfirmationRoundBehaviour(ElCollectooorABCIBaseState):
-    state_id = "confirmation"
-    matching_round = ConfirmationRound
-
-    def async_act(self) -> Generator:
-        pass
 
 
 class ReselectTransactionKeeperBehaviour(SelectKeeperBehaviour):
