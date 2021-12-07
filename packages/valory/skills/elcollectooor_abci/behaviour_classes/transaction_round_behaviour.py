@@ -1,13 +1,44 @@
 from collections import Generator
 from typing import Any
 
-from packages.valory.skills.elcollectooor_abci.behaviours import ElCollectooorABCIBaseState
-from packages.valory.skills.elcollectooor_abci.rounds import TransactionRound
+from packages.valory.contracts.artblocks_periphery.contract import ArtBlocksPeripheryContract
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviour_utils import AsyncBehaviour
+from packages.valory.skills.elcollectooor_abci.behaviours import ElCollectooorABCIBaseState, benchmark_tool
+from packages.valory.skills.elcollectooor_abci.payloads import TransactionPayload
+from packages.valory.skills.elcollectooor_abci.rounds import TransactionCollectionRound, TransactionSendingRound
 
 
-class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
-    state_id = "transaction"
-    matching_round = TransactionRound
+class TransactionCollectionRoundBehaviour(ElCollectooorABCIBaseState):
+    state_id = "transaction_collection"
+    matching_round = TransactionCollectionRound
+
+    def async_act(self) -> Generator:
+        """Implement the act."""
+        with benchmark_tool.measure(
+                self,
+        ).local():
+            # fetch an active project
+            signed_tx = self._generate_tx()
+
+            payload = TransactionPayload(
+                self.context.agent_address,
+                signed_tx,
+            )
+
+            with benchmark_tool.measure(
+                    self,
+            ).consensus():
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+    def _generate_tx(self):
+        return "base64_tx"
+
+
+class TransactionSendingRoundBehaviour(ElCollectooorABCIBaseState):
+    state_id = "transaction_collection"
+    matching_round = TransactionSendingRound
 
     def __init__(self, *args: Any, **kwargs: Any):
         """Init the observing behaviour."""
@@ -29,3 +60,35 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         """Implement the act."""
+        with benchmark_tool.measure(
+                self,
+        ).local():
+            response = yield from self._send_contract_api_request(
+                request_callback=self._handle_purchase_data,
+                performative=ContractApiMessage.Performative.GET_STATE,
+                # TODO: should this transaction be made through the safe contract?
+                contract_address=self.artblocks_periphery_contract,
+                contract_id=str(ArtBlocksPeripheryContract.contract_id),
+                contract_callable="purchase_data",
+                project_id=self.period_state.most_voted_project["project_id"],
+            )
+
+        self.period_state.update(purchase_data_tx=response)
+
+        yield from self.wait_until_round_end()
+
+    def _handle_purchase_data(self, message: ContractApiMessage) -> None:
+        # TODO: should be made generic?
+        if not message.performative == ContractApiMessage.Performative.STATE:
+            raise ValueError("wrong performative")
+
+        if self.is_stopped:
+            self.context.logger.debug(
+                "dropping message as behaviour has stopped: %s", message
+            )
+        elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
+            self.try_send(message)
+        else:
+            self.context.logger.warning(
+                "could not send message to FSMBehaviour: %s", message
+            )

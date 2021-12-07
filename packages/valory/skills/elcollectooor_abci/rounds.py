@@ -42,7 +42,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
     CollectDifferentUntilAllRound,
-    CollectSameUntilThresholdRound, EventType,
+    CollectSameUntilThresholdRound, EventType, OnlyKeeperSendsRound, CollectDifferentUntilThresholdRound,
 )
 from packages.valory.skills.elcollectooor_abci.payloads import (
     RandomnessPayload,
@@ -92,9 +92,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             most_voted_keeper_address: Optional[str] = None,
             participant_to_project: Optional[Mapping[str, ObservationPayload]] = None,
             most_voted_project: Optional[Dict] = None,
-
             participant_to_decision: Optional[Mapping[str, DecisionPayload]] = None,
             most_voted_decision: Optional[int] = None,
+            txs: Optional[List[str]] = None,
+            purchase_data_tx: Optional[str] = None
+
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -114,6 +116,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         # decision round
         self._most_voted_decision = most_voted_decision
         self._participant_to_decision = participant_to_decision
+
+        # transaction collection round
+        self._txs = txs
+
+        # transaction sending round
+        self._purchase_data_tx = purchase_data_tx
 
     @property
     def keeper_randomness(self) -> float:
@@ -206,6 +214,24 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'most_voted_decision' field is None",
         )
         return self._most_voted_decision
+
+    @property
+    def txs(self):
+        """Get the most_voted_decision."""
+        enforce(
+            self._txs is not None and len(self._txs) > 0,
+            "'txs' list is undefined or empty",
+        )
+        return self._txs
+
+    @property
+    def purchase_data_tx(self):
+        """Get the purchase data tx response."""
+        enforce(
+            self._purchase_data_tx is not None,
+            "'purchase_data_tx' field is None",
+        )
+        return self._purchase_data_tx
 
 
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -383,22 +409,43 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
         return None
 
 
-class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
-    round_id = "transaction"
+class TransactionCollectionRound(CollectDifferentUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    round_id = "transaction_collection"
+    payload_attribute = "signed_tx"
+
+    def _combine_transaction(self, txs: []):
+        # TODO: add tx combining logic
+        return txs
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
         """Process the end of the block."""
-        if self.threshold_reached:
+
+        if self.collection_threshold_reached:
             state = self.period_state.update(
-                participant_to_transaction=MappingProxyType(self.collection),
-                most_voted_transaction=self.most_voted_payload,  # it can be binary at this point
+                participant_to_decision=MappingProxyType(self.collection),
+                txs=self._combine_transaction(self.collection)
             )
+
+            # TODO: consider checking the validity of the signatures before sending the transaction
+
             return state, Event.DONE
+
         if not self.is_majority_possible(
                 self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
+
+
+class TransactionSendingRound(OnlyKeeperSendsRound, ElCollectooorABCIAbstractRound):
+    round_id = "transaction_sending"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.period_state.purchase_data_tx:
+            return self.period_state, Event.DONE
+
+        return self.period_state, Event.FAILED
 
 
 class ConfirmationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
@@ -451,18 +498,22 @@ class ElCollectooorAbciApp(AbciApp[Event]):
             Event.NO_MAJORITY: ObservationRound,  # TODO: consider starting over from Registration
         },
         DecisionRound: {
-            Event.DECIDED_YES: TransactionRound,
+            Event.DECIDED_YES: TransactionCollectionRound,
             Event.DECIDED_NO: ObservationRound,  # decided to not purchase
             Event.ROUND_TIMEOUT: ObservationRound,  # if the round times out we restart
             Event.NO_MAJORITY: ObservationRound,  # if the round has no majority we start from registration
         },
-        TransactionRound: {
+        TransactionCollectionRound: {
             Event.DONE: ConfirmationRound,
             Event.ROUND_TIMEOUT: ObservationRound,
             Event.NO_MAJORITY: ReselectTransactionKeeper,
         },
+        TransactionSendingRound: {
+            Event.DONE: ConfirmationRound,
+            Event.ROUND_TIMEOUT: ObservationRound,
+        },
         ReselectTransactionKeeper: {
-            Event.DONE: TransactionRound,
+            Event.DONE: TransactionCollectionRound,
             Event.ROUND_TIMEOUT: ReselectTransactionKeeper,
             Event.NO_MAJORITY: RegistrationRound,
         },

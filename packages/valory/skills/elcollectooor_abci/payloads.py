@@ -34,6 +34,7 @@ class TransactionType(Enum):
     RESET = "reset"
     OBSERVATION = "observation"
     DECISION = "decision"
+    TRANSACTION = "transaction"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -173,7 +174,7 @@ class ObservationPayload(BaseElCollectooorAbciPayload):
 class DecisionPayload(BaseElCollectooorAbciPayload):
     transaction_type = TransactionType.DECISION
 
-    """Represent a transaction payload of type 'observation'."""
+    """Represent a transaction payload of type 'decision'."""
 
     def __init__(
             self, sender: str, decision: int, id_: Optional[str] = None
@@ -196,3 +197,31 @@ class DecisionPayload(BaseElCollectooorAbciPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(decision=self.decision)
+
+
+class TransactionPayload(BaseElCollectooorAbciPayload):
+    transaction_type = TransactionType.TRANSACTION
+
+    """Represent a transaction payload of type 'transaction'."""
+
+    def __init__(
+            self, sender: str, singed_tx: str, id_: Optional[str] = None
+    ) -> None:
+        """Initialize an 'rest' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param singed_tx: the singed_tx (base64)
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._singed_tx = singed_tx
+
+    @property
+    def signed_tx(self) -> str:
+        """Get the decision."""
+        return self._singed_tx
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(signed_tx=self.signed_tx)
