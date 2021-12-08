@@ -1,5 +1,4 @@
 from collections import Generator
-from typing import Any
 
 from packages.valory.skills.elcollectooor_abci.behaviours import ElCollectooorABCIBaseState, benchmark_tool
 from packages.valory.skills.elcollectooor_abci.payloads import DecisionPayload

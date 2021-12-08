@@ -1,9 +1,8 @@
 from collections import Generator
-from typing import Optional, Any, cast
+from typing import Any
 
 from packages.valory.contracts.artblocks_periphery.contract import ArtBlocksPeripheryContract
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviour_utils import AsyncBehaviour
 from packages.valory.skills.elcollectooor_abci.behaviours import ElCollectooorABCIBaseState, benchmark_tool
 from packages.valory.skills.elcollectooor_abci.payloads import ObservationPayload
 from packages.valory.skills.elcollectooor_abci.rounds import ObservationRound
@@ -40,7 +39,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
         ).local():
             # fetch an active project
             response = yield from self._send_contract_api_request(
-                request_callback=self._handle_active_project_id,  # TODO: can default_callback do the job?
+                request_callback=self._handle_contract_response,
                 performative=ContractApiMessage.Performative.GET_STATE,
                 contract_address=self.artblocks_periphery_contract,
                 contract_id=str(ArtBlocksPeripheryContract.contract_id),
@@ -65,20 +64,4 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
-    def _handle_active_project_id(self, message: ContractApiMessage) -> None:
-        """Callback handler for the active project id request."""
-        # TODO: maybe move it to the base class and use it as the default callback
 
-        if not message.performative == ContractApiMessage.Performative.STATE:
-            raise ValueError("wrong performative")
-
-        if self.is_stopped:
-            self.context.logger.debug(
-                "dropping message as behaviour has stopped: %s", message
-            )
-        elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
-            self.try_send(message)
-        else:
-            self.context.logger.warning(
-                "could not send message to FSMBehaviour: %s", message
-            )

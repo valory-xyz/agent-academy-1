@@ -29,6 +29,7 @@ from packages.valory.connections.ledger.contract_dispatcher import ContractApiDi
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.contract_api.dialogues import ContractApiDialogue
 from packages.valory.skills.abstract_round_abci.base import LEDGER_API_ADDRESS, BasePeriodState
+from packages.valory.skills.abstract_round_abci.behaviour_utils import AsyncBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
@@ -133,6 +134,24 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
 
         response = yield from self.wait_for_message()
         return response
+
+    def _handle_contract_response(self, message: ContractApiMessage) -> None:
+        """Callback handler for the active project id request."""
+        # TODO: maybe move it to the base class and use it as the default callback
+
+        if not message.performative == ContractApiMessage.Performative.STATE:
+            raise ValueError("wrong performative")
+
+        if self.is_stopped:
+            self.context.logger.debug(
+                "dropping message as behaviour has stopped: %s", message
+            )
+        elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
+            self.try_send(message)
+        else:
+            self.context.logger.warning(
+                "could not send message to FSMBehaviour: %s", message
+            )
 
     @property
     def period_state(self) -> PeriodState:

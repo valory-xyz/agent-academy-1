@@ -205,23 +205,23 @@ class TransactionPayload(BaseElCollectooorAbciPayload):
     """Represent a transaction payload of type 'transaction'."""
 
     def __init__(
-            self, sender: str, singed_tx: str, id_: Optional[str] = None
+            self, sender: str, purchase_data: bytes, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param singed_tx: the singed_tx (base64)
+        :param purchase_data: the necessary info to create a tx for
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._singed_tx = singed_tx
+        self._purchase_data = purchase_data
 
     @property
-    def signed_tx(self) -> str:
+    def purchase_data(self) -> bytes:
         """Get the decision."""
-        return self._singed_tx
+        return self._purchase_data
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(signed_tx=self.signed_tx)
+        return dict(purchase_data=self.purchase_data)
