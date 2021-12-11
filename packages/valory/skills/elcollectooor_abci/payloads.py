@@ -18,9 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the elcollectooor_abci app."""
+import json
 from abc import ABC
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, FrozenSet
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -159,16 +160,16 @@ class ObservationPayload(BaseElCollectooorAbciPayload):
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._project_details = project_details
+        self._project_details = json.dumps(project_details)
 
     @property
-    def project_details(self):
+    def project_details(self) -> str:
         return self._project_details
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return self.project_details
+        return dict(project_details=self.project_details)
 
 
 class DecisionPayload(BaseElCollectooorAbciPayload):
@@ -205,7 +206,7 @@ class TransactionPayload(BaseElCollectooorAbciPayload):
     """Represent a transaction payload of type 'transaction'."""
 
     def __init__(
-            self, sender: str, purchase_data: bytes, id_: Optional[str] = None
+            self, sender: str, purchase_data: str, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'rest' transaction payload.
 
@@ -217,7 +218,7 @@ class TransactionPayload(BaseElCollectooorAbciPayload):
         self._purchase_data = purchase_data
 
     @property
-    def purchase_data(self) -> bytes:
+    def purchase_data(self) -> str:
         """Get the decision."""
         return self._purchase_data
 

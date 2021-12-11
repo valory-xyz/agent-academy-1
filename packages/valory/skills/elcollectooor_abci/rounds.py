@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the simple ABCI application."""
+import json
 import struct
 from abc import ABC
 from enum import Enum
@@ -31,7 +32,7 @@ from typing import (
     Sequence,
     Tuple,
     Type,
-    cast,
+    cast, FrozenSet,
 )
 
 from aea.exceptions import enforce
@@ -91,11 +92,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
             most_voted_keeper_address: Optional[str] = None,
             participant_to_project: Optional[Mapping[str, ObservationPayload]] = None,
-            most_voted_project: Optional[Dict] = None,
+            most_voted_project: Optional[str] = None,
+            last_processed_project_id: Optional[int] = None,
             participant_to_decision: Optional[Mapping[str, DecisionPayload]] = None,
             most_voted_decision: Optional[int] = None,
             participant_to_purchase_data: Optional[Mapping[str, TransactionPayload]] = None,
-            most_voted_purchase_data: Optional[int] = None,
+            most_voted_purchase_data: Optional[str] = None,
 
     ) -> None:
         """Initialize a period state."""
@@ -112,6 +114,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         # observation round
         self._most_voted_project = most_voted_project
         self._participant_to_project = participant_to_project
+        self._last_processed_project_id = last_processed_project_id
 
         # decision round
         self._most_voted_decision = most_voted_decision
@@ -187,11 +190,11 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(Mapping[str, ObservationPayload], self._participant_to_project)
 
     @property
-    def most_voted_project(self) -> Dict:
+    def most_voted_project(self) -> str:
         """Get the participant_to_project."""
         enforce(
-            self._most_voted_project is not None and type(self._most_voted_project) == dict,
-            "'most_voted_project' field is None, or is not a dict",
+            self._most_voted_project is not None and type(self._most_voted_project) == str,
+            "'most_voted_project' field is None, or is not a FrozenSet",
         )
         return self._most_voted_project
 
@@ -349,6 +352,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            # notice that we are not resetting the last_processed_id
             state = self.period_state.update(
                 period_count=self.most_voted_payload,
                 participant_to_randomness=None,
@@ -369,15 +373,19 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
 
 
 class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    allowed_tx_type = ObservationPayload.transaction_type
     round_id = "observation"
     payload_attribute = "project_details"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            project_id = json.loads(self.most_voted_payload)["project_id"]
+
             state = self.period_state.update(
                 participant_to_project=MappingProxyType(self.collection),
                 most_voted_project=self.most_voted_payload,  # TODO: define a "no new project found" payload
+                last_processed_project_id=project_id
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -388,6 +396,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
 
 
 class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    allowed_tx_type = DecisionPayload.transaction_type
     round_id = "decision"
     payload_attribute = "decision"
 
@@ -412,6 +421,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
 
 
 class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    allowed_tx_type = TransactionPayload.transaction_type
     round_id = "transaction_collection"
     payload_attribute = "purchase_data"
 
@@ -420,7 +430,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
         if self.threshold_reached:
             state = self.period_state.update(
                 participant_to_purchase_data=MappingProxyType(self.collection),
-                most_voted_purchase_data=self.most_voted_payload,  # TODO: define a "no new project found" payload
+                most_voted_purchase_data=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -430,17 +440,16 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
         return None
 
 
-class ReselectTransactionKeeper(SelectKeeperRound):
-    round_id = "reselect_keeper_for_transaction"
+class ResetFromRegistrationRound(BaseResetRound):
+    round_id = "reset_from_registration"
 
 
-class ReselectConfirmationKeeper(SelectKeeperRound):
-    round_id = "reselect_keeper_for_confirmation"
+class ResetFromObservationRound(BaseResetRound):
+    round_id = "reset_from_observation"
 
 
 class ElCollectooorAbciApp(AbciApp[Event]):
     """El Collectooor is getting a fresh haircut."""
-
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
         RegistrationRound: {
@@ -454,25 +463,35 @@ class ElCollectooorAbciApp(AbciApp[Event]):
         },
         SelectKeeperAStartupRound: {
             Event.DONE: ObservationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RegistrationRound,  # if the round has no majority we restart
+            Event.ROUND_TIMEOUT: ResetFromRegistrationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: ResetFromRegistrationRound,  # if the round has no majority we restart
+        },
+        ResetFromRegistrationRound: {
+            Event.DONE: RegistrationRound,
+            Event.ROUND_TIMEOUT: RegistrationRound,
+            Event.NO_MAJORITY: RegistrationRound,
         },
         ObservationRound: {
             Event.DONE: DecisionRound,
-            Event.ROUND_TIMEOUT: ObservationRound,  # if the round times out we restart
-            Event.NO_MAJORITY: ObservationRound,  # TODO: consider starting over from Registration
+            Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: ResetFromObservationRound,
         },
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
-            Event.DECIDED_NO: ObservationRound,  # decided to not purchase
-            Event.ROUND_TIMEOUT: ObservationRound,  # if the round times out we restart
-            Event.NO_MAJORITY: ObservationRound,  # if the round has no majority we start from registration
+            Event.DECIDED_NO: ResetFromObservationRound,  # decided to not purchase
+            Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
+            Event.NO_MAJORITY: ResetFromObservationRound,  # if the round has no majority we start from registration
         },
         TransactionRound: {
-            Event.DONE: ObservationRound,  # TODO: add next round when it becomes available
-            Event.ROUND_TIMEOUT: ObservationRound,
-            Event.NO_MAJORITY: ObservationRound,
+            Event.DONE: ResetFromObservationRound,  # TODO: add next round when it becomes available
+            Event.ROUND_TIMEOUT: ResetFromObservationRound,
+            Event.NO_MAJORITY: ResetFromObservationRound,
         },
+        ResetFromObservationRound: {
+            Event.DONE: ObservationRound,
+            Event.ROUND_TIMEOUT: ResetFromRegistrationRound,
+            Event.NO_MAJORITY: ResetFromRegistrationRound,
+        }
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,

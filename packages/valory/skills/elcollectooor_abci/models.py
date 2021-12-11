@@ -21,6 +21,8 @@
 
 from typing import Any
 
+from aea.skills.base import Model
+
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
@@ -28,9 +30,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.elcollectooor_abci.rounds import Event, ElCollectooorAbciApp
 
-
 MARGIN = 5
-
 
 Requests = BaseRequests
 
@@ -49,7 +49,7 @@ class SharedState(BaseSharedState):
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
         ElCollectooorAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
-            self.context.params.observation_interval + MARGIN
+                self.context.params.observation_interval + MARGIN
         )
 
 
@@ -64,6 +64,7 @@ class Params(BaseParams):
         self.round_timeout_seconds = self._ensure("round_timeout_seconds", kwargs)
         self.sleep_time = self._ensure("sleep_time", kwargs)
         self.observation_interval = self._ensure("observation_interval", kwargs)
+
         super().__init__(*args, **kwargs)
 
 

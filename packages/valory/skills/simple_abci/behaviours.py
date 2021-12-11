@@ -43,14 +43,7 @@ from packages.valory.skills.simple_abci.rounds import (
     RegistrationRound,
     ResetAndPauseRound,
     SelectKeeperAStartupRound,
-    SimpleAbciApp,
-    ObservationRound,
-    DecisionRound,
-    TransactionRound,
-    ConfirmationRound,
-    ReselectTransactionKeeper,
-    ReselectConfirmationKeeper,
-    ElCollectooorAbciApp
+    SimpleAbciApp
 )
 
 
