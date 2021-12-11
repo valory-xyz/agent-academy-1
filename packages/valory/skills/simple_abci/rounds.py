@@ -42,7 +42,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
     CollectDifferentUntilAllRound,
-    CollectSameUntilThresholdRound, EventType,
+    CollectSameUntilThresholdRound,
 )
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
@@ -62,7 +62,7 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-def encode_float(value: float) -> bytes:
+def encode_float(value: float) -> bytes:  # pragma: nocover
     """Encode a float value."""
     return struct.pack("d", value)
 
@@ -80,14 +80,14 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     """
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-            self,
-            participants: Optional[AbstractSet[str]] = None,
-            period_count: Optional[int] = None,
-            period_setup_params: Optional[Dict] = None,
-            participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-            most_voted_randomness: Optional[str] = None,
-            participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-            most_voted_keeper_address: Optional[str] = None,
+        self,
+        participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
+        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
+        most_voted_randomness: Optional[str] = None,
+        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
+        most_voted_keeper_address: Optional[str] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -221,7 +221,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRoun
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -247,7 +247,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound)
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -283,7 +283,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, SimpleABCIAbstractRound):
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -306,8 +306,8 @@ class SimpleAbciApp(AbciApp[Event]):
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
             Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessStartupRound,
             # we can have some agents on either side of an epoch, so we retry
+            Event.NO_MAJORITY: RandomnessStartupRound,
         },
         SelectKeeperAStartupRound: {
             Event.DONE: ResetAndPauseRound,

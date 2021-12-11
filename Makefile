@@ -55,6 +55,11 @@ hashes:
 static:
 	mypy packages tests --disallow-untyped-defs
 
+.PHONY: test
+test:
+	pytest -rfE tests/ --cov-report=html --cov=packages/valory/skills/simple_abci --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
+	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
+
 v := $(shell pip -V | grep virtualenvs)
 
 .PHONY: new_env
