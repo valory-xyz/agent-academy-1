@@ -38,6 +38,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.elcollectooor_abci.simple_decision_model import DecisionModel
 from packages.valory.skills.elcollectooor_abci.models import Params, SharedState, Requests
 from packages.valory.skills.elcollectooor_abci.payloads import (
     RandomnessPayload,
@@ -54,7 +55,6 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     ElCollectooorAbciApp, TransactionRound, DecisionRound, ObservationRound, ResetFromRegistrationRound,
     ResetFromObservationRound
 )
-from packages.valory.skills.elcollector_abci.Simple_Decision_Model import Decision_Model
 
 
 def random_selection(elements: List[str], randomness: float) -> str:
@@ -490,9 +490,10 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
 
     def _make_decision(self, project_details: dict) -> int:
         """ Method that decides on an outcome """
-        if Decision_Model.static(project_details):
+        decision_model = DecisionModel()
+        if decision_model.static(project_details):
             self.context.logger.info(f'making decision on project with id {project_details["project_id"]}')
-            decision = Decision_Model.dynamic(project_details, ledgerapi)
+            decision = decision_model.dynamic(project_details)
         else:
             decision = 0
 
