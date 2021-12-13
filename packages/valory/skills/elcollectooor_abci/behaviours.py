@@ -54,6 +54,7 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     ElCollectooorAbciApp, TransactionRound, DecisionRound, ObservationRound, ResetFromRegistrationRound,
     ResetFromObservationRound
 )
+from packages.valory.skills.elcollector_abci.Simple_Decision_Model import Decision_Model
 
 
 def random_selection(elements: List[str], randomness: float) -> str:
@@ -488,9 +489,13 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
     def _make_decision(self, project_details: dict) -> int:
-        """ Method to that decides on an outcome """
-        self.context.logger.info(f'making decision on project with id {project_details["project_id"]}')
-        decision = 1  # TODO: add decision algorithm
+        """ Method that decides on an outcome """
+        if Decision_Model.static(project_details):
+            self.context.logger.info(f'making decision on project with id {project_details["project_id"]}')
+            decision = Decision_Model.dynamic(project_details, ledgerapi)
+        else:
+            decision = 0
+
         self.context.logger.info(f'decided {decision} for project with id {project_details["project_id"]}')
 
         return decision

@@ -122,6 +122,8 @@ class ArtBlocksContract(Contract):
         project_script = instance.functions.projectScriptByIndex(
             project_id, script_info[1] - 1
         ).call()
+        Royalty_Data=instance.functions.getRoyaltyData(project_id).call()
+
         result = {
             "artist_address": project_info[0],
             "price_per_token_in_wei": project_info[1],
@@ -132,5 +134,8 @@ class ArtBlocksContract(Contract):
             "website": project_details[3],
             "script": project_script,
             "ipfs_hash": script_info[3],
+            "invocations": project_info[2],
+            "max_invocations": project_info[3],
+            "royalty_receiver": Royalty_Data[1]
         }
         return result
