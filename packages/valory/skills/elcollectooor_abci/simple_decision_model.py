@@ -1,40 +1,58 @@
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------------------------
+#
+#   Copyright 2021 Valory AG
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# ------------------------------------------------------------------------------
+
+"""This module provides a very simple decision algorithm for NFT selection on Art Blocks."""
+
 from typing import Optional
 
 import numpy as np
-from aea.crypto.base import LedgerApi
 
 
-# API Call format unclear at this point --> Variables naively assumed
 class DecisionModel:
+    """Framework for any decision models."""
     def __init__(self):
         self.score = 0
-        self.max_score = 5
         self.project_id: Optional[int] = None
-        self.project_valid = 0
         self.threshold = 25
         self.price_threshold = 500000000000000000
         self.cancel_threshold = 10000
         self.TIOLI_threshold = 7
         self.project_done = False
-        self.tokens_of_owner: Optional[list] = None
-        self.royalties_of_project: Optional[dict] = None
 
     def static(self, project_details):
+        """First filtering of viable projects."""
         if not project_details[-1] == '0x0000000000000000000000000000000000000000':
             self.score += 1
         if not project_details[2] == '':
             self.score += 1
         if self.score >= 1:
-            self.project_valid = 1
-        return self.project_valid
+            return 1
+        return 0
 
     def dynamic(self, project_details):
+        """Automatic participation in the auction and optimal price discovery."""
         # DYNAMIC PHASE
         # format discrimination
         i = 0
         series = np.array([])
         blocks_to_go = 10000000
-        while self.project_valid == 1 and not self.project_done:
+        while not self.project_done:
             price_per_token_in_wei = project_details[1]
             progress = project_details[-2] / project_details[-3]
             series = np.append(series, (price_per_token_in_wei, progress, blocks_to_go)).reshape(-1, 3)
