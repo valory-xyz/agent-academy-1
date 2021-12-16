@@ -37,9 +37,9 @@ class DecisionModel:
 
     def static(self, project_details):
         """First filtering of viable projects."""
-        if not project_details[-1] == '0x0000000000000000000000000000000000000000':
+        if not project_details["royalty_receiver"] == '0x0000000000000000000000000000000000000000':
             self.score += 1
-        if not project_details[2] == '':
+        if not project_details["description"] == '':
             self.score += 1
         if self.score >= 1:
             return 1
@@ -53,16 +53,16 @@ class DecisionModel:
         series = np.array([])
         blocks_to_go = 10000000
         while not self.project_done:
-            price_per_token_in_wei = project_details[1]
-            progress = project_details[-2] / project_details[-3]
+            price_per_token_in_wei = project_details["price_per_token_in_wei"]
+            progress = project_details["invocations"] / project_details["max_invocations"]
             series = np.append(series, (price_per_token_in_wei, progress, blocks_to_go)).reshape(-1, 3)
 
             if i > 10:
-                avg_mints = np.mean(series[i - 10:i, 1] * project_details[-3])
+                avg_mints = np.mean(series[i - 10:i, 1] * project_details["max_invocations"])
             else:
-                avg_mints = np.mean(series[0:i, 1]) * project_details[-3]
+                avg_mints = np.mean(series[0:i, 1]) * project_details["max_invocations"]
 
-            blocks_to_go = (project_details[-3] - project_details[-2]) / (avg_mints + 0.001)
+            blocks_to_go = (project_details["max_invocations"] - project_details["invocations"]) / (avg_mints + 0.001)
             series[i, 2] = blocks_to_go
 
             if i > 20 and series[0, 0] == series[i, 0]:

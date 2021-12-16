@@ -60,6 +60,9 @@ from packages.valory.skills.elcollectooor_abci.behaviours import (
     TendermintHealthcheckBehaviour, ObservationRoundBehaviour, ResetFromRegistrationBehaviour,
     ResetFromObservationBehaviour, DecisionRoundBehaviour, TransactionRoundBehaviour,
 )
+
+from packages.valory.skills.elcollectooor_abci.simple_decision_model import DecisionModel
+
 from packages.valory.skills.elcollectooor_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
