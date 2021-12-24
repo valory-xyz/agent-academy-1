@@ -26,6 +26,7 @@ import numpy as np
 
 class DecisionModel:
     """Framework for any decision models."""
+
     def __init__(self):
         self.score = 0
         self.project_id: Optional[int] = None
@@ -47,8 +48,7 @@ class DecisionModel:
 
     def dynamic(self, project_details):
         """Automatic participation in the auction and optimal price discovery."""
-        # DYNAMIC PHASE
-        # format discrimination
+        # TODO: define get more details
         i = 0
         series = np.array([])
         blocks_to_go = 10000000

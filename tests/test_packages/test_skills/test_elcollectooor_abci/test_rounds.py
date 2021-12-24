@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
+import json
 import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
@@ -27,7 +28,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     ConsensusParams,
 )
-from packages.valory.skills.elcollectooor_abci.payloads import ObservationPayload, DecisionPayload, TransactionPayload
+from packages.valory.skills.elcollectooor_abci.payloads import ObservationPayload, DecisionPayload, TransactionPayload, \
+    DetailsPayload
 from packages.valory.skills.elcollectooor_abci.rounds import (
     ObservationRound,
     PeriodState,
@@ -35,7 +37,7 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     RandomnessStartupRound,
     RegistrationRound,
     SelectKeeperAStartupRound,
-    rotate_list, DecisionRound, TransactionRound, ResetFromRegistrationRound,
+    rotate_list, DecisionRound, TransactionRound, ResetFromRegistrationRound, DetailsRound,
 )
 
 from packages.valory.skills.simple_abci.payloads import (
@@ -542,6 +544,67 @@ class TestResetFromRegistrationRound(BaseRoundTestClass):
         assert (
                 cast(PeriodState, state).period_count
                 == cast(PeriodState, actual_next_state).period_count
+        )
+
+        assert event == Event.DONE
+
+
+class TestDetailsRound(BaseRoundTestClass):
+    """Tests for DetailsRound"""
+
+    def test_run(
+            self,
+    ) -> None:
+        """Run tests."""
+        test_details = json.dumps([{"data": "more"}])
+
+        test_round = DetailsRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            DetailsPayload(sender=participant, details=test_details)
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = self.period_state.update(
+            participant_to_details=MappingProxyType(test_round.collection),
+            most_voted_details=test_round.most_voted_payload,
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+
+        # a new period has started
+        # make sure the correct project is chosen
+        assert (
+                cast(PeriodState, state).most_voted_details == cast(PeriodState,
+                                                                          actual_next_state).most_voted_details
+        )
+
+        # make sure all the votes are as expected
+        assert all(
+            [
+                cast(PeriodState, state).participant_to_details[participant] == actual_vote
+                for (participant, actual_vote) in
+                cast(PeriodState, actual_next_state).participant_to_details.items()
+            ]
         )
 
         assert event == Event.DONE

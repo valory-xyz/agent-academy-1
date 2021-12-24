@@ -44,7 +44,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
-    SelectKeeperPayload,
+    SelectKeeperPayload, DetailsPayload,
 )
 from packages.valory.skills.elcollectooor_abci.payloads import TransactionPayload, DecisionPayload, ObservationPayload
 from packages.valory.skills.elcollectooor_abci.rounds import (
@@ -53,7 +53,7 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     RegistrationRound,
     SelectKeeperAStartupRound,
     ElCollectooorAbciApp, TransactionRound, DecisionRound, ObservationRound, ResetFromRegistrationRound,
-    ResetFromObservationRound
+    ResetFromObservationRound, DetailsRound
 )
 
 
@@ -464,6 +464,37 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
         self._retries_made = 0
 
 
+class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
+    state_id = "details"
+    matching_round = DetailsRound
+
+    def async_act(self) -> Generator:
+        with benchmark_tool.measure(
+                self,
+        ).local():
+            # fetch an active project
+            most_voted_project = json.loads(self.period_state.most_voted_project)
+            details = self._get_details(most_voted_project)
+            payload = DetailsPayload(
+                self.context.agent_address,
+                details,
+            )
+
+        with benchmark_tool.measure(
+                self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def _get_details(self, project: int):
+        # TODO: define logic
+        # TODO: make sure data is ordered correctly, certain APIs can return the same data ordered differently,
+        #  on different calls
+        return json.dumps([{}])
+
+
 class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
     state_id = "decision"
     matching_round = DecisionRound
@@ -474,7 +505,8 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
-            decision = self._make_decision(most_voted_project)
+            most_voted_details = json.loads(self.period_state.most_voted_details)
+            decision = self._make_decision(most_voted_project, most_voted_details)
             payload = DecisionPayload(
                 self.context.agent_address,
                 decision,
@@ -488,7 +520,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
 
         self.set_done()
 
-    def _make_decision(self, project_details: dict) -> int:
+    def _make_decision(self, project_details: dict, most_voted_details: [dict]) -> int:
         """ Method that decides on an outcome """
         decision_model = DecisionModel()
         if decision_model.static(project_details):

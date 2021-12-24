@@ -34,6 +34,7 @@ class TransactionType(Enum):
     SELECT_KEEPER = "select_keeper"
     RESET = "reset"
     OBSERVATION = "observation"
+    DETAILS = "details"
     DECISION = "decision"
     TRANSACTION = "transaction"
 
@@ -146,9 +147,9 @@ class ResetPayload(BaseElCollectooorAbciPayload):
 
 
 class ObservationPayload(BaseElCollectooorAbciPayload):
-    transaction_type = TransactionType.OBSERVATION
-
     """Represent a transaction payload of type 'observation'."""
+
+    transaction_type = TransactionType.OBSERVATION
 
     def __init__(
             self, sender: str, project_details: Dict, id_: Optional[str] = None
@@ -173,9 +174,9 @@ class ObservationPayload(BaseElCollectooorAbciPayload):
 
 
 class DecisionPayload(BaseElCollectooorAbciPayload):
-    transaction_type = TransactionType.DECISION
-
     """Represent a transaction payload of type 'decision'."""
+
+    transaction_type = TransactionType.DECISION
 
     def __init__(
             self, sender: str, decision: int, id_: Optional[str] = None
@@ -200,15 +201,43 @@ class DecisionPayload(BaseElCollectooorAbciPayload):
         return dict(decision=self.decision)
 
 
-class TransactionPayload(BaseElCollectooorAbciPayload):
-    transaction_type = TransactionType.TRANSACTION
+class DetailsPayload(BaseElCollectooorAbciPayload):
+    """Represent a transaction payload of type 'Details'"""
 
+    transaction_type = TransactionType.DETAILS
+
+    def __init__(
+            self, sender: str, details: str, id_: Optional[str] = None
+    ) -> None:
+        """Initialize a 'rest' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param details: the necessary info to create a tx for
+        :param id_: the id of the transaction
+        """
+        super().__init__(sender, id_)
+        self._details = details
+
+    @property
+    def details(self):
+        """Get the details"""
+        return self._details
+
+    @property
+    def data(self):
+        """Get the data"""
+        return dict(details=self.details)
+
+
+class TransactionPayload(BaseElCollectooorAbciPayload):
     """Represent a transaction payload of type 'transaction'."""
+
+    transaction_type = TransactionType.TRANSACTION
 
     def __init__(
             self, sender: str, purchase_data: str, id_: Optional[str] = None
     ) -> None:
-        """Initialize an 'rest' transaction payload.
+        """Initialize a 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param purchase_data: the necessary info to create a tx for

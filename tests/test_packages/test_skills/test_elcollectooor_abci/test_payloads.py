@@ -25,7 +25,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
-    TransactionType, ObservationPayload, DecisionPayload, TransactionPayload,
+    TransactionType, ObservationPayload, DecisionPayload, TransactionPayload, DetailsPayload,
 )
 
 
@@ -114,6 +114,21 @@ def test_decision_payload() -> None:
 
     assert str(payload.transaction_type) == str(TransactionType.DECISION)
     assert payload.transaction_type == TransactionType.DECISION
+
+
+def test_details_payload() -> None:
+    """Test `DetailsPayload`"""
+    test_data = json.dumps([{"data": "more"}])
+
+    payload = DetailsPayload(sender="sender", details=test_data, id_="id")
+
+    assert payload.details is not None
+    assert payload.id_ == "id"
+    assert payload.data == dict(details=test_data)
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.DETAILS)
+    assert payload.transaction_type == TransactionType.DETAILS
 
 
 def test_transaction_payload() -> None:

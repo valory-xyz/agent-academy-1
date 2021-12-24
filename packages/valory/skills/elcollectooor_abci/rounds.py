@@ -50,7 +50,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
-    TransactionType, ObservationPayload, DecisionPayload, TransactionPayload,
+    TransactionType, ObservationPayload, DecisionPayload, TransactionPayload, DetailsPayload,
 )
 
 
@@ -63,6 +63,7 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     DECIDED_YES = "decided_yes"
     DECIDED_NO = "decided_no"
+    GIB_DETAILS = "gib_details"  # TODO: consider renaming event
 
 
 def encode_float(value: float) -> bytes:
@@ -98,7 +99,8 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             most_voted_decision: Optional[int] = None,
             participant_to_purchase_data: Optional[Mapping[str, TransactionPayload]] = None,
             most_voted_purchase_data: Optional[str] = None,
-
+            most_voted_details: Optional[str] = None,
+            participant_to_details: Optional[Mapping[str, DetailsPayload]] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -123,6 +125,10 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         # transaction round
         self._participant_to_purchase_data = participant_to_purchase_data
         self._most_voted_purchase_data = most_voted_purchase_data
+
+        # details round
+        self._most_voted_details = most_voted_details
+        self._participant_to_details = participant_to_details
 
     @property
     def keeper_randomness(self) -> float:
@@ -233,6 +239,27 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             "'purchase_data_tx' field is None",
         )
         return self._most_voted_purchase_data
+
+    @property
+    def most_voted_details(self):
+        """Get the details"""
+        enforce(
+            self._most_voted_details is not None,
+            "'details' field is None"
+        )
+
+        return self._most_voted_details
+
+    @property
+    def participant_to_details(self):
+        """Get participant to details map"""
+
+        enforce(
+            self._participant_to_details is not None,
+            "'participant_to_details' is None"
+        )
+
+        return self._participant_to_details
 
 
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -395,6 +422,26 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
         return None
 
 
+class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    allowed_tx_type = DecisionPayload.transaction_type
+    round_id = "details"
+    payload_attribute = "details"
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                participant_to_details=MappingProxyType(self.collection),
+                most_voted_details=self.most_voted_payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
 class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
     allowed_tx_type = DecisionPayload.transaction_type
     round_id = "decision"
@@ -410,7 +457,8 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
 
             if self.most_voted_payload == 0:
                 return state, Event.DECIDED_NO
-
+            elif self.most_voted_payload == -1:
+                return state, Event.GIB_DETAILS
             return state, Event.DECIDED_YES
 
         if not self.is_majority_possible(
@@ -476,9 +524,15 @@ class ElCollectooorAbciApp(AbciApp[Event]):
             Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
             Event.NO_MAJORITY: ResetFromObservationRound,
         },
+        DetailsRound: {
+            Event.DONE: DecisionRound,
+            Event.ROUND_TIMEOUT: DecisionRound,
+            Event.NO_MAJORITY: DecisionRound,
+        },
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
             Event.DECIDED_NO: ResetFromObservationRound,  # decided to not purchase
+            Event.GIB_DETAILS: DetailsRound,  # TODO: consider renaming event
             Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
             Event.NO_MAJORITY: ResetFromObservationRound,  # if the round has no majority we start from registration
         },

@@ -1,1 +1,0 @@
-from packages.valory.skills.elcollectooor_abci import simple_decision_model
