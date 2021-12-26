@@ -58,10 +58,8 @@ from packages.valory.skills.elcollectooor_abci.behaviours import (
     SelectKeeperAAtStartupBehaviour,
     ElCollectooorAbciConsensusBehaviour,
     TendermintHealthcheckBehaviour, ObservationRoundBehaviour, ResetFromRegistrationBehaviour,
-    ResetFromObservationBehaviour, DecisionRoundBehaviour, TransactionRoundBehaviour,
+    ResetFromObservationBehaviour, DecisionRoundBehaviour, TransactionRoundBehaviour, DetailsRoundBehaviour,
 )
-
-from packages.valory.skills.elcollectooor_abci.simple_decision_model import DecisionModel
 
 from packages.valory.skills.elcollectooor_abci.handlers import (
     ContractApiHandler,
@@ -994,13 +992,12 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             # self._test_done_flag_set() # TODO: make this work
 
 
-class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
-    behaviour_class = DecisionRoundBehaviour
-    decided_yes_behaviour_class = TransactionRoundBehaviour
-    decided_no_behaviour_class = ResetFromObservationBehaviour
+class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+    behaviour_class = DetailsRoundBehaviour
+    next_behaviour_class = DecisionRoundBehaviour
 
-    def test_decided_yes(self):
-        """The agent queries the contract and gets back a project"""
+    def test_next_state_is_decision(self):
+        """The agent fetches details"""
 
         test_project = {
             "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
@@ -1011,6 +1008,70 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             "description": "",
             "website": "tylerxhobbs.com",
             "script": "too_long",
+            "royalty_receiver": "0x00000",
+            "invocations": 1,
+            "max_invocations": 10,
+            "ipfs_hash": ""
+        }
+        test_details = [{}]
+
+        self.fast_forward_to_state(
+            self.elcollectooor_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                most_voted_project=json.dumps(test_project),
+                most_voted_details=json.dumps(test_details)
+            ),
+        )
+
+        assert (
+                cast(BaseState,
+                     self.elcollectooor_abci_behaviour.current_state).state_id == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+                self.elcollectooor_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooor_abci_behaviour.act_wrapper()
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Gathering details on project with id=121.",
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Successfully gathered details on project with id=121.",
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Total length of details array 2."
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_calling_details_for_the_first_time(self):
+        """The details round is called for the first round, the details array should have a length of 1."""
+
+        """The agent fetches details"""
+
+        test_project = {
+            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
+            "price_per_token_in_wei": 1,
+            "project_id": 121,
+            "project_name": "Incomplete Control",
+            "artist": "Tyler Hobbs",
+            "description": "",
+            "website": "tylerxhobbs.com",
+            "script": "too_long",
+            "royalty_receiver": "0x00000",
+            "invocations": 1,
+            "max_invocations": 10,
             "ipfs_hash": ""
         }
 
@@ -1018,7 +1079,78 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                most_voted_project=json.dumps(test_project)
+                most_voted_project=json.dumps(test_project),
+            ),
+        )
+
+        assert (
+                cast(BaseState,
+                     self.elcollectooor_abci_behaviour.current_state).state_id == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+                self.elcollectooor_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooor_abci_behaviour.act_wrapper()
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Gathering details on project with id=121.",
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Successfully gathered details on project with id=121.",
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "The details array is empty."
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Total length of details array 1."
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+    behaviour_class = DecisionRoundBehaviour
+    decided_yes_behaviour_class = TransactionRoundBehaviour
+    decided_no_behaviour_class = ResetFromObservationBehaviour
+    gib_details_behaviour_class = DetailsRoundBehaviour
+
+    def test_decided_yes(self):
+        """The agent evaluated the project and decided for YES"""
+
+        test_project = {
+            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
+            "price_per_token_in_wei": 1,
+            "project_id": 121,
+            "project_name": "Incomplete Control",
+            "artist": "Tyler Hobbs",
+            "description": "",
+            "website": "tylerxhobbs.com",
+            "script": "too_long",
+            "royalty_receiver": "0x00000",
+            "invocations": 1,
+            "max_invocations": 10,
+            "ipfs_hash": ""
+        }
+        test_details = [{}]
+
+        self.fast_forward_to_state(
+            self.elcollectooor_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                most_voted_project=json.dumps(test_project),
+                most_voted_details=json.dumps(test_details)
             ),
         )
 
@@ -1049,7 +1181,8 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         assert state.state_id == self.decided_yes_behaviour_class.state_id
 
     def test_decided_no(self):
-        # the rest of the logic is the same as in the case when YES is decided
+        """The agent evaluated the project and decided for NO"""
+
         test_project = {
             "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
             "price_per_token_in_wei": 1,
@@ -1059,14 +1192,19 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             "description": "",
             "website": "tylerxhobbs.com",
             "script": "too_long",
+            "royalty_receiver": "0x00000",
+            "invocations": 1,
+            "max_invocations": 10,
             "ipfs_hash": ""
         }
+        test_details = [{}]
 
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                most_voted_project=json.dumps(test_project)
+                most_voted_project=json.dumps(test_project),
+                most_voted_details=json.dumps(test_details)
             ),
         )
 
@@ -1074,6 +1212,39 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
 
         assert state.state_id == self.decided_no_behaviour_class.state_id
+
+    def test_decided_gib_details(self):
+        """The agent decided it needs more data"""
+
+        test_project = {
+            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
+            "price_per_token_in_wei": 1,
+            "project_id": 121,
+            "project_name": "Incomplete Control",
+            "artist": "Tyler Hobbs",
+            "description": "",
+            "website": "tylerxhobbs.com",
+            "script": "too_long",
+            "royalty_receiver": "0x00000",
+            "invocations": 1,
+            "max_invocations": 10,
+            "ipfs_hash": ""
+        }
+        test_details = [{}]
+
+        self.fast_forward_to_state(
+            self.elcollectooor_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                most_voted_project=json.dumps(test_project),
+                most_voted_details=json.dumps(test_details)
+            ),
+        )
+
+        self.end_round(event=Event.GIB_DETAILS)
+        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+
+        assert state.state_id == self.gib_details_behaviour_class.state_id
 
 
 class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):

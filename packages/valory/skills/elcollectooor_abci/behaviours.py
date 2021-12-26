@@ -21,11 +21,12 @@
 
 import datetime
 import json
+import logging
 from abc import ABC
 from math import floor
 from typing import Generator, List, Optional, Set, Type, cast, Callable, Any
 
-from aea.exceptions import enforce
+from aea.exceptions import enforce, AEAEnforceError
 
 from packages.valory.connections.ledger.contract_dispatcher import ContractApiDialogues
 from packages.valory.contracts.artblocks_periphery.contract import ArtBlocksPeripheryContract
@@ -474,10 +475,22 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
-            details = self._get_details(most_voted_project)
+
+            try:
+                all_details = json.loads(self.period_state.most_voted_details)
+            except AEAEnforceError:
+                self.context.logger.info("The details array is empty.")
+                all_details = []
+
+            new_details = self._get_details(most_voted_project)
+
+            all_details.append(new_details)
+
+            self.context.logger.info(f"Total length of details array {len(all_details)}.")
+
             payload = DetailsPayload(
                 self.context.agent_address,
-                details,
+                json.dumps(all_details),
             )
 
         with benchmark_tool.measure(
@@ -488,11 +501,18 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
         self.set_done()
 
-    def _get_details(self, project: int):
+    def _get_details(self, project: dict) -> dict:
         # TODO: define logic
         # TODO: make sure data is ordered correctly, certain APIs can return the same data ordered differently,
         #  on different calls
-        return json.dumps([{}])
+
+        self.context.logger.info(f"Gathering details on project with id={project['project_id']}.")
+
+        new_details = {}
+
+        self.context.logger.info(f"Successfully gathered details on project with id={project['project_id']}.")
+
+        return new_details
 
 
 class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
@@ -506,6 +526,16 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
             most_voted_details = json.loads(self.period_state.most_voted_details)
+
+            enforce(
+                type(most_voted_project) == dict,
+                "most_voted_project is not dict"
+            )
+            enforce(
+                type(most_voted_details) == list,
+                "most_voted_details is not an array"
+            )
+
             decision = self._make_decision(most_voted_project, most_voted_details)
             payload = DecisionPayload(
                 self.context.agent_address,
@@ -653,6 +683,7 @@ class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
         RandomnessAtStartupBehaviour,
         SelectKeeperAAtStartupBehaviour,
         ObservationRoundBehaviour,
+        DetailsRoundBehaviour,
         DecisionRoundBehaviour,
         TransactionRoundBehaviour,
         ResetFromRegistrationBehaviour,
