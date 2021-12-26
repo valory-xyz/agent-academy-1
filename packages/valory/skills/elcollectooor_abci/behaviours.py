@@ -21,15 +21,16 @@
 
 import datetime
 import json
-import logging
 from abc import ABC
 from math import floor
-from typing import Generator, List, Optional, Set, Type, cast, Callable, Any
+from typing import Any, Callable, Generator, List, Optional, Set, Type, cast
 
-from aea.exceptions import enforce, AEAEnforceError
+from aea.exceptions import AEAEnforceError, enforce
 
 from packages.valory.connections.ledger.contract_dispatcher import ContractApiDialogues
-from packages.valory.contracts.artblocks_periphery.contract import ArtBlocksPeripheryContract
+from packages.valory.contracts.artblocks_periphery.contract import (
+    ArtBlocksPeripheryContract,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.protocols.contract_api.dialogues import ContractApiDialogue
 from packages.valory.skills.abstract_round_abci.base import LEDGER_API_ADDRESS
@@ -39,22 +40,36 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.elcollectooor_abci.simple_decision_model import DecisionModel
-from packages.valory.skills.elcollectooor_abci.models import Params, SharedState, Requests
+from packages.valory.skills.elcollectooor_abci.models import (
+    Params,
+    Requests,
+    SharedState,
+)
 from packages.valory.skills.elcollectooor_abci.payloads import (
+    DecisionPayload,
+    DetailsPayload,
+    ObservationPayload,
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
-    SelectKeeperPayload, DetailsPayload,
+    SelectKeeperPayload,
+    TransactionPayload,
 )
-from packages.valory.skills.elcollectooor_abci.payloads import TransactionPayload, DecisionPayload, ObservationPayload
 from packages.valory.skills.elcollectooor_abci.rounds import (
+    DecisionRound,
+    DetailsRound,
+    ElCollectooorAbciApp,
+    ObservationRound,
     PeriodState,
     RandomnessStartupRound,
     RegistrationRound,
+    ResetFromObservationRound,
+    ResetFromRegistrationRound,
     SelectKeeperAStartupRound,
-    ElCollectooorAbciApp, TransactionRound, DecisionRound, ObservationRound, ResetFromRegistrationRound,
-    ResetFromObservationRound, DetailsRound
+    TransactionRound,
+)
+from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
+    DecisionModel,
 )
 
 
@@ -77,13 +92,13 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
     """Base state behaviour for the simple abci skill."""
 
     def _send_contract_api_request(  # pylint: disable=too-many-arguments
-            self,
-            request_callback: Callable,
-            performative: ContractApiMessage.Performative,
-            contract_address: Optional[str],
-            contract_id: str,
-            contract_callable: str,
-            **kwargs: Any,
+        self,
+        request_callback: Callable,
+        performative: ContractApiMessage.Performative,
+        contract_address: Optional[str],
+        contract_id: str,
+        contract_callable: str,
+        **kwargs: Any,
     ) -> Generator[None, None, Any]:
         """
         Request contract safe transaction hash
@@ -94,6 +109,8 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
         :param contract_id: the contract id
         :param contract_callable: the callable to call on the contract
         :param kwargs: keyword argument for the contract api request
+        :yield: None
+        :return: the response
         """
         contract_api_dialogues = cast(
             ContractApiDialogues, self.context.contract_api_dialogues
@@ -125,6 +142,7 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
         self.context.outbox.put_message(message=contract_api_msg)
 
         response = yield from self.wait_for_message()
+
         return response
 
     def _handle_contract_response(self, message: ContractApiMessage) -> None:
@@ -223,12 +241,12 @@ class RegistrationBehaviour(ElCollectooorABCIBaseState):
         """
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             payload = RegistrationPayload(self.context.agent_address)
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -251,14 +269,14 @@ class RandomnessBehaviour(ElCollectooorABCIBaseState):
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             api_specs = self.context.randomness_api.get_spec()
             http_message, http_dialogue = self._build_http_request_message(
@@ -276,7 +294,7 @@ class RandomnessBehaviour(ElCollectooorABCIBaseState):
                 observation["randomness"],
             )
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
@@ -320,7 +338,7 @@ class SelectKeeperBehaviour(ElCollectooorABCIBaseState, ABC):
         """
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             keeper_address = random_selection(
                 sorted(self.period_state.participants),
@@ -331,7 +349,7 @@ class SelectKeeperBehaviour(ElCollectooorABCIBaseState, ABC):
             payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -411,7 +429,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.wait_until_round_end()
 
@@ -420,7 +438,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             return
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # fetch an active project
             response = yield from self._send_contract_api_request(
@@ -434,7 +452,11 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
             # response body also has project details
             project_details = response.state["body"]
-            project_id = project_details["project_id"] if "project_id" in project_details.keys() else None
+            project_id = (
+                project_details["project_id"]
+                if "project_id" in project_details.keys()
+                else None
+            )
 
         if project_id:
             self.context.logger.info(f"Retrieved project id: {project_id}.")
@@ -444,12 +466,14 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
         else:
-            self.context.logger.error("project_id couldn't be extracted from contract response")
+            self.context.logger.error(
+                "project_id couldn't be extracted from contract response"
+            )
             yield from self.sleep(self.params.sleep_time)
             self._increment_retries()
 
@@ -471,7 +495,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -486,7 +510,9 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
             all_details.append(new_details)
 
-            self.context.logger.info(f"Total length of details array {len(all_details)}.")
+            self.context.logger.info(
+                f"Total length of details array {len(all_details)}."
+            )
 
             payload = DetailsPayload(
                 self.context.agent_address,
@@ -494,7 +520,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -506,11 +532,15 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         # TODO: make sure data is ordered correctly, certain APIs can return the same data ordered differently,
         #  on different calls
 
-        self.context.logger.info(f"Gathering details on project with id={project['project_id']}.")
+        self.context.logger.info(
+            f"Gathering details on project with id={project['project_id']}."
+        )
 
         new_details = {}
 
-        self.context.logger.info(f"Successfully gathered details on project with id={project['project_id']}.")
+        self.context.logger.info(
+            f"Successfully gathered details on project with id={project['project_id']}."
+        )
 
         return new_details
 
@@ -521,19 +551,15 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
             most_voted_details = json.loads(self.period_state.most_voted_details)
 
+            enforce(type(most_voted_project) == dict, "most_voted_project is not dict")
             enforce(
-                type(most_voted_project) == dict,
-                "most_voted_project is not dict"
-            )
-            enforce(
-                type(most_voted_details) == list,
-                "most_voted_details is not an array"
+                type(most_voted_details) == list, "most_voted_details is not an array"
             )
 
             decision = self._make_decision(most_voted_project, most_voted_details)
@@ -543,7 +569,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -551,15 +577,19 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
     def _make_decision(self, project_details: dict, most_voted_details: [dict]) -> int:
-        """ Method that decides on an outcome """
+        """Method that decides on an outcome"""
         decision_model = DecisionModel()
         if decision_model.static(project_details):
-            self.context.logger.info(f'making decision on project with id {project_details["project_id"]}')
+            self.context.logger.info(
+                f'making decision on project with id {project_details["project_id"]}'
+            )
             decision = decision_model.dynamic(project_details)
         else:
             decision = 0
 
-        self.context.logger.info(f'decided {decision} for project with id {project_details["project_id"]}')
+        self.context.logger.info(
+            f'decided {decision} for project with id {project_details["project_id"]}'
+        )
 
         return decision
 
@@ -593,7 +623,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.wait_until_round_end()
 
@@ -602,13 +632,13 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             return
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             project_id = json.loads(self.period_state.most_voted_project)["project_id"]
             enforce(
                 project_id is not None,
-                "couldn't find project_id, or project_id is None"
+                "couldn't find project_id, or project_id is None",
             )
 
             response = yield from self._send_contract_api_request(
@@ -626,7 +656,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 and response.state["body"] is not None
                 and "data" in response.state["body"].keys()
                 and response.state["body"]["data"] is not None,
-                "contract returned and empty body or empty data"
+                "contract returned and empty body or empty data",
             )
             data: Optional[str] = cast(Optional[str], response.state["body"]["data"])
 
@@ -636,12 +666,14 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 data,
             )
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
         else:
-            self.context.logger.error("couldn't extract purchase_data from contract response")
+            self.context.logger.error(
+                "couldn't extract purchase_data from contract response"
+            )
             yield from self.sleep(self.params.sleep_time)
             self._increment_retries()
         self.set_done()

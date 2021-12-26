@@ -21,11 +21,15 @@
 import json
 
 from packages.valory.skills.elcollectooor_abci.payloads import (
+    DecisionPayload,
+    DetailsPayload,
+    ObservationPayload,
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
-    TransactionType, ObservationPayload, DecisionPayload, TransactionPayload, DetailsPayload,
+    TransactionPayload,
+    TransactionType,
 )
 
 
@@ -78,20 +82,22 @@ def test_reset_payload() -> None:
 def test_observation_payload() -> None:
     """Test `ObservationPayload`"""
     test_project_details = {
-        'artist_address': '0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17',
-        'price_per_token_in_wei': 1,
-        'project_id': 121,
-        'project_name': 'Incomplete Control',
-        'artist': 'Tyler Hobbs',
-        'description': '',
-        'website': 'tylerxhobbs.com',
-        'script': 'omitted due to its length',
-        'ipfs_hash': ''
+        "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
+        "price_per_token_in_wei": 1,
+        "project_id": 121,
+        "project_name": "Incomplete Control",
+        "artist": "Tyler Hobbs",
+        "description": "",
+        "website": "tylerxhobbs.com",
+        "script": "omitted due to its length",
+        "ipfs_hash": "",
     }
 
     frozen_project_details = json.dumps(test_project_details)
 
-    payload = ObservationPayload(sender="sender", project_details=test_project_details, id_="id")
+    payload = ObservationPayload(
+        sender="sender", project_details=test_project_details, id_="id"
+    )
 
     assert payload.project_details is not None
     assert payload.id_ == "id"
@@ -133,9 +139,13 @@ def test_details_payload() -> None:
 
 def test_transaction_payload() -> None:
     """Test `TransactionPayload`"""
-    test_purchase_data = '0xefef39a10000000000000000000000000000000000000000000000000000000000000079'
+    test_purchase_data = (
+        "0xefef39a10000000000000000000000000000000000000000000000000000000000000079"
+    )
 
-    payload = TransactionPayload(sender="sender", purchase_data=test_purchase_data, id_="id")
+    payload = TransactionPayload(
+        sender="sender", purchase_data=test_purchase_data, id_="id"
+    )
 
     assert payload.purchase_data is not None
     assert payload.id_ == "id"

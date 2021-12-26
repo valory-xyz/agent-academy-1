@@ -122,7 +122,7 @@ class ArtBlocksContract(Contract):
         project_script = instance.functions.projectScriptByIndex(
             project_id, script_info[1] - 1
         ).call()
-        Royalty_Data=instance.functions.getRoyaltyData(project_id).call()
+        Royalty_Data = instance.functions.getRoyaltyData(project_id).call()
 
         result = {
             "artist_address": project_info[0],
@@ -136,6 +136,6 @@ class ArtBlocksContract(Contract):
             "ipfs_hash": script_info[3],
             "invocations": project_info[2],
             "max_invocations": project_info[3],
-            "royalty_receiver": Royalty_Data[1]
+            "royalty_receiver": Royalty_Data[1],
         }
         return result

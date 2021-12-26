@@ -21,7 +21,7 @@
 import json
 from abc import ABC
 from enum import Enum
-from typing import Dict, Optional, FrozenSet
+from typing import Dict, Optional
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -63,7 +63,7 @@ class RandomnessPayload(BaseElCollectooorAbciPayload):
     transaction_type = TransactionType.RANDOMNESS
 
     def __init__(
-            self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
+        self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'select_keeper' transaction payload.
 
@@ -124,7 +124,7 @@ class ResetPayload(BaseElCollectooorAbciPayload):
     transaction_type = TransactionType.RESET
 
     def __init__(
-            self, sender: str, period_count: int, id_: Optional[str] = None
+        self, sender: str, period_count: int, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'rest' transaction payload.
 
@@ -152,12 +152,12 @@ class ObservationPayload(BaseElCollectooorAbciPayload):
     transaction_type = TransactionType.OBSERVATION
 
     def __init__(
-            self, sender: str, project_details: Dict, id_: Optional[str] = None
+        self, sender: str, project_details: Dict, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param project_id: the observed project id
+        :param project_details: the observed project id
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
@@ -178,9 +178,7 @@ class DecisionPayload(BaseElCollectooorAbciPayload):
 
     transaction_type = TransactionType.DECISION
 
-    def __init__(
-            self, sender: str, decision: int, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, decision: int, id_: Optional[str] = None) -> None:
         """Initialize an 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -206,9 +204,7 @@ class DetailsPayload(BaseElCollectooorAbciPayload):
 
     transaction_type = TransactionType.DETAILS
 
-    def __init__(
-            self, sender: str, details: str, id_: Optional[str] = None
-    ) -> None:
+    def __init__(self, sender: str, details: str, id_: Optional[str] = None) -> None:
         """Initialize a 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
@@ -235,7 +231,7 @@ class TransactionPayload(BaseElCollectooorAbciPayload):
     transaction_type = TransactionType.TRANSACTION
 
     def __init__(
-            self, sender: str, purchase_data: str, id_: Optional[str] = None
+        self, sender: str, purchase_data: str, id_: Optional[str] = None
     ) -> None:
         """Initialize a 'rest' transaction payload.
 

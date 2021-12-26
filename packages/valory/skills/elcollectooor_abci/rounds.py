@@ -32,7 +32,7 @@ from typing import (
     Sequence,
     Tuple,
     Type,
-    cast, FrozenSet,
+    cast,
 )
 
 from aea.exceptions import enforce
@@ -43,14 +43,19 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
     CollectDifferentUntilAllRound,
-    CollectSameUntilThresholdRound, EventType, OnlyKeeperSendsRound, CollectDifferentUntilThresholdRound,
+    CollectSameUntilThresholdRound,
+    EventType,
 )
 from packages.valory.skills.elcollectooor_abci.payloads import (
+    DecisionPayload,
+    DetailsPayload,
+    ObservationPayload,
     RandomnessPayload,
     RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
-    TransactionType, ObservationPayload, DecisionPayload, TransactionPayload, DetailsPayload,
+    TransactionPayload,
+    TransactionType,
 )
 
 
@@ -84,23 +89,23 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     """
 
     def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-            self,
-            participants: Optional[AbstractSet[str]] = None,
-            period_count: Optional[int] = None,
-            period_setup_params: Optional[Dict] = None,
-            participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-            most_voted_randomness: Optional[str] = None,
-            participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-            most_voted_keeper_address: Optional[str] = None,
-            participant_to_project: Optional[Mapping[str, ObservationPayload]] = None,
-            most_voted_project: Optional[str] = None,
-            last_processed_project_id: Optional[int] = None,
-            participant_to_decision: Optional[Mapping[str, DecisionPayload]] = None,
-            most_voted_decision: Optional[int] = None,
-            participant_to_purchase_data: Optional[Mapping[str, TransactionPayload]] = None,
-            most_voted_purchase_data: Optional[str] = None,
-            most_voted_details: Optional[str] = None,
-            participant_to_details: Optional[Mapping[str, DetailsPayload]] = None,
+        self,
+        participants: Optional[AbstractSet[str]] = None,
+        period_count: Optional[int] = None,
+        period_setup_params: Optional[Dict] = None,
+        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
+        most_voted_randomness: Optional[str] = None,
+        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
+        most_voted_keeper_address: Optional[str] = None,
+        participant_to_project: Optional[Mapping[str, ObservationPayload]] = None,
+        most_voted_project: Optional[str] = None,
+        last_processed_project_id: Optional[int] = None,
+        participant_to_decision: Optional[Mapping[str, DecisionPayload]] = None,
+        most_voted_decision: Optional[int] = None,
+        participant_to_purchase_data: Optional[Mapping[str, TransactionPayload]] = None,
+        most_voted_purchase_data: Optional[str] = None,
+        most_voted_details: Optional[str] = None,
+        participant_to_details: Optional[Mapping[str, DetailsPayload]] = None,
     ) -> None:
         """Initialize a period state."""
         super().__init__(
@@ -199,7 +204,8 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     def most_voted_project(self) -> str:
         """Get the participant_to_project."""
         enforce(
-            self._most_voted_project is not None and type(self._most_voted_project) == str,
+            self._most_voted_project is not None
+            and type(self._most_voted_project) == str,
             "'most_voted_project' field is None, or is not a FrozenSet",
         )
         return self._most_voted_project
@@ -243,10 +249,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def most_voted_details(self):
         """Get the details"""
-        enforce(
-            self._most_voted_details is not None,
-            "'details' field is None"
-        )
+        enforce(self._most_voted_details is not None, "'details' field is None")
 
         return self._most_voted_details
 
@@ -255,8 +258,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get participant to details map"""
 
         enforce(
-            self._participant_to_details is not None,
-            "'participant_to_details' is None"
+            self._participant_to_details is not None, "'participant_to_details' is None"
         )
 
         return self._participant_to_details
@@ -304,7 +306,9 @@ class RegistrationRound(CollectDifferentUntilAllRound, ElCollectooorABCIAbstract
         return None
 
 
-class BaseRandomnessRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class BaseRandomnessRound(
+    CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound
+):
     """
     This class represents the randomness round.
 
@@ -326,7 +330,7 @@ class BaseRandomnessRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstr
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -352,7 +356,7 @@ class SelectKeeperRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstrac
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -393,7 +397,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -412,11 +416,11 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
             state = self.period_state.update(
                 participant_to_project=MappingProxyType(self.collection),
                 most_voted_project=self.most_voted_payload,  # TODO: define a "no new project found" payload
-                last_processed_project_id=project_id
+                last_processed_project_id=project_id,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -436,7 +440,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -462,7 +466,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
             return state, Event.DECIDED_YES
 
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -482,7 +486,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -498,11 +502,10 @@ class ResetFromObservationRound(BaseResetRound):
 
 class ElCollectooorAbciApp(AbciApp[Event]):
     """El Collectooor is getting a fresh haircut."""
+
     initial_round_cls: Type[AbstractRound] = RegistrationRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {
-            Event.DONE: RandomnessStartupRound
-        },
+        RegistrationRound: {Event.DONE: RandomnessStartupRound},
         RandomnessStartupRound: {
             Event.DONE: SelectKeeperAStartupRound,
             Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
@@ -545,7 +548,7 @@ class ElCollectooorAbciApp(AbciApp[Event]):
             Event.DONE: ObservationRound,
             Event.ROUND_TIMEOUT: ResetFromRegistrationRound,
             Event.NO_MAJORITY: ResetFromRegistrationRound,
-        }
+        },
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
