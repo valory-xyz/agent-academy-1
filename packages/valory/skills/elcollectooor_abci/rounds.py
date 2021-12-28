@@ -394,6 +394,8 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
                 most_voted_project=None,
                 participant_to_decision=None,
                 most_voted_decision=None,
+                participant_to_details=None,
+                most_voted_details=None,
             )
             return state, Event.DONE
         if not self.is_majority_possible(

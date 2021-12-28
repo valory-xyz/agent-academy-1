@@ -25,6 +25,7 @@ from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
+from aea.exceptions import enforce
 
 
 class ArtBlocksContract(Contract):
@@ -84,6 +85,37 @@ class ArtBlocksContract(Contract):
         raise NotImplementedError
 
     @classmethod
+    def get_dynamic_details(
+        cls,  # pylint: disable=unused-argument
+        ledger_api: LedgerApi,
+        contract_address: str,
+        project_id: int = 0,
+    ) -> JSONLike:
+        """
+        Handler method for the 'get_dynamic_details' requests.
+
+        Implement this method in the sub class if you want
+        to handle the contract requests manually.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param project_id: the starting id of projects from which to work backwards.
+        :return: the tx  # noqa: DAR202
+        """
+        enforce(project_id > 0, "project_id must be greater than 0")
+
+        instance = cls.get_instance(ledger_api, contract_address)
+        project_info = instance.functions.projectTokenInfo(project_id).call()
+
+        result = {
+            "price_per_token_in_wei": project_info[1],
+            "invocations": project_info[2],
+            "max_invocations": project_info[3],
+        }
+
+        return result
+
+    @classmethod
     def get_active_project(
         cls,  # pylint: disable=unused-argument
         ledger_api: LedgerApi,
@@ -122,7 +154,7 @@ class ArtBlocksContract(Contract):
         project_script = instance.functions.projectScriptByIndex(
             project_id, script_info[1] - 1
         ).call()
-        Royalty_Data = instance.functions.getRoyaltyData(project_id).call()
+        royalty_data = instance.functions.getRoyaltyData(project_id).call()
 
         result = {
             "artist_address": project_info[0],
@@ -136,6 +168,6 @@ class ArtBlocksContract(Contract):
             "ipfs_hash": script_info[3],
             "invocations": project_info[2],
             "max_invocations": project_info[3],
-            "royalty_receiver": Royalty_Data[1],
+            "royalty_receiver": royalty_data[1],
         }
         return result

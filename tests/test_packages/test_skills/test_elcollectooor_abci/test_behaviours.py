@@ -39,6 +39,7 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
+from packages.valory.contracts.artblocks.contract import ArtBlocksContract
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
@@ -899,10 +900,10 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             self.elcollectooor_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_contract_api_request(
-                contract_id=str(ArtBlocksPeripheryContract.contract_id),
+                contract_id=str(ArtBlocksContract.contract_id),
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441",
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
@@ -955,10 +956,10 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             self.elcollectooor_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_contract_api_request(
-                contract_id=str(ArtBlocksPeripheryContract.contract_id),
+                contract_id=str(ArtBlocksContract.contract_id),
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441",
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
@@ -1045,6 +1046,24 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         ) as mock_logger:
             self.elcollectooor_abci_behaviour.act_wrapper()
 
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state={
+                        "body": {
+                            "price_per_token_in_wei": 123,
+                            "invocations": 2,
+                            "max_invocations": 10,
+                        }
+                    },
+                ),
+            )
+
             mock_logger.assert_any_call(
                 logging.INFO,
                 "Gathering details on project with id=121.",
@@ -1102,6 +1121,24 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             self.elcollectooor_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooor_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state={
+                        "body": {
+                            "price_per_token_in_wei": 123,
+                            "invocations": 2,
+                            "max_invocations": 10,
+                        }
+                    },
+                ),
+            )
 
             mock_logger.assert_any_call(
                 logging.INFO,

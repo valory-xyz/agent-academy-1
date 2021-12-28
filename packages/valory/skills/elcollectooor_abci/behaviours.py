@@ -28,6 +28,7 @@ from typing import Any, Callable, Generator, List, Optional, Set, Type, cast
 from aea.exceptions import AEAEnforceError, enforce
 
 from packages.valory.connections.ledger.contract_dispatcher import ContractApiDialogues
+from packages.valory.contracts.artblocks.contract import ArtBlocksContract
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
@@ -444,8 +445,8 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             response = yield from self._send_contract_api_request(
                 request_callback=self._handle_contract_response,
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address=self.artblocks_periphery_contract,
-                contract_id=str(ArtBlocksPeripheryContract.contract_id),
+                contract_address=self.artblocks_contract,
+                contract_id=str(ArtBlocksContract.contract_id),
                 contract_callable="get_active_project",
                 starting_id=self.starting_id,
             )
@@ -493,6 +494,13 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
     state_id = "details"
     matching_round = DetailsRound
 
+    def __init__(self, *args: Any, **kwargs: Any):
+        """Init the details behaviour"""
+        super().__init__(**kwargs)
+        self.artblocks_contract = kwargs.pop(
+            "artblocks_contract", "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
+        )
+
     def async_act(self) -> Generator:
         with benchmark_tool.measure(
             self,
@@ -506,7 +514,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
                 self.context.logger.info("The details array is empty.")
                 all_details = []
 
-            new_details = self._get_details(most_voted_project)
+            new_details = yield from self._get_details(most_voted_project)
 
             all_details.append(new_details)
 
@@ -528,15 +536,20 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
     def _get_details(self, project: dict) -> dict:
-        # TODO: define logic
-        # TODO: make sure data is ordered correctly, certain APIs can return the same data ordered differently,
-        #  on different calls
-
         self.context.logger.info(
             f"Gathering details on project with id={project['project_id']}."
         )
 
-        new_details = {}
+        response = yield from self._send_contract_api_request(
+            request_callback=self._handle_contract_response,
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.artblocks_contract,
+            contract_id=str(ArtBlocksContract.contract_id),
+            contract_callable="get_dynamic_details",
+            project_id=project["project_id"],
+        )
+
+        new_details = response.state["body"]
 
         self.context.logger.info(
             f"Successfully gathered details on project with id={project['project_id']}."
