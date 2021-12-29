@@ -596,7 +596,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
             self.context.logger.info(
                 f'making decision on project with id {project_details["project_id"]}'
             )
-            decision = decision_model.dynamic(project_details)
+            decision = decision_model.dynamic(most_voted_details)
         else:
             decision = 0
 

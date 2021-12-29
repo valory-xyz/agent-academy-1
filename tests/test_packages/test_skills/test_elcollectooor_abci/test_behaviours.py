@@ -1444,3 +1444,138 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
             assert state.state_id == self.behaviour_class.state_id
             # self._test_done_flag_set() # TODO: make this work
+            
+from packages.valory.skills.elcollectooor_abci.simple_decision_model import DecisionModel
+import numpy as np
+
+
+class TestDecisionModel:
+
+    def test_static_should_return_1_when_no_royalty_receiver(self):
+        """
+        Static should return 1, when there is no royalty receiver
+        """
+
+        test_project_details = {
+            "royalty_receiver": "0x0000000000000000000000000000000000000000",
+            "description": "some desc",
+        }
+        model = DecisionModel()
+        static_score = model.static(test_project_details)
+
+        assert 1 == static_score
+
+    def test_static_should_return_1_when_empty_desc_and_royalty_receiver(self):
+        """
+        Static should return 1, when the description is empty
+        """
+        test_project_details = {
+            "royalty_receiver": "0x1000000000000000000010000000000000000001",
+            "description": "",
+        }
+        model = DecisionModel()
+        static_score = model.static(test_project_details)
+        assert static_score == 1
+
+    def test_static_should_return_0_when_empty_desc_and_no_royalty_receiver(self):
+        """
+        Static should return 1 when there is no royalty receiver, and empty desc
+        """
+        test_project_details = {
+            "royalty_receiver": "0x0000000000000000000000000000000000000000",
+            "description": "",
+        }
+        model = DecisionModel()
+        static_score = model.static(test_project_details)
+        assert static_score == 0
+
+    def test_static_should_return_1_when_nonempty_desc_and_no_royalty_receiver(self):
+        """
+        Static should return 1 when there is no royalty receiver and the description is not empty.
+        """
+        test_project_details = {
+            "royalty_receiver": "0x0000000000000000000000000000000000000000",
+            "description": "Some description.",
+        }
+        model = DecisionModel()
+        static_score = model.static(test_project_details)
+        assert static_score == 1
+
+    # TODO: if you want, add more tests for static, including "negative" tests cases
+    # for example, when the input is not as expected, it's impossible for an app to be over-tested :)
+
+    # TODO: add tests for dynamic part
+    def test_dynamic_should_return_1_when_cheap_often_minted_NFT_is_observed(self):
+        """
+        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
+        """
+        project_hist = []
+        for i in range(5):
+            project_dict_example = {"price_per_token_in_wei" : 1, "invocations" : i, "max_invocations" : 10}
+            project_hist.append(project_dict_example)
+
+
+        assert model.dynamic(project_hist) == 1
+
+
+    def test_dynamic_should_return_0_when_NFT_rarely_minted_after_some_time(self):
+        """
+        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
+        """
+        project_hist = []
+        for i in range(1010):
+            project_dict_example = {"price_per_token_in_wei": 1, "invocations": 0, "max_invocations": 10}
+            project_hist.append(project_dict_example)
+
+        assert model.dynamic(project_hist) == 0
+
+    def test_dynamic_should_return_negative_1_when_data_inconclusive(self):
+        """
+        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
+        """
+        project_dict_example = [{"price_per_token_in_wei": 1, "invocations": 2, "max_invocations": 1000}]
+
+        assert model.dynamic(project_dict_example) == -1
+
+    def test_dynamic_should_return_negative_1_when_too_expensive_minted_NFT_is_observed(self):
+        """
+        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
+        """
+        project_hist = []
+        for i in range(5):
+            project_dict_example = {"price_per_token_in_wei": 1500000000000000000, "invocations": i, "max_invocations": 10}
+            project_hist.append(project_dict_example)
+
+        assert model.dynamic(project_hist) == -1
+
+    def test_dynamic_is_non_dutch(self):
+        """
+        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
+        """
+        project_hist = []
+        for i in range(102):
+            project_dict_example = {"price_per_token_in_wei": 400000000000000000, "invocations": 2*i, "max_invocations": 300}
+            project_hist.append(project_dict_example)
+        logger = logging.getLogger('DecisionModel')
+        with mock.patch.object(logger, 'debug') as mock_debug:
+            model.dynamic(project_hist)
+            mock_debug.assert_any_call(logging.DEBUG,"This is no Dutch auction.")
+
+        assert model.dynamic(project_hist) == 1
+
+    def test_dynamic_is_dutch(self):
+        """
+        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
+        """
+        project_hist = []
+        for i in range(102):
+            project_dict_example = {"price_per_token_in_wei": (1500000000000000000 if i < 101 else 1), "invocations": 2 * i,
+                                    "max_invocations": 300}
+            project_hist.append(project_dict_example)
+        logger = logging.getLogger('DecisionModel')
+        with mock.patch.object(logger, 'debug') as mock_debug:
+            model.dynamic(project_hist)
+            mock_debug.assert_any_call(logging.DEBUG, "This is a Dutch auction or something very fast.")
+
+        assert model.dynamic(project_hist) == 1
+

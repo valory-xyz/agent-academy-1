@@ -22,7 +22,9 @@
 from typing import Optional
 
 import numpy as np
-
+import pandas as pd
+import logging
+_default_logger = logging.getLogger(__name__)
 
 class DecisionModel:
     """Framework for any decision models."""
@@ -33,11 +35,14 @@ class DecisionModel:
         self.threshold = 25
         self.price_threshold = 500000000000000000
         self.cancel_threshold = 10000
-        self.TIOLI_threshold = 7
-        self.project_done = False
+        self.TIOLI_threshold = 10
+        self.dutch_threshold = 150
+        self.logger = _default_logger
 
     def static(self, project_details):
         """First filtering of viable projects."""
+        if not type(project_details) == dict:
+            return "Wrong data format of project details."
         if (
             not project_details["royalty_receiver"]
             == "0x0000000000000000000000000000000000000000"
@@ -49,48 +54,52 @@ class DecisionModel:
             return 1
         return 0
 
-    def dynamic(self, project_details):
+    def dynamic(self, most_voted_details):
         """Automatic participation in the auction and optimal price discovery."""
         # TODO: define get more details
-        i = 0
+
         series = np.array([])
-        blocks_to_go = 10000000
-        while not self.project_done:
-            price_per_token_in_wei = project_details["price_per_token_in_wei"]
-            progress = (
-                project_details["invocations"] / project_details["max_invocations"]
+        price_per_token_in_wei = most_voted_details[-1]["price_per_token_in_wei"]
+        progress = (
+            most_voted_details[-1]["invocations"] / most_voted_details[-1]["max_invocations"]
+        )
+        series = pd.DataFrame(most_voted_details).values
+
+        if series.shape[0] > 10:
+            avg_mints = np.mean(
+                series[-10 : -1, 1]
             )
-            series = np.append(
-                series, (price_per_token_in_wei, progress, blocks_to_go)
-            ).reshape(-1, 3)
+        else:
+            avg_mints = np.mean(series[:,1])
 
-            if i > 10:
-                avg_mints = np.mean(
-                    series[i - 10 : i, 1] * project_details["max_invocations"]
-                )
-            else:
-                avg_mints = np.mean(series[0:i, 1]) * project_details["max_invocations"]
+        blocks_to_go = (
+            most_voted_details[-1]["max_invocations"] - most_voted_details[-1]["invocations"]
+        ) / (avg_mints + 0.001)
 
-            blocks_to_go = (
-                project_details["max_invocations"] - project_details["invocations"]
-            ) / (avg_mints + 0.001)
-            series[i, 2] = blocks_to_go
-
-            if i > 20 and series[0, 0] == series[i, 0]:
-                # This is no Dutch auction
-                if (
-                    np.sum(np.diff(series[i - 10 : i, 2]) < 0) > self.TIOLI_threshold
-                    and price_per_token_in_wei < self.price_threshold
-                ):
-                    return 1
+        if series.shape[0] > self.dutch_threshold and series[0, 0] == series[-1, 0]:
+            logging.info("This is no Dutch auction.")
+            # Moving Average of "blocks_to_go", window = 10
+            ret = np.cumsum(np.diff(series[:,1]), dtype=float)
+            ret[10:] = ret[10:] - ret[:-10]
+            ma_blocks = ret[10 - 1:] / 10
 
             if (
-                blocks_to_go < self.threshold
+                np.sum(ma_blocks[-20:] > 0) > self.TIOLI_threshold
                 and price_per_token_in_wei < self.price_threshold
             ):
                 return 1
 
-            if i > 25 and blocks_to_go > self.cancel_threshold:
+            elif price_per_token_in_wei > self.price_threshold:
                 return 0
 
-            i += 1
+        if (
+            blocks_to_go < self.threshold + (100/most_voted_details[-1]["max_invocations"])
+            and price_per_token_in_wei < self.price_threshold
+        ):
+            logging.info("This is a Dutch auction or something very fast.")
+            return 1
+
+        if series.shape[0] > 1000 and blocks_to_go > self.cancel_threshold:
+            return 0
+
+        return -1
