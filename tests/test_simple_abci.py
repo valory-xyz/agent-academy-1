@@ -63,6 +63,8 @@ class BaseTestSimpleABCISkill(AEATestCaseMany, BaseTendermintTestClass):
 
     NB_AGENTS: int
     IS_LOCAL = True
+    USE_GRPC = False
+    EXTRA_CHECK_STRINGS = ()
     capture_log = True
     KEEPER_TIMEOUT = 10
     cli_log_options = ["-v", "DEBUG"]
@@ -95,10 +97,12 @@ class BaseTestSimpleABCISkill(AEATestCaseMany, BaseTendermintTestClass):
                 "vendor.valory.connections.abci.config.use_tendermint", True
             )
             self.set_config(
+                "vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC
+            )
+            self.set_config(
                 "vendor.valory.connections.abci.config.tendermint_config.consensus_create_empty_blocks",
                 True,
             )
-
             self.set_config(
                 "vendor.valory.connections.abci.config.port",
                 node.abci_port,
@@ -161,7 +165,9 @@ class BaseTestSimpleAbciSkillNormalExecution(BaseTestSimpleABCISkill):
 
         # check that *each* AEA prints these messages
         for process in self.processes:
-            missing_strings = self.missing_from_output(process, CHECK_STRINGS, 80)
+            missing_strings = self.missing_from_output(
+                process, CHECK_STRINGS + self.EXTRA_CHECK_STRINGS, 80
+            )
             assert (
                 missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
@@ -196,3 +202,36 @@ class TestSimpleABCIFourAgents(
     """Test that the ABCI simple_abci skill with four agents."""
 
     NB_AGENTS = 4
+
+
+class TestSimpleABCISingleAgentGrpc(
+    BaseTestSimpleAbciSkillNormalExecution,
+    BaseTendermintTestClass,
+):
+    """Test that the ABCI simple_abci skill with only one agent."""
+
+    NB_AGENTS = 1
+    USE_GRPC = True
+    EXTRA_CHECK_STRINGS = ("Starting gRPC server",)
+
+
+class TestSimpleABCITwoAgentsGrpc(
+    BaseTestSimpleAbciSkillNormalExecution,
+    BaseTendermintTestClass,
+):
+    """Test that the ABCI simple_abci skill with two agents."""
+
+    NB_AGENTS = 2
+    USE_GRPC = True
+    EXTRA_CHECK_STRINGS = ("Starting gRPC server",)
+
+
+class TestSimpleABCIFourAgentsGrpc(
+    BaseTestSimpleAbciSkillNormalExecution,
+    BaseTendermintTestClass,
+):
+    """Test that the ABCI simple_abci skill with four agents."""
+
+    NB_AGENTS = 4
+    USE_GRPC = True
+    EXTRA_CHECK_STRINGS = ("Starting gRPC server",)

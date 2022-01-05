@@ -9,7 +9,7 @@ fingerprint:
   Makefile: QmeCnSPf5rmJBp5Dj6D7wFiEUb2aWHn9ndve6zx1VVh4Au
   __init__.py: QmWustVbKTkibXp3YHaeM9VyuLHSJKQCEURpbz28MEjNNu
   check_dependencies.py: QmQAvjc4NYDg5e6RfAFs7R7UoACuVqRwCV5bX4Tfmw9reA
-  connection.py: QmUEJiXLeMPdGAQB4EZ32Z8qM4tAGXvoYm8W66FaKbtQ2e
+  connection.py: QmSvEhs8vEye26i3L9ubowJiTpJ2fPQTyYpqHBGXopVNMf
   dialogues.py: QmW9qr1Ln6QkAUX5H3H4Cb26nTDEw1mSFwQDcZ5a9ZQLBH
   gogoproto/__init__.py: QmTS3DpP33BaeUMZRHRPbpTXq3TxC8aHERY1EDwEoYukT9
   gogoproto/gogo_pb2.py: QmPJH9L58JXB66JAV7iWRmWFaB9n3PkswmHZVbA1npvhbb
@@ -25,6 +25,7 @@ fingerprint:
   scripts/genproto.py: QmSXcBiVGzjokqQrsvpBXkvSrtWDJNT15Y31cPWxHJbU4w
   tendermint/__init__.py: Qme1XNxgCxmmEZLcjYXFLAh2wxLZvtjHh9j7dBbSN3Zbni
   tendermint/abci/types_pb2.py: QmXVbazFhy63EqGzVMEfDn93tVxLqK8UXAM38JVj18T4Eh
+  tendermint/abci/types_pb2_grpc.py: QmVsggJhJHMiJcZz9k6EqAv688SMLqT1f9Usi8CKrF39mR
   tendermint/crypto/keys_pb2.py: QmWVvaZCKsJy14RV75AfDtPeyd7f9StxeaevbeAD3wgtUV
   tendermint/crypto/proof_pb2.py: QmbNwtwCeB9KsNZ2FfmSA3fSyGiAaHmwV2uVTBUzuxwu5c
   tendermint/types/params_pb2.py: QmQgoVJgLFQkZCbBbdvXKQp39bNH5jM6DBEVsYqypgMMRT
@@ -49,6 +50,7 @@ config:
     rpc_laddr: tcp://0.0.0.0:26657
     home: null
     consensus_create_empty_blocks: true
+  use_grpc: false
   use_tendermint: true
 excluded_protocols: []
 restricted_to_protocols: []
