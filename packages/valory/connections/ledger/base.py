@@ -96,7 +96,7 @@ class RequestDispatcher(ABC):
                 self.executor, func, api, message, dialogue
             )
             return response
-        except Exception as exception:  # pylint: disable=broad-except
+        except Exception as exception:  # pylint: disable=broad-except # pragma: nocover
             return self.get_error_message(exception, api, message, dialogue)
 
     def dispatch(self, envelope: Envelope) -> Task:
@@ -129,7 +129,7 @@ class RequestDispatcher(ABC):
         """
         handler = getattr(self, performative.value, None)
         if handler is None:
-            raise Exception("Performative not recognized.")
+            raise Exception("Performative not recognized.")  # pragma: nocover
         return handler
 
     @abstractmethod

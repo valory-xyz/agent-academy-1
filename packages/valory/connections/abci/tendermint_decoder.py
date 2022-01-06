@@ -20,7 +20,7 @@
 
 # isort: skip_file  # noqa
 
-from typing import Callable, Tuple, cast
+from typing import Callable, Optional, Tuple, cast
 
 from aea.exceptions import enforce
 from google.protobuf.timestamp_pb2 import Timestamp as TimestampPb
@@ -50,6 +50,7 @@ from packages.valory.protocols.abci.custom_types import (
     Header,
     LastCommitInfo,
     PartSetHeader,
+    Snapshot,
     Timestamp,
     Validator,
     ValidatorUpdates,
@@ -80,7 +81,7 @@ class _TendermintProtocolDecoder:
     @classmethod
     def process(
         cls, message: Request, dialogues: AbciDialogues, counterparty: str
-    ) -> Tuple[AbciMessage, AbciDialogue]:
+    ) -> Optional[Tuple[AbciMessage, AbciDialogue]]:
         """Process an ABCI request or response."""
         is_request = isinstance(message, Request)
         enforce(is_request, "only Request messages are allowed")
@@ -88,8 +89,28 @@ class _TendermintProtocolDecoder:
         handler: Callable[
             [Request, AbciDialogues, str], Tuple[AbciMessage, AbciDialogue]
         ] = getattr(cls, message_type, cls.no_match)
-        abci_message, abci_dialogue = handler(message, dialogues, counterparty)
-        return abci_message, abci_dialogue
+        result = handler(message, dialogues, counterparty)
+        return result
+
+    @classmethod
+    def request_echo(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
+        """
+        Decode an echo request.
+
+        :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
+        :return: the AbciMessage request.
+        """
+        echo = request.echo
+        abci_message, abci_dialogue = dialogues.create(
+            performative=AbciMessage.Performative.REQUEST_ECHO,
+            counterparty=counterparty,
+            message=echo.message,
+        )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
     def request_flush(
@@ -128,6 +149,27 @@ class _TendermintProtocolDecoder:
             version=info.version,
             block_version=info.block_version,
             p2p_version=info.p2p_version,
+        )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
+
+    @classmethod
+    def request_set_option(
+        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+    ) -> Tuple[AbciMessage, AbciDialogue]:
+        """
+        Decode a set_option request.
+
+        :param request: the request.
+        :param dialogues: the dialogues object.
+        :param counterparty: the counterparty.
+        :return: the AbciMessage request.
+        """
+        set_option = request.set_option
+        abci_message, abci_dialogue = dialogues.create(
+            performative=AbciMessage.Performative.REQUEST_SET_OPTION,
+            counterparty=counterparty,
+            option_key=set_option.key,
+            option_value=set_option.value,
         )
         return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
@@ -306,31 +348,64 @@ class _TendermintProtocolDecoder:
 
     @classmethod
     def request_list_snapshots(
-        cls, request: Request, dialogues: AbciDialogues, counterparty: str
+        cls, _request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a list_snapshots request."""
-        raise NotImplementedError
+        abci_message, abci_dialogue = dialogues.create(
+            performative=AbciMessage.Performative.REQUEST_LIST_SNAPSHOTS,
+            counterparty=counterparty,
+        )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
     def request_offer_snapshot(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a offer_snapshot request."""
-        raise NotImplementedError
+        offer_snapshot = request.offer_snapshot
+        abci_message, abci_dialogue = dialogues.create(
+            performative=AbciMessage.Performative.REQUEST_OFFER_SNAPSHOT,
+            counterparty=counterparty,
+            snapshot=Snapshot(
+                offer_snapshot.snapshot.height,
+                offer_snapshot.snapshot.format,
+                offer_snapshot.snapshot.chunks,
+                offer_snapshot.snapshot.hash,
+                offer_snapshot.snapshot.metadata,
+            ),
+            app_hash=offer_snapshot.app_hash,
+        )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
     def request_load_snapshot_chunk(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a load_snapshot_chunk request."""
-        raise NotImplementedError
+        load_snapshot_chunk = request.load_snapshot_chunk
+        abci_message, abci_dialogue = dialogues.create(
+            performative=AbciMessage.Performative.REQUEST_LOAD_SNAPSHOT_CHUNK,
+            counterparty=counterparty,
+            height=load_snapshot_chunk.height,
+            format=load_snapshot_chunk.format,
+            chunk_index=load_snapshot_chunk.chunk,
+        )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
     def request_apply_snapshot_chunk(
         cls, request: Request, dialogues: AbciDialogues, counterparty: str
     ) -> Tuple[AbciMessage, AbciDialogue]:
         """Decode a apply_snapshot_chunk request."""
-        raise NotImplementedError
+        apply_snapshot_chunk = request.apply_snapshot_chunk
+        abci_message, abci_dialogue = dialogues.create(
+            performative=AbciMessage.Performative.REQUEST_APPLY_SNAPSHOT_CHUNK,
+            counterparty=counterparty,
+            index=apply_snapshot_chunk.index,
+            chunk=apply_snapshot_chunk.chunk,
+            chunk_sender=apply_snapshot_chunk.sender,
+        )
+        return cast(AbciMessage, abci_message), cast(AbciDialogue, abci_dialogue)
 
     @classmethod
     def no_match(
