@@ -18,13 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """This module provides a very simple decision algorithm for NFT selection on Art Blocks."""
-
+import logging
 from typing import Optional
 
 import numpy as np
 import pandas as pd
-import logging
+
+
 _default_logger = logging.getLogger(__name__)
+
 
 class DecisionModel:
     """Framework for any decision models."""
@@ -58,30 +60,25 @@ class DecisionModel:
         """Automatic participation in the auction and optimal price discovery."""
         # TODO: define get more details
 
-        series = np.array([])
         price_per_token_in_wei = most_voted_details[-1]["price_per_token_in_wei"]
-        progress = (
-            most_voted_details[-1]["invocations"] / most_voted_details[-1]["max_invocations"]
-        )
         series = pd.DataFrame(most_voted_details).values
 
         if series.shape[0] > 10:
-            avg_mints = np.mean(
-                series[-10 : -1, 1]
-            )
+            avg_mints = np.mean(series[-10:-1, 1])
         else:
-            avg_mints = np.mean(series[:,1])
+            avg_mints = np.mean(series[:, 1])
 
         blocks_to_go = (
-            most_voted_details[-1]["max_invocations"] - most_voted_details[-1]["invocations"]
+            most_voted_details[-1]["max_invocations"]
+            - most_voted_details[-1]["invocations"]
         ) / (avg_mints + 0.001)
 
         if series.shape[0] > self.dutch_threshold and series[0, 0] == series[-1, 0]:
-            logging.info("This is no Dutch auction.")
+            self.logger.info("This is no Dutch auction.")
             # Moving Average of "blocks_to_go", window = 10
-            ret = np.cumsum(np.diff(series[:,1]), dtype=float)
+            ret = np.cumsum(np.diff(series[:, 1]), dtype=float)
             ret[10:] = ret[10:] - ret[:-10]
-            ma_blocks = ret[10 - 1:] / 10
+            ma_blocks = ret[10 - 1 :] / 10
 
             if (
                 np.sum(ma_blocks[-20:] > 0) > self.TIOLI_threshold
@@ -93,10 +90,11 @@ class DecisionModel:
                 return 0
 
         if (
-            blocks_to_go < self.threshold + (100/most_voted_details[-1]["max_invocations"])
+            blocks_to_go
+            < self.threshold + (100 / most_voted_details[-1]["max_invocations"])
             and price_per_token_in_wei < self.price_threshold
         ):
-            logging.info("This is a Dutch auction or something very fast.")
+            self.logger.info("This is a Dutch auction or something very fast.")
             return 1
 
         if series.shape[0] > 1000 and blocks_to_go > self.cancel_threshold:

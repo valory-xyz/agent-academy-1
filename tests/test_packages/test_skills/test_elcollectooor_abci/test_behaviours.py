@@ -51,6 +51,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     BaseTxPayload,
     OK_CODE,
+    StateDB,
     _MetaPayload,
 )
 from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
@@ -75,6 +76,9 @@ from packages.valory.skills.elcollectooor_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import Event, PeriodState
+from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
+    DecisionModel,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -100,6 +104,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
+    period_state: PeriodState
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -139,6 +144,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             cast(BaseState, cls.elcollectooor_abci_behaviour.current_state).state_id
             == cls.elcollectooor_abci_behaviour.initial_state_cls.state_id
         )
+        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
 
     def fast_forward_to_state(
         self,
@@ -406,7 +412,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(StateDB(0, dict())),
         )
         # TODO: why casting to BaseState twice?
         assert (
@@ -454,7 +460,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
@@ -488,7 +494,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
@@ -514,7 +520,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.randomness_behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
@@ -547,8 +553,13 @@ class BaseSelectKeeperBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
             behaviour=self.elcollectooor_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=PeriodState(
-                participants,
-                most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                StateDB(
+                    0,
+                    dict(
+                        participants=participants,
+                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
+                    ),
+                )
             ),
         )
         assert (
@@ -724,7 +735,7 @@ class TestRegistrationBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             RegistrationBehaviour.state_id,
-            PeriodState(),
+            PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
@@ -769,7 +780,7 @@ class TestResetFromRegistrationBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.elcollectooor_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(),
+            period_state=PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
@@ -795,7 +806,7 @@ class TestResetFromRegistrationBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.elcollectooor_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(),
+            period_state=PeriodState(StateDB(0, dict())),
         )
         self.elcollectooor_abci_behaviour.current_state.pause = False  # type: ignore
         assert (
@@ -829,7 +840,7 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.elcollectooor_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(),
+            period_state=PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
@@ -855,7 +866,7 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             behaviour=self.elcollectooor_abci_behaviour,
             state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(),
+            period_state=PeriodState(StateDB(0, dict())),
         )
         self.elcollectooor_abci_behaviour.current_state.pause = False  # type: ignore
         assert (
@@ -886,7 +897,7 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(StateDB(0, dict())),
         )
 
         assert (
@@ -942,7 +953,7 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(StateDB(0, dict())),
         )
 
         assert (
@@ -981,7 +992,7 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(),
+            PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
@@ -1031,8 +1042,13 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                most_voted_project=json.dumps(test_project),
-                most_voted_details=json.dumps(test_details),
+                StateDB(
+                    0,
+                    dict(
+                        most_voted_project=json.dumps(test_project),
+                        most_voted_details=json.dumps(test_details),
+                    ),
+                )
             ),
         )
 
@@ -1104,11 +1120,19 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             "ipfs_hash": "",
         }
 
+        test_details = []
+
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                most_voted_project=json.dumps(test_project),
+                StateDB(
+                    0,
+                    dict(
+                        most_voted_project=json.dumps(test_project),
+                        most_voted_details=json.dumps(test_details),
+                    ),
+                ),
             ),
         )
 
@@ -1150,8 +1174,6 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                 "Successfully gathered details on project with id=121.",
             )
 
-            mock_logger.assert_any_call(logging.INFO, "The details array is empty.")
-
             mock_logger.assert_any_call(
                 logging.INFO, "Total length of details array 1."
             )
@@ -1186,14 +1208,22 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             "max_invocations": 10,
             "ipfs_hash": "",
         }
-        test_details = [{}]
+        test_details = [
+            {"price_per_token_in_wei": 1, "invocations": i, "max_invocations": 10}
+            for i in range(5)
+        ]
 
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                most_voted_project=json.dumps(test_project),
-                most_voted_details=json.dumps(test_details),
+                StateDB(
+                    0,
+                    dict(
+                        most_voted_project=json.dumps(test_project),
+                        most_voted_details=json.dumps(test_details),
+                    ),
+                ),
             ),
         )
 
@@ -1207,15 +1237,15 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         ) as mock_logger:
             self.elcollectooor_abci_behaviour.act_wrapper()
 
-            mock_logger.assert_any_call(
-                logging.INFO,
-                "making decision on project with id 121",
-            )
+        mock_logger.assert_any_call(
+            logging.INFO,
+            "making decision on project with id 121",
+        )
 
-            mock_logger.assert_any_call(
-                logging.INFO,
-                "decided 1 for project with id 121",
-            )
+        mock_logger.assert_any_call(
+            logging.INFO,
+            "decided 1 for project with id 121",
+        )
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -1246,8 +1276,13 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                most_voted_project=json.dumps(test_project),
-                most_voted_details=json.dumps(test_details),
+                StateDB(
+                    0,
+                    dict(
+                        most_voted_project=json.dumps(test_project),
+                        most_voted_details=json.dumps(test_details),
+                    ),
+                ),
             ),
         )
 
@@ -1279,8 +1314,13 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
-                most_voted_project=json.dumps(test_project),
-                most_voted_details=json.dumps(test_details),
+                StateDB(
+                    0,
+                    dict(
+                        most_voted_project=json.dumps(test_project),
+                        most_voted_details=json.dumps(test_details),
+                    ),
+                ),
             ),
         )
 
@@ -1314,7 +1354,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(most_voted_project=json.dumps(test_project)),
+            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
         )
 
         assert (
@@ -1368,7 +1408,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(most_voted_project=json.dumps(test_project)),
+            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
         )
 
         assert (
@@ -1422,7 +1462,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(most_voted_project=json.dumps(test_project)),
+            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
         )
 
         assert (
@@ -1444,13 +1484,9 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
             assert state.state_id == self.behaviour_class.state_id
             # self._test_done_flag_set() # TODO: make this work
-            
-from packages.valory.skills.elcollectooor_abci.simple_decision_model import DecisionModel
-import numpy as np
 
 
 class TestDecisionModel:
-
     def test_static_should_return_1_when_no_royalty_receiver(self):
         """
         Static should return 1, when there is no royalty receiver
@@ -1509,22 +1545,32 @@ class TestDecisionModel:
         """
         Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
         """
+        model = DecisionModel()
+
         project_hist = []
         for i in range(5):
-            project_dict_example = {"price_per_token_in_wei" : 1, "invocations" : i, "max_invocations" : 10}
+            project_dict_example = {
+                "price_per_token_in_wei": 1,
+                "invocations": i,
+                "max_invocations": 10,
+            }
             project_hist.append(project_dict_example)
 
-
         assert model.dynamic(project_hist) == 1
-
 
     def test_dynamic_should_return_0_when_NFT_rarely_minted_after_some_time(self):
         """
         Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
         """
+        model = DecisionModel()
+
         project_hist = []
         for i in range(1010):
-            project_dict_example = {"price_per_token_in_wei": 1, "invocations": 0, "max_invocations": 10}
+            project_dict_example = {
+                "price_per_token_in_wei": 10 ** 19,
+                "invocations": 0,
+                "max_invocations": 9,
+            }
             project_hist.append(project_dict_example)
 
         assert model.dynamic(project_hist) == 0
@@ -1533,17 +1579,29 @@ class TestDecisionModel:
         """
         Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
         """
-        project_dict_example = [{"price_per_token_in_wei": 1, "invocations": 2, "max_invocations": 1000}]
+        model = DecisionModel()
+
+        project_dict_example = [
+            {"price_per_token_in_wei": 1, "invocations": 2, "max_invocations": 1000}
+        ]
 
         assert model.dynamic(project_dict_example) == -1
 
-    def test_dynamic_should_return_negative_1_when_too_expensive_minted_NFT_is_observed(self):
+    def test_dynamic_should_return_negative_1_when_too_expensive_minted_NFT_is_observed(
+        self,
+    ):
         """
         Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
         """
+        model = DecisionModel()
         project_hist = []
+
         for i in range(5):
-            project_dict_example = {"price_per_token_in_wei": 1500000000000000000, "invocations": i, "max_invocations": 10}
+            project_dict_example = {
+                "price_per_token_in_wei": 1500000000000000000,
+                "invocations": i,
+                "max_invocations": 10,
+            }
             project_hist.append(project_dict_example)
 
         assert model.dynamic(project_hist) == -1
@@ -1552,14 +1610,21 @@ class TestDecisionModel:
         """
         Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
         """
+        model = DecisionModel()
         project_hist = []
+
         for i in range(102):
-            project_dict_example = {"price_per_token_in_wei": 400000000000000000, "invocations": 2*i, "max_invocations": 300}
+            project_dict_example = {
+                "price_per_token_in_wei": 400000000000000000,
+                "invocations": 2 * i,
+                "max_invocations": 300,
+            }
             project_hist.append(project_dict_example)
-        logger = logging.getLogger('DecisionModel')
-        with mock.patch.object(logger, 'debug') as mock_debug:
+        logger = logging.getLogger("DecisionModel")
+
+        with mock.patch.object(logger, "debug") as mock_debug:
             model.dynamic(project_hist)
-            mock_debug.assert_any_call(logging.DEBUG,"This is no Dutch auction.")
+            mock_debug.assert_any_call(logging.DEBUG, "This is no Dutch auction.")
 
         assert model.dynamic(project_hist) == 1
 
@@ -1567,15 +1632,21 @@ class TestDecisionModel:
         """
         Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
         """
+        model = DecisionModel()
         project_hist = []
+
         for i in range(102):
-            project_dict_example = {"price_per_token_in_wei": (1500000000000000000 if i < 101 else 1), "invocations": 2 * i,
-                                    "max_invocations": 300}
+            project_dict_example = {
+                "price_per_token_in_wei": (1500000000000000000 if i < 101 else 1),
+                "invocations": 2 * i,
+                "max_invocations": 300,
+            }
             project_hist.append(project_dict_example)
-        logger = logging.getLogger('DecisionModel')
-        with mock.patch.object(logger, 'debug') as mock_debug:
+        logger = logging.getLogger("DecisionModel")
+        with mock.patch.object(logger, "debug") as mock_debug:
             model.dynamic(project_hist)
-            mock_debug.assert_any_call(logging.DEBUG, "This is a Dutch auction or something very fast.")
+            mock_debug.assert_any_call(
+                logging.DEBUG, "This is a Dutch auction or something very fast."
+            )
 
         assert model.dynamic(project_hist) == 1
-

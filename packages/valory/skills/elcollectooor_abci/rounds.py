@@ -23,19 +23,7 @@ import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import (
-    AbstractSet,
-    Dict,
-    List,
-    Mapping,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    cast,
-)
-
-from aea.exceptions import enforce
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -88,53 +76,6 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     This state is replicated by the tendermint application.
     """
 
-    def __init__(  # pylint: disable=too-many-arguments,too-many-locals
-        self,
-        participants: Optional[AbstractSet[str]] = None,
-        period_count: Optional[int] = None,
-        period_setup_params: Optional[Dict] = None,
-        participant_to_randomness: Optional[Mapping[str, RandomnessPayload]] = None,
-        most_voted_randomness: Optional[str] = None,
-        participant_to_selection: Optional[Mapping[str, SelectKeeperPayload]] = None,
-        most_voted_keeper_address: Optional[str] = None,
-        participant_to_project: Optional[Mapping[str, ObservationPayload]] = None,
-        most_voted_project: Optional[str] = None,
-        last_processed_project_id: Optional[int] = None,
-        participant_to_decision: Optional[Mapping[str, DecisionPayload]] = None,
-        most_voted_decision: Optional[int] = None,
-        participant_to_purchase_data: Optional[Mapping[str, TransactionPayload]] = None,
-        most_voted_purchase_data: Optional[str] = None,
-        most_voted_details: Optional[str] = None,
-        participant_to_details: Optional[Mapping[str, DetailsPayload]] = None,
-    ) -> None:
-        """Initialize a period state."""
-        super().__init__(
-            participants=participants,
-            period_count=period_count,
-            period_setup_params=period_setup_params,
-        )
-        self._participant_to_randomness = participant_to_randomness
-        self._most_voted_randomness = most_voted_randomness
-        self._most_voted_keeper_address = most_voted_keeper_address
-        self._participant_to_selection = participant_to_selection
-
-        # observation round
-        self._most_voted_project = most_voted_project
-        self._participant_to_project = participant_to_project
-        self._last_processed_project_id = last_processed_project_id
-
-        # decision round
-        self._most_voted_decision = most_voted_decision
-        self._participant_to_decision = participant_to_decision
-
-        # transaction round
-        self._participant_to_purchase_data = participant_to_purchase_data
-        self._most_voted_purchase_data = most_voted_purchase_data
-
-        # details round
-        self._most_voted_details = most_voted_details
-        self._participant_to_details = participant_to_details
-
     @property
     def keeper_randomness(self) -> float:
         """Get the keeper's random number [0-1]."""
@@ -158,110 +99,78 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def participant_to_randomness(self) -> Mapping[str, RandomnessPayload]:
         """Get the participant_to_randomness."""
-        enforce(
-            self._participant_to_randomness is not None,
-            "'participant_to_randomness' field is None",
+        return cast(
+            Mapping[str, RandomnessPayload],
+            self.db.get_strict("participant_to_randomness"),
         )
-        return cast(Mapping[str, RandomnessPayload], self._participant_to_randomness)
 
     @property
     def most_voted_randomness(self) -> str:
         """Get the most_voted_randomness."""
-        enforce(
-            self._most_voted_randomness is not None,
-            "'most_voted_randomness' field is None",
-        )
-        return cast(str, self._most_voted_randomness)
+        return cast(str, self.db.get_strict("most_voted_randomness"))
 
     @property
     def most_voted_keeper_address(self) -> str:
         """Get the most_voted_keeper_address."""
-        enforce(
-            self._most_voted_keeper_address is not None,
-            "'most_voted_keeper_address' field is None",
-        )
-        return cast(str, self._most_voted_keeper_address)
+        return cast(str, self.db.get_strict("most_voted_keeper_address"))
 
     @property
     def participant_to_selection(self) -> Mapping[str, SelectKeeperPayload]:
         """Get the participant_to_selection."""
-        enforce(
-            self._participant_to_selection is not None,
-            "'participant_to_selection' field is None",
+        return cast(
+            Mapping[str, SelectKeeperPayload],
+            self.db.get_strict("participant_to_selection"),
         )
-        return cast(Mapping[str, SelectKeeperPayload], self._participant_to_selection)
 
     @property
     def participant_to_project(self) -> Mapping[str, ObservationPayload]:
         """Get the participant_to_project."""
-        enforce(
-            self._participant_to_project is not None,
-            "'participant_to_project' field is None",
+        return cast(
+            Mapping[str, ObservationPayload],
+            self.db.get_strict("participant_to_project"),
         )
-        return cast(Mapping[str, ObservationPayload], self._participant_to_project)
 
     @property
     def most_voted_project(self) -> str:
         """Get the participant_to_project."""
-        enforce(
-            self._most_voted_project is not None
-            and type(self._most_voted_project) == str,
-            "'most_voted_project' field is None, or is not a FrozenSet",
-        )
-        return self._most_voted_project
+        return cast(str, self.db.get_strict("most_voted_project"))
 
     @property
-    def participant_to_decision(self):
+    def participant_to_decision(self) -> Mapping[str, DecisionPayload]:
         """Get the participant_to_decision."""
-        enforce(
-            self._participant_to_decision is not None,
-            "'participant_to_decision' field is None",
+        return cast(
+            Mapping[str, DecisionPayload], self.db.get_strict("participant_to_decision")
         )
-        return self._participant_to_decision
 
     @property
-    def most_voted_decision(self):
+    def most_voted_decision(self) -> int:
         """Get the most_voted_decision."""
-        enforce(
-            self._most_voted_decision is not None,
-            "'most_voted_decision' field is None",
-        )
-        return self._most_voted_decision
+        return cast(int, self.db.get_strict("most_voted_decision"))
 
     @property
-    def participant_to_purchase_data(self):
+    def participant_to_purchase_data(self) -> Mapping[str, TransactionPayload]:
         """Get the participant_to_decision."""
-        enforce(
-            self._participant_to_purchase_data is not None,
-            "'participant_to_decision' field is None",
+        return cast(
+            Mapping[str, TransactionPayload],
+            self.db.get_strict("participant_to_purchase_data"),
         )
-        return self._participant_to_purchase_data
 
     @property
-    def most_voted_purchase_data(self):
+    def most_voted_purchase_data(self) -> str:
         """Get the purchase data tx response."""
-        enforce(
-            self._most_voted_purchase_data is not None,
-            "'purchase_data_tx' field is None",
-        )
-        return self._most_voted_purchase_data
+        return cast(str, self.db.get_strict("most_voted_purchase_data"))
 
     @property
-    def most_voted_details(self):
+    def most_voted_details(self) -> str:
         """Get the details"""
-        enforce(self._most_voted_details is not None, "'details' field is None")
-
-        return self._most_voted_details
+        return cast(str, self.db.get_strict("most_voted_details"))
 
     @property
-    def participant_to_details(self):
+    def participant_to_details(self) -> Mapping[str, DetailsPayload]:
         """Get participant to details map"""
-
-        enforce(
-            self._participant_to_details is not None, "'participant_to_details' is None"
+        return cast(
+            Mapping[str, DetailsPayload], self.db.get_strict("participant_to_details")
         )
-
-        return self._participant_to_details
 
 
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -298,7 +207,7 @@ class RegistrationRound(CollectDifferentUntilAllRound, ElCollectooorABCIAbstract
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.collection_threshold_reached:
-            state = PeriodState(
+            state = self.period_state.update(
                 participants=self.collection,
                 period_count=self.period_state.period_count,
             )
