@@ -35,13 +35,13 @@ from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogues
+from packages.valory.connections.abci.tendermint.abci import (
+    types_pb2 as tendermint_dot_abci_dot_types__pb2,
+)
 from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Request,
     Response,
-)
-from packages.valory.connections.abci.tendermint.abci import (
-    types_pb2 as tendermint_dot_abci_dot_types__pb2,
 )
 from packages.valory.connections.abci.tendermint_decoder import (
     _TendermintProtocolDecoder,
@@ -50,6 +50,7 @@ from packages.valory.connections.abci.tendermint_encoder import (
     _TendermintProtocolEncoder,
 )
 from packages.valory.protocols.abci import AbciMessage
+
 
 PUBLIC_ID = CONNECTION_PUBLIC_ID
 
@@ -140,7 +141,7 @@ class _TendermintABCISerializer:
 
     @classmethod
     def read_messages(
-            cls, buffer: BytesIO, message_cls: Type
+        cls, buffer: BytesIO, message_cls: Type
     ) -> Generator[Request, None, None]:
         """
         Return an iterator over the messages found in the `reader` buffer.
@@ -168,7 +169,7 @@ class _TendermintABCISerializer:
 
 class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
     def __init__(
-            self, request_queue: asyncio.Queue, dialogues: AbciDialogues, target_skill: str
+        self, request_queue: asyncio.Queue, dialogues: AbciDialogues, target_skill: str
     ):
         """
         Initializes the abci handler.
@@ -493,7 +494,9 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.list_snapshots
 
     async def LoadSnapshotChunk(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(load_snapshot_chunk=request)
+        request = tendermint_dot_abci_dot_types__pb2.Request(
+            load_snapshot_chunk=request
+        )
         request, message = _TendermintProtocolDecoder.request_load_snapshot_chunk(
             request, self._dialogues, self._target_skill
         )
@@ -515,7 +518,9 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.load_snapshot_chunk
 
     async def ApplySnapshotChunk(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(apply_snapshot_chunk=request)
+        request = tendermint_dot_abci_dot_types__pb2.Request(
+            apply_snapshot_chunk=request
+        )
         request, message = _TendermintProtocolDecoder.request_apply_snapshot_chunk(
             request, self._dialogues, self._target_skill
         )
@@ -541,14 +546,14 @@ class GrpcServerChannel:  # pylint: disable=too-many-instance-attributes
     """gRPC server channel to handle incoming communication from the Tendermint node."""
 
     def __init__(
-            self,
-            target_skill_id: PublicId,
-            address: str,
-            port: int,
-            logger: Optional[Logger] = None,
+        self,
+        target_skill_id: PublicId,
+        address: str,
+        port: int,
+        logger: Optional[Logger] = None,
     ):
         """
-        Initialize the TCP server.
+        Initialize the gRPC server.
         :param target_skill_id: the public id of the target skill.
         :param address: the listen address.
         :param port: the port to listen from.
@@ -588,7 +593,7 @@ class GrpcServerChannel:  # pylint: disable=too-many-instance-attributes
     async def connect(self, loop: AbstractEventLoop) -> None:
         """
         Connect.
-        Upon TCP Channel connection, start the TCP Server asynchronously.
+        Start the gRPC Server asynchronously.
         :param loop: asyncio event loop
         """
         if not self._is_stopped:  # pragma: nocover
@@ -622,11 +627,11 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
     """TCP server channel to handle incoming communication from the Tendermint node."""
 
     def __init__(
-            self,
-            target_skill_id: PublicId,
-            address: str,
-            port: int,
-            logger: Optional[Logger] = None,
+        self,
+        target_skill_id: PublicId,
+        address: str,
+        port: int,
+        logger: Optional[Logger] = None,
     ):
         """
         Initialize the TCP server.
@@ -696,7 +701,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self._request_id_to_socket = {}
 
     async def receive_messages(
-            self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
         """Receive incoming messages."""
         self.logger = cast(Logger, self.logger)
@@ -736,9 +741,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                 try:
                     message = next(message_iterator, sentinel)
                 except (
-                        DecodeVarintError,
-                        ShortBufferLengthError,
-                        DecodeError,
+                    DecodeVarintError,
+                    ShortBufferLengthError,
+                    DecodeError,
                 ) as e:  # pragma: nocover
                     self.logger.error(
                         f"an error occurred while reading a message: "
@@ -802,14 +807,14 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     """Tendermint node parameters."""
 
     def __init__(  # pylint: disable=too-many-arguments
-            self,
-            proxy_app: str,
-            rpc_laddr: str,
-            p2p_laddr: str,
-            p2p_seeds: List[str],
-            consensus_create_empty_blocks: bool,
-            home: Optional[str] = None,
-            use_grpc: bool = False,
+        self,
+        proxy_app: str,
+        rpc_laddr: str,
+        p2p_laddr: str,
+        p2p_seeds: List[str],
+        consensus_create_empty_blocks: bool,
+        home: Optional[str] = None,
+        use_grpc: bool = False,
     ):
         """
         Initialize the parameters to the Tendermint node.
@@ -958,7 +963,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         )
 
         if (
-                self.host is None or self.port is None or target_skill_id_string is None
+            self.host is None or self.port is None or target_skill_id_string is None
         ):  # pragma: no cover
             raise ValueError("host and port and target_skill_id must be set!")
         target_skill_id = PublicId.try_from_str(target_skill_id_string)
@@ -1005,7 +1010,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             p2p_seeds,
             consensus_create_empty_blocks,
             home,
-            self.use_grpc
+            self.use_grpc,
         )
         self.logger.debug(f"Tendermint parameters: {self.params}")
         self.node = TendermintNode(self.params, self.logger)
