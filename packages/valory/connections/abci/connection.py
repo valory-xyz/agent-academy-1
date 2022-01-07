@@ -24,20 +24,16 @@ import subprocess  # nosec
 from asyncio import AbstractEventLoop, AbstractServer, CancelledError, Task
 from io import BytesIO
 from logging import Logger
-from typing import Any, Dict, List, Optional, Tuple, Type, cast
+from typing import Any, Dict, Generator, List, Optional, Tuple, Type, cast
 
-import grpc
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
 from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
+from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogues
-from packages.valory.connections.abci.tendermint.abci import (
-    types_pb2 as tendermint_dot_abci_dot_types__pb2,
-)
-from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (  # type: ignore
     Request,
     Response,
@@ -53,9 +49,22 @@ from packages.valory.protocols.abci import AbciMessage
 
 PUBLIC_ID = CONNECTION_PUBLIC_ID
 
-DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
+LOCALHOST = "127.0.0.1"
 DEFAULT_ABCI_PORT = 26658
+DEFAULT_P2P_PORT = 26656
+DEFAULT_RPC_PORT = 26657
+DEFAULT_LISTEN_ADDRESS = "0.0.0.0"  # nosec
+DEFAULT_P2P_LISTEN_ADDRESS = f"tcp://{DEFAULT_LISTEN_ADDRESS}:{DEFAULT_P2P_PORT}"
+DEFAULT_RPC_LISTEN_ADDRESS = f"tcp://{LOCALHOST}:{DEFAULT_RPC_PORT}"
 MAX_READ_IN_BYTES = 64 * 1024  # Max we'll consume on a read stream
+
+
+class DecodeVarintError(Exception):
+    """This exception is raised when an error occurs while decoding a varint."""
+
+
+class ShortBufferLengthError(Exception):
+    """This exception is raised when the buffer length is shorter than expected."""
 
 
 class _TendermintABCISerializer:
@@ -79,23 +88,40 @@ class _TendermintABCISerializer:
 
     @classmethod
     def decode_varint(cls, buffer: BytesIO) -> int:
-        """Decode a number from its varint coding."""
+        """
+        Decode a number from its varint coding.
+
+        :param buffer: the buffer to read from.
+        :return: the decoded int.
+
+        :raise: DecodeVarintError if the varint could not be decoded.
+        """
         shift = 0
         result = 0
-        while True:
-            i = cls._read_one(buffer)
-            result |= (i & 0x7F) << shift
+        success = False
+        byte = cls._read_one(buffer)
+        while byte is not None:
+            result |= (byte & 0x7F) << shift
             shift += 7
-            if not i & 0x80:
+            if not byte & 0x80:
+                success = True
                 break
-        return result
+            byte = cls._read_one(buffer)
+        if not success:
+            raise DecodeVarintError("could not decode varint")
+        return result >> 1
 
     @classmethod
-    def _read_one(cls, buffer: BytesIO) -> int:
-        """Read one byte to decode a varint."""
+    def _read_one(cls, buffer: BytesIO) -> Optional[int]:
+        """
+        Read one byte to decode a varint.
+
+        :param buffer: the buffer to read from.
+        :return: the next character, or None if EOF is reached.
+        """
         character = buffer.read(1)
         if character == b"":
-            raise EOFError("Unexpected EOF while reading bytes")
+            return None
         return ord(character)
 
     @classmethod
@@ -109,338 +135,31 @@ class _TendermintABCISerializer:
         return buffer.getvalue()
 
     @classmethod
-    def read_messages(cls, buffer: BytesIO, message_cls: Type) -> Request:
-        """Return an iterator over the messages found in the `reader` buffer."""
-        while True:
-            try:
-                length = cls.decode_varint(buffer) >> 1
-            except EOFError:
-                return
+    def read_messages(
+        cls, buffer: BytesIO, message_cls: Type
+    ) -> Generator[Request, None, None]:
+        """
+        Return an iterator over the messages found in the `reader` buffer.
+
+        :param: buffer: the buffer to read messages from.
+        :param: message_cls: the message class to instantiate.
+        :yield: a new message.
+
+        :raise: DecodeVarintError if the varint cannot be decoded correctly.
+        :raise: ShortBufferLengthError if the buffer length is shorter than expected.
+        :raise: google.protobuf.message.DecodeError if the Protobuf decoding fails.
+        """
+        total_length = buffer.getbuffer().nbytes
+        while buffer.tell() < total_length:
+            length = cls.decode_varint(buffer)
             data = buffer.read(length)
             if len(data) < length:
-                return  # pragma: nocover
+                raise ShortBufferLengthError(
+                    f"expected buffer of length {length}, got {len(data)}"
+                )
             message = message_cls()
             message.ParseFromString(data)
-
             yield message
-
-
-class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
-    def __init__(
-        self, request_queue: asyncio.Queue, dialogues: AbciDialogues, target_skill: str
-    ):
-        """
-        Initializes the abci handler.
-
-        :param request_queue: queue holding translated abci messages.
-        :param dialogues: dialogues
-        :param target_skill: target skill of messages
-        """
-        super().__init__()
-        self._request_queue = request_queue
-        self._dialogues = dialogues
-        self._target_skill = target_skill
-        self._response_queues = {
-            AbciMessage.Performative.RESPONSE_FLUSH: asyncio.Queue(),
-            AbciMessage.Performative.RESPONSE_INFO: asyncio.Queue(),
-            AbciMessage.Performative.RESPONSE_DELIVER_TX: asyncio.Queue(),
-            AbciMessage.Performative.RESPONSE_CHECK_TX: asyncio.Queue(),
-            AbciMessage.Performative.RESPONSE_QUERY: asyncio.Queue(),
-            AbciMessage.Performative.RESPONSE_COMMIT: asyncio.Queue(),
-            AbciMessage.Performative.RESPONSE_INIT_CHAIN: asyncio.Queue(),
-            AbciMessage.Performative.RESPONSE_BEGIN_BLOCK: asyncio.Queue(),
-            AbciMessage.Performative.RESPONSE_END_BLOCK: asyncio.Queue(),
-        }
-
-    async def send(self, envelope: Envelope):
-        message = cast(AbciMessage, envelope.message)
-        dialogue = self._dialogues.update(message)
-        if dialogue is None:
-            return
-
-        await self._response_queues[message.performative].put(envelope)
-
-    def Echo(self, request, context):
-        context.set_code(grpc.StatusCode.OK)
-        response = tendermint_dot_abci_dot_types__pb2.ResponseEcho()
-        response.message = request.message
-
-        return response
-
-    async def Flush(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(flush=request)
-        request, message = _TendermintProtocolDecoder.request_flush(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        _ = await self._response_queues[AbciMessage.Performative.RESPONSE_FLUSH].get()
-
-        context.set_code(grpc.StatusCode.OK)
-        response = tendermint_dot_abci_dot_types__pb2.ResponseFlush()
-
-        return response
-
-    async def Info(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(info=request)
-        request, message = _TendermintProtocolDecoder.request_info(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        message = cast(
-            AbciMessage,
-            (
-                await self._response_queues[
-                    AbciMessage.Performative.RESPONSE_INFO
-                ].get()
-            ).message,
-        )
-
-        response = _TendermintProtocolEncoder.response_info(message)
-        context.set_code(grpc.StatusCode.OK)
-
-        return response.info
-
-    async def DeliverTx(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(deliver_tx=request)
-        request, message = _TendermintProtocolDecoder.request_deliver_tx(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        message = cast(
-            AbciMessage,
-            (
-                await self._response_queues[
-                    AbciMessage.Performative.RESPONSE_DELIVER_TX
-                ].get()
-            ).message,
-        )
-
-        response = _TendermintProtocolEncoder.response_deliver_tx(message)
-        context.set_code(grpc.StatusCode.OK)
-
-        return response.deliver_tx
-
-    async def CheckTx(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(check_tx=request)
-        request, message = _TendermintProtocolDecoder.request_check_tx(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        message = cast(
-            AbciMessage,
-            (
-                await self._response_queues[
-                    AbciMessage.Performative.RESPONSE_CHECK_TX
-                ].get()
-            ).message,
-        )
-
-        response = _TendermintProtocolEncoder.response_check_tx(message)
-        context.set_code(grpc.StatusCode.OK)
-
-        return response.check_tx
-
-    async def Query(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(query=request)
-        request, message = _TendermintProtocolDecoder.request_query(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        message = cast(
-            AbciMessage,
-            (
-                await self._response_queues[
-                    AbciMessage.Performative.RESPONSE_QUERY
-                ].get()
-            ).message,
-        )
-
-        response = _TendermintProtocolEncoder.response_query(message)
-        context.set_code(grpc.StatusCode.OK)
-
-        return response.query
-
-    async def Commit(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(commit=request)
-        request, message = _TendermintProtocolDecoder.request_commit(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        message = cast(
-            AbciMessage,
-            (
-                await self._response_queues[
-                    AbciMessage.Performative.RESPONSE_COMMIT
-                ].get()
-            ).message,
-        )
-
-        response = _TendermintProtocolEncoder.response_commit(message)
-        context.set_code(grpc.StatusCode.OK)
-
-        return response.commit
-
-    async def InitChain(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(init_chain=request)
-        request, message = _TendermintProtocolDecoder.request_init_chain(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        message = cast(
-            AbciMessage,
-            (
-                await self._response_queues[
-                    AbciMessage.Performative.RESPONSE_INIT_CHAIN
-                ].get()
-            ).message,
-        )
-
-        response = _TendermintProtocolEncoder.response_init_chain(message)
-        context.set_code(grpc.StatusCode.OK)
-
-        return response.init_chain
-
-    async def BeginBlock(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(begin_block=request)
-        request, message = _TendermintProtocolDecoder.request_begin_block(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        message = cast(
-            AbciMessage,
-            (
-                await self._response_queues[
-                    AbciMessage.Performative.RESPONSE_BEGIN_BLOCK
-                ].get()
-            ).message,
-        )
-
-        response = _TendermintProtocolEncoder.response_begin_block(message)
-        context.set_code(grpc.StatusCode.OK)
-
-        return response.begin_block
-
-    async def EndBlock(self, request, context):
-        request = tendermint_dot_abci_dot_types__pb2.Request(end_block=request)
-        request, message = _TendermintProtocolDecoder.request_end_block(
-            request, self._dialogues, self._target_skill
-        )
-        envelope = Envelope(to=request.to, sender=request.sender, message=request)
-
-        await self._request_queue.put(envelope)
-        message = cast(
-            AbciMessage,
-            (
-                await self._response_queues[
-                    AbciMessage.Performative.RESPONSE_END_BLOCK
-                ].get()
-            ).message,
-        )
-
-        response = _TendermintProtocolEncoder.response_end_block(message)
-        context.set_code(grpc.StatusCode.OK)
-
-        return response.end_block
-
-
-class GrpcServerChannel:  # pylint: disable=too-many-instance-attributes
-    """TCP server channel to handle incoming communication from the Tendermint node."""
-
-    def __init__(
-        self,
-        target_skill_id: PublicId,
-        address: str,
-        port: int,
-        logger: Optional[Logger] = None,
-    ):
-        """
-        Initialize the TCP server.
-
-        :param target_skill_id: the public id of the target skill.
-        :param address: the listen address.
-        :param port: the port to listen from.
-        :param logger: the logger.
-        """
-        self.target_skill_id = target_skill_id
-        self.address = address
-        self.port = port
-        self.logger = logger
-
-        # channel state
-        self._loop: Optional[AbstractEventLoop] = None
-        self._dialogues = AbciDialogues()
-        self._is_stopped: bool = True
-        self.queue: Optional[asyncio.Queue] = None
-        self._server: Optional[any] = None
-        self._server_task: Optional[Task] = None
-        self._servicer: Optional[ABCIApplicationServicer] = None
-
-    @property
-    def is_stopped(self) -> bool:
-        """Check that the channel is stopped."""
-        return self._is_stopped
-
-    async def _start_server(self):
-        self.logger.info("Starting gRPC server")
-        server = grpc.aio.server()
-        self._servicer = ABCIApplicationServicer(
-            self.queue, self._dialogues, str(self.target_skill_id)
-        )
-        types_pb2_grpc.add_ABCIApplicationServicer_to_server(self._servicer, server)
-        server.add_insecure_port(f"[::]:{self.port}")
-        self._server = server
-        await self._server.start()
-        await self._server.wait_for_termination()
-
-    async def connect(self, loop: AbstractEventLoop) -> None:
-        """
-        Connect.
-
-        Upon TCP Channel connection, start the TCP Server asynchronously.
-
-        :param loop: asyncio event loop
-        """
-        if not self._is_stopped:  # pragma: nocover
-            return
-        self._loop = loop
-        self._is_stopped = False
-        self.queue = asyncio.Queue()
-
-        asyncio.create_task(self._start_server())
-
-    async def disconnect(self) -> None:
-        """Disconnect the channel"""
-        if self.is_stopped:  # pragma: nocover
-            return
-        self._is_stopped = True
-        await self._server.stop(0)
-
-        self.queue = None
-        self._server = None
-
-    async def get_message(self) -> Envelope:
-        """Get a message from the queue."""
-        return await cast(asyncio.Queue, self.queue).get()
-
-    async def send(self, envelope: Envelope) -> None:
-        """Send a message."""
-        await self._servicer.send(envelope)
 
 
 class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
@@ -464,7 +183,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self.target_skill_id = target_skill_id
         self.address = address
         self.port = port
-        self.logger = logger
+        self.logger = logger or logging.getLogger()
 
         # channel state
         self._loop: Optional[AbstractEventLoop] = None
@@ -502,7 +221,6 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self._loop = loop
         self._is_stopped = False
         self.queue = asyncio.Queue()
-
         self._server = await asyncio.start_server(
             self.receive_messages, host=self.address, port=self.port, loop=self._loop
         )
@@ -553,25 +271,55 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
             # with varint encoded length. We use the 'data' buffer to
             # keep track of where we are in the byte stream and progress
             # based on the length encoding
-            for message in _TendermintABCISerializer.read_messages(data, Request):
-                if self.is_stopped:
-                    break
-                req_type = message.WhichOneof("value")
-                self.logger.debug(f"Received message of type: {req_type}")
-                request, dialogue = _TendermintProtocolDecoder.process(
-                    message, self._dialogues, str(self.target_skill_id)
-                )
-                # associate request to peer, so we remember who to reply to
-                self._request_id_to_socket[
-                    dialogue.incomplete_dialogue_label
-                ] = peer_name
-                if request is not None:
-                    envelope = Envelope(
-                        to=request.to, sender=request.sender, message=request
+            message_iterator: Generator[
+                Request, None, None
+            ] = _TendermintABCISerializer.read_messages(data, Request)
+            end_of_message_iterator = False
+            sentinel = object()
+            while not self.is_stopped:
+                try:
+                    message = next(message_iterator, sentinel)
+                except (
+                    DecodeVarintError,
+                    ShortBufferLengthError,
+                    DecodeError,
+                ) as e:  # pragma: nocover
+                    self.logger.error(
+                        f"an error occurred while reading a message: "
+                        f"{type(e).__name__}: {e}. "
+                        f"The message will be ignored."
                     )
-                    await self.queue.put(envelope)
-                else:  # pragma: nocover
-                    self.logger.warning(f"Decoded request {req_type} was None.")
+                    continue
+
+                if message == sentinel:
+                    # we reached the end of the iterator
+                    end_of_message_iterator = True
+                    break
+                await self._handle_message(message, peer_name)
+
+            # check whether we exited the loop because of the end of the iterator
+            # or because the reading loop has been stopped prematurely
+            if not end_of_message_iterator:
+                self.logger.warning(
+                    "prematurely interrupting the message reading loop; "
+                    "there may be some unread messages that will be lost"
+                )
+
+    async def _handle_message(self, message: Request, peer_name: str) -> None:
+        """Handle a single message from a peer."""
+        req_type = message.WhichOneof("value")
+        self.logger.debug(f"Received message of type: {req_type}")
+        result = _TendermintProtocolDecoder.process(
+            message, self._dialogues, str(self.target_skill_id)
+        )
+        if result is not None:
+            request, dialogue = result
+            # associate request to peer, so we remember who to reply to
+            self._request_id_to_socket[dialogue.incomplete_dialogue_label] = peer_name
+            envelope = Envelope(to=request.to, sender=request.sender, message=request)
+            await cast(asyncio.Queue, self.queue).put(envelope)
+        else:  # pragma: nocover
+            self.logger.warning(f"Decoded request {req_type} was not a match.")
 
     async def get_message(self) -> Envelope:
         """Get a message from the queue."""
@@ -605,7 +353,6 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         p2p_seeds: List[str],
         consensus_create_empty_blocks: bool,
         home: Optional[str] = None,
-        use_grpc: bool = False,
     ):
         """
         Initialize the parameters to the Tendermint node.
@@ -614,7 +361,6 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         :param rpc_laddr: RPC address.
         :param p2p_laddr: P2P address.
         :param p2p_seeds: P2P seeds.
-        :param use_grpc: Wheter to use a gRPC server, or TSP
         :param consensus_create_empty_blocks: if true, Tendermint node creates empty blocks.
         :param home: Tendermint's home directory.
         """
@@ -624,7 +370,19 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
         self.p2p_seeds = p2p_seeds
         self.consensus_create_empty_blocks = consensus_create_empty_blocks
         self.home = home
-        self.use_grpc = use_grpc
+
+    def __str__(self) -> str:
+        """Get the string representation."""
+        return (
+            f"{self.__class__.__name__}("
+            f"    proxy_app={self.proxy_app},\n"
+            f"    rpc_laddr={self.rpc_laddr},\n"
+            f"    p2p_laddr={self.p2p_laddr},\n"
+            f"    p2p_seeds={self.p2p_seeds},\n"
+            f"    consensus_create_empty_blocks={self.consensus_create_empty_blocks},\n"
+            f"    home={self.home},\n"
+            ")"
+        )
 
 
 class TendermintNode:
@@ -663,10 +421,6 @@ class TendermintNode:
             f"--p2p.seeds={','.join(self.params.p2p_seeds)}",
             f"--consensus.create_empty_blocks={str(self.params.consensus_create_empty_blocks).lower()}",
         ]
-
-        if self.params.use_grpc:
-            cmd += ["--abci=grpc"]
-
         if self.params.home is not None:  # pragma: nocover
             cmd += ["--home", self.params.home]
         return cmd
@@ -716,15 +470,6 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self._process_connection_params()
         self._process_tendermint_params()
 
-        if self.use_grpc:
-            self.channel = GrpcServerChannel(
-                self.target_skill_id, address=self.host, port=self.port
-            )
-        else:
-            self.channel = TcpServerChannel(
-                self.target_skill_id, address=self.host, port=self.port
-            )
-
     def _process_connection_params(self) -> None:
         """
         Process the connection parameters.
@@ -749,6 +494,10 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             raise ValueError("Provided target_skill_id is not a valid public id.")
         self.target_skill_id = target_skill_id
 
+        self.channel = TcpServerChannel(
+            self.target_skill_id, address=self.host, port=self.port, logger=self.logger
+        )
+
     def _process_tendermint_params(self) -> None:
         """
         Process the Tendermint parameters.
@@ -762,17 +511,17 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self.use_tendermint = cast(
             bool, self.configuration.config.get("use_tendermint")
         )
-        self.use_grpc = cast(bool, self.configuration.config.get("use_grpc"))
-
         if not self.use_tendermint:
             return
         tendermint_config = self.configuration.config.get("tendermint_config", {})
-        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr"))
-        p2p_laddr = cast(str, tendermint_config.get("p2p_laddr"))
-        p2p_seeds = cast(List[str], tendermint_config.get("p2p_seeds"))
-        home = cast(str, tendermint_config.get("home"))
+        rpc_laddr = cast(str, tendermint_config.get("rpc_laddr", DEFAULT_RPC_PORT))
+        p2p_laddr = cast(
+            str, tendermint_config.get("p2p_laddr", DEFAULT_P2P_LISTEN_ADDRESS)
+        )
+        p2p_seeds = cast(List[str], tendermint_config.get("p2p_seeds", []))
+        home = cast(Optional[str], tendermint_config.get("home", None))
         consensus_create_empty_blocks = cast(
-            bool, tendermint_config.get("consensus_create_empty_blocks")
+            bool, tendermint_config.get("consensus_create_empty_blocks", True)
         )
         proxy_app = f"tcp://{self.host}:{self.port}"
         self.params = TendermintParams(
@@ -782,8 +531,8 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
             p2p_seeds,
             consensus_create_empty_blocks,
             home,
-            self.use_grpc,
         )
+        self.logger.debug(f"Tendermint parameters: {self.params}")
         self.node = TendermintNode(self.params, self.logger)
 
     async def connect(self) -> None:
