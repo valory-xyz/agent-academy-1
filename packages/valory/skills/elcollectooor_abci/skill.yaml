@@ -1,4 +1,4 @@
-name: simple_abci
+name: elcollectooor_abci
 author: valory
 version: 0.1.0
 type: skill
@@ -6,14 +6,15 @@ description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmXpdkXUoLn7t8hjdtHmsYNFn4cAJboQLLogQd2Lcm5gzZ
-  __init__.py: QmQFTuPAiVxSZPmmQC6RnsWgztZRZfLPxs2u2vBojChjxV
-  behaviours.py: QmdTqxhpDSgSJRknbbhRZSeaSwHj7eGcy5nncwbuG9wW1B
+  README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
+  __init__.py: QmRopqpTcQw4mGvNahif4SmSEb3Lm3Dyp9PoFQD7gzkpih
+  behaviours.py: QmNe8d9o4fPpnWWkvNMyNtnFJMER45dkxxZZXyefZKVFAL
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  handlers.py: QmNtjxsNXHBUCay6VZfr69M3NcZy1Lg269pXSZQr6fKU7j
-  models.py: QmNV5fGgCswbE7zUBxW5xcRwBGjxCjNYEyFtafBGAE1Uh7
-  payloads.py: QmXe2vVWq8UjkDQKisQY4qFU6nX5F5D2B1f3kbDkrFu2Da
-  rounds.py: QmcqzJLPuQYfHr5FwajaJCYBPtRKtnTiQRDtkAsUXtB41r
+  handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
+  models.py: QmSJDpoBvaNyZheGUSefqBFtrmdWGw8pJrV5mxZbpLoB7Z
+  payloads.py: Qmf8npKoUE6yBDb3Qcey1FVJhcJ1SnXkproMvznp5MjbyJ
+  rounds.py: QmNuttxJNvJzodqDd6Dy9mrbdYYxwydWLGRaZ9EvjX7rpx
+  simple_decision_model.py: QmUJayqXRrszMTCP37r4CxPFSumMHM6b8mFdt1e3CdWAf5
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -31,11 +32,11 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: SimpleAbciConsensusBehaviour
+    class_name: ElCollectooorAbciConsensusBehaviour
 handlers:
   abci:
     args: {}
-    class_name: SimpleABCIHandler
+    class_name: ElCollectooorABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
