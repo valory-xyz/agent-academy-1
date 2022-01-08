@@ -6,14 +6,14 @@ description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmXpdkXUoLn7t8hjdtHmsYNFn4cAJboQLLogQd2Lcm5gzZ
-  __init__.py: QmadgRMsVj3qLWDK2XQ76TPXo3D7idauQDpuJ1VzhVrDPx
-  behaviours.py: QmVe21UX7XWCMmVCP65ZpRhpnEsXsg5oufAjrKz7RfgU8Q
+  README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
+  __init__.py: QmRopqpTcQw4mGvNahif4SmSEb3Lm3Dyp9PoFQD7gzkpih
+  behaviours.py: QmNe8d9o4fPpnWWkvNMyNtnFJMER45dkxxZZXyefZKVFAL
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
   models.py: QmSJDpoBvaNyZheGUSefqBFtrmdWGw8pJrV5mxZbpLoB7Z
-  payloads.py: QmNiuH7e3N3iJFVjfEnrXchNB2vYBpZfUjX3kuBxsQGsX6
-  rounds.py: QmbgnshiUvFQDi33vXVTu4phFqkSsgZKPTvVuh3XLLjDw8
+  payloads.py: Qmf8npKoUE6yBDb3Qcey1FVJhcJ1SnXkproMvznp5MjbyJ
+  rounds.py: QmNuttxJNvJzodqDd6Dy9mrbdYYxwydWLGRaZ9EvjX7rpx
   simple_decision_model.py: QmUJayqXRrszMTCP37r4CxPFSumMHM6b8mFdt1e3CdWAf5
 fingerprint_ignore_patterns: []
 connections:

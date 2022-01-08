@@ -1,5 +1,5 @@
-# Simple ABCI skill
+# El Collectooor ABCI skill
 
 ## Description
 
-This skill implements an ABCI application for a simple demonstation.
+This skill implements the El Collectooor business logic.

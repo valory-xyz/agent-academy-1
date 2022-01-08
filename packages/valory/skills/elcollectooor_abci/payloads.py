@@ -19,7 +19,6 @@
 
 """This module contains the transaction payloads for the elcollectooor_abci app."""
 import json
-from abc import ABC
 from enum import Enum
 from typing import Dict, Optional
 
@@ -43,21 +42,13 @@ class TransactionType(Enum):
         return self.value
 
 
-class BaseElCollectooorAbciPayload(BaseTxPayload, ABC):
-    """Base class for the simple abci demo."""
-
-    def __hash__(self) -> int:
-        """Hash the payload."""
-        return hash(tuple(sorted(self.data.items())))
-
-
-class RegistrationPayload(BaseElCollectooorAbciPayload):
+class RegistrationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'registration'."""
 
     transaction_type = TransactionType.REGISTRATION
 
 
-class RandomnessPayload(BaseElCollectooorAbciPayload):
+class RandomnessPayload(BaseTxPayload):
     """Represent a transaction payload of type 'randomness'."""
 
     transaction_type = TransactionType.RANDOMNESS
@@ -92,7 +83,7 @@ class RandomnessPayload(BaseElCollectooorAbciPayload):
         return dict(round_id=self._round_id, randomness=self._randomness)
 
 
-class SelectKeeperPayload(BaseElCollectooorAbciPayload):
+class SelectKeeperPayload(BaseTxPayload):
     """Represent a transaction payload of type 'select_keeper'."""
 
     transaction_type = TransactionType.SELECT_KEEPER
@@ -118,7 +109,7 @@ class SelectKeeperPayload(BaseElCollectooorAbciPayload):
         return dict(keeper=self.keeper)
 
 
-class ResetPayload(BaseElCollectooorAbciPayload):
+class ResetPayload(BaseTxPayload):
     """Represent a transaction payload of type 'reset'."""
 
     transaction_type = TransactionType.RESET
@@ -146,7 +137,7 @@ class ResetPayload(BaseElCollectooorAbciPayload):
         return dict(period_count=self.period_count)
 
 
-class ObservationPayload(BaseElCollectooorAbciPayload):
+class ObservationPayload(BaseTxPayload):
     """Represent a transaction payload of type 'observation'."""
 
     transaction_type = TransactionType.OBSERVATION
@@ -173,7 +164,7 @@ class ObservationPayload(BaseElCollectooorAbciPayload):
         return dict(project_details=self.project_details)
 
 
-class DecisionPayload(BaseElCollectooorAbciPayload):
+class DecisionPayload(BaseTxPayload):
     """Represent a transaction payload of type 'decision'."""
 
     transaction_type = TransactionType.DECISION
@@ -199,7 +190,7 @@ class DecisionPayload(BaseElCollectooorAbciPayload):
         return dict(decision=self.decision)
 
 
-class DetailsPayload(BaseElCollectooorAbciPayload):
+class DetailsPayload(BaseTxPayload):
     """Represent a transaction payload of type 'Details'"""
 
     transaction_type = TransactionType.DETAILS
@@ -225,7 +216,7 @@ class DetailsPayload(BaseElCollectooorAbciPayload):
         return dict(details=self.details)
 
 
-class TransactionPayload(BaseElCollectooorAbciPayload):
+class TransactionPayload(BaseTxPayload):
     """Represent a transaction payload of type 'transaction'."""
 
     transaction_type = TransactionType.TRANSACTION

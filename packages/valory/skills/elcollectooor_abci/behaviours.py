@@ -23,29 +23,25 @@ import datetime
 import json
 from abc import ABC
 from math import floor
-from typing import Any, Callable, Generator, List, Optional, Set, Type, cast
+from typing import Any, Generator, List, Optional, Set, Type, cast
 
 from aea.exceptions import AEAEnforceError, enforce
 
-from packages.valory.connections.ledger.contract_dispatcher import ContractApiDialogues
 from packages.valory.contracts.artblocks.contract import ArtBlocksContract
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.protocols.contract_api.dialogues import ContractApiDialogue
-from packages.valory.skills.abstract_round_abci.base import LEDGER_API_ADDRESS
-from packages.valory.skills.abstract_round_abci.behaviour_utils import AsyncBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.elcollectooor_abci.models import (
-    Params,
-    Requests,
-    SharedState,
+from packages.valory.skills.abstract_round_abci.common import (
+    RandomnessBehaviour,
+    SelectKeeperBehaviour,
 )
+from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
+from packages.valory.skills.elcollectooor_abci.models import Params, SharedState
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
@@ -90,77 +86,7 @@ benchmark_tool = BenchmarkTool()
 
 
 class ElCollectooorABCIBaseState(BaseState, ABC):
-    """Base state behaviour for the simple abci skill."""
-
-    def _send_contract_api_request(  # pylint: disable=too-many-arguments
-        self,
-        request_callback: Callable,
-        performative: ContractApiMessage.Performative,
-        contract_address: Optional[str],
-        contract_id: str,
-        contract_callable: str,
-        **kwargs: Any,
-    ) -> Generator[None, None, Any]:
-        """
-        Request contract safe transaction hash
-
-        :param request_callback: the request callback handler
-        :param performative: the message performative
-        :param contract_address: the contract address
-        :param contract_id: the contract id
-        :param contract_callable: the callable to call on the contract
-        :param kwargs: keyword argument for the contract api request
-        :yield: None
-        :return: the response
-        """
-        contract_api_dialogues = cast(
-            ContractApiDialogues, self.context.contract_api_dialogues
-        )
-        kwargs = {
-            "performative": performative,
-            "counterparty": str(LEDGER_API_ADDRESS),
-            "ledger_id": self.context.default_ledger_id,
-            "contract_id": contract_id,
-            "callable": contract_callable,
-            "kwargs": ContractApiMessage.Kwargs(kwargs),
-        }
-
-        if contract_address is not None:
-            kwargs["contract_address"] = contract_address
-
-        contract_api_msg, contract_api_dialogue = contract_api_dialogues.create(
-            **kwargs
-        )
-        contract_api_dialogue = cast(
-            ContractApiDialogue,
-            contract_api_dialogue,
-        )
-        contract_api_dialogue.terms = self._get_default_terms()
-        request_nonce = self._get_request_nonce_from_dialogue(contract_api_dialogue)
-        cast(Requests, self.context.requests).request_id_to_callback[
-            request_nonce
-        ] = request_callback
-        self.context.outbox.put_message(message=contract_api_msg)
-
-        response = yield from self.wait_for_message()
-
-        return response
-
-    def _handle_contract_response(self, message: ContractApiMessage) -> None:
-        """Callback handler for the active project id request."""
-        if not message.performative == ContractApiMessage.Performative.STATE:
-            raise ValueError("wrong performative")
-
-        if self.is_stopped:
-            self.context.logger.debug(
-                "dropping message as behaviour has stopped: %s", message
-            )
-        elif self.state == AsyncBehaviour.AsyncState.WAITING_MESSAGE:
-            self.try_send(message)
-        else:
-            self.context.logger.warning(
-                "could not send message to FSMBehaviour: %s", message
-            )
+    """Base state behaviour for the El Collectooor abci skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -173,7 +99,7 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class TendermintHealthcheckBehaviour(ElCollectooorABCIBaseState):
+class TendermintHealthcheckBehaviour(BaseState):
     """Check whether Tendermint nodes are running."""
 
     state_id = "tendermint_healthcheck"
@@ -255,114 +181,20 @@ class RegistrationBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
 
-class RandomnessBehaviour(ElCollectooorABCIBaseState):
-    """Check whether Tendermint nodes are running."""
-
-    def async_act(self) -> Generator:
-        """
-        Check whether tendermint is running or not.
-
-        Steps:
-        - Do a http request to the tendermint health check endpoint
-        - Retry until healthcheck passes or timeout is hit.
-        - If healthcheck passes set done event.
-        """
-        if self.context.randomness_api.is_retries_exceeded():
-            # now we need to wait and see if the other agents progress the round
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.wait_until_round_end()
-            self.set_done()
-            return
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            api_specs = self.context.randomness_api.get_spec()
-            http_message, http_dialogue = self._build_http_request_message(
-                method=api_specs["method"],
-                url=api_specs["url"],
-            )
-            response = yield from self._do_request(http_message, http_dialogue)
-            observation = self.context.randomness_api.process_response(response)
-
-        if observation:
-            self.context.logger.info(f"Retrieved DRAND values: {observation}.")
-            payload = RandomnessPayload(
-                self.context.agent_address,
-                observation["round"],
-                observation["randomness"],
-            )
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-        else:
-            self.context.logger.error(
-                f"Could not get randomness from {self.context.randomness_api.api_id}"
-            )
-            yield from self.sleep(self.params.sleep_time)
-            self.context.randomness_api.increment_retries()
-
-    def clean_up(self) -> None:
-        """
-        Clean up the resources due to a 'stop' event.
-
-        It can be optionally implemented by the concrete classes.
-        """
-        self.context.randomness_api.reset_retries()
-
-
 class RandomnessAtStartupBehaviour(RandomnessBehaviour):
     """Retrive randomness at startup."""
 
     state_id = "retrieve_randomness_at_startup"
     matching_round = RandomnessStartupRound
+    payload_class = RandomnessPayload
 
 
-class SelectKeeperBehaviour(ElCollectooorABCIBaseState, ABC):
-    """Select the keeper agent."""
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Select a keeper randomly.
-        - Send the transaction with the keeper and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            keeper_address = random_selection(
-                sorted(self.period_state.participants),
-                self.period_state.keeper_randomness,
-            )
-
-            self.context.logger.info(f"Selected a new keeper: {keeper_address}.")
-            payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-
-class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
+class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent at startup."""
 
     state_id = "select_keeper_a_at_startup"
     matching_round = SelectKeeperAStartupRound
+    payload_class = SelectKeeperPayload
 
 
 class BaseResetBehaviour(ElCollectooorABCIBaseState):
@@ -442,8 +274,8 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             self,
         ).local():
             # fetch an active project
-            response = yield from self._send_contract_api_request(
-                request_callback=self._handle_contract_response,
+            response = yield from self.get_contract_api_response(
+                request_callback=self.default_callback_request,
                 performative=ContractApiMessage.Performative.GET_STATE,
                 contract_address=self.artblocks_contract,
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -452,7 +284,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
             # response body also has project details
-            project_details = response.state["body"]
+            project_details = response.state.body
             project_id = (
                 project_details["project_id"]
                 if "project_id" in project_details.keys()
@@ -539,8 +371,8 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
             f"Gathering details on project with id={project['project_id']}."
         )
 
-        response = yield from self._send_contract_api_request(
-            request_callback=self._handle_contract_response,
+        response = yield from self.get_contract_api_response(
+            request_callback=self.default_callback_request,
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.artblocks_contract,
             contract_id=str(ArtBlocksContract.contract_id),
@@ -548,7 +380,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
             project_id=project["project_id"],
         )
 
-        new_details = response.state["body"]
+        new_details = response.state.body
 
         self.context.logger.info(
             f"Successfully gathered details on project with id={project['project_id']}."
@@ -653,8 +485,8 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 "couldn't find project_id, or project_id is None",
             )
 
-            response = yield from self._send_contract_api_request(
-                request_callback=self._handle_contract_response,
+            response = yield from self.get_contract_api_response(
+                request_callback=self.default_callback_request,
                 performative=ContractApiMessage.Performative.GET_STATE,
                 contract_address=self.artblocks_periphery_contract,
                 contract_id=str(ArtBlocksPeripheryContract.contract_id),
@@ -664,13 +496,12 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
             # response body also has project details
             enforce(
-                "body" in response.state.keys()
-                and response.state["body"] is not None
-                and "data" in response.state["body"].keys()
-                and response.state["body"]["data"] is not None,
+                response.state.body is not None
+                and "data" in response.state.body.keys()
+                and response.state.body["data"] is not None,
                 "contract returned and empty body or empty data",
             )
-            data: Optional[str] = cast(Optional[str], response.state["body"]["data"])
+            data: Optional[str] = cast(Optional[str], response.state.body["data"])
 
         if data:
             payload = TransactionPayload(
@@ -725,7 +556,7 @@ class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheckBehaviour,  #
         RegistrationBehaviour,
         RandomnessAtStartupBehaviour,
-        SelectKeeperAAtStartupBehaviour,
+        SelectKeeperAtStartupBehaviour,
         ObservationRoundBehaviour,
         DetailsRoundBehaviour,
         DecisionRoundBehaviour,

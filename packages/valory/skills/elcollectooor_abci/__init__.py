@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI 'simple' skill for an AEA."""
+"""This module contains the ABCI 'El Collectooor' skill for an AEA."""
 
 from aea.configurations.base import PublicId
 

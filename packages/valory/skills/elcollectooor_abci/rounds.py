@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the data classes for the simple ABCI application."""
+"""This module contains the data classes for the El Collectooor ABCI application."""
 import json
 import struct
 from abc import ABC
@@ -48,7 +48,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
 
 
 class Event(Enum):
-    """Event enumeration for the simple abci demo."""
+    """Event enumeration for the El Collectooor."""
 
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
@@ -174,7 +174,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
 
 
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the simple abci skill."""
+    """Abstract round for the El Collectooor skill."""
 
     @property
     def period_state(self) -> PeriodState:

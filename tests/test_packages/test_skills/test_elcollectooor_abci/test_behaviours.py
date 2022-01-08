@@ -29,7 +29,7 @@ from unittest.mock import patch
 
 import pytest
 from aea.exceptions import AEAActException
-from aea.helpers.transaction.base import SignedMessage
+from aea.helpers.transaction.base import SignedMessage, State
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -65,7 +65,7 @@ from packages.valory.skills.elcollectooor_abci.behaviours import (
     RegistrationBehaviour,
     ResetFromObservationBehaviour,
     ResetFromRegistrationBehaviour,
-    SelectKeeperAAtStartupBehaviour,
+    SelectKeeperAtStartupBehaviour,
     TendermintHealthcheckBehaviour,
     TransactionRoundBehaviour,
 )
@@ -757,13 +757,13 @@ class TestRandomnessAtStartup(BaseRandomnessBehaviourTest):
     """Test randomness at startup."""
 
     randomness_behaviour_class = RandomnessAtStartupBehaviour
-    next_behaviour_class = SelectKeeperAAtStartupBehaviour
+    next_behaviour_class = SelectKeeperAtStartupBehaviour
 
 
 class TestSelectKeeperAAtStartupBehaviour(BaseSelectKeeperBehaviourTest):
     """Test SelectKeeperBehaviour."""
 
-    select_keeper_behaviour_class = SelectKeeperAAtStartupBehaviour
+    select_keeper_behaviour_class = SelectKeeperAtStartupBehaviour
     next_behaviour_class = ObservationRoundBehaviour
 
 
@@ -918,8 +918,9 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
-                    state={
-                        "body": {
+                    state=State(
+                        ledger_id="ethereum",
+                        body={
                             "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
                             "price_per_token_in_wei": 1,
                             "project_id": 121,
@@ -929,8 +930,8 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                             "website": "tylerxhobbs.com",
                             "script": "too_long",
                             "ipfs_hash": "",
-                        }
-                    },
+                        },
+                    ),
                 ),
             )
 
@@ -974,7 +975,7 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
-                    state={"body": {}},
+                    state=State(ledger_id="ethereum", body={}),
                 ),
             )
 
@@ -1070,13 +1071,14 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
-                    state={
-                        "body": {
+                    state=State(
+                        ledger_id="ethereum",
+                        body={
                             "price_per_token_in_wei": 123,
                             "invocations": 2,
                             "max_invocations": 10,
-                        }
-                    },
+                        },
+                    ),
                 ),
             )
 
@@ -1154,13 +1156,14 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
-                    state={
-                        "body": {
+                    state=State(
+                        ledger_id="ethereum",
+                        body={
                             "price_per_token_in_wei": 123,
                             "invocations": 2,
                             "max_invocations": 10,
-                        }
-                    },
+                        },
+                    ),
                 ),
             )
 
@@ -1372,11 +1375,12 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
-                state={
-                    "body": {
+                state=State(
+                    body={
                         "data": "0xefef39a10000000000000000000000000000000000000000000000000000000000000079"
-                    }
-                },
+                    },
+                    ledger_id="ethereum",
+                ),
             ),
         )
 
@@ -1429,7 +1433,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
-                    state={"body": {"data": ""}},
+                    state=State(ledger_id="ethereum", body={"data": ""}),
                 ),
             )
 
@@ -1613,19 +1617,18 @@ class TestDecisionModel:
         model = DecisionModel()
         project_hist = []
 
-        for i in range(102):
+        for i in range(152):
             project_dict_example = {
                 "price_per_token_in_wei": 400000000000000000,
                 "invocations": 2 * i,
                 "max_invocations": 300,
             }
             project_hist.append(project_dict_example)
-        logger = logging.getLogger("DecisionModel")
 
-        with mock.patch.object(logger, "debug") as mock_debug:
+        logger = model.logger
+        with mock.patch.object(logger, "info") as mock_debug:
             model.dynamic(project_hist)
-            mock_debug.assert_any_call(logging.DEBUG, "This is no Dutch auction.")
-
+            mock_debug.assert_called_with("This is no Dutch auction.")
         assert model.dynamic(project_hist) == 1
 
     def test_dynamic_is_dutch(self):
@@ -1642,11 +1645,11 @@ class TestDecisionModel:
                 "max_invocations": 300,
             }
             project_hist.append(project_dict_example)
-        logger = logging.getLogger("DecisionModel")
-        with mock.patch.object(logger, "debug") as mock_debug:
+        logger = model.logger
+        with mock.patch.object(logger, "info") as mock_debug:
             model.dynamic(project_hist)
-            mock_debug.assert_any_call(
-                logging.DEBUG, "This is a Dutch auction or something very fast."
+            mock_debug.assert_called_with(
+                "This is a Dutch auction or something very fast."
             )
 
         assert model.dynamic(project_hist) == 1
