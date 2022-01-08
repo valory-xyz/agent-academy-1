@@ -13,4 +13,5 @@ fingerprint_ignore_patterns: []
 class_name: ArtBlocksPeripheryContract
 contract_interface_paths:
   ethereum: build/Minter.json
+contracts: []
 dependencies: {}
