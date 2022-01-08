@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -79,9 +79,9 @@ class GnosisSafeProxyFactoryContract(Contract):
         return super().get_deploy_transaction(ledger_api, deployer_address, **kwargs)
 
     @classmethod
-    def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments
+    def build_tx_deploy_proxy_contract_with_nonce(  # pylint: disable=too-many-arguments,too-many-locals
         cls,
-        ledger_api: LedgerApi,
+        ledger_api: EthereumApi,
         proxy_factory_address: str,
         master_copy: str,
         address: str,
@@ -89,6 +89,8 @@ class GnosisSafeProxyFactoryContract(Contract):
         salt_nonce: int,
         gas: Optional[int] = None,
         gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
         nonce: Optional[int] = None,
     ) -> Tuple[TxParams, str]:
         """
@@ -102,6 +104,8 @@ class GnosisSafeProxyFactoryContract(Contract):
         :param salt_nonce: Uint256 for `create2` salt
         :param gas: Gas
         :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
         :param nonce: Nonce
         :return: Tuple(tx-hash, tx, deployed contract address)
         """
@@ -115,7 +119,22 @@ class GnosisSafeProxyFactoryContract(Contract):
         contract_address = create_proxy_fn.call(tx_parameters)
 
         if gas_price is not None:
-            tx_parameters["gasPrice"] = Wei(gas_price)
+            tx_parameters["gasPrice"] = Wei(gas_price)  # pragma: nocover
+
+        if max_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)  # pragma: nocover
+
+        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxPriorityFeePerGas"] = Wei(  # pragma: nocover
+                max_priority_fee_per_gas
+            )
+
+        if (
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
+        ):
+            tx_parameters.update(ledger_api.try_get_gas_pricing())
 
         if gas is not None:
             tx_parameters["gas"] = Wei(gas)
@@ -129,7 +148,9 @@ class GnosisSafeProxyFactoryContract(Contract):
         return transaction_dict, contract_address
 
     @classmethod
-    def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
+    def verify_contract(
+        cls, ledger_api: EthereumApi, contract_address: str
+    ) -> JSONLike:
         """
         Verify the contract's bytecode
 
@@ -138,7 +159,7 @@ class GnosisSafeProxyFactoryContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        deployed_bytecode = ledger_api.api.eth.getCode(contract_address).hex()
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
         verified = deployed_bytecode == local_bytecode
         return dict(verified=verified)

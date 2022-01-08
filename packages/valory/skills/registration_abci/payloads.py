@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,4 +17,23 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the Protobuf Python modules for the Tendermint-ABCI messages."""
+"""This module contains the transaction payloads for common apps."""
+from enum import Enum
+
+from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
+
+
+class TransactionType(Enum):
+    """Enumeration of transaction types."""
+
+    REGISTRATION = "registration"
+
+    def __str__(self) -> str:
+        """Get the string value of the transaction type."""
+        return self.value
+
+
+class RegistrationPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'registration'."""
+
+    transaction_type = TransactionType.REGISTRATION
