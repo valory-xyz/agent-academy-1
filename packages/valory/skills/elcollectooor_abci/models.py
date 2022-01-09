@@ -26,7 +26,10 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorBaseAbciApp, Event
+from packages.valory.skills.elcollectooor_abci.rounds import (
+    ElCollectooorBaseAbciApp,
+    Event,
+)
 
 
 MARGIN = 5

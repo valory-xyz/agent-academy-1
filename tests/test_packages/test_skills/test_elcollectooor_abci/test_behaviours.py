@@ -57,9 +57,11 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.elcollectooor_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
+    ElCollectooorAbciConsensusBehaviour,
+    FinishedElCollectoorBaseRoundBehaviour,
     ObservationRoundBehaviour,
     ResetFromObservationBehaviour,
-    TransactionRoundBehaviour, ElCollectooorAbciConsensusBehaviour,
+    TransactionRoundBehaviour,
 )
 from packages.valory.skills.elcollectooor_abci.handlers import (
     ContractApiHandler,
@@ -71,6 +73,7 @@ from packages.valory.skills.elcollectooor_abci.rounds import Event, PeriodState
 from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
     DecisionModel,
 )
+
 from tests.conftest import ROOT_DIR
 
 
@@ -632,7 +635,7 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
     behaviour_class = ObservationRoundBehaviour
     next_behaviour_class = DecisionRoundBehaviour
 
-    def test_contract_returns_project(self):
+    def test_contract_returns_project(self) -> None:
         """The agent queries the contract and gets back a project"""
 
         self.fast_forward_to_state(
@@ -689,7 +692,7 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == DecisionRoundBehaviour.state_id
 
-    def test_contract_returns_empty_project(self):
+    def test_contract_returns_empty_project(self) -> None:
         """The agent queries the contract and doesnt get back a project"""
 
         self.fast_forward_to_state(
@@ -729,7 +732,7 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             time.sleep(1.1)
             self.elcollectooor_abci_behaviour.act_wrapper()
 
-    def test_contract_retries_are_exceeded(self):
+    def test_contract_retries_are_exceeded(self) -> None:
         """Test with max retries reached."""
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
@@ -1076,7 +1079,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
 class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
     behaviour_class = TransactionRoundBehaviour
-    next_behaviour_class = ResetFromObservationBehaviour
+    next_behaviour_class = FinishedElCollectoorBaseRoundBehaviour
 
     def test_contract_returns_valid_data(self):
         """
@@ -1131,7 +1134,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.end_round()
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-        assert state.state_id == ResetFromObservationBehaviour.state_id
+        assert state.state_id == FinishedElCollectoorBaseRoundBehaviour.state_id
 
     def test_contract_returns_invalid_data(self):
         """

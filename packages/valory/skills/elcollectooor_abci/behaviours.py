@@ -19,7 +19,6 @@
 
 """This module contains the behaviour_classes for the 'elcollectooor_abci' skill."""
 
-import datetime
 import json
 from abc import ABC
 from math import floor
@@ -36,30 +35,25 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.common import (
-    RandomnessBehaviour,
-    SelectKeeperBehaviour,
-)
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.elcollectooor_abci.models import Params, SharedState
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,
-    RandomnessPayload,
-    RegistrationPayload,
     ResetPayload,
-    SelectKeeperPayload,
     TransactionPayload,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import (
     DecisionRound,
     DetailsRound,
     ElCollectooorBaseAbciApp,
+    ElCollectooorStartRound,
+    FinishedElCollectoorBaseRound,
     ObservationRound,
     PeriodState,
     ResetFromObservationRound,
-    TransactionRound, FinishedElCollectoorBaseRound,
+    TransactionRound,
 )
 from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
     DecisionModel,
@@ -95,55 +89,17 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class TendermintHealthcheckBehaviour(BaseState):
+class ElCollectooorStartBehaviour(BaseState):
     """Check whether Tendermint nodes are running."""
 
-    state_id = "tendermint_healthcheck"
-    matching_round = None
-
-    _check_started: Optional[datetime.datetime] = None
-    _timeout: float
-
-    def start(self) -> None:
-        """Set up the behaviour."""
-        if self._check_started is None:
-            self._check_started = datetime.datetime.now()
-            self._timeout = self.params.max_healthcheck
-
-    def _is_timeout_expired(self) -> bool:
-        """Check if the timeout expired."""
-        if self._check_started is None:
-            return False  # pragma: no cover
-        return datetime.datetime.now() > self._check_started + datetime.timedelta(
-            0, self._timeout
-        )
+    state_id = "elcollectooor_start"
+    matching_round = ElCollectooorStartRound
 
     def async_act(self) -> Generator:
         """Do the action."""
-        self.start()
-        if self._is_timeout_expired():
-            # if the Tendermint node cannot update the app then the app cannot work
-            raise RuntimeError("Tendermint node did not come live!")
-        status = yield from self._get_status()
-        try:
-            json_body = json.loads(status.body.decode())
-        except json.JSONDecodeError:
-            self.context.logger.error(
-                "Tendermint not running or accepting transactions yet, trying again!"
-            )
-            yield from self.sleep(self.params.sleep_time)
-            return
-        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
-        local_height = self.context.state.period.height
-        self.context.logger.info(
-            "local-height = %s, remote-height=%s", local_height, remote_height
-        )
-        if local_height != remote_height:
-            self.context.logger.info("local height != remote height; retrying...")
-            yield from self.sleep(self.params.sleep_time)
-            return
-        self.context.logger.info("local height == remote height; done")
+        self.context.logger.info("Starting ElCollectooor Base app.")
         self.set_done()
+        yield
 
 
 class BaseResetBehaviour(ElCollectooorABCIBaseState):
@@ -211,7 +167,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.wait_until_round_end()
 
@@ -220,7 +176,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             return
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # fetch an active project
             response = yield from self.get_contract_api_response(
@@ -248,7 +204,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
@@ -261,13 +217,13 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
         self.set_done()
 
-    def _increment_retries(self):
+    def _increment_retries(self) -> None:
         self._retries_made += 1
 
     def is_retries_exceeded(self) -> bool:
         return self._retries_made > self.max_retries
 
-    def _reset_retries(self):
+    def _reset_retries(self) -> None:
         self._retries_made = 0
 
 
@@ -284,7 +240,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -308,7 +264,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -344,7 +300,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -362,14 +318,16 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
-    def _make_decision(self, project_details: dict, most_voted_details: [dict]) -> int:
+    def _make_decision(
+        self, project_details: dict, most_voted_details: List[dict]
+    ) -> int:
         """Method that decides on an outcome"""
         decision_model = DecisionModel()
         if decision_model.static(project_details):
@@ -416,7 +374,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.wait_until_round_end()
 
@@ -425,7 +383,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             return
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             project_id = json.loads(self.period_state.most_voted_project)["project_id"]
@@ -458,7 +416,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 data,
             )
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
@@ -470,13 +428,13 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             self._increment_retries()
         self.set_done()
 
-    def _increment_retries(self):
+    def _increment_retries(self) -> None:
         self._retries_made += 1
 
     def is_retries_exceeded(self) -> bool:
         return self._retries_made > self.max_retries
 
-    def _reset_retries(self):
+    def _reset_retries(self) -> None:
         self._retries_made = 0
 
 
@@ -500,14 +458,16 @@ class FinishedElCollectoorBaseRoundBehaviour(ElCollectooorABCIBaseState):
         """
         self.context.logger.info("Successfully executed ElCollectooor Base app.")
         self.set_done()
+        yield
 
 
 class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooor abci app."""
 
-    initial_state_cls = ObservationRoundBehaviour
+    initial_state_cls = ElCollectooorStartBehaviour
     abci_app_cls = ElCollectooorBaseAbciApp
     behaviour_states: Set[Type[ElCollectooorABCIBaseState]] = {
+        ElCollectooorStartBehaviour,
         ObservationRoundBehaviour,
         DetailsRoundBehaviour,
         DecisionRoundBehaviour,
