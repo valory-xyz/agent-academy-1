@@ -23,28 +23,31 @@ import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, cast
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Type, cast, Set
 
+from packages.valory.skills.abstract_round_abci.abci_app_chain import chain, AbciAppTransitionMapping
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
     AbstractRound,
     BasePeriodState,
-    CollectDifferentUntilAllRound,
     CollectSameUntilThresholdRound,
-    EventType,
+    EventType, AppState, DegenerateRound,
 )
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,
     RandomnessPayload,
-    RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
     TransactionPayload,
     TransactionType,
 )
+from packages.valory.skills.registration_abci.rounds import AgentRegistrationAbciApp, FinishedRegistrationRound
+from packages.valory.skills.safe_deployment_abci.rounds import SafeDeploymentAbciApp, FinishedSafeRound
+from packages.valory.skills.transaction_settlement_abci.rounds import TransactionSubmissionAbciApp, \
+    FinishedTransactionSubmissionRound, FailedRound
 
 
 class Event(Enum):
@@ -190,99 +193,6 @@ class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC)
         return self.period_state, Event.NO_MAJORITY
 
 
-class RegistrationRound(CollectDifferentUntilAllRound, ElCollectooorABCIAbstractRound):
-    """
-    This class represents the registration round.
-
-    Input: None
-    Output: a period state with the set of participants.
-
-    It schedules the SelectKeeperARound.
-    """
-
-    round_id = "registration"
-    allowed_tx_type = RegistrationPayload.transaction_type
-    payload_attribute = "sender"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.collection_threshold_reached:
-            state = self.period_state.update(
-                participants=self.collection,
-                period_count=self.period_state.period_count,
-            )
-            return state, Event.DONE
-        return None
-
-
-class BaseRandomnessRound(
-    CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound
-):
-    """
-    This class represents the randomness round.
-
-    Input: a set of participants (addresses)
-    Output: a set of participants (addresses) and randomness
-
-    It schedules the SelectKeeperARound.
-    """
-
-    allowed_tx_type = RandomnessPayload.transaction_type
-    payload_attribute = "randomness"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state = self.period_state.update(
-                participant_to_randomness=MappingProxyType(self.collection),
-                most_voted_randomness=self.most_voted_payload,
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self._return_no_majority_event()
-        return None
-
-
-class SelectKeeperRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
-    """
-    This class represents the select keeper round.
-
-    Input: a set of participants (addresses)
-    Output: the selected keeper.
-    """
-
-    allowed_tx_type = SelectKeeperPayload.transaction_type
-    payload_attribute = "keeper"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state = self.period_state.update(
-                participant_to_selection=MappingProxyType(self.collection),
-                most_voted_keeper_address=self.most_voted_payload,
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self._return_no_majority_event()
-        return None
-
-
-class RandomnessStartupRound(BaseRandomnessRound):
-    """Randomness round for startup."""
-
-    round_id = "randomness_startup"
-
-
-class SelectKeeperAStartupRound(SelectKeeperRound):
-    """SelectKeeperA round for startup."""
-
-    round_id = "select_keeper_a_startup"
-
-
 class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
     """This class represents the base reset round."""
 
@@ -308,7 +218,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -331,7 +241,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -351,7 +261,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -377,7 +287,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
             return state, Event.DECIDED_YES
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -397,42 +307,27 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
-
-
-class ResetFromRegistrationRound(BaseResetRound):
-    round_id = "reset_from_registration"
 
 
 class ResetFromObservationRound(BaseResetRound):
     round_id = "reset_from_observation"
 
 
-class ElCollectooorAbciApp(AbciApp[Event]):
-    """El Collectooor is getting a fresh haircut."""
+class FinishedElCollectoorBaseRound(DegenerateRound):
+    """This class represents the finished round during operation."""
 
-    initial_round_cls: Type[AbstractRound] = RegistrationRound
+    round_id = "finished_base_elcollectooor"
+
+
+class ElCollectooorBaseAbciApp(AbciApp[Event]):
+    """The base logic of El Collectooor."""
+
+    initial_round_cls: Type[AbstractRound] = ObservationRound
     transition_function: AbciAppTransitionFunction = {
-        RegistrationRound: {Event.DONE: RandomnessStartupRound},
-        RandomnessStartupRound: {
-            Event.DONE: SelectKeeperAStartupRound,
-            Event.ROUND_TIMEOUT: RandomnessStartupRound,  # if the round times out we restart
-            Event.NO_MAJORITY: RandomnessStartupRound,
-            # we can have some agents on either side of an epoch, so we retry
-        },
-        SelectKeeperAStartupRound: {
-            Event.DONE: ObservationRound,
-            Event.ROUND_TIMEOUT: ResetFromRegistrationRound,  # if the round times out we restart
-            Event.NO_MAJORITY: ResetFromRegistrationRound,  # if the round has no majority we restart
-        },
-        ResetFromRegistrationRound: {
-            Event.DONE: RegistrationRound,
-            Event.ROUND_TIMEOUT: RegistrationRound,
-            Event.NO_MAJORITY: RegistrationRound,
-        },
         ObservationRound: {
             Event.DONE: DecisionRound,
             Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
@@ -446,22 +341,45 @@ class ElCollectooorAbciApp(AbciApp[Event]):
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
             Event.DECIDED_NO: ResetFromObservationRound,  # decided to not purchase
-            Event.GIB_DETAILS: DetailsRound,  # TODO: consider renaming event
+            Event.GIB_DETAILS: DetailsRound,
             Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
             Event.NO_MAJORITY: ResetFromObservationRound,  # if the round has no majority we start from registration
         },
         TransactionRound: {
-            Event.DONE: ResetFromObservationRound,  # TODO: add next round when it becomes available
+            Event.DONE: FinishedElCollectoorBaseRound,
             Event.ROUND_TIMEOUT: ResetFromObservationRound,
             Event.NO_MAJORITY: ResetFromObservationRound,
         },
         ResetFromObservationRound: {
             Event.DONE: ObservationRound,
-            Event.ROUND_TIMEOUT: ResetFromRegistrationRound,
-            Event.NO_MAJORITY: ResetFromRegistrationRound,
+            Event.ROUND_TIMEOUT: ResetFromObservationRound,
+            Event.NO_MAJORITY: ResetFromObservationRound,
         },
+        FinishedElCollectoorBaseRound: {}
+    }
+    final_states: Set[AppState] = {
+        FinishedElCollectoorBaseRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+
+
+el_collectooor_app_transition_mapping: AbciAppTransitionMapping = {
+    FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
+    FinishedSafeRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedTransactionSubmissionRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FailedRound: AgentRegistrationAbciApp.initial_round_cls,
+}
+
+ElCollectooorAbciApp = chain(
+    (
+        AgentRegistrationAbciApp,
+        SafeDeploymentAbciApp,
+        ElCollectooorBaseAbciApp,
+        TransactionSubmissionAbciApp,
+    ),
+    el_collectooor_app_transition_mapping,
+)

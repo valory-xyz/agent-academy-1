@@ -55,15 +55,11 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
 from packages.valory.skills.elcollectooor_abci.rounds import (
     DecisionRound,
     DetailsRound,
-    ElCollectooorAbciApp,
+    ElCollectooorBaseAbciApp,
     ObservationRound,
     PeriodState,
-    RandomnessStartupRound,
-    RegistrationRound,
     ResetFromObservationRound,
-    ResetFromRegistrationRound,
-    SelectKeeperAStartupRound,
-    TransactionRound,
+    TransactionRound, FinishedElCollectoorBaseRound,
 )
 from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
     DecisionModel,
@@ -150,53 +146,6 @@ class TendermintHealthcheckBehaviour(BaseState):
         self.set_done()
 
 
-class RegistrationBehaviour(ElCollectooorABCIBaseState):
-    """Register to the next round."""
-
-    state_id = "register"
-    matching_round = RegistrationRound
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Build a registration transaction.
-        - Send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-
-        with benchmark_tool.measure(
-            self,
-        ).local():
-            payload = RegistrationPayload(self.context.agent_address)
-
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
-            yield from self.send_a2a_transaction(payload)
-            yield from self.wait_until_round_end()
-
-        self.set_done()
-
-
-class RandomnessAtStartupBehaviour(RandomnessBehaviour):
-    """Retrive randomness at startup."""
-
-    state_id = "retrieve_randomness_at_startup"
-    matching_round = RandomnessStartupRound
-    payload_class = RandomnessPayload
-
-
-class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
-    """Select the keeper agent at startup."""
-
-    state_id = "select_keeper_a_at_startup"
-    matching_round = SelectKeeperAStartupRound
-    payload_class = SelectKeeperPayload
-
-
 class BaseResetBehaviour(ElCollectooorABCIBaseState):
     """Reset state."""
 
@@ -262,7 +211,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 yield from self.wait_until_round_end()
 
@@ -271,7 +220,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             return
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             # fetch an active project
             response = yield from self.get_contract_api_response(
@@ -299,7 +248,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
             with benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
@@ -335,7 +284,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -359,7 +308,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -395,7 +344,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -413,7 +362,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -467,7 +416,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 yield from self.wait_until_round_end()
 
@@ -476,7 +425,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             return
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             project_id = json.loads(self.period_state.most_voted_project)["project_id"]
@@ -509,7 +458,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 data,
             )
             with benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
@@ -531,14 +480,6 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         self._retries_made = 0
 
 
-class ResetFromRegistrationBehaviour(BaseResetBehaviour):
-    """Reset state."""
-
-    matching_round = ResetFromRegistrationRound
-    state_id = "reset_from_reg"
-    pause = False
-
-
 class ResetFromObservationBehaviour(BaseResetBehaviour):
     """Reset state."""
 
@@ -547,22 +488,32 @@ class ResetFromObservationBehaviour(BaseResetBehaviour):
     pause = False
 
 
+class FinishedElCollectoorBaseRoundBehaviour(ElCollectooorABCIBaseState):
+    """Degenerate behaviour for a degenerate round"""
+
+    matching_round = FinishedElCollectoorBaseRound
+    state_id = "finished_el_collectooor_base"
+
+    def async_act(self) -> Generator:
+        """
+        Simply log that the app was executed successfully.
+        """
+        self.context.logger.info("Successfully executed ElCollectooor Base app.")
+        self.set_done()
+
+
 class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooor abci app."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls = ElCollectooorAbciApp
+    initial_state_cls = ObservationRoundBehaviour
+    abci_app_cls = ElCollectooorBaseAbciApp
     behaviour_states: Set[Type[ElCollectooorABCIBaseState]] = {
-        TendermintHealthcheckBehaviour,  #
-        RegistrationBehaviour,
-        RandomnessAtStartupBehaviour,
-        SelectKeeperAtStartupBehaviour,
         ObservationRoundBehaviour,
         DetailsRoundBehaviour,
         DecisionRoundBehaviour,
         TransactionRoundBehaviour,
-        ResetFromRegistrationBehaviour,
         ResetFromObservationBehaviour,
+        FinishedElCollectoorBaseRoundBehaviour,
     }
 
     def setup(self) -> None:
