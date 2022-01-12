@@ -19,10 +19,11 @@
 
 """This module provides a very simple decision algorithm for NFT selection on Art Blocks."""
 import logging
-from typing import Optional
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
+from aea.exceptions import enforce
 
 
 _default_logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ _default_logger = logging.getLogger(__name__)
 class DecisionModel:
     """Framework for any decision models."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.score = 0
         self.project_id: Optional[int] = None
         self.threshold = 25
@@ -41,10 +42,10 @@ class DecisionModel:
         self.dutch_threshold = 150
         self.logger = _default_logger
 
-    def static(self, project_details):
+    def static(self, project_details: Dict) -> int:
         """First filtering of viable projects."""
-        if not type(project_details) == dict:
-            return "Wrong data format of project details."
+        enforce(type(project_details) == dict, "Wrong data format of project details.")
+
         if (
             not project_details["royalty_receiver"]
             == "0x0000000000000000000000000000000000000000"
@@ -56,7 +57,7 @@ class DecisionModel:
             return 1
         return 0
 
-    def dynamic(self, most_voted_details):
+    def dynamic(self, most_voted_details: Dict) -> int:
         """Automatic participation in the auction and optimal price discovery."""
         # TODO: define get more details
 
