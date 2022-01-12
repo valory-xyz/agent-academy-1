@@ -58,8 +58,8 @@ from packages.valory.skills.elcollectooor_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
     ElCollectooorAbciConsensusBehaviour,
-    FinishedElCollectoorBaseRoundBehaviour,
     ObservationRoundBehaviour,
+    RandomnessTransactionSubmissionBehaviour,
     ResetFromObservationBehaviour,
     TransactionRoundBehaviour,
 )
@@ -1079,7 +1079,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
 class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
     behaviour_class = TransactionRoundBehaviour
-    next_behaviour_class = FinishedElCollectoorBaseRoundBehaviour
+    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
 
     def test_contract_returns_valid_data(self):
         """
@@ -1134,7 +1134,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.end_round()
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-        assert state.state_id == FinishedElCollectoorBaseRoundBehaviour.state_id
+        assert state.state_id == self.next_behaviour_class.state_id
 
     def test_contract_returns_invalid_data(self):
         """

@@ -49,7 +49,9 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
 )
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
+    FinishedRegistrationFFWRound,
     FinishedRegistrationRound,
+    RegistrationRound,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
@@ -313,17 +315,6 @@ class ResetFromObservationRound(BaseResetRound):
     round_id = "reset_from_observation"
 
 
-class ElCollectooorStartRound(DegenerateRound):
-    """Degen round that only returns event done"""
-
-    round_id = "elcollectooor_healthcheck"
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Simply return DONE"""
-
-        return self.period_state, Event.DONE
-
-
 class FinishedElCollectoorBaseRound(DegenerateRound):
     """This class represents the finished round during operation."""
 
@@ -333,9 +324,8 @@ class FinishedElCollectoorBaseRound(DegenerateRound):
 class ElCollectooorBaseAbciApp(AbciApp[Event]):
     """The base logic of El Collectooor."""
 
-    initial_round_cls: Type[AbstractRound] = ElCollectooorStartRound
+    initial_round_cls: Type[AbstractRound] = ObservationRound
     transition_function: AbciAppTransitionFunction = {
-        ElCollectooorStartRound: {Event.DONE: ObservationRound},
         ObservationRound: {
             Event.DONE: DecisionRound,
             Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
@@ -378,8 +368,9 @@ el_collectooor_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
     FinishedSafeRound: ElCollectooorBaseAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedRegistrationFFWRound: ElCollectooorBaseAbciApp.initial_round_cls,
     FinishedTransactionSubmissionRound: ElCollectooorBaseAbciApp.initial_round_cls,
-    FailedRound: AgentRegistrationAbciApp.initial_round_cls,
+    FailedRound: RegistrationRound,
 }
 
 ElCollectooorAbciApp = chain(

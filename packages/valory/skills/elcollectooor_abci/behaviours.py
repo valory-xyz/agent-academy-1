@@ -47,8 +47,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
 from packages.valory.skills.elcollectooor_abci.rounds import (
     DecisionRound,
     DetailsRound,
-    ElCollectooorBaseAbciApp,
-    ElCollectooorStartRound,
+    ElCollectooorAbciApp,
     FinishedElCollectoorBaseRound,
     ObservationRound,
     PeriodState,
@@ -57,6 +56,27 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
 )
 from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
     DecisionModel,
+)
+from packages.valory.skills.registration_abci.behaviours import (
+    RegistrationBehaviour,
+    RegistrationStartupBehaviour,
+    TendermintHealthcheckBehaviour,
+)
+from packages.valory.skills.safe_deployment_abci.behaviours import (
+    DeploySafeBehaviour,
+    RandomnessSafeBehaviour,
+    SelectKeeperSafeBehaviour,
+    ValidateSafeBehaviour,
+)
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    FinalizeBehaviour,
+    RandomnessTransactionSubmissionBehaviour,
+    ResetAndPauseBehaviour,
+    ResetBehaviour,
+    SelectKeeperTransactionSubmissionBehaviourA,
+    SelectKeeperTransactionSubmissionBehaviourB,
+    SignatureBehaviour,
+    ValidateTransactionBehaviour,
 )
 
 
@@ -87,19 +107,6 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, self.context.params)
-
-
-class ElCollectooorStartBehaviour(BaseState):
-    """Check whether Tendermint nodes are running."""
-
-    state_id = "elcollectooor_start"
-    matching_round = ElCollectooorStartRound
-
-    def async_act(self) -> Generator:
-        """Do the action."""
-        self.context.logger.info("Starting ElCollectooor Base app.")
-        self.set_done()
-        yield
 
 
 class BaseResetBehaviour(ElCollectooorABCIBaseState):
@@ -464,16 +471,29 @@ class FinishedElCollectoorBaseRoundBehaviour(ElCollectooorABCIBaseState):
 class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooor abci app."""
 
-    initial_state_cls = ElCollectooorStartBehaviour
-    abci_app_cls = ElCollectooorBaseAbciApp
+    initial_state_cls = TendermintHealthcheckBehaviour
+    abci_app_cls = ElCollectooorAbciApp
     behaviour_states: Set[Type[ElCollectooorABCIBaseState]] = {
-        ElCollectooorStartBehaviour,
+        TendermintHealthcheckBehaviour,
+        RegistrationBehaviour,
+        RegistrationStartupBehaviour,
+        RandomnessSafeBehaviour,
+        SelectKeeperSafeBehaviour,
+        DeploySafeBehaviour,
+        ValidateSafeBehaviour,
         ObservationRoundBehaviour,
         DetailsRoundBehaviour,
         DecisionRoundBehaviour,
         TransactionRoundBehaviour,
         ResetFromObservationBehaviour,
-        FinishedElCollectoorBaseRoundBehaviour,
+        RandomnessTransactionSubmissionBehaviour,
+        SignatureBehaviour,
+        FinalizeBehaviour,
+        ValidateTransactionBehaviour,
+        SelectKeeperTransactionSubmissionBehaviourA,
+        SelectKeeperTransactionSubmissionBehaviourB,
+        ResetBehaviour,
+        ResetAndPauseBehaviour,
     }
 
     def setup(self) -> None:
