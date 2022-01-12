@@ -4,7 +4,8 @@ version: 0.1.0
 license: Apache-2.0
 description: Simple ABCI example.
 aea_version: '>=1.0.0, <2.0.0'
-fingerprint: {}
+fingerprint:
+  README.md: QmZCpKMCRs4rsbLUeCShw94FXFDoc2DEQKBSgHLeesTfVL
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
