@@ -1,16 +1,22 @@
-import http.server
 import logging
-import threading
-import time
 from typing import List, Tuple
 
 import grpc
 from aea.exceptions import enforce
 from google.protobuf import timestamp_pb2
-
+from packages.valory.connections.abci.tendermint.crypto import (
+    keys_pb2 as keys_types
+)
 from packages.valory.connections.abci.tendermint.abci import (
     types_pb2 as abci_types,
 )
+from packages.valory.connections.abci.tendermint.version import (
+    types_pb2 as version_type
+)
+from packages.valory.connections.abci.tendermint.types import (
+    types_pb2 as tendermint_types
+)
+
 from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc as tendermint_grpc
 from packages.valory.protocols.abci.custom_types import (
     Timestamp,
@@ -66,9 +72,9 @@ class GrpcClient:
             f"Received response {str(response)}"
         )
 
-        return response
+        return True
 
-    def echo(self, message: str):
+    def echo(self, message: str) -> bool:
         request = abci_types.RequestEcho()
         request.message = message
 
@@ -81,25 +87,24 @@ class GrpcClient:
         self.logger.info(
             f"Received response {str(response)}"
         )
+        return True
 
-        return response
-
-    def flush(self):
+    def flush(self) -> bool:
         request = abci_types.RequestFlush()
 
         self.logger.info(
             f"Sending flush req"
         )
 
-        response = stub.Echo(request)
+        response = stub.Flush(request)
 
         self.logger.info(
             f"Received response {str(response)}"
         )
 
-        return response
+        return True
 
-    def set_option(self, key: str, value: str):
+    def set_option(self, key: str, value: str) -> bool:
         request = abci_types.RequestSetOption()
         request.key = key
         request.value = value
@@ -114,7 +119,7 @@ class GrpcClient:
             f"Received response {str(response)}"
         )
 
-        return response
+        return True
 
     def deliver_tx(self, tx: bytes):
         request = abci_types.RequestDeliverTx()
@@ -130,13 +135,12 @@ class GrpcClient:
             f"Received response {str(response)}"
         )
 
-        return response
+        return True
 
     def check_tx(self, tx: bytes, is_new_check: bool):
-        request = abci_types.RequestDeliverTx()
+        request = abci_types.RequestCheckTx()
         request.tx = tx
-        request.type = \
-            abci_types.CheckTxType.values(0) if is_new_check else abci_types.CheckTxType.values(1)
+        request.type = 1 if is_new_check else 0
 
         self.logger.info(
             f"Calling check_tx with tx={tx} and is_new={is_new_check}"
@@ -167,7 +171,7 @@ class GrpcClient:
             f"Received response {str(response)}"
         )
 
-        return response
+        return True
 
     def commit(self):
         request = abci_types.RequestCommit()
@@ -182,7 +186,7 @@ class GrpcClient:
             f"Received response {str(response)}"
         )
 
-        return response
+        return True
 
     def init_chain(
             self,
@@ -206,7 +210,7 @@ class GrpcClient:
 
         timestamp = timestamp_pb2.Timestamp()
         Timestamp.encode(timestamp, Timestamp(time_seconds, time_nanos))
-        request.time = timestamp
+        request.time.CopyFrom(timestamp)
 
         request.chain_id = chain_id
 
@@ -219,23 +223,32 @@ class GrpcClient:
         ConsensusParams.encode(consensus_params,
                                ConsensusParams(block_params, evidence_params,
                                                validator_params, version_params))
-        request.consensus_params = consensus_params
+        request.consensus_params.CopyFrom(consensus_params)
 
         enforce(
             validator_pub_keys.__len__() == validator_power.__len__(),
             "pubkeys should have same length as power"
         )
 
-        pub_keys = [PublicKey(bs, tp) for bs, tp in validator_pub_keys]
-        validator_updates = ValidatorUpdates(
-            [
-                ValidatorUpdate(pub_keys[i], validator_power[i])
-                for i in range(validator_power.__len__())
-            ]
-        )
-        validators = abci_types.ValidatorUpdate()
-        ValidatorUpdates.encode(validators, validator_updates)
-        request.validators = validators
+        pub_keys = [PublicKey(bs, PublicKey.PublicKeyType(tp)) for bs, tp in validator_pub_keys]
+        validator_updates = [
+            ValidatorUpdate(pk, vp)
+            for pk, vp in zip(pub_keys, validator_power)]
+        validator_updates_pb = []
+
+        for validator_update_object in validator_updates:
+            validator_update_protobuf_object = abci_types.ValidatorUpdate()
+            pub_key = keys_types.PublicKey()
+
+            PublicKey.encode(
+                pub_key, validator_update_object.pub_key
+            )
+            validator_update_protobuf_object.power = validator_update_object.power
+            validator_update_protobuf_object.pub_key.CopyFrom(pub_key)
+
+            validator_updates_pb.append(validator_update_protobuf_object)
+
+        request.validators.extend(validator_updates_pb)
 
         request.app_state_bytes = app_state_bytes
         request.initial_height = initial_height
@@ -266,7 +279,7 @@ class GrpcClient:
             f"Received response {str(response)}"
         )
 
-        return response
+        return True
 
     def begin_block(
             self,
@@ -300,44 +313,58 @@ class GrpcClient:
             evidence_time_nanos: List[int],
             evidence_total_voting_power: List[int]
     ):
-        consensus_version = ConsensusVersion(consen_ver_block, consen_ver_app)
-        header = Header(
-            consensus_version,
-            chain_id,
-            height,
-            Timestamp(time_seconds, time_nanos),
-            BlockID(last_block_id_hash,
-                    PartSetHeader(next_validators_part_header_total, next_validators_part_header_hash)),
-            last_commit_hash,
-            data_hash,
-            validators_hash,
-            next_validators_hash,
-            header_consensus_hash,
-            header_app_hash,
-            header_last_results_hash,
-            header_evidence_hash,
-            header_proposer_address
-        )
+        consensus_version = version_type.Consensus()
+        consensus_version.block = consen_ver_block
+        consensus_version.app = consen_ver_app
+
+        part_set_header = tendermint_types.PartSetHeader()
+        part_set_header.total = next_validators_part_header_total
+        part_set_header.hash = next_validators_part_header_hash
+
+        block_id = tendermint_types.BlockID()
+        block_id.hash = last_block_id_hash
+        block_id.part_set_header.CopyFrom(part_set_header)
+
+        time = timestamp_pb2.Timestamp()
+        time.seconds = time_seconds
+        time.nanos = time_nanos
+
+        header = tendermint_types.Header()
+        header.version.CopyFrom(consensus_version)
+        header.chain_id = chain_id
+        header.height = height
+        header.time.CopyFrom(time)
+        header.last_block_id.CopyFrom(block_id)
+        header.last_commit_hash = last_commit_hash
+        header.data_hash = data_hash
+        header.validators_hash = validators_hash
+        header.next_validators_hash = next_validators_hash
+        header.consensus_hash = header_consensus_hash
+        header.app_hash = header_app_hash
+        header.last_results_hash = header_last_results_hash
+        header.evidence_hash = header_evidence_hash
+        header.proposer_address = header_proposer_address
 
         enforce(
             last_commit_info_signed_last_block.__len__() == last_commit_info_signed_last_block.__len__(),
             "last_commit_info_signed_last_block should have same length last_commit_info_signed_last_block"
         )
 
+        vote_infos = []
+        for i in range(last_commit_info_votes.__len__()):
+            validator = abci_types.Validator()
+            validator.address = last_commit_info_votes[i][0]
+            validator.power = last_commit_info_votes[i][1]
+
+            vote_info = abci_types.VoteInfo()
+            vote_info.validator.CopyFrom(validator)
+            vote_info.signed_last_block = last_commit_info_signed_last_block[i]
+
+            vote_infos.append(vote_info)
+
         last_commit_info = abci_types.LastCommitInfo()
-        LastCommitInfo.encode(
-            last_commit_info,
-            LastCommitInfo(
-                last_commit_round,
-                [
-                    VoteInfo(
-                        Validator(
-                            last_commit_info_votes[i][0],
-                            last_commit_info_votes[i][1]),
-                        last_commit_info_signed_last_block[i]
-                    ) for i in range(last_commit_info_votes.__len__())
-                ])
-        )
+        last_commit_info.round = last_commit_round
+        last_commit_info.votes.extend(vote_infos)
 
         enforce(
             {evidence_validator_address.__len__(), evidence_validator_power.__len__(), evidence_height.__len__(),
@@ -347,24 +374,31 @@ class GrpcClient:
             "evidence_* lists should have same length"
         )
 
-        byzantine_validators = abci_types.Evidence()
-        Evidences.encode(byzantine_validators, Evidences(
-            [
-                Evidence(
-                    EvidenceType(evidence_type[i] % 3),
-                    Validator(evidence_validator_address[i], evidence_validator_power[i]),
-                    evidence_height[i],
-                    Timestamp(evidence_time_seconds[i], evidence_time_nanos[i]),
-                    evidence_total_voting_power[i]
-                ) for i in range(evidence_type.__len__())
-            ]
-        ))
+        evidences = []
+
+        for i in range(evidence_type.__len__()):
+            validator = abci_types.Validator()
+            validator.address = evidence_validator_address[i]
+            validator.power = evidence_validator_power[i]
+
+            time = timestamp_pb2.Timestamp()
+            time.seconds = evidence_time_seconds[i]
+            time.nanos = evidence_time_nanos[i]
+
+            evidence = abci_types.Evidence()
+            evidence.type = evidence_type[i] % 3
+            evidence.height = evidence_height[i]
+            evidence.total_voting_power = evidence_total_voting_power[i]
+            evidence.time.CopyFrom(time)
+            evidence.validator.CopyFrom(validator)
+
+            evidences.append(evidence)
 
         request = abci_types.RequestBeginBlock()
         request.hash = hash_
-        request.header = header
-        request.last_commit_info = last_commit_info
-        request.byzantine_validators = byzantine_validators
+        request.header.CopyFrom(header)
+        request.last_commit_info.CopyFrom(last_commit_info)
+        request.byzantine_validators.extend(evidences)
 
         self.logger.info(
             f"Calling begin_block " +
@@ -405,7 +439,7 @@ class GrpcClient:
             f"Received response {str(response)}"
         )
 
-        return response
+        return True
 
     def end_block(self, height: int):
         request = abci_types.RequestEndBlock()
@@ -451,7 +485,7 @@ class GrpcClient:
         Snapshot.encode(snapshot, Snapshot(height, format_, chunks, hash_, metadata))
 
         request = abci_types.RequestOfferSnapshot()
-        request.snapshot = snapshot
+        request.snapshot.CopyFrom(snapshot)
         request.app_hash = app_hash
 
         self.logger.info(
@@ -487,9 +521,9 @@ class GrpcClient:
 
     def apply_snapshot_chunk(self, index: int, chunk: bytes, sender: str):
         request = abci_types.RequestApplySnapshotChunk()
-        request.height = index
-        request.format = chunk
-        request.chunk = sender
+        request.index = index
+        request.chunk = chunk
+        request.sender = sender
 
         self.logger.info(
             f"Calling load snapshot chunk index={index} chunk={chunk} sender={sender}"
@@ -502,28 +536,3 @@ class GrpcClient:
         )
 
         return response
-
-
-class HttpHandlerClass(http.server.BaseHTTPRequestHandler):
-
-    def do_GET(self):
-        """Respond to a GET request."""
-        self.send_response(200)
-
-
-def start_server():
-    server_address = ('', 26657)
-    httpd = http.server.HTTPServer(server_address, HttpHandlerClass)
-    httpd.serve_forever()
-
-
-def act():
-    threading.Thread(target=start_server, args=())
-
-    client = GrpcClient()
-    while True:
-        client.echo("test_msg")
-        time.sleep(1.5)
-
-
-act()
