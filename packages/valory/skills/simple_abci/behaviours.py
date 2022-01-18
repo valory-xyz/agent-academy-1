@@ -106,7 +106,24 @@ class TendermintHealthcheckBehaviour(SimpleABCIBaseState):
             # if the Tendermint node cannot update the app then the app cannot work
             raise RuntimeError("Tendermint node did not come live!")
         status = yield from self._get_status()
-
+        try:
+            json_body = json.loads(status.body.decode())
+        except json.JSONDecodeError:
+            self.context.logger.error(
+                "Tendermint not running or accepting transactions yet, trying again!"
+            )
+            yield from self.sleep(self.params.sleep_time)
+            return
+        remote_height = int(json_body["result"]["sync_info"]["latest_block_height"])
+        local_height = self.context.state.period.height
+        self.context.logger.info(
+            "local-height = %s, remote-height=%s", local_height, remote_height
+        )
+        if local_height != remote_height:
+            self.context.logger.info("local height != remote height; retrying...")
+            yield from self.sleep(self.params.sleep_time)
+            return
+        self.context.logger.info("local height == remote height; done")
         self.set_done()
 
 
