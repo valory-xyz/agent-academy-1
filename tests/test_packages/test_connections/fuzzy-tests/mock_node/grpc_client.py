@@ -4,20 +4,20 @@ from typing import List, Tuple
 import grpc
 from aea.exceptions import enforce
 from google.protobuf import timestamp_pb2
-from packages.valory.connections.abci.tendermint.crypto import (
-    keys_pb2 as keys_types
-)
+
 from packages.valory.connections.abci.tendermint.abci import (
     types_pb2 as abci_types,
 )
-from packages.valory.connections.abci.tendermint.version import (
-    types_pb2 as version_type
+from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc as tendermint_grpc
+from packages.valory.connections.abci.tendermint.crypto import (
+    keys_pb2 as keys_types
 )
 from packages.valory.connections.abci.tendermint.types import (
     types_pb2 as tendermint_types
 )
-
-from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc as tendermint_grpc
+from packages.valory.connections.abci.tendermint.version import (
+    types_pb2 as version_type
+)
 from packages.valory.protocols.abci.custom_types import (
     Timestamp,
     BlockParams,
@@ -28,17 +28,6 @@ from packages.valory.protocols.abci.custom_types import (
     ConsensusParams,
     PublicKey,
     ValidatorUpdate,
-    ValidatorUpdates,
-    ConsensusVersion,
-    Header,
-    BlockID,
-    PartSetHeader,
-    LastCommitInfo,
-    VoteInfo,
-    Validator,
-    Evidence,
-    EvidenceType,
-    Evidences,
     Snapshot
 )
 
