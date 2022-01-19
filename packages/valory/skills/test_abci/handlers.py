@@ -33,6 +33,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
     SigningHandler as BaseSigningHandler,
 )
 
+
 TestABCIHandler = ABCIHandler
 HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler

@@ -26,10 +26,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.test_abci.rounds import (
-    DummyRound,
-    TestAbciApp,
-)
+from packages.valory.skills.test_abci.rounds import DummyRound, TestAbciApp
 
 
 class DummyBehaviour(BaseState, ABC):
@@ -40,7 +37,8 @@ class DummyBehaviour(BaseState, ABC):
 
     def async_act(self) -> Generator:
         """Do the action."""
-        yield self.set_done()
+        self.set_done()
+        yield
 
 
 class TestAbciConsensusBehaviour(AbstractRoundBehaviour):

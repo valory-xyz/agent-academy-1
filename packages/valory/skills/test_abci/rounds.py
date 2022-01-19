@@ -18,10 +18,9 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the simple ABCI application."""
-import struct
 from abc import ABC
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Type
+from typing import Dict, Optional, Tuple, Type
 
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
@@ -30,10 +29,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     CollectDifferentUntilAllRound,
 )
-from packages.valory.skills.test_abci.payloads import (
-    DummyPayload,
-    TransactionType,
-)
+from packages.valory.skills.test_abci.payloads import DummyPayload, TransactionType
 
 
 class Event(Enum):
@@ -44,7 +40,9 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-class DummyRound(CollectDifferentUntilAllRound, AbstractRound[Event, TransactionType], ABC):
+class DummyRound(
+    CollectDifferentUntilAllRound, AbstractRound[Event, TransactionType], ABC
+):
     """
     This class represents the registration round.
 

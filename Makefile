@@ -63,11 +63,11 @@ test:
 
 .PHONY: grpc-fuzzy-tests
 grpc-fuzzy-tests:
-	pytest tests/test_packages/test_connections/fuzzy-tests/fuzzy.py::GrpcFuzzyTests
+	pytest tests/test_packages/test_connections/fuzzy_tests/fuzzy.py::GrpcFuzzyTests
 
 .PHONY: tcp-fuzzy-tests
 tcp-fuzzy-tests:
-	pytest tests/test_packages/test_connections/fuzzy-tests/fuzzy.py::TcpFuzzyTests
+	pytest tests/test_packages/test_connections/fuzzy_tests/fuzzy.py::TcpFuzzyTests
 
 .PHONY: fuzzy-tests
 fuzzy-tests: grpc-fuzzy-tests tcp-fuzzy-tests
