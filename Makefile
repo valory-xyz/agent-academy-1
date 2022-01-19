@@ -33,6 +33,7 @@ clean-test:
 	rm -fr .hypothesis
 	rm -fr .pytest_cache
 	rm -fr .mypy_cache/
+	rm -fr .hypothesis/
 	find . -name 'log.txt' -exec rm -fr {} +
 	find . -name 'log.*.txt' -exec rm -fr {} +
 
@@ -59,6 +60,18 @@ static:
 test:
 	pytest -rfE tests/ --cov-report=html --cov=packages/valory/skills/simple_abci --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
+
+.PHONY: grpc-fuzzy-tests
+grpc-fuzzy-tests:
+	pytest tests/test_packages/test_connections/fuzzy-tests/fuzzy.py::GrpcFuzzyTests
+
+.PHONY: tcp-fuzzy-tests
+tcp-fuzzy-tests:
+	pytest tests/test_packages/test_connections/fuzzy-tests/fuzzy.py::TcpFuzzyTests
+
+.PHONY: fuzzy-tests
+fuzzy-tests: grpc-fuzzy-tests tcp-fuzzy-tests
+	@echo " Running fuzzy tests"
 
 v := $(shell pip -V | grep virtualenvs)
 
