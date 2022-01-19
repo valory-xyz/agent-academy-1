@@ -250,6 +250,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(echo=request)
         message, _ = _TendermintProtocolDecoder.request_echo(
@@ -280,6 +281,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(flush=request)
         message, _ = _TendermintProtocolDecoder.request_flush(
@@ -310,6 +312,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(info=request)
         message, _ = _TendermintProtocolDecoder.request_info(
@@ -340,6 +343,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(set_option=request)
         message, _ = _TendermintProtocolDecoder.request_set_option(
@@ -370,6 +374,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(deliver_tx=request)
         message, _ = _TendermintProtocolDecoder.request_deliver_tx(
@@ -400,6 +405,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(check_tx=request)
         message, _ = _TendermintProtocolDecoder.request_check_tx(
@@ -430,6 +436,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(query=request)
         message, _ = _TendermintProtocolDecoder.request_query(
@@ -460,6 +467,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(commit=request)
         message, _ = _TendermintProtocolDecoder.request_commit(
@@ -490,6 +498,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(init_chain=request)
         message, _ = _TendermintProtocolDecoder.request_init_chain(
@@ -520,6 +529,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(begin_block=request)
         message, _ = _TendermintProtocolDecoder.request_begin_block(
@@ -550,6 +560,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(end_block=request)
         message, _ = _TendermintProtocolDecoder.request_end_block(
@@ -580,6 +591,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(list_snapshots=request)
         message, _ = _TendermintProtocolDecoder.request_list_snapshots(
@@ -610,6 +622,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(offer_snapshot=request)
         message, _ = _TendermintProtocolDecoder.request_offer_snapshot(
@@ -640,6 +653,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(load_snapshot_chunk=request)
         message, _ = _TendermintProtocolDecoder.request_load_snapshot_chunk(
@@ -670,6 +684,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
 
         :param: request: The request from the Tendermint node
         :param: context: The request context
+        :return: the Echo response
         """
         packed_req = Request(apply_snapshot_chunk=request)
         message, _ = _TendermintProtocolDecoder.request_apply_snapshot_chunk(

@@ -37,7 +37,6 @@ from packages.valory.skills.abstract_round_abci.base import (
     BasePeriodState,
     CollectSameUntilThresholdRound,
     DegenerateRound,
-    EventType,
 )
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
@@ -223,11 +222,13 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
 
 
 class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """Defines the Observation Round"""
+
     allowed_tx_type = ObservationPayload.transaction_type
     round_id = "observation"
     payload_attribute = "project_details"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             project_id = json.loads(self.most_voted_payload)["project_id"]
@@ -246,11 +247,13 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
 
 
 class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """Defines the Details Round"""
+
     allowed_tx_type = DecisionPayload.transaction_type
     round_id = "details"
     payload_attribute = "details"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
@@ -266,11 +269,13 @@ class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
 
 
 class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """Defines the Decision Round"""
+
     allowed_tx_type = DecisionPayload.transaction_type
     round_id = "decision"
     payload_attribute = "decision"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
@@ -292,11 +297,13 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
 
 
 class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """Defines the Transaction Round"""
+
     allowed_tx_type = TransactionPayload.transaction_type
     round_id = "transaction_collection"
     payload_attribute = "purchase_data"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, EventType]]:
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
@@ -312,6 +319,8 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
 
 
 class ResetFromObservationRound(BaseResetRound):
+    """This class acts as a transit round to Observation."""
+
     round_id = "reset_from_observation"
 
 

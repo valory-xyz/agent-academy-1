@@ -22,7 +22,7 @@
 import json
 from abc import ABC
 from math import floor
-from typing import Any, Generator, List, Optional, Set, Type, cast
+from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
 
 from aea.exceptions import AEAEnforceError, enforce
 
@@ -145,6 +145,8 @@ class BaseResetBehaviour(ElCollectooorABCIBaseState):
 
 
 class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
+    """Defines the Observation round behaviour"""
+
     state_id = "observation"
     matching_round = ObservationRound
 
@@ -170,7 +172,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
         self._retries_made = 0
 
     def async_act(self) -> Generator:
-        """Implement the act."""
+        """The observation act."""
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
@@ -225,16 +227,21 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
     def _increment_retries(self) -> None:
+        """Increments the retries."""
         self._retries_made += 1
 
     def is_retries_exceeded(self) -> bool:
+        """Checks whether retires are exceeded."""
         return self._retries_made > self.max_retries
 
     def _reset_retries(self) -> None:
+        """Resets the retries."""
         self._retries_made = 0
 
 
 class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
+    """Defines the Details Round behaviour"""
+
     state_id = "details"
     matching_round = DetailsRound
 
@@ -246,6 +253,8 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         )
 
     def async_act(self) -> Generator:
+        """The details act"""
+
         with benchmark_tool.measure(
             self,
         ).local():
@@ -278,7 +287,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
         self.set_done()
 
-    def _get_details(self, project: dict) -> dict:
+    def _get_details(self, project: dict) -> Generator[None, None, Dict]:
         self.context.logger.info(
             f"Gathering details on project with id={project['project_id']}."
         )
@@ -292,7 +301,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
             project_id=project["project_id"],
         )
 
-        new_details = response.state.body
+        new_details = cast(Dict, response.state.body)
 
         self.context.logger.info(
             f"Successfully gathered details on project with id={project['project_id']}."
@@ -302,10 +311,13 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
 
 class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
+    """Defines the Decision Round behaviour"""
+
     state_id = "decision"
     matching_round = DecisionRound
 
     def async_act(self) -> Generator:
+        """The Decision act"""
         with benchmark_tool.measure(
             self,
         ).local():
@@ -353,6 +365,8 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
 
 
 class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
+    """Defines the Transaction Round behaviour"""
+
     state_id = "transaction_collection"
     matching_round = TransactionRound
 
@@ -436,12 +450,15 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
     def _increment_retries(self) -> None:
+        """Increment the retries counter"""
         self._retries_made += 1
 
     def is_retries_exceeded(self) -> bool:
+        """Check if the retries limit has been exceeded"""
         return self._retries_made > self.max_retries
 
     def _reset_retries(self) -> None:
+        """Reset the retries"""
         self._retries_made = 0
 
 
@@ -460,9 +477,7 @@ class FinishedElCollectoorBaseRoundBehaviour(ElCollectooorABCIBaseState):
     state_id = "finished_el_collectooor_base"
 
     def async_act(self) -> Generator:
-        """
-        Simply log that the app was executed successfully.
-        """
+        """Simply log that the app was executed successfully."""
         self.context.logger.info("Successfully executed ElCollectooor Base app.")
         self.set_done()
         yield
@@ -472,28 +487,28 @@ class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooor abci app."""
 
     initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls = ElCollectooorAbciApp
-    behaviour_states: Set[Type[ElCollectooorABCIBaseState]] = {
-        TendermintHealthcheckBehaviour,
-        RegistrationBehaviour,
-        RegistrationStartupBehaviour,
-        RandomnessSafeBehaviour,
-        SelectKeeperSafeBehaviour,
-        DeploySafeBehaviour,
-        ValidateSafeBehaviour,
-        ObservationRoundBehaviour,
-        DetailsRoundBehaviour,
-        DecisionRoundBehaviour,
-        TransactionRoundBehaviour,
-        ResetFromObservationBehaviour,
-        RandomnessTransactionSubmissionBehaviour,
-        SignatureBehaviour,
-        FinalizeBehaviour,
-        ValidateTransactionBehaviour,
-        SelectKeeperTransactionSubmissionBehaviourA,
-        SelectKeeperTransactionSubmissionBehaviourB,
-        ResetBehaviour,
-        ResetAndPauseBehaviour,
+    abci_app_cls = ElCollectooorAbciApp  # type: ignore
+    behaviour_states: Set[Type[ElCollectooorABCIBaseState]] = {  # type: ignore
+        TendermintHealthcheckBehaviour,  # type: ignore
+        RegistrationBehaviour,  # type: ignore
+        RegistrationStartupBehaviour,  # type: ignore
+        RandomnessSafeBehaviour,  # type: ignore
+        SelectKeeperSafeBehaviour,  # type: ignore
+        DeploySafeBehaviour,  # type: ignore
+        ValidateSafeBehaviour,  # type: ignore
+        ObservationRoundBehaviour,  # type: ignore
+        DetailsRoundBehaviour,  # type: ignore
+        DecisionRoundBehaviour,  # type: ignore
+        TransactionRoundBehaviour,  # type: ignore
+        ResetFromObservationBehaviour,  # type: ignore
+        RandomnessTransactionSubmissionBehaviour,  # type: ignore
+        SignatureBehaviour,  # type: ignore
+        FinalizeBehaviour,  # type: ignore
+        ValidateTransactionBehaviour,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
+        ResetBehaviour,  # type: ignore
+        ResetAndPauseBehaviour,  # type: ignore
     }
 
     def setup(self) -> None:

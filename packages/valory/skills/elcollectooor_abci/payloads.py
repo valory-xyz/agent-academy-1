@@ -89,6 +89,7 @@ class ObservationPayload(BaseTxPayload):
 
     @property
     def project_details(self) -> str:
+        """Get project details"""
         return self._project_details
 
     @property
