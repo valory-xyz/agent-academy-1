@@ -20,33 +20,16 @@
 """This module contains the behaviours for the 'test_abci' skill."""
 
 from abc import ABC
-from math import floor
-from typing import Generator, List, Set, Type
+from typing import Generator, Set, Type
 
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.test_abci.rounds import (
     DummyRound,
     TestAbciApp,
 )
-
-
-def random_selection(elements: List[str], randomness: float) -> str:
-    """
-    Select a random element from a list.
-
-    :param: elements: a list of elements to choose among
-    :param: randomness: a random number in the [0,1) interval
-    :return: a randomly chosen element
-    """
-    random_position = floor(randomness * len(elements))
-    return elements[random_position]
-
-
-benchmark_tool = BenchmarkTool()
 
 
 class DummyBehaviour(BaseState, ABC):
@@ -72,4 +55,3 @@ class TestAbciConsensusBehaviour(AbstractRoundBehaviour):
     def setup(self) -> None:
         """Set up the behaviour."""
         super().setup()
-        benchmark_tool.logger = self.context.logger

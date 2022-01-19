@@ -44,16 +44,6 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
 
 
-def encode_float(value: float) -> bytes:  # pragma: nocover
-    """Encode a float value."""
-    return struct.pack("d", value)
-
-
-def rotate_list(my_list: list, positions: int) -> List[str]:
-    """Rotate a list n positions."""
-    return my_list[positions:] + my_list[:positions]
-
-
 class DummyRound(CollectDifferentUntilAllRound, AbstractRound[Event, TransactionType], ABC):
     """
     This class represents the registration round.
