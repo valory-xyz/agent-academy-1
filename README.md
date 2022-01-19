@@ -1,4 +1,5 @@
 # agent-academy-1
+
 Valory's Agent Academy 1 - participant repo
 
 - Clone the repository, and recursively clone the submodules:
@@ -22,7 +23,7 @@ Alternatively, you can fetch this docker image with the relevant requirments sat
 
 ## Simple ABCI example
 
-Create a virtual environment with all development dependencies: 
+Create a virtual environment with all development dependencies:
 
 ```bash
 make new_env
@@ -46,6 +47,28 @@ or
 pytest tests/test_packages/test_agents/test_simple_abci.py::TestSimpleABCITwoAgents
 ```
 
+## Fuzzy Tests for ABCI Connection
+
+To run the fuzzy tests with TCP as the communication channel, run:
+
+```bash
+make tcp-fuzzy-tests
+```
+
+For gRPC run:
+
+To run the fuzzy tests with TCP as the communication channel, run:
+
+```bash
+make grpc-fuzzy-tests
+```
+
+To run both, use:
+To run the fuzzy tests with TCP as the communication channel, run:
+
+```bash
+make fuzzy-tests
+```
 - Build the Hardhat projects:
 
       cd third_party/safe-contracts && yarn install
@@ -53,4 +76,5 @@ pytest tests/test_packages/test_agents/test_simple_abci.py::TestSimpleABCITwoAge
 
 ## Useful commands:
 
-Check out the `Makefile` for useful commands, e.g. `make lint`, `make static` and `make pylint`, as well as `make hashes`. To run all tests use `make test`.
+Check out the `Makefile` for useful commands, e.g. `make lint`, `make static` and `make pylint`, as well
+as `make hashes`. To run all tests use `make test`.
