@@ -69,6 +69,7 @@ models:
       max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
+      service_id: test_abci
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
