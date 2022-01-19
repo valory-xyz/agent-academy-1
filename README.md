@@ -2,6 +2,14 @@
 
 Valory's Agent Academy 1 - participant repo
 
+- Clone the repository, and recursively clone the submodules:
+
+      git clone --recursive git@github.com:valory-xyz/agent-academy-1.git
+
+  Note: to update the Git submodules later:
+
+      git submodule update --init --recursive
+
 ## System requirements
 
 - Python `>=3.7`
@@ -61,6 +69,10 @@ To run the fuzzy tests with TCP as the communication channel, run:
 ```bash
 make fuzzy-tests
 ```
+- Build the Hardhat projects:
+
+      cd third_party/safe-contracts && yarn install
+      cd ../..
 
 ## Useful commands:
 
