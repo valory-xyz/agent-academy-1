@@ -14,8 +14,8 @@ from hypothesis.strategies import (
     tuples,
     lists
 )
-
-from mock_node.grpc_client import GrpcClient
+from mock_node.channels.base import BaseChannel
+from mock_node.node import MockNode
 
 
 class BaseFuzzyTests(TestCase, AEATestCaseMany):
@@ -29,7 +29,8 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
     INT_32_MAX_VALUE = np.iinfo(np.int32).max
     INT_32_MIN_VALUE = np.iinfo(np.int32).min
 
-    CHANNEL_TYPE: Type[GrpcClient] = None
+    CHANNEL_TYPE: Type[BaseChannel] = None
+    CHANNEL_ARGS = dict()
     IS_LOCAL = True
     USE_GRPC = False
 
@@ -74,11 +75,12 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
             "A channel type must be provided"
         )
 
-        cls.channel = cls.CHANNEL_TYPE()
+        channel = cls.CHANNEL_TYPE(**cls.CHANNEL_ARGS)
+        cls.mock_node = MockNode(channel)
 
     @given(message=text())
     def test_echo(self, message: str):
-        assert self.channel.echo(message)
+        assert self.mock_node.echo(message)
 
     @given(
         version=text().filter(lambda x: x != ""),
@@ -86,30 +88,30 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
         p2p_version=integers(0, UINT_64_MAX_VALUE)
     )
     def test_info(self, version: str, block_version: int, p2p_version: int):
-        assert self.channel.info(version, block_version, p2p_version)
+        assert self.mock_node.info(version, block_version, p2p_version)
 
     def test_flush(self):
-        assert self.channel.flush()
+        assert self.mock_node.flush()
 
     @given(
         key=text(),
         value=text()
     )
     def test_set_option(self, key: str, value: str):
-        assert self.channel.set_option(key, value)
+        assert self.mock_node.set_option(key, value)
 
     @given(
         tx=binary()
     )
     def test_deliver_tx(self, tx: bytes):
-        assert self.channel.deliver_tx(tx)
+        assert self.mock_node.deliver_tx(tx)
 
     @given(
         tx=binary(),
         is_new_check=booleans()
     )
     def test_check_tx(self, tx: bytes, is_new_check: bool):
-        assert self.channel.check_tx(tx, is_new_check)
+        assert self.mock_node.check_tx(tx, is_new_check)
 
     @given(
         data=binary(),
@@ -118,10 +120,10 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
         prove=booleans()
     )
     def test_query(self, data: bytes, path: str, height: int, prove: bool):
-        assert self.channel.query(data, path, height, prove)
+        assert self.mock_node.query(data, path, height, prove)
 
     def test_commit(self):
-        assert self.channel.commit()
+        assert self.mock_node.commit()
 
     @given(
         time_seconds=integers(0, INT_64_MAX_VALUE),
@@ -160,7 +162,7 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
     ):
         min_validator_length = min(validator_power.__len__(), validator_pub_keys.__len__(), pub_key_types.__len__())
 
-        assert self.channel.init_chain(
+        assert self.mock_node.init_chain(
             time_seconds,
             time_nanos,
             chain_id,
@@ -251,7 +253,7 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
             evidence_time_nanos.__len__(),
             evidence_total_voting_power.__len__()
         )
-        self.channel.begin_block(
+        self.mock_node.begin_block(
             hash_,
             consen_ver_block,
             consen_ver_app,
@@ -287,10 +289,10 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
         height=integers(INT_64_MIN_VALUE, INT_64_MAX_VALUE)
     )
     def test_end_block(self, height: int):
-        assert self.channel.end_block(height)
+        assert self.mock_node.end_block(height)
 
     def test_list_snapshots(self):
-        assert self.channel.list_snapshots()
+        assert self.mock_node.list_snapshots()
 
     @given(
         height=integers(UINT_64_MIN_VALUE, UINT_64_MAX_VALUE),
@@ -309,7 +311,7 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
             metadata: bytes,
             app_hash: bytes
     ):
-        assert self.channel.offer_snapshot(height, format_, chunks, hash_, metadata, app_hash)
+        assert self.mock_node.offer_snapshot(height, format_, chunks, hash_, metadata, app_hash)
 
     @given(
         height=integers(UINT_64_MIN_VALUE, UINT_64_MAX_VALUE),
@@ -317,7 +319,7 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
         chunk=integers(UINT_32_MIN_VALUE, UINT_32_MAX_VALUE),
     )
     def test_load_snapshot_chunk(self, height: int, format_: int, chunk: int):
-        assert self.channel.load_snapshot_chunk(height, format_, chunk)
+        assert self.mock_node.load_snapshot_chunk(height, format_, chunk)
 
     @given(
         index=integers(UINT_32_MIN_VALUE, UINT_32_MAX_VALUE),
@@ -325,4 +327,4 @@ class BaseFuzzyTests(TestCase, AEATestCaseMany):
         sender=text()
     )
     def test_apply_snapshot_chunk(self, index: int, chunk: bytes, sender: str):
-        assert self.channel.apply_snapshot_chunk(index, chunk, sender)
+        assert self.mock_node.apply_snapshot_chunk(index, chunk, sender)

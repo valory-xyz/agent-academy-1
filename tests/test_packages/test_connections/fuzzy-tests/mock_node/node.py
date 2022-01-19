@@ -1,14 +1,12 @@
 import logging
 from typing import List, Tuple
 
-import grpc
 from aea.exceptions import enforce
 from google.protobuf import timestamp_pb2
 
 from packages.valory.connections.abci.tendermint.abci import (
     types_pb2 as abci_types,
 )
-from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc as tendermint_grpc
 from packages.valory.connections.abci.tendermint.crypto import (
     keys_pb2 as keys_types
 )
@@ -30,20 +28,25 @@ from packages.valory.protocols.abci.custom_types import (
     ValidatorUpdate,
     Snapshot
 )
+from .channels.base import BaseChannel
 
 _default_logger = logging.getLogger(__name__)
 
 logging.basicConfig()
 
-channel = grpc.insecure_channel('localhost:26658')
-stub = tendermint_grpc.ABCIApplicationStub(channel)
 
+class MockNode:
 
-class GrpcClient:
-
-    def __init__(self) -> None:
+    def __init__(self, channel: BaseChannel) -> None:
         self.logger = _default_logger
         self.logger.setLevel(logging.DEBUG)
+
+        enforce(
+            channel is not None,
+            "channel is None"
+        )
+
+        self.channel = channel
 
     def info(self, version: str, block_version: int, p2p_version: int):
         request = abci_types.RequestInfo()
@@ -55,7 +58,7 @@ class GrpcClient:
             f"Calling info with version={version}, block_version={block_version}, p2p_version={p2p_version}"
         )
 
-        response = stub.Info(request)
+        response = self.channel.send_info(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -71,7 +74,7 @@ class GrpcClient:
             f"Calling echo with message={message}"
         )
 
-        response = stub.Echo(request)
+        response = self.channel.send_echo(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -85,7 +88,7 @@ class GrpcClient:
             f"Sending flush req"
         )
 
-        response = stub.Flush(request)
+        response = self.channel.send_flush(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -102,7 +105,7 @@ class GrpcClient:
             f"Calling set_options with key={key} value={value}"
         )
 
-        response = stub.SetOption(request)
+        response = self.channel.send_set_option(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -118,7 +121,7 @@ class GrpcClient:
             f"Calling deliver_tx with tx={tx}"
         )
 
-        response = stub.DeliverTx(request)
+        response = self.channel.send_deliver_tx(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -135,7 +138,7 @@ class GrpcClient:
             f"Calling check_tx with tx={tx} and is_new={is_new_check}"
         )
 
-        response = stub.CheckTx(request)
+        response = self.channel.send_check_tx(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -154,7 +157,7 @@ class GrpcClient:
             f"Calling query with data={data} and path={path} height={height} prove={prove}"
         )
 
-        response = stub.Query(request)
+        response = self.channel.send_query(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -169,7 +172,7 @@ class GrpcClient:
             f"Calling commit"
         )
 
-        response = stub.Commit(request)
+        response = self.channel.send_commit(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -262,7 +265,7 @@ class GrpcClient:
             """
         )
 
-        response = stub.InitChain(request)
+        response = self.channel.send_init_chain(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -422,7 +425,7 @@ class GrpcClient:
             f"evidence_total_voting_power={evidence_total_voting_power}"
         )
 
-        response = stub.BeginBlock(request)
+        response = self.channel.send_begin_block(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -438,7 +441,7 @@ class GrpcClient:
             f"Calling end_block height={height}"
         )
 
-        response = stub.EndBlock(request)
+        response = self.channel.send_end_block(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -453,7 +456,7 @@ class GrpcClient:
             f"Calling list snapshots"
         )
 
-        response = stub.ListSnapshots(request)
+        response = self.channel.send_list_snapshots(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -482,7 +485,7 @@ class GrpcClient:
             f"chunks={chunks},hash_={hash_},metadata={metadata},app_hash={app_hash}"
         )
 
-        response = stub.OfferSnapshot(request)
+        response = self.channel.send_offer_snapshot(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -500,7 +503,7 @@ class GrpcClient:
             f"Calling load snapshot chunk height={height} format={format_} chunk={chunk}"
         )
 
-        response = stub.LoadSnapshotChunk(request)
+        response = self.channel.send_load_snapshot_chunk(request)
 
         self.logger.info(
             f"Received response {str(response)}"
@@ -518,7 +521,7 @@ class GrpcClient:
             f"Calling load snapshot chunk index={index} chunk={chunk} sender={sender}"
         )
 
-        response = stub.ApplySnapshotChunk(request)
+        response = self.channel.send_apply_snapshot_chunk(request)
 
         self.logger.info(
             f"Received response {str(response)}"
