@@ -32,7 +32,7 @@ from aea_ledger_ethereum import EthereumApi
 from eth_typing import ChecksumAddress, HexAddress, HexStr
 from hexbytes import HexBytes
 from packaging.version import Version
-from py_eth_sig_utils.eip712 import encode_typed_data  # type: ignore
+from py_eth_sig_utils.eip712 import encode_typed_data
 from web3.exceptions import TransactionNotFound
 from web3.types import TxParams, Wei
 
