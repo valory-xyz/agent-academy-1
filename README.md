@@ -49,6 +49,8 @@ pytest tests/test_packages/test_agents/test_simple_abci.py::TestSimpleABCITwoAge
 
 ## Running a fork of ethereum
 
+### Running the fork locally
+
 You will need:
 
 1. `npm`/`yarn` & `node` & `npx`
@@ -80,17 +82,36 @@ For Ropsten run:
 make run-ropsten-fork
 ```
 
+This will create a ledger api (HTTP and WebSocket JSON-RPC) on `http://127.0.0.1:8545` 
+
 By default, this will make a fork using block `11844372`. If you want to fork from a given block number, you can do so by
 setting `BLOCK_NUMBER` to your desired block. Ex.
 ```bash
 BLOCK_NUMBER=123 make run-ropsten-fork
 ```
 
-```bash 
-npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 11095000
+### Run with docker
+
+To run the forks with docker:
+Build the image:
+```bash
+make build-fork-image
 ```
 
-This will create a ledger api (HTTP and WebSocket JSON-RPC) on `http://127.0.0.1:8545` 
+To run the MainNet fork:
+```bash
+make run-mainnet-fork-docker
+```
+
+To run the Ropsten fork:
+```bash
+make run-ropsten-fork-docker
+```
+
+By default, the Ropsten container will be available on port `8545`, and MainNet should be available on port `8546`.
+You can control what keys to use by setting MAINNET_KEY and ROPSTEN_KEY respectively. 
+The docker ports (mappings) can be set using `ROPSTEN_DOCKER_PORT` and `MAINNET_DOCKER_PORT`.
+`BLOCK_NUMBER` can be used to change the starting block number.
 
 - Build the Hardhat projects:
 

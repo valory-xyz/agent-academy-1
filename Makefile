@@ -1,3 +1,9 @@
+BLOCK_NUMBER ?= 11844372
+MAINNET_KEY ?= gP4Np3Qs4ABcu-LCQNDETRklUaW7ouUq
+ROPSTEN_KEY ?= WIedVERFqJW1Rlc5Yg6hshrLSCGqzXru
+ROPSTEN_DOCKER_PORT ?= 8545
+MAINNET_DOCKER_PORT ?= 8546
+
 .PHONY: clean
 clean: clean-build clean-pyc clean-test clean-docs
 
@@ -79,11 +85,6 @@ new_env: clean
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
 
-
-BLOCK_NUMBER ?= 11844372
-MAINNET_KEY ?=gP4Np3Qs4ABcu-LCQNDETRklUaW7ouUq
-ROPSTEN_KEY ?= WIedVERFqJW1Rlc5Yg6hshrLSCGqzXru
-
 .PHONY: run-mainnet-fork
 run-mainnet-fork:
 	@cd tests/helpers/hardhat;\
@@ -95,3 +96,19 @@ run-ropsten-fork:
 	@cd tests/helpers/hardhat;\
   	echo "Forking Ropsten on block $(BLOCK_NUMBER)";\
 	npx hardhat node --fork https://eth-ropsten.alchemyapi.io/v2/$(ROPSTEN_KEY) --fork-block-number $(BLOCK_NUMBER)
+
+.PHONY: build-fork-image
+build-fork-image:
+	@echo "Building docker image for hardhat";\
+	cd tests/helpers/hardhat;\
+	docker build . -t hardhat:latest
+
+.PHONY: run-ropsten-fork-docker
+run-ropsten-fork-docker:
+	@echo Running ropsten fork as a docker container;\
+	docker run -d -e KEY=$(ROPSTEN_KEY) --name ropsten-fork -e NETWORK=ropsten -e BLOCK_NUMBER=$(BLOCK_NUMBER) -p $(ROPSTEN_DOCKER_PORT):8545 hardhat:latest
+
+.PHONY: run-mainnet-fork-docker
+run-mainnet-fork-docker:
+	@echo Running mainnet fork as a docker container;\
+	docker run -d -e KEY=$(MAINNET_KEY) --name mainnet-fork -e NETWORK=mainnet -e BLOCK_NUMBER=$(BLOCK_NUMBER) -p $(MAINNET_DOCKER_PORT):8545 hardhat:latest
