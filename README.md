@@ -71,17 +71,20 @@ cd tests/helpers/hardhat
 For Mainnet run:
 
 ```bash
-npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/gP4Np3Qs4ABcu-LCQNDETRklUaW7ouUq
+make run-mainnet-fork
 ```
 
 For Ropsten run:
 
 ```bash
-npx hardhat node --fork https://eth-ropsten.alchemyapi.io/v2/WIedVERFqJW1Rlc5Yg6hshrLSCGqzXru
+make run-ropsten-fork
 ```
 
-By default, this will make a fork using the last block. If you want to fork from a given block number, you can do so by
-adding the `--fork-block-number` flag. Ex.
+By default, this will make a fork using block `11844372`. If you want to fork from a given block number, you can do so by
+setting `BLOCK_NUMBER` to your desired block. Ex.
+```bash
+BLOCK_NUMBER=123 make run-ropsten-fork
+```
 
 ```bash 
 npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/<key> --fork-block-number 11095000

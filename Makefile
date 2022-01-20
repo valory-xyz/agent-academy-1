@@ -78,3 +78,20 @@ new_env: clean
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
+
+
+BLOCK_NUMBER ?= 11844372
+MAINNET_KEY ?=gP4Np3Qs4ABcu-LCQNDETRklUaW7ouUq
+ROPSTEN_KEY ?= WIedVERFqJW1Rlc5Yg6hshrLSCGqzXru
+
+.PHONY: run-mainnet-fork
+run-mainnet-fork:
+	@cd tests/helpers/hardhat;\
+  	echo "Forking MainNet on block $(BLOCK_NUMBER)";\
+	npx hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/$(MAINNET_KEY) --fork-block-number $(BLOCK_NUMBER)
+
+.PHONY: run-ropsten-fork
+run-ropsten-fork:
+	@cd tests/helpers/hardhat;\
+  	echo "Forking Ropsten on block $(BLOCK_NUMBER)";\
+	npx hardhat node --fork https://eth-ropsten.alchemyapi.io/v2/$(ROPSTEN_KEY) --fork-block-number $(BLOCK_NUMBER)
