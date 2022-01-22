@@ -1,3 +1,4 @@
+
 # agent-academy-1
 
 Valory's Agent Academy 1 - participant repo
@@ -47,6 +48,65 @@ or
 pytest tests/test_packages/test_agents/test_simple_abci.py::TestSimpleABCITwoAgents
 ```
 
+## Running a fork of ethereum
+
+### Running the fork locally
+
+You can make a fork using hardhat + an archive node. The following demo uses [Alchemy](https://alchemyapi.io).
+
+You will need:
+
+1. `npm`/`yarn` & `node` & `npx`
+2. `hardhat`
+
+To install `hardhat` globally run:
+
+```bash
+npm install --save-dev hardhat
+```
+
+For Mainnet run:
+
+```bash
+make run-mainnet-fork
+```
+
+For Ropsten run:
+
+```bash
+make run-ropsten-fork
+```
+
+This will create a ledger api (HTTP and WebSocket JSON-RPC) on `http://127.0.0.1:8545` 
+
+By default, this will make a fork using block `11844372`. If you want to fork from a given block number, you can do so by setting `BLOCK_NUMBER` to your desired block. Ex.
+```bash
+BLOCK_NUMBER=123456 make run-ropsten-fork
+```
+
+### Run with docker
+
+To run the forks with docker:
+Build the image:
+```bash
+make build-fork-image
+```
+
+To run the MainNet fork:
+```bash
+make run-mainnet-fork-docker
+```
+
+To run the Ropsten fork:
+```bash
+make run-ropsten-fork-docker
+```
+
+By default, the Ropsten container will be available on port `8545`, and MainNet should be available on port `8546`.
+You can control what keys to use by setting MAINNET_KEY and ROPSTEN_KEY respectively. 
+The docker ports (mappings) can be set using `ROPSTEN_DOCKER_PORT` and `MAINNET_DOCKER_PORT`.
+`BLOCK_NUMBER` can be used to change the starting block number.
+
 ## Fuzzy Tests for ABCI Connection
 
 To run the fuzzy tests with TCP as the communication channel, run:
@@ -57,18 +117,16 @@ make tcp-fuzzy-tests
 
 For gRPC run:
 
-To run the fuzzy tests with TCP as the communication channel, run:
-
 ```bash
 make grpc-fuzzy-tests
 ```
 
 To run both, use:
-To run the fuzzy tests with TCP as the communication channel, run:
-
 ```bash
 make fuzzy-tests
 ```
+
+## Building the contracts on hardhat
 - Build the Hardhat projects:
 
       cd third_party/safe-contracts && yarn install
