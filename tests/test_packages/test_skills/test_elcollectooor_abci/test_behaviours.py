@@ -23,7 +23,7 @@ import logging
 import time
 from copy import copy
 from pathlib import Path
-from typing import Any, Dict, Type, cast
+from typing import Any, Dict, List, Type, cast
 from unittest import mock
 from unittest.mock import patch
 
@@ -374,14 +374,14 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
 
     def _test_done_flag_set(self) -> None:
         """Test that, when round ends, the 'done' flag is set."""
-        current_state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-        assert not self.elcollectooor_abci_behaviour.current_state.is_done()
+        current_state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)  # type: ignore
+        assert not self.elcollectooor_abci_behaviour.current_state.is_done()  # type: ignore
         with mock.patch.object(
             self.elcollectooor_abci_behaviour.context.state, "period"
         ) as mock_period:
             mock_period.last_round_id = cast(
                 AbstractRound,
-                self.elcollectooor_abci_behaviour.current_state.matching_round,
+                self.elcollectooor_abci_behaviour.current_state.matching_round,  # type: ignore
             ).round_id
             current_state.act_wrapper()
             assert current_state.is_done()
@@ -632,6 +632,8 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
 
 class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+    """Tests for the Observation Round Behaviour"""
+
     behaviour_class = ObservationRoundBehaviour
     next_behaviour_class = DecisionRoundBehaviour
 
@@ -754,17 +756,19 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             attribute="is_retries_exceeded",
             return_value=True,
         ):
-            assert self.behaviour_class.is_retries_exceeded()
+            assert self.behaviour_class.is_retries_exceeded()  # type: ignore
             state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
             assert state.state_id == self.behaviour_class.state_id
             # self._test_done_flag_set() # TODO: make this work
 
 
 class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+    """Tests for details round behaviour"""
+
     behaviour_class = DetailsRoundBehaviour
     next_behaviour_class = DecisionRoundBehaviour
 
-    def test_next_state_is_decision(self):
+    def test_next_state_is_decision(self) -> None:
         """The agent fetches details"""
 
         test_project = {
@@ -781,7 +785,7 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             "max_invocations": 10,
             "ipfs_hash": "",
         }
-        test_details = [{}]
+        test_details: List[Dict] = [{}]
 
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
@@ -846,7 +850,7 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
-    def test_calling_details_for_the_first_time(self):
+    def test_calling_details_for_the_first_time(self) -> None:
         """The details round is called for the first round, the details array should have a length of 1."""
 
         """The agent fetches details"""
@@ -866,7 +870,7 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             "ipfs_hash": "",
         }
 
-        test_details = []
+        test_details: List[Dict] = []
 
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
@@ -933,12 +937,14 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
 
 class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+    """Tests for Decision Round Behaviour"""
+
     behaviour_class = DecisionRoundBehaviour
     decided_yes_behaviour_class = TransactionRoundBehaviour
     decided_no_behaviour_class = ResetFromObservationBehaviour
     gib_details_behaviour_class = DetailsRoundBehaviour
 
-    def test_decided_yes(self):
+    def test_decided_yes(self) -> None:
         """The agent evaluated the project and decided for YES"""
 
         test_project = {
@@ -1000,7 +1006,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.decided_yes_behaviour_class.state_id
 
-    def test_decided_no(self):
+    def test_decided_no(self) -> None:
         """The agent evaluated the project and decided for NO"""
 
         test_project = {
@@ -1017,7 +1023,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             "max_invocations": 10,
             "ipfs_hash": "",
         }
-        test_details = [{}]
+        test_details: List[Dict] = [{}]
 
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
@@ -1038,7 +1044,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
         assert state.state_id == self.decided_no_behaviour_class.state_id
 
-    def test_decided_gib_details(self):
+    def test_decided_gib_details(self) -> None:
         """The agent decided it needs more data"""
 
         test_project = {
@@ -1055,7 +1061,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             "max_invocations": 10,
             "ipfs_hash": "",
         }
-        test_details = [{}]
+        test_details: List[Dict] = [{}]
 
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
@@ -1078,13 +1084,13 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
 
 class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+    """Tests for Transaction Round Behaviour"""
+
     behaviour_class = TransactionRoundBehaviour
     next_behaviour_class = RandomnessTransactionSubmissionBehaviour
 
-    def test_contract_returns_valid_data(self):
-        """
-        The agent gathers the necessary data to make the purchase, makes a contract requests and receives valid data
-        """
+    def test_contract_returns_valid_data(self) -> None:
+        """The agent gathers the necessary data to make the purchase,makes a contract requests and receives valid data"""
 
         test_project = {
             "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
@@ -1136,11 +1142,8 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
-    def test_contract_returns_invalid_data(self):
-        """
-        The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data
-        The agent should retry
-        """
+    def test_contract_returns_invalid_data(self) -> None:
+        """The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data,the agent should retry"""
         test_project = {
             "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
             "price_per_token_in_wei": 1,
@@ -1190,11 +1193,8 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             time.sleep(1.1)
             self.elcollectooor_abci_behaviour.act_wrapper()
 
-    def test_retries_exceeded(self):
-        """
-        The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data
-        The agent should retry
-        """
+    def test_retries_exceeded(self) -> None:
+        """The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data the agent should retry"""
         test_project = {
             "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
             "price_per_token_in_wei": 1,
@@ -1228,17 +1228,17 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             attribute="is_retries_exceeded",
             return_value=True,
         ):
-            assert self.behaviour_class.is_retries_exceeded()
+            assert self.behaviour_class.is_retries_exceeded()  # type: ignore
             state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
             assert state.state_id == self.behaviour_class.state_id
             # self._test_done_flag_set() # TODO: make this work
 
 
 class TestDecisionModel:
-    def test_static_should_return_1_when_no_royalty_receiver(self):
-        """
-        Static should return 1, when there is no royalty receiver
-        """
+    """Tests for the Decision Model"""
+
+    def test_static_should_return_1_when_no_royalty_receiver(self) -> None:
+        """Static should return 1, when there is no royalty receiver"""
 
         test_project_details = {
             "royalty_receiver": "0x0000000000000000000000000000000000000000",
@@ -1249,10 +1249,9 @@ class TestDecisionModel:
 
         assert 1 == static_score
 
-    def test_static_should_return_1_when_empty_desc_and_royalty_receiver(self):
-        """
-        Static should return 1, when the description is empty
-        """
+    def test_static_should_return_1_when_empty_desc_and_royalty_receiver(self) -> None:
+        """Static should return 1, when the description is empty"""
+
         test_project_details = {
             "royalty_receiver": "0x1000000000000000000010000000000000000001",
             "description": "",
@@ -1261,10 +1260,11 @@ class TestDecisionModel:
         static_score = model.static(test_project_details)
         assert static_score == 1
 
-    def test_static_should_return_0_when_empty_desc_and_no_royalty_receiver(self):
-        """
-        Static should return 1 when there is no royalty receiver, and empty desc
-        """
+    def test_static_should_return_0_when_empty_desc_and_no_royalty_receiver(
+        self,
+    ) -> None:
+        """Static should return 1 when there is no royalty receiver, and empty desc"""
+
         test_project_details = {
             "royalty_receiver": "0x0000000000000000000000000000000000000000",
             "description": "",
@@ -1273,10 +1273,11 @@ class TestDecisionModel:
         static_score = model.static(test_project_details)
         assert static_score == 0
 
-    def test_static_should_return_1_when_nonempty_desc_and_no_royalty_receiver(self):
-        """
-        Static should return 1 when there is no royalty receiver and the description is not empty.
-        """
+    def test_static_should_return_1_when_nonempty_desc_and_no_royalty_receiver(
+        self,
+    ) -> None:
+        """Static should return 1 when there is no royalty receiver and the description is not empty."""
+
         test_project_details = {
             "royalty_receiver": "0x0000000000000000000000000000000000000000",
             "description": "Some description.",
@@ -1289,10 +1290,11 @@ class TestDecisionModel:
     # for example, when the input is not as expected, it's impossible for an app to be over-tested :)
 
     # TODO: add tests for dynamic part
-    def test_dynamic_should_return_1_when_cheap_often_minted_NFT_is_observed(self):
-        """
-        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
-        """
+    def test_dynamic_should_return_1_when_cheap_often_minted_NFT_is_observed(
+        self,
+    ) -> None:
+        """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
+
         model = DecisionModel()
 
         project_hist = []
@@ -1306,14 +1308,14 @@ class TestDecisionModel:
 
         assert model.dynamic(project_hist) == 1
 
-    def test_dynamic_should_return_0_when_NFT_rarely_minted_after_some_time(self):
-        """
-        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
-        """
+    def test_dynamic_should_return_0_when_NFT_rarely_minted_after_some_time(
+        self,
+    ) -> None:
+        """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
 
         project_hist = []
-        for i in range(1010):
+        for _ in range(1010):
             project_dict_example = {
                 "price_per_token_in_wei": 10 ** 19,
                 "invocations": 0,
@@ -1323,10 +1325,8 @@ class TestDecisionModel:
 
         assert model.dynamic(project_hist) == 0
 
-    def test_dynamic_should_return_negative_1_when_data_inconclusive(self):
-        """
-        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
-        """
+    def test_dynamic_should_return_negative_1_when_data_inconclusive(self) -> None:
+        """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
 
         project_dict_example = [
@@ -1337,10 +1337,8 @@ class TestDecisionModel:
 
     def test_dynamic_should_return_negative_1_when_too_expensive_minted_NFT_is_observed(
         self,
-    ):
-        """
-        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
-        """
+    ) -> None:
+        """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
         project_hist = []
 
@@ -1354,10 +1352,8 @@ class TestDecisionModel:
 
         assert model.dynamic(project_hist) == -1
 
-    def test_dynamic_is_non_dutch(self):
-        """
-        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
-        """
+    def test_dynamic_is_non_dutch(self) -> None:
+        """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
         project_hist = []
 
@@ -1375,10 +1371,8 @@ class TestDecisionModel:
             mock_debug.assert_called_with("This is no Dutch auction.")
         assert model.dynamic(project_hist) == 1
 
-    def test_dynamic_is_dutch(self):
-        """
-        Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon.
-        """
+    def test_dynamic_is_dutch(self) -> None:
+        """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
         project_hist = []
 

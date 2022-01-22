@@ -19,10 +19,10 @@
 
 """This module provides a very simple decision algorithm for NFT selection on Art Blocks."""
 import logging
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
-import pandas as pd
+import pandas as pd  # type: ignore
 from aea.exceptions import enforce
 
 
@@ -33,6 +33,8 @@ class DecisionModel:
     """Framework for any decision models."""
 
     def __init__(self) -> None:
+        """Initializes a DecisionModel instance"""
+
         self.score = 0
         self.project_id: Optional[int] = None
         self.threshold = 25
@@ -57,7 +59,7 @@ class DecisionModel:
             return 1
         return 0
 
-    def dynamic(self, most_voted_details: Dict) -> int:
+    def dynamic(self, most_voted_details: List[Dict]) -> int:
         """Automatic participation in the auction and optimal price discovery."""
         # TODO: define get more details
 
