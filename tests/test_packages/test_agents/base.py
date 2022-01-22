@@ -53,6 +53,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     KEEPER_TIMEOUT = 10
     HEALTH_CHECK_MAX_RETRIES = 20
     HEALTH_CHECK_SLEEP_INTERVAL = 3.0
+    USE_GRPC = False
     cli_log_options = ["-v", "DEBUG"]
     processes: List
     agent_package: str
@@ -105,6 +106,9 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
                 self.NB_AGENTS,
+            )
+            self.set_config(
+                "vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC
             )
             self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",

@@ -145,12 +145,12 @@ class RegistrationBehaviour(SimpleABCIBaseState):
         """
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             payload = RegistrationPayload(self.context.agent_address)
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -173,14 +173,14 @@ class RandomnessBehaviour(SimpleABCIBaseState):
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
             with benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             api_specs = self.context.randomness_api.get_spec()
             http_message, http_dialogue = self._build_http_request_message(
@@ -198,7 +198,7 @@ class RandomnessBehaviour(SimpleABCIBaseState):
                 observation["randomness"],
             )
             with benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
@@ -242,7 +242,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
         """
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).local():
             keeper_address = random_selection(
                 sorted(self.period_state.participants),
@@ -253,7 +253,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
             payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
 
         with benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()

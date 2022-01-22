@@ -42,73 +42,6 @@ class TransactionType(Enum):
         return self.value
 
 
-class RegistrationPayload(BaseTxPayload):
-    """Represent a transaction payload of type 'registration'."""
-
-    transaction_type = TransactionType.REGISTRATION
-
-
-class RandomnessPayload(BaseTxPayload):
-    """Represent a transaction payload of type 'randomness'."""
-
-    transaction_type = TransactionType.RANDOMNESS
-
-    def __init__(
-        self, sender: str, round_id: int, randomness: str, id_: Optional[str] = None
-    ) -> None:
-        """Initialize an 'select_keeper' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param round_id: the round id
-        :param randomness: the randomness
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._round_id = round_id
-        self._randomness = randomness
-
-    @property
-    def round_id(self) -> int:
-        """Get the round id."""
-        return self._round_id
-
-    @property
-    def randomness(self) -> str:
-        """Get the randomness."""
-        return self._randomness
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(round_id=self._round_id, randomness=self._randomness)
-
-
-class SelectKeeperPayload(BaseTxPayload):
-    """Represent a transaction payload of type 'select_keeper'."""
-
-    transaction_type = TransactionType.SELECT_KEEPER
-
-    def __init__(self, sender: str, keeper: str, id_: Optional[str] = None) -> None:
-        """Initialize an 'select_keeper' transaction payload.
-
-        :param sender: the sender (Ethereum) address
-        :param keeper: the keeper selection
-        :param id_: the id of the transaction
-        """
-        super().__init__(sender, id_)
-        self._keeper = keeper
-
-    @property
-    def keeper(self) -> str:
-        """Get the keeper."""
-        return self._keeper
-
-    @property
-    def data(self) -> Dict:
-        """Get the data."""
-        return dict(keeper=self.keeper)
-
-
 class ResetPayload(BaseTxPayload):
     """Represent a transaction payload of type 'reset'."""
 
@@ -156,6 +89,7 @@ class ObservationPayload(BaseTxPayload):
 
     @property
     def project_details(self) -> str:
+        """Get project details"""
         return self._project_details
 
     @property
@@ -206,12 +140,12 @@ class DetailsPayload(BaseTxPayload):
         self._details = details
 
     @property
-    def details(self):
+    def details(self) -> str:
         """Get the details"""
         return self._details
 
     @property
-    def data(self):
+    def data(self) -> Dict:
         """Get the data"""
         return dict(details=self.details)
 

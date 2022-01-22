@@ -41,16 +41,12 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     Event,
     ObservationRound,
     PeriodState,
-    RandomnessStartupRound,
-    RegistrationRound,
-    ResetFromRegistrationRound,
-    SelectKeeperAStartupRound,
+    ResetFromObservationRound,
     TransactionRound,
     rotate_list,
 )
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
-    RegistrationPayload,
     ResetPayload,
     SelectKeeperPayload,
 )
@@ -125,149 +121,6 @@ class BaseRoundTestClass:
             assert result is not None
             state, event = result
             assert event == Event.NO_MAJORITY
-
-
-class TestRegistrationRound(BaseRoundTestClass):
-    """Tests for RegistrationRound."""
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        test_round = RegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        first_payload, *payloads = [
-            RegistrationPayload(sender=participant) for participant in self.participants
-        ]
-
-        # only 1 participant is registered
-        # round should fail = No event should be returned
-        test_round.process_payload(first_payload)
-        assert test_round.collection == {first_payload.sender}
-        assert test_round.end_block() is None
-
-        # all participants register
-        # round should return Event.DONE
-        for payload in payloads:
-            test_round.process_payload(payload)
-
-        actual_next_state = PeriodState(
-            StateDB(
-                initial_period=0, initial_data=dict(participants=test_round.collection)
-            )
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert (
-            cast(PeriodState, state).participants
-            == cast(PeriodState, actual_next_state).participants
-        )
-        assert event == Event.DONE
-
-
-class TestRandomnessStartupRound(BaseRoundTestClass):
-    """Tests for RandomnessStartupRound."""
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        test_round = RandomnessStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-        first_payload, *payloads = [
-            RandomnessPayload(sender=participant, randomness=RANDOMNESS, round_id=0)
-            for participant in self.participants
-        ]
-
-        # not enough members have voted
-        # no event should be returned
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-
-        # enough payloads have been sent
-        # but no majority is reached
-        self._test_no_majority_event(test_round)
-
-        # all members vote for the same payload
-        # event done should be returned
-        for payload in payloads:
-            test_round.process_payload(payload)
-
-        actual_next_state = self.period_state.update(
-            participant_to_randomness=MappingProxyType(test_round.collection),
-            most_voted_randomness=test_round.most_voted_payload,
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-
-        assert all(
-            [
-                key in cast(PeriodState, state).participant_to_randomness
-                for key in cast(
-                    PeriodState, actual_next_state
-                ).participant_to_randomness
-            ]
-        )
-        assert event == Event.DONE
-
-
-class TestSelectKeeperAStartupRound(BaseRoundTestClass):
-    """Tests for SelectKeeperAStartupRound."""
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        test_round = SelectKeeperAStartupRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        first_payload, *payloads = [
-            SelectKeeperPayload(sender=participant, keeper="keeper")
-            for participant in self.participants
-        ]
-
-        # only one participant has voted
-        # no event should be returned
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-
-        # enough members have voted
-        # but no majority is reached
-        self._test_no_majority_event(test_round)
-
-        # all members voted in the same way
-        # Event DONE should be returned
-        for payload in payloads:
-            test_round.process_payload(payload)
-
-        actual_next_state = self.period_state.update(
-            participant_to_selection=MappingProxyType(test_round.collection),
-            most_voted_keeper_address=test_round.most_voted_payload,
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-        assert all(
-            [
-                key in cast(PeriodState, state).participant_to_selection
-                for key in cast(PeriodState, actual_next_state).participant_to_selection
-            ]
-        )
-        assert event == Event.DONE
 
 
 class TestObservationRound(BaseRoundTestClass):
@@ -533,52 +386,6 @@ class TestTransactionRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-class TestResetFromRegistrationRound(BaseRoundTestClass):
-    """Tests for ResetFromRegistrationRound."""
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        test_round = ResetFromRegistrationRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        first_payload, *payloads = [
-            ResetPayload(sender=participant, period_count=1)
-            for participant in self.participants
-        ]
-
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-
-        self._test_no_majority_event(test_round)
-
-        for payload in payloads:
-            test_round.process_payload(payload)
-
-        actual_next_state = self.period_state.update(
-            period_count=test_round.most_voted_payload,
-            participant_to_randomness=None,
-            most_voted_randomness=None,
-            participant_to_selection=None,
-            most_voted_keeper_address=None,
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-
-        assert (
-            cast(PeriodState, state).period_count
-            == cast(PeriodState, actual_next_state).period_count
-        )
-
-        assert event == Event.DONE
-
-
 class TestDetailsRound(BaseRoundTestClass):
     """Tests for DetailsRound"""
 
@@ -650,7 +457,7 @@ class TestResetFromObservationRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
 
-        test_round = ResetFromRegistrationRound(
+        test_round = ResetFromObservationRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 

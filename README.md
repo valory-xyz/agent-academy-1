@@ -1,3 +1,4 @@
+
 # agent-academy-1
 
 Valory's Agent Academy 1 - participant repo
@@ -51,6 +52,8 @@ pytest tests/test_packages/test_agents/test_simple_abci.py::TestSimpleABCITwoAge
 
 ### Running the fork locally
 
+You can make a fork using hardhat + an archive node. The following demo uses [Alchemy](https://alchemyapi.io).
+
 You will need:
 
 1. `npm`/`yarn` & `node` & `npx`
@@ -60,14 +63,6 @@ To install `hardhat` globally run:
 
 ```bash
 npm install --save-dev hardhat
-```
-
-You can make a fork using hardhat + an archive node. The following uses [Alchemy](https://alchemyapi.io).
-
-Go to the hardhat dir.
-
-```bash
-cd tests/helpers/hardhat
 ```
 
 For Mainnet run:
@@ -84,10 +79,9 @@ make run-ropsten-fork
 
 This will create a ledger api (HTTP and WebSocket JSON-RPC) on `http://127.0.0.1:8545` 
 
-By default, this will make a fork using block `11844372`. If you want to fork from a given block number, you can do so by
-setting `BLOCK_NUMBER` to your desired block. Ex.
+By default, this will make a fork using block `11844372`. If you want to fork from a given block number, you can do so by setting `BLOCK_NUMBER` to your desired block. Ex.
 ```bash
-BLOCK_NUMBER=123 make run-ropsten-fork
+BLOCK_NUMBER=123456 make run-ropsten-fork
 ```
 
 ### Run with docker
@@ -113,6 +107,26 @@ You can control what keys to use by setting MAINNET_KEY and ROPSTEN_KEY respecti
 The docker ports (mappings) can be set using `ROPSTEN_DOCKER_PORT` and `MAINNET_DOCKER_PORT`.
 `BLOCK_NUMBER` can be used to change the starting block number.
 
+## Fuzzy Tests for ABCI Connection
+
+To run the fuzzy tests with TCP as the communication channel, run:
+
+```bash
+make tcp-fuzzy-tests
+```
+
+For gRPC run:
+
+```bash
+make grpc-fuzzy-tests
+```
+
+To run both, use:
+```bash
+make fuzzy-tests
+```
+
+## Building the contracts on hardhat
 - Build the Hardhat projects:
 
       cd third_party/safe-contracts && yarn install
