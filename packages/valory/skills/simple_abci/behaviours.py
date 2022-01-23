@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ from packages.valory.skills.simple_abci.rounds import (
     RandomnessStartupRound,
     RegistrationRound,
     ResetAndPauseRound,
-    SelectKeeperAStartupRound,
+    SelectKeeperAtStartupRound,
     SimpleAbciApp,
 )
 
@@ -145,12 +145,12 @@ class RegistrationBehaviour(SimpleABCIBaseState):
         """
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             payload = RegistrationPayload(self.context.agent_address)
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -173,14 +173,14 @@ class RandomnessBehaviour(SimpleABCIBaseState):
         if self.context.randomness_api.is_retries_exceeded():
             # now we need to wait and see if the other agents progress the round
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.wait_until_round_end()
             self.set_done()
             return
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             api_specs = self.context.randomness_api.get_spec()
             http_message, http_dialogue = self._build_http_request_message(
@@ -198,7 +198,7 @@ class RandomnessBehaviour(SimpleABCIBaseState):
                 observation["randomness"],
             )
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
@@ -221,7 +221,7 @@ class RandomnessBehaviour(SimpleABCIBaseState):
 
 
 class RandomnessAtStartupBehaviour(RandomnessBehaviour):
-    """Retrive randomness at startup."""
+    """Retrieve randomness at startup."""
 
     state_id = "retrieve_randomness_at_startup"
     matching_round = RandomnessStartupRound
@@ -242,7 +242,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
         """
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             keeper_address = random_selection(
                 sorted(self.period_state.participants),
@@ -253,7 +253,7 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
             payload = SelectKeeperPayload(self.context.agent_address, keeper_address)
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -261,11 +261,11 @@ class SelectKeeperBehaviour(SimpleABCIBaseState, ABC):
         self.set_done()
 
 
-class SelectKeeperAAtStartupBehaviour(SelectKeeperBehaviour):
+class SelectKeeperAtStartupBehaviour(SelectKeeperBehaviour):
     """Select the keeper agent at startup."""
 
-    state_id = "select_keeper_a_at_startup"
-    matching_round = SelectKeeperAStartupRound
+    state_id = "select_keeper_at_startup"
+    matching_round = SelectKeeperAtStartupRound
 
 
 class BaseResetBehaviour(SimpleABCIBaseState):
@@ -320,7 +320,7 @@ class SimpleAbciConsensusBehaviour(AbstractRoundBehaviour):
         TendermintHealthcheckBehaviour,  # type: ignore
         RegistrationBehaviour,  # type: ignore
         RandomnessAtStartupBehaviour,  # type: ignore
-        SelectKeeperAAtStartupBehaviour,  # type: ignore
+        SelectKeeperAtStartupBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
 
