@@ -36,6 +36,7 @@ from packages.valory.skills.abstract_abci.handlers import ABCIHandler
 from packages.valory.skills.abstract_round_abci.base import (
     AddBlockError,
     ERROR_CODE,
+    OK_CODE,
     SignatureNotValidError,
     Transaction,
     TransactionNotValidError,
@@ -46,7 +47,7 @@ from packages.valory.skills.abstract_round_abci.models import Requests, SharedSt
 
 
 def exception_to_info_msg(exception: Exception) -> str:
-    """Trnasform an exception to an info string message."""
+    """Transform an exception to an info string message."""
     return f"{exception.__class__.__name__}: {str(exception)}"
 
 
@@ -59,7 +60,21 @@ class ABCIRoundHandler(ABCIHandler):
         self, message: AbciMessage, dialogue: AbciDialogue
     ) -> AbciMessage:
         """Handle the 'info' request."""
-        return super().info(message, dialogue)
+        info_data = ""
+        version = ""
+        app_version = 0
+        last_block_height = self.context.state.period.height
+        last_block_app_hash = b""
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_INFO,
+            target_message=message,
+            info_data=info_data,
+            version=version,
+            app_version=app_version,
+            last_block_height=last_block_height,
+            last_block_app_hash=last_block_app_hash,
+        )
+        return cast(AbciMessage, reply)
 
     def begin_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
@@ -87,8 +102,21 @@ class ABCIRoundHandler(ABCIHandler):
             return self._check_tx_failed(
                 message, dialogue, exception_to_info_msg(exception)
             )
+
         # return check_tx success
-        return super().check_tx(message, dialogue)
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_CHECK_TX,
+            target_message=message,
+            code=OK_CODE,
+            data=b"",
+            log="",
+            info="check_tx succeeded",
+            gas_wanted=0,
+            gas_used=0,
+            events=Events([]),
+            codespace="",
+        )
+        return cast(AbciMessage, reply)
 
     def deliver_tx(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
@@ -111,7 +139,19 @@ class ABCIRoundHandler(ABCIHandler):
                 message, dialogue, exception_to_info_msg(exception)
             )
         # return deliver_tx success
-        return super().deliver_tx(message, dialogue)
+        reply = dialogue.reply(
+            performative=AbciMessage.Performative.RESPONSE_DELIVER_TX,
+            target_message=message,
+            code=OK_CODE,
+            data=b"",
+            log="",
+            info="deliver_tx succeeded",
+            gas_wanted=0,
+            gas_used=0,
+            events=Events([]),
+            codespace="",
+        )
+        return cast(AbciMessage, reply)
 
     def end_block(  # pylint: disable=no-self-use
         self, message: AbciMessage, dialogue: AbciDialogue
@@ -202,16 +242,19 @@ class AbstractResponseHandler(Handler, ABC):
         Handle the response message.
 
         Steps:
-            1. Try to recover the 'dialogues' instance, for the protocol of this handler,
-                from the skill context. The attribute name used to read the attribute
-                is computed by '_get_dialogues_attribute_name()' method.
-                If no dialogues instance is found, log a message and return.
-            2. Try to recover the dialogue; if no dialogue is present, log a message and return.
-            3. Check whether the performative is in the set of allowed performative;
-                if not, log a message and return.
-            4. Try to recover the callback of the request associated to the response
-                from the 'Requests' model; if no callback is present, log a message and return.
-            5. If the above check have passed, then call the callback with the received message.
+        1. Try to recover the 'dialogues' instance, for the protocol
+           of this handler, from the skill context. The attribute name used to
+           read the attribute is computed by '_get_dialogues_attribute_name()'
+           method. If no dialogues instance is found, log a message and return.
+        2. Try to recover the dialogue; if no dialogue is present, log a message
+           and return.
+        3. Check whether the performative is in the set of allowed performative;
+           if not, log a message and return.
+        4. Try to recover the callback of the request associated to the response
+           from the 'Requests' model; if no callback is present, log a message
+           and return.
+        5. If the above check have passed, then call the callback with the
+           received message.
 
         :param message: the message to handle.
         """

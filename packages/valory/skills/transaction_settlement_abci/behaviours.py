@@ -23,13 +23,16 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Generator, Optional, Tuple, cast
+from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
 from aea_ledger_ethereum import EthereumApi
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviours import BaseState
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
 from packages.valory.skills.abstract_round_abci.common import (
     RandomnessBehaviour,
     SelectKeeperBehaviour,
@@ -52,6 +55,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    TransactionSubmissionAbciApp,
     ValidateTransactionRound,
 )
 
@@ -73,7 +77,7 @@ def hex_to_payload(payload: str) -> Tuple[str, int, int, str, bytes]:
 
 
 class TransactionSettlementBaseState(BaseState, ABC):
-    """Base state behaviour for the common apps skill."""
+    """Base state behaviour for the common apps' skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -106,7 +110,7 @@ class SelectKeeperTransactionSubmissionBehaviourB(SelectKeeperBehaviour):
 
 
 class ValidateTransactionBehaviour(TransactionSettlementBaseState):
-    """ValidateTransaction."""
+    """Validate a transaction."""
 
     state_id = "validate_transaction"
     matching_round = ValidateTransactionRound
@@ -116,8 +120,10 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
         Do the action.
 
         Steps:
-        - Validate that the transaction hash provided by the keeper points to a valid transaction.
-        - Send the transaction with the validation result and wait for it to be mined.
+        - Validate that the transaction hash provided by the keeper points to a
+          valid transaction.
+        - Send the transaction with the validation result and wait for it to be
+          mined.
         - Wait until ABCI application transitions to the next round.
         - Go to the next behaviour state (set done event).
         """
@@ -276,17 +282,20 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             self.context.logger.info(
                 "I am the designated sender, attempting to send the safe transaction..."
             )
-            tx_digest = yield from self._send_safe_transaction()
-            if tx_digest is None:
+            tx_data = yield from self._send_safe_transaction()
+            if tx_data is None or tx_data["tx_digest"] is None:
+                # if we enter here, then the event.FAILED will be raised from the round, and we will select a new keeper
                 self.context.logger.error(  # pragma: nocover
                     "Did not succeed with finalising the transaction!"
                 )
             else:
-                self.context.logger.info(f"Finalization tx digest: {tx_digest}")
+                self.context.logger.info(
+                    f"Finalization tx digest: {cast(str, tx_data['tx_digest'])}"
+                )
                 self.context.logger.debug(
                     f"Signatures: {pprint.pformat(self.period_state.participant_to_signature)}"
                 )
-            payload = FinalizationTxPayload(self.context.agent_address, tx_digest)
+            payload = FinalizationTxPayload(self.context.agent_address, tx_data)
 
         with benchmark_tool.measure(
             self,
@@ -296,11 +305,14 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
 
         self.set_done()
 
-    def _send_safe_transaction(self) -> Generator[None, None, Optional[str]]:
+    def _send_safe_transaction(
+        self,
+    ) -> Generator[None, None, Optional[Dict[str, Union[None, str, int]]]]:
         """Send a Safe transaction using the participants' signatures."""
         _, ether_value, safe_tx_gas, to_address, data = hex_to_payload(
             self.period_state.most_voted_tx_hash
         )
+
         contract_api_msg = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -316,6 +328,8 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
                 key: payload.signature
                 for key, payload in self.period_state.participant_to_signature.items()
             },
+            nonce=self.period_state.nonce,
+            old_tip=self.period_state.max_priority_fee_per_gas,
         )
         if (
             contract_api_msg.performative
@@ -326,7 +340,19 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
         tx_digest = yield from self.send_raw_transaction(
             contract_api_msg.raw_transaction
         )
-        return tx_digest
+
+        tx_data = {
+            "tx_digest": tx_digest,
+            "nonce": int(cast(str, contract_api_msg.raw_transaction.body["nonce"])),
+            "max_priority_fee_per_gas": int(
+                cast(
+                    str,
+                    contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
+                )
+            ),
+        }
+
+        return tx_data
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):
@@ -483,8 +509,25 @@ class ResetBehaviour(BaseResetBehaviour):
 
 
 class ResetAndPauseBehaviour(BaseResetBehaviour):
-    """Reset state."""
+    """Reset and pause state."""
 
     matching_round = ResetAndPauseRound
     state_id = "reset_and_pause"
     pause = True
+
+
+class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the transaction settlement."""
+
+    initial_state_cls = RandomnessTransactionSubmissionBehaviour
+    abci_app_cls = TransactionSubmissionAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        RandomnessTransactionSubmissionBehaviour,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
+        ValidateTransactionBehaviour,  # type: ignore
+        SignatureBehaviour,  # type: ignore
+        FinalizeBehaviour,  # type: ignore
+        ResetBehaviour,  # type: ignore
+        ResetAndPauseBehaviour,  # type: ignore
+    }
