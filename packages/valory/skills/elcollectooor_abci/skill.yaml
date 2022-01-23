@@ -28,7 +28,11 @@ protocols:
 - valory/http:1.0.0
 - valory/ledger_api:1.0.0
 skills:
+- valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
+- valory/registration_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
+- valory/transaction_settlement_abci:0.1.0
 behaviours:
   main:
     args: {}
