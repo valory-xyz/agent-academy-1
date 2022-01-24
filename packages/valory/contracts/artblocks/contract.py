@@ -31,7 +31,7 @@ from aea.exceptions import enforce
 class ArtBlocksContract(Contract):
     """The scaffold contract class for a smart contract."""
 
-    contract_id = PublicId.from_str("collectooor/artblocks:0.1.0")
+    contract_id = PublicId.from_str("valory/artblocks:0.1.0")
 
     @classmethod
     def get_raw_transaction(

@@ -20,7 +20,9 @@ connections:
 - valory/abci:0.1.0
 - valory/http_client:0.1.0
 - valory/ledger:0.1.0
-contracts: []
+contracts:
+- valory/artblocks:0.1.0
+- valory/artblocks_periphery:0.1.0
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0
