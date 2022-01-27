@@ -76,7 +76,7 @@ class ObservationPayload(BaseTxPayload):
     transaction_type = TransactionType.OBSERVATION
 
     def __init__(
-        self, sender: str, project_details: Dict, id_: Optional[str] = None
+        self, sender: str, project_details: str, id_: Optional[str] = None
     ) -> None:
         """Initialize an 'rest' transaction payload.
 
@@ -85,7 +85,7 @@ class ObservationPayload(BaseTxPayload):
         :param id_: the id of the transaction
         """
         super().__init__(sender, id_)
-        self._project_details = json.dumps(project_details)
+        self._project_details = project_details
 
     @property
     def project_details(self) -> str:

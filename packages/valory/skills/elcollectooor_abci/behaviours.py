@@ -204,7 +204,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
                 self.context.logger.info(f"Retrieved project id: {project_id}.")
                 payload = ObservationPayload(
                     self.context.agent_address,
-                    project_details,
+                    json.dumps(project_details),
                 )
 
                 with benchmark_tool.measure(
@@ -241,7 +241,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
     state_id = "details"
     matching_round = DetailsRound
 
-    def __init__(self, *args: Any, **kwargs: Any):
+    def __init__(self, **kwargs: Any):
         """Init the details behaviour"""
         super().__init__(**kwargs)
         self.artblocks_contract = kwargs.pop(
