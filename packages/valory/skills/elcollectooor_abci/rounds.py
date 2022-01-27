@@ -195,12 +195,14 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
 
     allowed_tx_type = ResetPayload.transaction_type
     payload_attribute = "period_count"
+    period_state_class = PeriodState
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             # notice that we are not resetting the last_processed_id
             state = self.period_state.update(
+                period_state_class=self.period_state_class,
                 period_count=self.most_voted_payload,
                 participant_to_randomness=None,
                 most_voted_randomness=None,
@@ -227,6 +229,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
     allowed_tx_type = ObservationPayload.transaction_type
     round_id = "observation"
     payload_attribute = "project_details"
+    period_state_class = PeriodState
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -234,6 +237,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
             project_id = json.loads(self.most_voted_payload)["project_id"]
 
             state = self.period_state.update(
+                period_state_class=self.period_state_class,
                 participant_to_project=MappingProxyType(self.collection),
                 most_voted_project=self.most_voted_payload,  # TODO: define a "no new project found" payload
                 last_processed_project_id=project_id,
@@ -252,11 +256,13 @@ class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
     allowed_tx_type = DecisionPayload.transaction_type
     round_id = "details"
     payload_attribute = "details"
+    period_state_class = PeriodState
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
+                period_state_class=self.period_state_class,
                 participant_to_details=MappingProxyType(self.collection),
                 most_voted_details=self.most_voted_payload,
             )
@@ -274,11 +280,13 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
     allowed_tx_type = DecisionPayload.transaction_type
     round_id = "decision"
     payload_attribute = "decision"
+    period_state_class = PeriodState
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
+                period_state_class=self.period_state_class,
                 participant_to_decision=MappingProxyType(self.collection),
                 most_voted_decision=self.most_voted_payload,  # it can be binary at this point
             )
@@ -302,11 +310,13 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
     allowed_tx_type = TransactionPayload.transaction_type
     round_id = "transaction_collection"
     payload_attribute = "purchase_data"
+    period_state_class = PeriodState
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             state = self.period_state.update(
+                period_state_class=self.period_state_class,
                 participant_to_purchase_data=MappingProxyType(self.collection),
                 most_voted_purchase_data=self.most_voted_payload,
             )
