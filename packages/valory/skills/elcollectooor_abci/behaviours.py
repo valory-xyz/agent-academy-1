@@ -259,7 +259,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
             try:
                 all_details = json.loads(self.period_state.most_voted_details)
-            except AEAEnforceError:
+            except ValueError:
                 all_details = []
 
             new_details = yield from self._get_details(most_voted_project)

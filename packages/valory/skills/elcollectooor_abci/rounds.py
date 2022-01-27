@@ -253,7 +253,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
 class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
     """Defines the Details Round"""
 
-    allowed_tx_type = DecisionPayload.transaction_type
+    allowed_tx_type = DetailsPayload.transaction_type
     round_id = "details"
     payload_attribute = "details"
     period_state_class = PeriodState
@@ -346,7 +346,7 @@ class ElCollectooorBaseAbciApp(AbciApp[Event]):
     initial_round_cls: Type[AbstractRound] = ObservationRound
     transition_function: AbciAppTransitionFunction = {
         ObservationRound: {
-            Event.DONE: DecisionRound,
+            Event.DONE: DetailsRound,
             Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
             Event.NO_MAJORITY: ResetFromObservationRound,
         },
