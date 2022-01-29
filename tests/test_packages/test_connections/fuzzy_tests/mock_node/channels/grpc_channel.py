@@ -23,8 +23,9 @@ class GrpcChannel(BaseChannel):
         """
         Initializes a GrpcChannel
 
-        :param: host: the host of the ABCI app (localhost by default)
-        :param: port: the port of the ABCI app (26658 by default)
+        :param: kwargs:
+            - host: the host of the ABCI app (localhost by default)
+            - port: the port of the ABCI app (26658 by default)
         """
         super().__init__()
 
