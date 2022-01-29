@@ -372,6 +372,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             "artblocks_periphery_contract", "0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441"
         )
         self.max_retries = kwargs.pop("max_retries", 5)
+        self._retries_made = 0
 
     def async_act(self) -> Generator:
         """Implement the act."""
@@ -412,25 +413,48 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 and response.state.body["data"] is not None,
                 "contract returned and empty body or empty data",
             )
-            data: Optional[str] = cast(Optional[str], response.state.body["data"])
+            encoded_tx: Optional[str] = cast(Optional[str], response.state.body["data"])
 
-        if data:
-            payload = TransactionPayload(
-                self.context.agent_address,
-                data,
-            )
-            with benchmark_tool.measure(
-                    self,
-            ).consensus():
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-        else:
+        if not encoded_tx:
             self.context.logger.error(
                 "couldn't extract purchase_data from contract response"
             )
             yield from self.sleep(self.params.sleep_time)
             self._increment_retries()
+            return
+
+        data = self._format_payload(encoded_tx)
+
+        payload = TransactionPayload(
+            self.context.agent_address,
+            data,
+        )
+
+        with benchmark_tool.measure(
+                self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
         self.set_done()
+
+    def _get_value_in_wei(self):
+        details: List[Dict] = json.loads(self.period_state.most_voted_details)
+        min_value = details[0]["price_per_token_in_wei"]
+
+        for detail in details:
+            min_value = min(min_value, detail["price_per_token_in_wei"])
+
+        return min_value
+
+    def _format_payload(self, data: str):
+        tx_hash = "0" * 64  # no transaction is made here
+        ether_value = int.to_bytes(self._get_value_in_wei(), 32, "big").hex().__str__()
+        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__() # TODO: should this be dynamic?
+        address = self.artblocks_periphery_contract  # remove starting '0x'
+        data = data[2:] # remove starting '0x'
+
+        return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
 
     def _increment_retries(self) -> None:
         """Increment the retries counter"""

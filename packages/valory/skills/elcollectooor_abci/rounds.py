@@ -317,8 +317,8 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
         if self.threshold_reached:
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_purchase_data=MappingProxyType(self.collection),
-                most_voted_purchase_data=self.most_voted_payload,
+                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
