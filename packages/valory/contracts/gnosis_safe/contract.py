@@ -33,8 +33,9 @@ from eth_typing import ChecksumAddress, HexAddress, HexStr
 from hexbytes import HexBytes
 from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
-from web3.exceptions import TransactionNotFound
-from web3.types import TxParams, Wei
+from requests import HTTPError
+from web3.exceptions import SolidityError, TransactionNotFound
+from web3.types import Nonce, TxData, TxParams, Wei
 
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
@@ -378,8 +379,10 @@ class GnosisSafeContract(Contract):
         gas_token: str = NULL_ADDRESS,
         refund_receiver: str = NULL_ADDRESS,
         gas_price: Optional[int] = None,
+        nonce: Optional[Nonce] = None,
         max_fee_per_gas: Optional[int] = None,
         max_priority_fee_per_gas: Optional[int] = None,
+        old_tip: Optional[int] = None,
     ) -> JSONLike:
         """
         Get the raw Safe transaction
@@ -400,8 +403,10 @@ class GnosisSafeContract(Contract):
         :param gas_token: Token address (or `0x000..000` if ETH) that is used for the payment
         :param refund_receiver: Address of receiver of gas payment (or `0x000..000`  if tx.origin).
         :param gas_price: gas price
+        :param nonce: the nonce
         :param max_fee_per_gas: max
         :param max_priority_fee_per_gas: max
+        :param old_tip: the old `maxPriorityFeePerGas` in case that we are trying to resubmit a transaction.
         :return: the raw Safe transaction
         """
         sender_address = ledger_api.api.toChecksumAddress(sender_address)
@@ -434,15 +439,19 @@ class GnosisSafeContract(Contract):
             and max_fee_per_gas is None
             and max_priority_fee_per_gas is None
         ):
-            tx_parameters.update(ledger_api.try_get_gas_pricing())
+            tx_parameters.update(ledger_api.try_get_gas_pricing(old_tip=old_tip))
         # note, the next line makes an eth_estimateGas call!
         transaction_dict = w3_tx.buildTransaction(tx_parameters)
         transaction_dict["gas"] = Wei(
             max(transaction_dict["gas"] + 75000, base_gas + safe_tx_gas + 75000)
         )
-        transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
-            ledger_api.api.toChecksumAddress(sender_address)
-        )
+        if nonce is None:
+            transaction_dict["nonce"] = ledger_api.api.eth.get_transaction_count(
+                ledger_api.api.toChecksumAddress(sender_address)
+            )
+        else:
+            transaction_dict["nonce"] = nonce  # pragma: nocover
+
         return transaction_dict
 
     @classmethod
@@ -571,3 +580,39 @@ class GnosisSafeContract(Contract):
             expected=expected,
             diff=diff,
         )
+
+    @classmethod
+    def revert_reason(
+        cls,
+        ledger_api: EthereumApi,
+        tx: TxData,
+    ) -> JSONLike:
+        """Check the revert reason of a transaction.
+
+        :param ledger_api: the ledger API object.
+        :param tx: the transaction for which we want to get the revert reason.
+
+        :return: the revert reason message.
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+
+        # build a new transaction to replay:
+        replay_tx = {
+            "to": tx["to"],
+            "from": tx["from"],
+            "value": tx["value"],
+            "data": tx["input"],
+        }
+
+        try:
+            # replay the transaction locally:
+            ledger_api.api.eth.call(replay_tx, tx["blockNumber"] - 1)
+        except SolidityError as e:
+            # execution reverted exception
+            return dict(revert_reason=repr(e))
+        except HTTPError as e:
+            # http exception
+            raise e
+        else:
+            # given tx not reverted
+            raise ValueError(f"The given transaction has not been reverted!\ntx: {tx}")

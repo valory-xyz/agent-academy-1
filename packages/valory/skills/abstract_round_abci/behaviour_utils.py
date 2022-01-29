@@ -439,8 +439,9 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                     yield from self.wait_until_round_end()
             else:
                 yield from self.async_act()
-        except (GeneratorExit, StopIteration):
-            if self.context.state.period.syncing_up:
+        except StopIteration:
+            if self.context.state.period.syncing_up:  # pragma: nocover
+                # needs to be tested
                 has_synced_up = yield from self._has_synced_up()
                 if has_synced_up:
                     self.context.logger.info("local height == remote; Ending sync...")
@@ -676,7 +677,7 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
 
     def _has_synced_up(
         self,
-    ) -> Generator[None, None, bool]:
+    ) -> Generator[None, None, bool]:  # pragma: nocover
         """Check if agent has completed sync."""
 
         for _ in range(_DEFAULT_TX_MAX_ATTEMPTS):
