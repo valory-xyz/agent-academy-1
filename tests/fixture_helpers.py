@@ -68,7 +68,6 @@ def gnosis_safe_hardhat_scope_function(
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
-@pytest.mark.integration
 class UseGnosisSafeHardHatNet:
     """Inherit from this class to use HardHat local net with Gnosis-Safe deployed."""
 

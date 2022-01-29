@@ -451,7 +451,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         tx_hash = "0" * 64  # no transaction is made here
         ether_value = int.to_bytes(self._get_value_in_wei(), 32, "big").hex().__str__()
         safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__() # TODO: should this be dynamic?
-        address = self.artblocks_periphery_contract  # remove starting '0x'
+        address = self.artblocks_periphery_contract
         data = data[2:] # remove starting '0x'
 
         return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
