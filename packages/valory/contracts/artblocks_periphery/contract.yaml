@@ -1,5 +1,5 @@
 name: artblocks_periphery
-author: collectooor
+author: valory
 version: 0.1.0
 type: contract
 description: The artblocks minter contract interface.

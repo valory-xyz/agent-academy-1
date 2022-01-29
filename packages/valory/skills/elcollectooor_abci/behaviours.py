@@ -48,6 +48,7 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     DecisionRound,
     DetailsRound,
     ElCollectooorAbciApp,
+    ElCollectooorBaseAbciApp,
     FinishedElCollectoorBaseRound,
     ObservationRound,
     PeriodState,
@@ -58,25 +59,14 @@ from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
     DecisionModel,
 )
 from packages.valory.skills.registration_abci.behaviours import (
-    RegistrationBehaviour,
-    RegistrationStartupBehaviour,
+    AgentRegistrationRoundBehaviour,
     TendermintHealthcheckBehaviour,
 )
 from packages.valory.skills.safe_deployment_abci.behaviours import (
-    DeploySafeBehaviour,
-    RandomnessSafeBehaviour,
-    SelectKeeperSafeBehaviour,
-    ValidateSafeBehaviour,
+    SafeDeploymentRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
-    FinalizeBehaviour,
-    RandomnessTransactionSubmissionBehaviour,
-    ResetAndPauseBehaviour,
-    ResetBehaviour,
-    SelectKeeperTransactionSubmissionBehaviourA,
-    SelectKeeperTransactionSubmissionBehaviourB,
-    SignatureBehaviour,
-    ValidateTransactionBehaviour,
+    TransactionSettlementRoundBehaviour,
 )
 
 
@@ -483,32 +473,30 @@ class FinishedElCollectoorBaseRoundBehaviour(ElCollectooorABCIBaseState):
         yield
 
 
-class ElCollectooorAbciConsensusBehaviour(AbstractRoundBehaviour):
+class ElCollectooorRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooor abci app."""
 
-    initial_state_cls = TendermintHealthcheckBehaviour
-    abci_app_cls = ElCollectooorAbciApp  # type: ignore
-    behaviour_states: Set[Type[ElCollectooorABCIBaseState]] = {  # type: ignore
-        TendermintHealthcheckBehaviour,  # type: ignore
-        RegistrationBehaviour,  # type: ignore
-        RegistrationStartupBehaviour,  # type: ignore
-        RandomnessSafeBehaviour,  # type: ignore
-        SelectKeeperSafeBehaviour,  # type: ignore
-        DeploySafeBehaviour,  # type: ignore
-        ValidateSafeBehaviour,  # type: ignore
+    initial_state_cls = ObservationRoundBehaviour
+    abci_app_cls = ElCollectooorBaseAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
         ObservationRoundBehaviour,  # type: ignore
         DetailsRoundBehaviour,  # type: ignore
         DecisionRoundBehaviour,  # type: ignore
         TransactionRoundBehaviour,  # type: ignore
         ResetFromObservationBehaviour,  # type: ignore
-        RandomnessTransactionSubmissionBehaviour,  # type: ignore
-        SignatureBehaviour,  # type: ignore
-        FinalizeBehaviour,  # type: ignore
-        ValidateTransactionBehaviour,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
-        SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
-        ResetBehaviour,  # type: ignore
-        ResetAndPauseBehaviour,  # type: ignore
+    }
+
+
+class ElCollectooorFullRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the El Collectooor abci app."""
+
+    initial_state_cls = TendermintHealthcheckBehaviour
+    abci_app_cls = ElCollectooorAbciApp  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {
+        *AgentRegistrationRoundBehaviour.behaviour_states,
+        *SafeDeploymentRoundBehaviour.behaviour_states,
+        *TransactionSettlementRoundBehaviour.behaviour_states,
+        *ElCollectooorRoundBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:

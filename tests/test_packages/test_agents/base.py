@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@
 """End2end tests base class."""
 import json
 import logging
-import time
 import warnings
 from pathlib import Path
 from typing import List, Tuple
@@ -29,13 +28,13 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
 
-from tests.helpers.base import tendermint_health_check
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
 )
 
 
+@pytest.mark.e2e
 class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     """
     Base class for end-to-end tests of agents with a skill extending the abstract_abci_round skill.
@@ -50,10 +49,10 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     NB_AGENTS: int
     IS_LOCAL = True
     capture_log = True
-    KEEPER_TIMEOUT = 10
+    ROUND_TIMEOUT_SECONDS = 10.0
+    KEEPER_TIMEOUT = 30.0
     HEALTH_CHECK_MAX_RETRIES = 20
     HEALTH_CHECK_SLEEP_INTERVAL = 3.0
-    USE_GRPC = False
     cli_log_options = ["-v", "DEBUG"]
     processes: List
     agent_package: str
@@ -108,15 +107,22 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
                 self.NB_AGENTS,
             )
             self.set_config(
-                "vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC
+                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.reset_tendermint_after",
+                5,
             )
             self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.round_timeout_seconds",
-                self.KEEPER_TIMEOUT,
+                self.ROUND_TIMEOUT_SECONDS,
+                type_="float",
             )
             self.set_config(
                 f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.tendermint_url",
                 node.get_http_addr("localhost"),
+            )
+            self.set_config(
+                f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.keeper_timeout",
+                self.KEEPER_TIMEOUT,
+                type_="float",
             )
 
         # run 'aea install' in only one AEA project, to save time
@@ -146,48 +152,6 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
-
-        # check that *each* AEA prints these messages
-        for process in self.processes:
-            missing_strings = self.missing_from_output(
-                process, self.check_strings, self.wait_to_finish
-            )
-            assert (
-                missing_strings == []
-            ), "Strings {} didn't appear in agent output.".format(missing_strings)
-
-            if not self.is_successfully_terminated(process):
-                warnings.warn(
-                    UserWarning(
-                        f"ABCI agent with process {process} wasn't successfully terminated."
-                    )
-                )
-
-
-class BaseTestEnd2EndDelayedStart(BaseTestEnd2End):
-    """Test that an agent that is launched later can synchronize with the rest of the network"""
-
-    def test_run(self) -> None:
-        """Run the test."""
-
-        # start all the agent but the last
-        for agent_id in range(self.NB_AGENTS - 1):
-            self._launch_agent_i(agent_id)
-
-        logging.info("Waiting Tendermint nodes to be up (but the last)")
-        for rpc_addr in self.tendermint_net_builder.http_rpc_laddrs[:-1]:
-            if not tendermint_health_check(
-                rpc_addr,
-                max_retries=self.HEALTH_CHECK_MAX_RETRIES,
-                sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
-            ):
-                pytest.fail(f"Tendermint node {rpc_addr} did not pass health-check")
-
-        # sleep so to make the consensus proceed without last agent
-        time.sleep(60.0)
-
-        # now start last agent, and wait the catch up
-        self._launch_agent_i(self.NB_AGENTS - 1)
 
         # check that *each* AEA prints these messages
         for process in self.processes:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,13 +30,13 @@ CHECK_STRINGS = (
     "'registration' round is done",
     "Entered in the 'randomness_startup' round for period 0",
     "'randomness_startup' round is done",
-    "Entered in the 'select_keeper_a_startup' round for period 0",
-    "'select_keeper_a_startup' round is done",
+    "Entered in the 'select_keeper_at_startup' round for period 0",
+    "'select_keeper_at_startup' round is done",
     "Entered in the 'reset_and_pause' round for period 0",
     "'reset_and_pause' round is done",
     "Period end",
     "Entered in the 'randomness_startup' round for period 1",
-    "Entered in the 'select_keeper_a_startup' round for period 1",
+    "Entered in the 'select_keeper_at_startup' round for period 1",
     "Entered in the 'reset_and_pause' round for period 1",
 )
 
@@ -75,42 +75,3 @@ class TestSimpleABCIFourAgents(
     skill_package = "valory/simple_abci:0.1.0"
     wait_to_finish = 80
     check_strings = CHECK_STRINGS
-
-
-class TestSimpleABCISingleAgentGrpc(
-    BaseTestEnd2EndNormalExecution,
-):
-    """Test that the ABCI simple_abci skill with only one agent."""
-
-    NB_AGENTS = 1
-    USE_GRPC = True
-    agent_package = "valory/simple_abci:0.1.0"
-    skill_package = "valory/simple_abci:0.1.0"
-    wait_to_finish = 40
-    check_strings = CHECK_STRINGS + ("Starting gRPC server",)
-
-
-class TestSimpleABCITwoAgentsGrpc(
-    BaseTestEnd2EndNormalExecution,
-):
-    """Test that the ABCI simple_abci skill with two agents."""
-
-    NB_AGENTS = 2
-    USE_GRPC = True
-    agent_package = "valory/simple_abci:0.1.0"
-    skill_package = "valory/simple_abci:0.1.0"
-    wait_to_finish = 80
-    check_strings = CHECK_STRINGS + ("Starting gRPC server",)
-
-
-class TestSimpleABCIFourAgentsGrpc(
-    BaseTestEnd2EndNormalExecution,
-):
-    """Test that the ABCI simple_abci skill with four agents."""
-
-    NB_AGENTS = 4
-    USE_GRPC = True
-    agent_package = "valory/simple_abci:0.1.0"
-    skill_package = "valory/simple_abci:0.1.0"
-    wait_to_finish = 80
-    check_strings = CHECK_STRINGS + ("Starting gRPC server",)
