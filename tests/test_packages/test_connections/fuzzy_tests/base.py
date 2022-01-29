@@ -1,6 +1,5 @@
 """Defines the base of the fuzzy tests"""
 from typing import Dict, List, Tuple, Type
-from unittest import TestCase
 
 import numpy as np
 from aea.exceptions import enforce
@@ -14,7 +13,7 @@ from tests.test_packages.test_connections.fuzzy_tests.mock_node.channels.base im
 from tests.test_packages.test_connections.fuzzy_tests.mock_node.node import MockNode
 
 
-class BaseFuzzyTests(TestCase, AEATestCaseMany):
+class BaseFuzzyTests(AEATestCaseMany):
     """
     Base class for the Fuzzy Tests
     """
