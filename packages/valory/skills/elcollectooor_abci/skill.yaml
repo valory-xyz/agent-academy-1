@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
   __init__.py: QmRopqpTcQw4mGvNahif4SmSEb3Lm3Dyp9PoFQD7gzkpih
-  behaviours.py: QmeRbxB6EwaNWyshmeCz6g93HScHW6PQxgcsU5t8eJxqUW
+  behaviours.py: QmbnsqHWiH93TpdWrpCXNoY9fLxQ7hsGX63diSHD3ym7L6
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
   models.py: QmSJDpoBvaNyZheGUSefqBFtrmdWGw8pJrV5mxZbpLoB7Z
@@ -32,7 +32,7 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: ElCollectooorAbciConsensusBehaviour
+    class_name: ElCollectooorFullRoundBehaviour
 handlers:
   abci:
     args: {}
@@ -67,13 +67,14 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
-      round_timeout_seconds: 30
+      round_timeout_seconds: 30.0
       service_id: el_collectooor_1
       sleep_time: 1
       tendermint_com_url: http://localhost:8080

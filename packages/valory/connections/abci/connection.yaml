@@ -54,6 +54,8 @@ config:
   use_tendermint: true
 excluded_protocols: []
 restricted_to_protocols: []
-dependencies: {}
+dependencies:
+  grpcio:
+    version: ==1.43.0
 is_abstract: false
 cert_requests: []
