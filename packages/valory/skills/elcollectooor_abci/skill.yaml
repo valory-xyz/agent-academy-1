@@ -8,12 +8,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
   __init__.py: QmRopqpTcQw4mGvNahif4SmSEb3Lm3Dyp9PoFQD7gzkpih
-  behaviours.py: QmbnsqHWiH93TpdWrpCXNoY9fLxQ7hsGX63diSHD3ym7L6
+  behaviours.py: QmPcc1gkgmhjnYVs7cnWZXt3pEPKQufksjGKpoFqvXhk3t
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
   models.py: QmSJDpoBvaNyZheGUSefqBFtrmdWGw8pJrV5mxZbpLoB7Z
-  payloads.py: QmYmotMpRtSTf1DHYLTDgz57stdgxTQQvwvFGRrv3S1QJm
-  rounds.py: QmWp25PkC5xfSnMrcLX51QRZtL3A9afVWebqNZnjnjXwBW
+  payloads.py: QmUuRo2BhRnJ2u5XtB3NHxfMHC446RYjCyYtP7fNQFDe2q
+  rounds.py: QmbDSw48zacEsPdicfKsrW8C9iS1DE8FDkYCLaFbQNKDod
   simple_decision_model.py: QmSqpWEKHqP4f9SSuX6pn2dr5PYgrtSusc4BVyaJXckZiC
 fingerprint_ignore_patterns: []
 connections:
@@ -29,6 +29,9 @@ protocols:
 - valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/registration_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
+- valory/transaction_settlement_abci:0.1.0
 behaviours:
   main:
     args: {}

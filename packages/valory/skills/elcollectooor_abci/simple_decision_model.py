@@ -103,4 +103,4 @@ class DecisionModel:
         if series.shape[0] > 1000 and blocks_to_go > self.cancel_threshold:
             return 0
 
-        return 1
+        return -1
