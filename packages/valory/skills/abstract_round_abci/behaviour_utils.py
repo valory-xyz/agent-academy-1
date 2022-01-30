@@ -511,6 +511,13 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
                 )
                 yield from self.sleep(request_retry_delay)
                 continue
+
+            if not self._check_tendermint_code_0(response):
+                self.context.logger.info(
+                    f"Received tendermint code != 0. Retrying in {request_retry_delay} seconds..."
+                )
+                yield from self.sleep(request_retry_delay)
+                continue
             try:
                 json_body = json.loads(response.body)
             except json.JSONDecodeError as e:  # pragma: nocover
@@ -870,6 +877,25 @@ class BaseState(AsyncBehaviour, SimpleBehaviour, ABC):
     def _check_http_return_code_200(cls, response: HttpMessage) -> bool:
         """Check the HTTP response has return code 200."""
         return response.status_code == 200
+
+    @classmethod
+    def _check_tendermint_code_0(cls, response: HttpMessage) -> bool:
+        """Check the tendermint response has code 0"""
+        enforce(response.body is not None, "tendermint response has no body")
+
+        body = json.loads(response.body)
+
+        enforce(
+            "result" in body.keys() and body["result"] is not None,
+            "tendermint response body doesn't contain a result",
+        )
+
+        enforce(
+            "code" in body["result"],
+            "attribute code was not present in tendermint result",
+        )
+
+        return body["result"]["code"] == 0
 
     def _get_default_terms(self) -> Terms:
         """
