@@ -1,4 +1,5 @@
 """Fuzzy tests for valory/abci connection"""
+from unittest import TestCase
 
 from tests.test_packages.test_connections.fuzzy_tests.base import BaseFuzzyTests
 from tests.test_packages.test_connections.fuzzy_tests.mock_node.channels.grpc_channel import (
@@ -9,7 +10,7 @@ from tests.test_packages.test_connections.fuzzy_tests.mock_node.channels.tcp_cha
 )
 
 
-class GrpcFuzzyTests(BaseFuzzyTests):
+class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
     """Test the connection when gRPC is used"""
 
     CHANNEL_TYPE = GrpcChannel
@@ -17,7 +18,7 @@ class GrpcFuzzyTests(BaseFuzzyTests):
     AGENT_TIMEOUT = 3  # 3 seconds
 
 
-class TcpFuzzyTests(BaseFuzzyTests):
+class TcpFuzzyTests(BaseFuzzyTests, TestCase):
     """Test the connection when TCP is used"""
 
     CHANNEL_TYPE = TcpChannel
