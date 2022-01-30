@@ -23,7 +23,6 @@ import os
 from pathlib import Path
 from typing import List, Tuple
 
-
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 ROOT_DIR = Path(CUR_PATH, "..", "..").resolve().absolute()
 THIRD_PARTY = ROOT_DIR / "third_party"
@@ -32,7 +31,6 @@ DEFAULT_REQUESTS_TIMEOUT = 5.0
 MAX_RETRIES = 30
 LOCALHOST = "localhost"
 HTTP_LOCALHOST = f"http://{LOCALHOST}"
-
 
 # default hardhat key pairs (public key, private key)
 KEY_PAIRS: List[Tuple[str, str]] = [
@@ -116,4 +114,28 @@ KEY_PAIRS: List[Tuple[str, str]] = [
         "0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199",
         "0xdf57089febbacf7ba0bc227dafbffa9fc08a93fdc68e1e42411a14efcf23656e",
     ),
+]
+
+# ganache key pairs (public, private)
+GANACHE_KEY_PAIRS: List[Tuple[str, str]] = [
+    (
+        "0x67B44d0f524ad619c69e2cbb199798509B3E7287",
+        "0xfdad20a9510c0e64024dd36e387aab2881826d092673bbf2d6b344f87007d28f"
+    ),
+    (
+        "0xBD43ce699f9EebC195ED5579BA546Bcf01986183",
+        "0xeeb29be4123eda0c2fff23f4c1a783bd04a1dda61adea0849aa0d17f182f1a10"
+    ),
+    (
+        "0xB69C3338Cf8e7C5a148F5D6474bb15098EF55685",
+        "0x8c64b439389ab49e222683382163c52f02a814035e991182a46055b34c5d5942"
+    ),
+    (
+        "0x4fa30B2d0Cb75dAAc29C10a894750d03eeB90567",
+        "0xbda92ea4a6799a2c683d667517e5dda58139f1274c31f49801a27052c14cff75"
+    ),
+    (
+        "0x0FC4aB3C5860F7c77B7Ab25bc2e34D82Ec887C49",
+        "0xb6dc3772c294d63980c1461a1bf7f2508544dd75a902225a98049cfabc15365f"
+    )
 ]

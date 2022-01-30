@@ -29,7 +29,6 @@ from docker.models.containers import Container
 
 from tests.helpers.docker.base import DockerImage
 
-
 DEFAULT_GANACHE_ADDR = "http://127.0.0.1"
 DEFAULT_GANACHE_PORT = 8545
 DEFAULT_GANACHE_CHAIN_ID = 1337
@@ -39,12 +38,12 @@ class GanacheDockerImage(DockerImage):
     """Wrapper to Ganache Docker image."""
 
     def __init__(
-        self,
-        client: DockerClient,
-        addr: str,
-        port: int,
-        config: Optional[Dict] = None,
-        gas_limit: str = "0x9184e72a000",  # 10000000000000,
+            self,
+            client: DockerClient,
+            addr: str,
+            port: int,
+            config: Optional[Dict] = None,
+            gas_limit: str = "0x9184e72a000",  # 10000000000000,
     ):
         """
         Initialize the Ganache Docker image.
@@ -102,3 +101,21 @@ class GanacheDockerImage(DockerImage):
                 )
                 time.sleep(sleep_rate)
         return False
+
+
+class GanacheForkDockerImage(GanacheDockerImage):
+    """Extends GanacheDockerImage to enable forking"""
+
+    NETWORK: str = "ropsten"
+    BLOCK_NUMBER: int = 11290000
+
+    def _build_command(self) -> List[str]:
+        """Build command."""
+
+        cmd = [
+            "-d",  # deterministic seed accounts
+            f"--fork.network={self.NETWORK}",
+            f"--fork.blockNumber={self.BLOCK_NUMBER}"
+        ]
+
+        return cmd

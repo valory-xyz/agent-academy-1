@@ -24,15 +24,19 @@ from typing import Any, Generator, List, Tuple
 import docker
 import pytest
 
-from tests.helpers.constants import KEY_PAIRS
+from tests.helpers.constants import (
+    KEY_PAIRS,
+    GANACHE_KEY_PAIRS,
+)
+
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.ganache import DEFAULT_GANACHE_ADDR, DEFAULT_GANACHE_PORT, GanacheForkDockerImage
 from tests.helpers.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-
 
 ROOT_DIR = _ROOT_DIR
 
@@ -57,13 +61,45 @@ def hardhat_port() -> int:
 
 @pytest.fixture(scope="function")
 def gnosis_safe_hardhat_scope_function(
-    hardhat_addr: Any,
-    hardhat_port: Any,
-    timeout: float = 3.0,
-    max_attempts: int = 40,
+        hardhat_addr: Any,
+        hardhat_port: Any,
+        timeout: float = 3.0,
+        max_attempts: int = 40,
 ) -> Generator:
     """Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
     image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture()
+def ganache_key_pairs() -> List[Tuple[str, str]]:
+    """Get the default key paris for ganache."""
+    return GANACHE_KEY_PAIRS
+
+
+@pytest.fixture()
+def ganache_addr() -> str:
+    """Get the ganache addr"""
+    return DEFAULT_GANACHE_ADDR
+
+
+@pytest.fixture()
+def ganache_port() -> int:
+    """Get the ganache port"""
+    return DEFAULT_GANACHE_PORT
+
+
+@pytest.fixture(scope="function")
+def ganache_fork_scope_function(
+        ganache_addr: Any,
+        ganache_port: Any,
+        timeout: float = 3.0,
+        max_attempts: int = 40,
+) -> Generator:
+    """Launch the Ganache Fork. This fixture is scoped to a function which means it will destroyed at the end of the test."""
+    client = docker.from_env()
+    logging.info(f"Launching Ganache at port {ganache_port}")
+    image = GanacheForkDockerImage(client, ganache_addr, ganache_port)
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)

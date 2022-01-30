@@ -19,7 +19,7 @@
 
 """Integration tests for the valory/price_estimation_abci skill."""
 
-from tests.fixture_helpers import UseGnosisSafeHardHatNet
+from tests.fixture_helpers import UseGnosisSafeHardHatNet, UseGanacheFork
 from tests.test_packages.test_agents.base import BaseTestEnd2EndNormalExecution
 
 # check log messages of the happy path
@@ -80,48 +80,40 @@ CHECK_STRINGS = (
 )
 
 
-class TestABCIPriceEstimationSingleAgent(
+class TestElCollectooorSingleAgent(
     BaseTestEnd2EndNormalExecution,
+    UseGanacheFork,
 ):
-    """Test that the ABCI price_estimation skill with only one agent."""
+    """Test the El Collectooor with only one agent."""
 
     NB_AGENTS = 1
     agent_package = "valory/elcollectooor:0.1.0"
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
     check_strings = CHECK_STRINGS
-    key_pairs = (("agent1", "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d",),)
 
 
-class TestABCIPriceEstimationTwoAgents(
+class TestElCollectooorTwoAgents(
     BaseTestEnd2EndNormalExecution,
+    UseGanacheFork,
 ):
-    """Test that the ABCI price_estimation skill with two agents."""
+    """Test the El Collectooor with two agents."""
 
     NB_AGENTS = 2
     agent_package = "valory/elcollectooor:0.1.0"
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
     check_strings = CHECK_STRINGS
-    key_pairs = (
-        ("agent1", "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"),
-        ("agent2", "0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1")
-    )
 
 
-class TestABCIPriceEstimationFourAgents(
+class TestElCollectooorFourAgents(
     BaseTestEnd2EndNormalExecution,
+    UseGanacheFork,
 ):
-    """Test that the ABCI price_estimation skill with four agents."""
+    """Test the El Collectooor with four agents."""
 
     NB_AGENTS = 4
     agent_package = "valory/elcollectooor:0.1.0"
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
     check_strings = CHECK_STRINGS
-    key_pairs = (
-        ("agent1", "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"),
-        ("agent2", "0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1"),
-        ("agent3", "0x6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c"),
-        ("agent4", "0x646f1ce2fdad0e6deeeb5c7e8e5543bdde65e86029e2fd9fc169899c440a7913")
-    )

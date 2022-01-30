@@ -40,3 +40,19 @@ class UseGnosisSafeHardHatNet:
     ) -> None:
         """Start an HardHat instance."""
         cls.key_pairs = key_pairs
+
+
+@pytest.mark.integration
+class UseGanacheFork:
+    """Inherit from this class to use HardHat local net with Gnosis-Safe deployed."""
+
+    key_pairs: List[Tuple[str, str]] = []
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_ganache_fork(
+        cls, ganache_fork_scope_function: Any, ganache_port: Any, key_pairs: Any
+    ) -> None:
+        """Start a Ganache Fork instance."""
+        cls.key_pairs = key_pairs
+
