@@ -22,6 +22,11 @@ Alternatively, you can fetch this docker image with the relevant requirments sat
         docker pull valory/dev-template:latest
         docker container run -it valory/dev-template:latest
 
+- Build the Hardhat projects:
+
+      cd third_party/safe-contracts && yarn install
+      cd ../..
+
 ## Simple ABCI example
 
 Create a virtual environment with all development dependencies:
