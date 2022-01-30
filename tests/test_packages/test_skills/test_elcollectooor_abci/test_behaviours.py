@@ -57,9 +57,8 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.elcollectooor_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
-    ElCollectooorAbciConsensusBehaviour,
+    ElCollectooorFullRoundBehaviour,
     ObservationRoundBehaviour,
-    RandomnessTransactionSubmissionBehaviour,
     ResetFromObservationBehaviour,
     TransactionRoundBehaviour,
 )
@@ -72,6 +71,9 @@ from packages.valory.skills.elcollectooor_abci.handlers import (
 from packages.valory.skills.elcollectooor_abci.rounds import Event, PeriodState
 from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
     DecisionModel,
+)
+from packages.valory.skills.transaction_settlement_abci.behaviours import (
+    RandomnessTransactionSubmissionBehaviour,
 )
 
 from tests.conftest import ROOT_DIR
@@ -92,7 +94,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
 
     path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "elcollectooor_abci")
 
-    elcollectooor_abci_behaviour: ElCollectooorAbciConsensusBehaviour
+    elcollectooor_abci_behaviour: ElCollectooorFullRoundBehaviour
     ledger_handler: LedgerApiHandler
     http_handler: HttpHandler
     contract_handler: ContractApiHandler
@@ -118,7 +120,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         )
         cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
         cls.elcollectooor_abci_behaviour = cast(
-            ElCollectooorAbciConsensusBehaviour,
+            ElCollectooorFullRoundBehaviour,
             cls._skill.skill_context.behaviours.main,
         )
         cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)

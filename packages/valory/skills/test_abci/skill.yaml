@@ -18,14 +18,10 @@ fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
 - valory/http_client:0.1.0
-- valory/ledger:0.1.0
 contracts: []
 protocols:
-- open_aea/signing:1.0.0
 - valory/abci:0.1.0
-- valory/contract_api:1.0.0
 - valory/http:1.0.0
-- valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
 behaviours:
@@ -69,14 +65,15 @@ models:
       max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
-      service_id: test_abci
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30
+      service_id: test_abci
       sleep_time: 1
       tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657
+      keeper_timeout: 30.0
     class_name: Params
   randomness_api:
     args:

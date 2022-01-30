@@ -16,7 +16,6 @@ class BaseChannel:
         Sends an info request.
 
         :param: request: RequestInfo pb object
-        :return: ResponseInfo pb object
         """
         raise NotImplementedError
 
@@ -25,7 +24,6 @@ class BaseChannel:
         Sends an echo request.
 
         :param: request: RequestEcho pb object
-        :return: ResponseEcho pb object
         """
         raise NotImplementedError
 
@@ -34,7 +32,6 @@ class BaseChannel:
         Sends an flush request.
 
         :param: request: RequestFlush pb object
-        :return: ResponseFlush pb object
         """
         raise NotImplementedError
 
@@ -45,7 +42,6 @@ class BaseChannel:
         Sends an setOption request.
 
         :param: request: RequestSetOption pb object
-        :return: ResponseSetOption pb object
         """
         raise NotImplementedError
 
@@ -56,7 +52,6 @@ class BaseChannel:
         Sends an deliverTx request.
 
         :param: request: RequestDeliverTx pb object
-        :return: ResponseDeliverTx pb object
         """
         raise NotImplementedError
 
@@ -67,7 +62,6 @@ class BaseChannel:
         Sends an checkTx request.
 
         :param: request: RequestCheckTx pb object
-        :return: ResponseCheckTx pb object
         """
         raise NotImplementedError
 
@@ -76,7 +70,6 @@ class BaseChannel:
         Sends an query request.
 
         :param: request: RequestQuery pb object
-        :return: ResponseQuery pb object
         """
         raise NotImplementedError
 
@@ -87,7 +80,6 @@ class BaseChannel:
         Sends an commit request.
 
         :param: request: RequestCommit pb object
-        :return: ResponseCommit pb object
         """
         raise NotImplementedError
 
@@ -98,7 +90,6 @@ class BaseChannel:
         Sends an initChain request.
 
         :param: request: RequestInitChain pb object
-        :return: ResponseInitChain pb object
         """
         raise NotImplementedError
 
@@ -109,7 +100,6 @@ class BaseChannel:
         Sends an beginBlock request.
 
         :param: request: RequestBeginBlock pb object
-        :return: ResponseBeginBlock pb object
         """
         raise NotImplementedError
 
@@ -120,7 +110,6 @@ class BaseChannel:
         Sends an endBlock request.
 
         :param: request: RequestEndBlock pb object
-        :return: ResponseEndBlock pb object
         """
         raise NotImplementedError
 
@@ -131,7 +120,6 @@ class BaseChannel:
         Sends an listSnapshots request.
 
         :param: request: RequestListSnapshots pb object
-        :return: ResponseListSnapshots pb object
         """
         raise NotImplementedError
 
@@ -142,7 +130,6 @@ class BaseChannel:
         Sends an offerSnapshot request.
 
         :param: request: RequestOfferSnapshot pb object
-        :return: ResponseOfferSnapshot pb object
         """
         raise NotImplementedError
 
@@ -153,7 +140,6 @@ class BaseChannel:
         Sends an loadSnapshotChunk request.
 
         :param: request: RequestLoadSnapshotChunk pb object
-        :return: ResponseLoadSnapshotChunk pb object
         """
         raise NotImplementedError
 
@@ -164,6 +150,5 @@ class BaseChannel:
         Sends an applySnapshotChunk request.
 
         :param: request: RequestApplySnapshotChunk pb object
-        :return: ResponseApplySnapshotChunk pb object
         """
         raise NotImplementedError

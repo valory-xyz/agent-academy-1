@@ -29,10 +29,8 @@ from copy import copy
 from dataclasses import dataclass, field
 from enum import Enum
 from math import ceil
-from operator import itemgetter
-from typing import Any
-from typing import Counter as CounterType
 from typing import (
+    Any,
     Dict,
     FrozenSet,
     Generic,
@@ -106,6 +104,10 @@ class TransactionTypeNotRecognizedError(ABCIAppException):
 
 class TransactionNotValidError(ABCIAppException):
     """Error raised when a transaction is not valid."""
+
+
+class LateArrivingTransaction(ABCIAppException):
+    """Error raised when the transaction belongs to previous round."""
 
 
 class _MetaPayload(ABCMeta):
@@ -231,6 +233,8 @@ class BaseTxPayload(ABC, metaclass=_MetaPayload):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
+        if not isinstance(other, BaseTxPayload):
+            return NotImplemented
         return (
             self.id_ == other.id_
             and self.sender == other.sender
@@ -280,11 +284,9 @@ class Transaction(ABC):
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        return (
-            isinstance(other, Transaction)
-            and self.payload == other.payload
-            and self.signature == other.signature
-        )
+        if not isinstance(other, Transaction):
+            return NotImplemented
+        return self.payload == other.payload and self.signature == other.signature
 
 
 class Block:  # pylint: disable=too-few-public-methods
@@ -429,14 +431,13 @@ class ConsensusParams:
             isinstance(max_participants, int) and max_participants >= 0,
             "max_participants must be an integer greater than 0.",
         )
-        return ConsensusParams(max_participants)
+        return cls(max_participants)
 
     def __eq__(self, other: Any) -> bool:
         """Check equality."""
-        return (
-            isinstance(other, ConsensusParams)
-            and self.max_participants == other.max_participants
-        )
+        if not isinstance(other, ConsensusParams):
+            return NotImplemented
+        return self.max_participants == other.max_participants
 
 
 class StateDB:
@@ -622,13 +623,19 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
     allowed_tx_type: Optional[TransactionType]
     payload_attribute: str
 
+    _previous_round_tx_type: Optional[TransactionType]
+
     def __init__(
-        self, state: BasePeriodState, consensus_params: ConsensusParams
+        self,
+        state: BasePeriodState,
+        consensus_params: ConsensusParams,
+        previous_round_tx_type: Optional[TransactionType] = None,
     ) -> None:
         """Initialize the round."""
         self._consensus_params = consensus_params
         self._state = state
         self.block_confirmations = 0
+        self._previous_round_tx_type = previous_round_tx_type
 
         self._check_class_attributes()
 
@@ -702,6 +709,14 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
                 "current round does not allow transactions"
             )
         tx_type = transaction.payload.transaction_type
+
+        if self._previous_round_tx_type is not None and str(tx_type) == str(
+            self._previous_round_tx_type
+        ):
+            raise LateArrivingTransaction(
+                f"request '{tx_type}' is from previous round; skipping"
+            )
+
         if str(tx_type) != str(self.allowed_tx_type):
             raise TransactionTypeNotRecognizedError(
                 f"request '{tx_type}' not recognized; only {self.allowed_tx_type} is supported"
@@ -791,9 +806,9 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         if len(votes_by_participant) == 0:
             return
 
-        nb_votes_by_item = Counter(list(votes_by_participant.values()))
-        largest_nb_votes = max(nb_votes_by_item.values())
-        nb_votes_received = sum(nb_votes_by_item.values())
+        vote_count = Counter(votes_by_participant.values())
+        largest_nb_votes = max(vote_count.values())
+        nb_votes_received = sum(vote_count.values())
         nb_remaining_votes = nb_participants - nb_votes_received
 
         threshold = consensus_threshold(nb_participants)
@@ -819,6 +834,11 @@ class AbstractRound(Generic[EventType, TransactionType], ABC):
         except ABCIAppException:
             return False
         return True
+
+    @property
+    def consensus_threshold(self) -> int:
+        """Consensus threshold"""
+        return self._consensus_params.consensus_threshold
 
     @abstractmethod
     def check_payload(self, payload: BaseTxPayload) -> None:
@@ -872,6 +892,16 @@ class CollectionRound(AbstractRound):
         """Initialize the collection round."""
         super().__init__(*args, **kwargs)
         self.collection: Dict[str, BaseTxPayload] = {}
+
+    @property
+    def payloads(self) -> List[BaseTxPayload]:
+        """Get all agent payloads"""
+        return list(self.collection.values())
+
+    @property
+    def payloads_count(self) -> Counter:
+        """Get count of payload attributes"""
+        return Counter(map(lambda p: getattr(p, self.payload_attribute), self.payloads))
 
     def process_payload(self, payload: BaseTxPayload) -> None:
         """Process payload."""
@@ -963,29 +993,17 @@ class CollectSameUntilThresholdRound(CollectionRound):
         self,
     ) -> bool:
         """Check if the threshold has been reached."""
-
-        counter: CounterType = Counter()
-        counter.update(
-            getattr(payload, self.payload_attribute)
-            for payload in self.collection.values()
-        )
-        return any(
-            count >= self._consensus_params.consensus_threshold
-            for count in counter.values()
-        )
+        counts = self.payloads_count.values()
+        return any(count >= self.consensus_threshold for count in counts)
 
     @property
     def most_voted_payload(
         self,
     ) -> Any:
         """Get the most voted payload."""
-        counter = Counter()  # type: ignore
-        counter.update(
-            getattr(payload, self.payload_attribute)
-            for payload in self.collection.values()
-        )
-        most_voted_payload, max_votes = max(counter.items(), key=itemgetter(1))
-        if max_votes < self._consensus_params.consensus_threshold:
+
+        most_voted_payload, max_votes = self.payloads_count.most_common()[0]
+        if max_votes < self.consensus_threshold:
             raise ABCIAppInternalError("not enough votes")
         return most_voted_payload
 
@@ -1101,31 +1119,24 @@ class VotingRound(CollectionRound):
     period_state_class = BasePeriodState
 
     @property
+    def vote_count(self) -> Counter:
+        """Get agent payload vote count"""
+        return Counter(payload.vote for payload in self.collection.values())  # type: ignore
+
+    @property
     def positive_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        true_votes = sum(
-            [payload.vote is True for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "true" has at least the consensus # of votes
-        return true_votes >= self._consensus_params.consensus_threshold
+        return self.vote_count[True] >= self.consensus_threshold
 
     @property
     def negative_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        false_votes = sum(
-            [payload.vote is False for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "false" has at least the consensus # of votes
-        return false_votes >= self._consensus_params.consensus_threshold
+        return self.vote_count[False] >= self.consensus_threshold
 
     @property
     def none_vote_threshold_reached(self) -> bool:
         """Check that the vote threshold has been reached."""
-        none_votes = sum(
-            [payload.vote is None for payload in self.collection.values()]  # type: ignore
-        )
-        # check that "None" has at least the consensus # of votes
-        return none_votes >= self._consensus_params.consensus_threshold
+        return self.vote_count[None] >= self.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
@@ -1164,7 +1175,7 @@ class CollectDifferentUntilThresholdRound(CollectionRound):
         self,
     ) -> bool:
         """Check if the threshold has been reached."""
-        return len(self.collection) >= self._consensus_params.consensus_threshold
+        return len(self.collection) >= self.consensus_threshold
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
         """Process the end of the block."""
@@ -1248,7 +1259,7 @@ class Timeouts(Generic[EventType]):
         """Pop earliest cancelled timeouts."""
         if self.size == 0:
             return
-        entry = self._heap[0]
+        entry = self._heap[0]  # heap peak
         while entry.cancelled:
             self.pop_timeout()
             if self.size == 0:
@@ -1294,14 +1305,10 @@ class _MetaAbciApp(ABCMeta):
     @classmethod
     def _check_required_class_attributes(mcs, abci_app_cls: Type["AbciApp"]) -> None:
         """Check that required class attributes are set."""
-        try:
-            abci_app_cls.initial_round_cls
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'initial_round_cls' field not set") from exc
-        try:
-            abci_app_cls.transition_function
-        except AttributeError as exc:
-            raise ABCIAppInternalError("'transition_function' field not set") from exc
+        if not hasattr(abci_app_cls, "initial_round_cls"):
+            raise ABCIAppInternalError("'initial_round_cls' field not set")
+        if not hasattr(abci_app_cls, "transition_function"):
+            raise ABCIAppInternalError("'transition_function' field not set")
 
     @classmethod
     def _check_initial_states_and_final_states(
@@ -1452,16 +1459,13 @@ class AbciApp(
     @classmethod
     def get_all_rounds(cls) -> Set[AppState]:
         """Get all the round states."""
-        states = set()
-        for start_state, _ in cls.transition_function.items():
-            states.add(start_state)
-        return states
+        return set(cls.transition_function)
 
     @classmethod
     def get_all_events(cls) -> Set[EventType]:
         """Get all the events."""
         events: Set[EventType] = set()
-        for _start_state, transitions in cls.transition_function.items():
+        for _, transitions in cls.transition_function.items():
             events.update(transitions.keys())
         return events
 
@@ -1469,10 +1473,9 @@ class AbciApp(
     def get_all_round_classes(cls) -> Set[AppState]:
         """Get all round classes."""
         result: Set[AppState] = set()
-        for start, out_transitions in cls.transition_function.items():
+        for start, transitions in cls.transition_function.items():
             result.add(start)
-            for _event, end in out_transitions.items():
-                result.add(end)
+            result.update(transitions.values())
         return result
 
     @property
@@ -1543,7 +1546,15 @@ class AbciApp(
         )
         self._last_round = self._current_round
         self._current_round_cls = round_cls
-        self._current_round = round_cls(last_result, self.consensus_params)
+        self._current_round = round_cls(
+            last_result,
+            self.consensus_params,
+            (
+                self._last_round.allowed_tx_type
+                if self._last_round is not None
+                else None
+            ),
+        )
         self._log_start()
 
     @property
@@ -1762,7 +1773,7 @@ class Period:
     def abci_app(self) -> AbciApp:
         """Get the AbciApp."""
         if self._abci_app is None:
-            raise ABCIAppInternalError("AbciApp not set")
+            raise ABCIAppInternalError("AbciApp not set")  # pragma: nocover
         return self._abci_app
 
     @property
@@ -1842,7 +1853,6 @@ class Period:
         Deliver a transaction.
 
         Appends the transaction to build the block on 'end_block' later.
-
         :param transaction: the transaction.
         :raises:  an Error otherwise.
         """
