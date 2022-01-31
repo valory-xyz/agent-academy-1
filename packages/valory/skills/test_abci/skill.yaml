@@ -62,6 +62,7 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
       period_setup: {}
@@ -73,7 +74,6 @@ models:
       sleep_time: 1
       tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657
-      keeper_timeout: 30.0
     class_name: Params
   randomness_api:
     args:
