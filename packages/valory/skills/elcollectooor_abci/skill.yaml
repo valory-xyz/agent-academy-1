@@ -8,13 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
   __init__.py: QmRopqpTcQw4mGvNahif4SmSEb3Lm3Dyp9PoFQD7gzkpih
-  behaviours.py: QmPcc1gkgmhjnYVs7cnWZXt3pEPKQufksjGKpoFqvXhk3t
+  behaviours.py: QmXGcw7LG7CsdAo3VSPcXYWcuHaf3o733CFGhVcLKczV3T
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
-  models.py: QmSJDpoBvaNyZheGUSefqBFtrmdWGw8pJrV5mxZbpLoB7Z
+  models.py: QmWMV5wwuwqdmMcGF1CN2A7HcftUQeDEEg4s231VeZsvbK
   payloads.py: QmUuRo2BhRnJ2u5XtB3NHxfMHC446RYjCyYtP7fNQFDe2q
-  rounds.py: QmbDSw48zacEsPdicfKsrW8C9iS1DE8FDkYCLaFbQNKDod
-  simple_decision_model.py: QmSqpWEKHqP4f9SSuX6pn2dr5PYgrtSusc4BVyaJXckZiC
+  rounds.py: QmYBmGnZDyfGha3T9gMrKuyPsF81o99QiT2GoiYSHB92vd
+  simple_decision_model.py: QmbRF33G978tF8bWd2tKEurRwBe97PPaXpmRjN5M95aSW3
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -67,11 +67,14 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
+      artblocks_contract: '0x1CD623a86751d4C4f20c96000FEC763941f098A2'
+      artblocks_periphery_contract: '0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441'
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       keeper_timeout: 30.0
       max_healthcheck: 120
+      max_retries: 5
       observation_interval: 10
       period_setup: {}
       reset_tendermint_after: 2
@@ -80,6 +83,7 @@ models:
       round_timeout_seconds: 30.0
       service_id: el_collectooor_1
       sleep_time: 1
+      starting_project_id: null
       tendermint_com_url: http://localhost:8080
       tendermint_url: http://localhost:26657
     class_name: Params

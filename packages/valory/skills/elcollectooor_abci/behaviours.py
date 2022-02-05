@@ -37,7 +37,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.elcollectooor_abci.models import Params, SharedState
+from packages.valory.skills.elcollectooor_abci.models import Params, SharedState, ElCollectooorParams
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
@@ -97,42 +97,7 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
     @property
     def params(self) -> Params:
         """Return the params."""
-        return cast(Params, self.context.params)
-
-
-class BaseResetBehaviour(ElCollectooorABCIBaseState):
-    """Reset state."""
-
-    pause = True
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Trivially log the state.
-        - Sleep for configured interval.
-        - Build a registration transaction.
-        - Send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-        if self.pause:
-            self.context.logger.info("Period end.")
-            benchmark_tool.save()
-            yield from self.sleep(self.params.observation_interval)
-        else:
-            self.context.logger.info(
-                f"Period {self.period_state.period_count} was not finished. Resetting!"
-            )
-
-        payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
-        )
-
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()
+        return cast(ElCollectooorParams, self.context.params)
 
 
 class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
@@ -140,16 +105,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
     state_id = "observation"
     matching_round = ObservationRound
-
-    def __init__(self, **kwargs: Any):
-        """Init the observing behaviour."""
-        super().__init__(**kwargs)
-        self.artblocks_contract = kwargs.pop(
-            "artblocks_contract", "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
-        )
-        self.starting_id = kwargs.pop("starting_id", None)
-        self.max_retries = kwargs.pop("max_retries", 5)
-        self._retries_made = 0
+    _retries_made = 0
 
     def async_act(self) -> Generator:
         """The observation act."""
@@ -171,10 +127,10 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
                 # fetch an active project
                 response = yield from self.get_contract_api_response(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address=self.artblocks_contract,
+                    contract_address=self.params.artblocks_contract,
                     contract_id=str(ArtBlocksContract.contract_id),
                     contract_callable="get_active_project",
-                    starting_id=self.starting_id,
+                    starting_id=self.params.starting_project_id,
                 )
 
                 # response body also has project details
@@ -219,11 +175,46 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
     def is_retries_exceeded(self) -> bool:
         """Checks whether retires are exceeded."""
-        return self._retries_made > self.max_retries
+        return self._retries_made > self.params.max_retries
 
     def _reset_retries(self) -> None:
         """Resets the retries."""
         self._retries_made = 0
+
+
+class BaseResetBehaviour(ElCollectooorABCIBaseState):
+    """Reset state."""
+
+    pause = True
+
+    def async_act(self) -> Generator:
+        """
+        Do the action.
+
+        Steps:
+        - Trivially log the state.
+        - Sleep for configured interval.
+        - Build a registration transaction.
+        - Send the transaction and wait for it to be mined.
+        - Wait until ABCI application transitions to the next round.
+        - Go to the next behaviour state (set done event).
+        """
+        if self.pause:
+            self.context.logger.info("Period end.")
+            benchmark_tool.save()
+            yield from self.sleep(self.params.observation_interval)
+        else:
+            self.context.logger.info(
+                f"Period {self.period_state.period_count} was not finished. Resetting!"
+            )
+
+        payload = ResetPayload(
+            self.context.agent_address, self.period_state.period_count + 1
+        )
+
+        yield from self.send_a2a_transaction(payload)
+        yield from self.wait_until_round_end()
+        self.set_done()
 
 
 class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
@@ -231,13 +222,6 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
     state_id = "details"
     matching_round = DetailsRound
-
-    def __init__(self, **kwargs: Any):
-        """Init the details behaviour"""
-        super().__init__(**kwargs)
-        self.artblocks_contract = kwargs.pop(
-            "artblocks_contract", "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
-        )
 
     def async_act(self) -> Generator:
         """The details act"""
@@ -281,7 +265,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.artblocks_contract,
+            contract_address=self.params.artblocks_contract,
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="get_dynamic_details",
             project_id=project["project_id"],
@@ -355,15 +339,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
     state_id = "transaction_collection"
     matching_round = TransactionRound
-
-    def __init__(self, **kwargs: Any):
-        """Init the observing behaviour."""
-        super().__init__(**kwargs)
-        self.artblocks_periphery_contract = kwargs.pop(
-            "artblocks_periphery_contract", "0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441"
-        )
-        self.max_retries = kwargs.pop("max_retries", 5)
-        self._retries_made = 0
+    _retries_made = 0
 
     def async_act(self) -> Generator:
         """Implement the act."""
@@ -413,7 +389,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
-            to_address=self.artblocks_periphery_contract,
+            to_address=self.params.artblocks_periphery_contract,
             value=self._get_value_in_wei(),
             data=data,
             safe_tx_gas=10 ** 7,
@@ -433,7 +409,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
     def _get_purchase_data(self, project_id: int) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.artblocks_periphery_contract,
+            contract_address=self.params.artblocks_contract,
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             contract_callable="purchase_data",
             project_id=project_id,
@@ -464,7 +440,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         tx_hash = tx_hash[2:]
         ether_value = int.to_bytes(self._get_value_in_wei(), 32, "big").hex().__str__()
         safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()  # TODO: should this be dynamic?
-        address = self.artblocks_periphery_contract
+        address = self.params.artblocks_periphery_contract
         data = data[2:]  # remove starting '0x'
 
         return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
@@ -475,7 +451,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
     def is_retries_exceeded(self) -> bool:
         """Check if the retries limit has been exceeded"""
-        return self._retries_made > self.max_retries
+        return self._retries_made > self.params.max_retries
 
     def _reset_retries(self) -> None:
         """Reset the retries"""

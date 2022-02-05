@@ -19,7 +19,7 @@
 
 """This module contains the shared state for the 'elcollectooor_abci' application."""
 
-from typing import Any
+from typing import Any, Optional
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
@@ -27,7 +27,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
-
 
 MARGIN = 5
 
@@ -48,11 +47,34 @@ class SharedState(BaseSharedState):
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
         ElCollectooorAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
-            self.context.params.observation_interval + MARGIN
+                self.context.params.observation_interval + MARGIN
         )
 
 
-Params = BaseParams
+class ElCollectooorParams(BaseParams):
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the El Collectooor parameters object."""
+
+        super().__init__(*args, **kwargs)
+        self.artblocks_contract = self._ensure("artblocks_contract", kwargs)
+        self.artblocks_periphery_contract = self._ensure("artblocks_periphery_contract", kwargs)
+        self.starting_project_id = self._get_starting_project_id(kwargs)
+        self.max_retries = int(kwargs.pop("max_retries", 5))
+
+    def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
+        """Get the value of starting_project_id, or warn and return None"""
+        key = "starting_project_id"
+        res = kwargs.pop(key)
+
+        try:
+            return int(res)
+        except TypeError:
+            self.context.logger.warning(f"'{key}' was not provided, None was used as fallback")
+            return None
+
+
+Params = ElCollectooorParams
 
 
 class RandomnessApi(ApiSpecs):
