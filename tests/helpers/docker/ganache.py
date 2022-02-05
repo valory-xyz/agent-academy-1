@@ -113,7 +113,7 @@ class GanacheForkDockerImage(GanacheDockerImage):
         """Build command."""
 
         cmd = [
-            "-d",  # deterministic seed accounts
+            "--wallet.deterministic=true",
             f"--fork.network={self.NETWORK}",
             f"--fork.blockNumber={self.BLOCK_NUMBER}"
         ]

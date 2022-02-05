@@ -19,10 +19,16 @@
 
 """Integration tests for the valory/price_estimation_abci skill."""
 
-from tests.fixture_helpers import UseGnosisSafeHardHatNet, UseGanacheFork
-from tests.test_packages.test_agents.base import BaseTestEnd2EndNormalExecution
+from tests.fixture_helpers import UseGanacheFork
+from tests.helpers.constants import (
+    TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
+)
 
 # check log messages of the happy path
+from tests.test_packages.test_agents.base import BaseTestElCollectooorEnd2End
+
+TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
+
 CHECK_STRINGS = (
     "Entered in the 'tendermint_healthcheck' behaviour state",
     "'tendermint_healthcheck' behaviour state is done",
@@ -38,16 +44,16 @@ CHECK_STRINGS = (
     "'validate_safe' round is done",
 
     "Entered in the 'observation' round for period 0",
-    "Retrieved project id: 56",
+    f"Retrieved project with id {TARGET_PROJECT_ID}",
     "'observation' round is done",
 
     "Entered in the 'details' round for period 0",
-    "Successfully gathered details on project with id=56.",
+    f"Successfully gathered details on project with id={TARGET_PROJECT_ID}.",
     "Total length of details array 1.",
     "'details' round is done",
 
     "Entered in the 'decision' round",
-    "decided 1 for project with id 56",
+    f"decided 1 for project with id {TARGET_PROJECT_ID}",
     "'decision' round is done",
 
     "Entered in the 'transaction_collection' round for period 0",
@@ -63,7 +69,6 @@ CHECK_STRINGS = (
 
     "Entered in the 'finalization' round for period 0",
     "'finalization' round is done",
-    "Finalized estimate",
     "Entered in the 'validate_transaction' round for period 0",
     "'validate_transaction' round is done",
     "Period end",
@@ -80,8 +85,8 @@ CHECK_STRINGS = (
 )
 
 
-class TestElCollectooorSingleAgent(
-    BaseTestEnd2EndNormalExecution,
+class TestSingleAgentElCollectooor(
+    BaseTestElCollectooorEnd2End,
     UseGanacheFork,
 ):
     """Test the El Collectooor with only one agent."""
@@ -93,8 +98,8 @@ class TestElCollectooorSingleAgent(
     check_strings = CHECK_STRINGS
 
 
-class TestElCollectooorTwoAgents(
-    BaseTestEnd2EndNormalExecution,
+class TestTwoAgentsElCollectooor(
+    BaseTestElCollectooorEnd2End,
     UseGanacheFork,
 ):
     """Test the El Collectooor with two agents."""
@@ -106,8 +111,8 @@ class TestElCollectooorTwoAgents(
     check_strings = CHECK_STRINGS
 
 
-class TestElCollectooorFourAgents(
-    BaseTestEnd2EndNormalExecution,
+class TestFourAgentsElCollectooor(
+    BaseTestElCollectooorEnd2End,
     UseGanacheFork,
 ):
     """Test the El Collectooor with four agents."""

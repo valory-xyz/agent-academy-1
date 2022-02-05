@@ -28,6 +28,11 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
 
+from tests.helpers.constants import (
+    TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID,
+    ARTBLOCKS_ADDRESS as _DEFAULT_ARTBLOCKS_ADDRESS,
+    ARTBLOCKS_PERIPHERY_ADDRESS as _DEFAULT_ARTBLOCKS_PERIPHERY_ADDRESS,
+)
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
@@ -163,7 +168,7 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
                 process, self.check_strings, self.wait_to_finish
             )
             assert (
-                missing_strings == []
+                    missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
             if not self.is_successfully_terminated(process):
@@ -172,3 +177,31 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
                         f"ABCI agent with process {process} wasn't successfully terminated."
                     )
                 )
+
+
+class BaseTestElCollectooorEnd2End(BaseTestEnd2EndNormalExecution):
+    """
+    Extended base class for conducting E2E tests with the El Collectooor.
+
+    Test subclasses must set NB_AGENTS, agent_package, wait_to_finish and check_strings.
+    """
+
+    STARTING_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID + 1
+    ARTBLOCKS_ADDRESS = _DEFAULT_ARTBLOCKS_ADDRESS
+    ARTBLOCKS_PERIPHERY_ADDRESS = _DEFAULT_ARTBLOCKS_PERIPHERY_ADDRESS
+
+    def setup(self):
+        super().setup()
+
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.starting_project_id",
+            self.STARTING_PROJECT_ID,
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_contract",
+            self.ARTBLOCKS_ADDRESS,
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_periphery_contract",
+            self.ARTBLOCKS_PERIPHERY_ADDRESS,
+        )
