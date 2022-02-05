@@ -30,6 +30,7 @@ from packages.valory.contracts.artblocks.contract import ArtBlocksContract
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -191,7 +192,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
                 project_id = project_details["project_id"]
 
-                self.context.logger.info(f"Retrieved project id: {project_id}.")
+                self.context.logger.info(f"Retrieved project with id {project_id}.")
                 payload = ObservationPayload(
                     self.context.agent_address,
                     json.dumps(project_details),
@@ -388,37 +389,15 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 "couldn't find project_id, or project_id is None",
             )
 
-            response = yield from self.get_contract_api_response(
-                performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address=self.artblocks_periphery_contract,
-                contract_id=str(ArtBlocksPeripheryContract.contract_id),
-                contract_callable="purchase_data",
-                project_id=project_id,
+            purchase_data = yield from self._get_purchase_data(project_id)
+            tx_hash = yield from self._get_safe_hash(bytes.fromhex(purchase_data[2:]))
+
+            payload_data = self._format_payload(tx_hash, purchase_data)
+
+            payload = TransactionPayload(
+                self.context.agent_address,
+                payload_data,
             )
-
-            # response body also has project details
-            enforce(
-                response.state.body is not None
-                and "data" in response.state.body.keys()
-                and response.state.body["data"] is not None,
-                "contract returned and empty body or empty data",
-            )
-            encoded_tx: Optional[str] = cast(Optional[str], response.state.body["data"])
-
-        if not encoded_tx:
-            self.context.logger.error(
-                "couldn't extract purchase_data from contract response"
-            )
-            yield from self.sleep(self.params.sleep_time)
-            self._increment_retries()
-            return
-
-        data = self._format_payload(encoded_tx)
-
-        payload = TransactionPayload(
-            self.context.agent_address,
-            data,
-        )
 
         with benchmark_tool.measure(
                 self,
@@ -427,6 +406,50 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             yield from self.wait_until_round_end()
 
         self.set_done()
+
+    def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_raw_safe_transaction_hash",
+            to_address=self.artblocks_periphery_contract,
+            value=self._get_value_in_wei(),
+            data=data,
+            safe_tx_gas=10 ** 7,
+        )
+
+        enforce(
+            response.state.body is not None
+            and "tx_hash" in response.state.body.keys()
+            and response.state.body["tx_hash"] is not None,
+            "contract returned and empty body or empty tx_hash",
+        )
+
+        tx_hash = cast(Optional[str], response.state.body["tx_hash"])
+
+        return tx_hash
+
+    def _get_purchase_data(self, project_id: int) -> Generator[None, None, str]:
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.artblocks_periphery_contract,
+            contract_id=str(ArtBlocksPeripheryContract.contract_id),
+            contract_callable="purchase_data",
+            project_id=project_id,
+        )
+
+        # response body also has project details
+        enforce(
+            response.state.body is not None
+            and "data" in response.state.body.keys()
+            and response.state.body["data"] is not None,
+            "contract returned and empty body or empty data",
+        )
+
+        purchase_data = cast(Optional[str], response.state.body["data"])
+
+        return purchase_data
 
     def _get_value_in_wei(self):
         details: List[Dict] = json.loads(self.period_state.most_voted_details)
@@ -437,12 +460,12 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
         return min_value
 
-    def _format_payload(self, data: str):
-        tx_hash = "0" * 64  # no transaction is made here
+    def _format_payload(self, tx_hash: str, data: str):
+        tx_hash = tx_hash[2:]
         ether_value = int.to_bytes(self._get_value_in_wei(), 32, "big").hex().__str__()
-        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__() # TODO: should this be dynamic?
+        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()  # TODO: should this be dynamic?
         address = self.artblocks_periphery_contract
-        data = data[2:] # remove starting '0x'
+        data = data[2:]  # remove starting '0x'
 
         return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
 
