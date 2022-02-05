@@ -14,7 +14,7 @@ fingerprint:
   models.py: QmSJDpoBvaNyZheGUSefqBFtrmdWGw8pJrV5mxZbpLoB7Z
   payloads.py: QmYmotMpRtSTf1DHYLTDgz57stdgxTQQvwvFGRrv3S1QJm
   rounds.py: QmWp25PkC5xfSnMrcLX51QRZtL3A9afVWebqNZnjnjXwBW
-  simple_decision_model.py: QmSqpWEKHqP4f9SSuX6pn2dr5PYgrtSusc4BVyaJXckZiC
+  simple_decision_model.py: QmW4k28cUJftdMRhXdyzq7eUnHdkGbzEaWQpiU8VgUXXdf
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

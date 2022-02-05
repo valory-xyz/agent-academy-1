@@ -25,11 +25,10 @@ import numpy as np
 import pandas as pd  # type: ignore
 from aea.exceptions import enforce
 
-
 _default_logger = logging.getLogger(__name__)
 
 
-class DecisionModel:
+class DecisionModel: # pylint: disable=too-many-instance-attributes
     """Framework for any decision models."""
 
     def __init__(self) -> None:
@@ -46,11 +45,11 @@ class DecisionModel:
 
     def static(self, project_details: Dict) -> int:
         """First filtering of viable projects."""
-        enforce(type(project_details) == dict, "Wrong data format of project details.")
+        enforce(isinstance(project_details) == dict, "Wrong data format of project details.")
 
         if (
-            not project_details["royalty_receiver"]
-            == "0x0000000000000000000000000000000000000000"
+                not project_details["royalty_receiver"]
+                    == "0x0000000000000000000000000000000000000000"
         ):
             self.score += 1
         if not project_details["description"] == "":
@@ -61,7 +60,6 @@ class DecisionModel:
 
     def dynamic(self, most_voted_details: List[Dict]) -> int:
         """Automatic participation in the auction and optimal price discovery."""
-        # TODO: define get more details
 
         price_per_token_in_wei = most_voted_details[-1]["price_per_token_in_wei"]
         series = pd.DataFrame(most_voted_details).values
@@ -72,30 +70,30 @@ class DecisionModel:
             avg_mints = np.mean(series[:, 1])
 
         blocks_to_go = (
-            most_voted_details[-1]["max_invocations"]
-            - most_voted_details[-1]["invocations"]
-        ) / (avg_mints + 0.001)
+                               most_voted_details[-1]["max_invocations"]
+                               - most_voted_details[-1]["invocations"]
+                       ) / (avg_mints + 0.001)
 
         if series.shape[0] > self.dutch_threshold and series[0, 0] == series[-1, 0]:
             self.logger.info("This is no Dutch auction.")
             # Moving Average of "blocks_to_go", window = 10
             ret = np.cumsum(np.diff(series[:, 1]), dtype=float)
             ret[10:] = ret[10:] - ret[:-10]
-            ma_blocks = ret[10 - 1 :] / 10
+            ma_blocks = ret[10 - 1:] / 10
 
             if (
-                np.sum(ma_blocks[-20:] > 0) > self.TIOLI_threshold
-                and price_per_token_in_wei < self.price_threshold
+                    np.sum(ma_blocks[-20:] > 0) > self.TIOLI_threshold
+                    and price_per_token_in_wei < self.price_threshold
             ):
                 return 1
 
-            elif price_per_token_in_wei > self.price_threshold:
+            if price_per_token_in_wei > self.price_threshold:
                 return 0
 
         if (
-            blocks_to_go
-            < self.threshold + (100 / most_voted_details[-1]["max_invocations"])
-            and price_per_token_in_wei < self.price_threshold
+                blocks_to_go
+                < self.threshold + (100 / most_voted_details[-1]["max_invocations"])
+                and price_per_token_in_wei < self.price_threshold
         ):
             self.logger.info("This is a Dutch auction or something very fast.")
             return 1
