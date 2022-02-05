@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the transaction payloads for the elcollectooor_abci app."""
-import json
 from enum import Enum
 from typing import Dict, Optional
 

@@ -23,6 +23,7 @@ from typing import Any, List, Tuple
 
 import pytest
 
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,7 +36,7 @@ class UseGnosisSafeHardHatNet:
     @classmethod
     @pytest.fixture(autouse=True)
     def _start_hardhat(
-            cls, gnosis_safe_hardhat_scope_function: Any, hardhat_port: Any, key_pairs: Any
+        cls, gnosis_safe_hardhat_scope_function: Any, hardhat_port: Any, key_pairs: Any
     ) -> None:
         """Start an HardHat instance."""
         cls.key_pairs = key_pairs
@@ -50,11 +51,11 @@ class UseGanacheFork:
     @classmethod
     @pytest.fixture(autouse=True)
     def _start_ganache_fork(
-            cls,
-            ganache_fork_engine_warmer_function,
-            ganache_fork_scope_function: Any,
-            ganache_port: Any,
-            ganache_key_pairs: Any,
+        cls,
+        ganache_fork_engine_warmer_function: Any,
+        ganache_fork_scope_function: Any,
+        ganache_port: Any,
+        ganache_key_pairs: Any,
     ) -> None:
         """Start a Ganache Fork instance."""
         cls.key_pairs = ganache_key_pairs

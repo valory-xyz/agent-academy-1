@@ -147,7 +147,9 @@ class TestObservationRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            ObservationPayload(sender=participant, project_details=test_project_details)
+            ObservationPayload(
+                sender=participant, project_details=json.dumps(test_project_details)
+            )
             for participant in self.participants
         ]
 

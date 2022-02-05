@@ -22,7 +22,7 @@
 import json
 from abc import ABC
 from math import floor
-from typing import Any, Dict, Generator, List, Optional, Set, Type, cast
+from typing import Dict, Generator, List, Set, Type, cast
 
 from aea.exceptions import AEAEnforceError, enforce
 
@@ -37,7 +37,11 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.elcollectooor_abci.models import Params, SharedState, ElCollectooorParams
+from packages.valory.skills.elcollectooor_abci.models import (
+    ElCollectooorParams,
+    Params,
+    SharedState,
+)
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
@@ -112,7 +116,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.wait_until_round_end()
 
@@ -121,7 +125,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
             return
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             try:
                 # fetch an active project
@@ -135,15 +139,17 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
                 # response body also has project details
                 enforce(
-                    response is not None and response.state is not None and response.state.body is not None,
-                    "response, response.state, response.state.body must exist"
+                    response is not None
+                    and response.state is not None
+                    and response.state.body is not None,
+                    "response, response.state, response.state.body must exist",
                 )
 
                 project_details = response.state.body
 
                 enforce(
                     "project_id" in project_details.keys(),
-                    "project_details was none, or project_id was not found in project_details"
+                    "project_details was none, or project_id was not found in project_details",
                 )
 
                 project_id = project_details["project_id"]
@@ -155,7 +161,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
                 )
 
                 with benchmark_tool.measure(
-                        self,
+                    self,
                 ).consensus():
                     yield from self.send_a2a_transaction(payload)
                     yield from self.wait_until_round_end()
@@ -227,7 +233,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         """The details act"""
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -251,7 +257,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -289,7 +295,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
     def async_act(self) -> Generator:
         """The Decision act"""
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -307,7 +313,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -315,7 +321,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
     def _make_decision(
-            self, project_details: dict, most_voted_details: List[dict]
+        self, project_details: dict, most_voted_details: List[dict]
     ) -> int:
         """Method that decides on an outcome"""
         decision_model = DecisionModel()
@@ -346,7 +352,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
         if self.is_retries_exceeded():
             with benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 yield from self.wait_until_round_end()
 
@@ -355,7 +361,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             return
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             project_id = json.loads(self.period_state.most_voted_project)["project_id"]
@@ -376,7 +382,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -402,7 +408,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             "contract returned and empty body or empty tx_hash",
         )
 
-        tx_hash = cast(Optional[str], response.state.body["tx_hash"])
+        tx_hash = cast(str, response.state.body["tx_hash"])
 
         return tx_hash
 
@@ -423,11 +429,11 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             "contract returned and empty body or empty data",
         )
 
-        purchase_data = cast(Optional[str], response.state.body["data"])
+        purchase_data = cast(str, response.state.body["data"])
 
         return purchase_data
 
-    def _get_value_in_wei(self):
+    def _get_value_in_wei(self) -> int:
         details: List[Dict] = json.loads(self.period_state.most_voted_details)
         min_value = details[0]["price_per_token_in_wei"]
 
@@ -436,10 +442,12 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
         return min_value
 
-    def _format_payload(self, tx_hash: str, data: str):
+    def _format_payload(self, tx_hash: str, data: str) -> str:
         tx_hash = tx_hash[2:]
         ether_value = int.to_bytes(self._get_value_in_wei(), 32, "big").hex().__str__()
-        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()  # TODO: should this be dynamic?
+        safe_tx_gas = (
+            int.to_bytes(10 ** 7, 32, "big").hex().__str__()
+        )  # TODO: should this be dynamic?
         address = self.params.artblocks_periphery_contract
         data = data[2:]  # remove starting '0x'
 

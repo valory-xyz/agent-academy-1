@@ -28,6 +28,7 @@ from packages.valory.skills.abstract_round_abci.models import (
 )
 from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
 
+
 MARGIN = 5
 
 Requests = BaseRequests
@@ -47,18 +48,26 @@ class SharedState(BaseSharedState):
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
         ElCollectooorAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
-                self.context.params.observation_interval + MARGIN
+            self.context.params.observation_interval + MARGIN
         )
 
 
 class ElCollectooorParams(BaseParams):
+    """El Collectooor Specific Params Class"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the El Collectooor parameters object."""
+        """
+        Initialize the El Collectooor parameters object.
+
+        :param *args: param args, used only in the superclass
+        :param **kwargs: dict with the parameters needed for the El Collectooor
+        """
 
         super().__init__(*args, **kwargs)
         self.artblocks_contract = self._ensure("artblocks_contract", kwargs)
-        self.artblocks_periphery_contract = self._ensure("artblocks_periphery_contract", kwargs)
+        self.artblocks_periphery_contract = self._ensure(
+            "artblocks_periphery_contract", kwargs
+        )
         self.starting_project_id = self._get_starting_project_id(kwargs)
         self.max_retries = int(kwargs.pop("max_retries", 5))
 
@@ -70,7 +79,9 @@ class ElCollectooorParams(BaseParams):
         try:
             return int(res)
         except TypeError:
-            self.context.logger.warning(f"'{key}' was not provided, None was used as fallback")
+            self.context.logger.warning(
+                f"'{key}' was not provided, None was used as fallback"
+            )
             return None
 
 

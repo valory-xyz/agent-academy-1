@@ -20,12 +20,11 @@
 """Integration tests for the valory/price_estimation_abci skill."""
 
 from tests.fixture_helpers import UseGanacheFork
-from tests.helpers.constants import (
-    TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
-)
+from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
 
 # check log messages of the happy path
 from tests.test_packages.test_agents.base import BaseTestElCollectooorEnd2End
+
 
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
 
@@ -42,23 +41,18 @@ CHECK_STRINGS = (
     "'deploy_safe' round is done",
     "Entered in the 'validate_safe' round for period 0",
     "'validate_safe' round is done",
-
     "Entered in the 'observation' round for period 0",
     f"Retrieved project with id {TARGET_PROJECT_ID}",
     "'observation' round is done",
-
     "Entered in the 'details' round for period 0",
     f"Successfully gathered details on project with id={TARGET_PROJECT_ID}.",
     "Total length of details array 1.",
     "'details' round is done",
-
     "Entered in the 'decision' round",
     f"decided 1 for project with id {TARGET_PROJECT_ID}",
     "'decision' round is done",
-
     "Entered in the 'transaction_collection' round for period 0",
     "'transaction_collection' round is done",
-
     "Entered in the 'randomness_transaction_submission' round for period 0",
     "'randomness_transaction_submission' round is done",
     "Entered in the 'select_keeper_transaction_submission_a' round for period 0",
@@ -66,7 +60,6 @@ CHECK_STRINGS = (
     "Entered in the 'collect_signature' round for period 0",
     "Signature:",
     "'collect_signature' round is done",
-
     "Entered in the 'finalization' round for period 0",
     "'finalization' round is done",
     "Entered in the 'validate_transaction' round for period 0",
@@ -75,7 +68,6 @@ CHECK_STRINGS = (
     "Entered in the 'reset_and_pause' round for period 0",
     "'reset_and_pause' round is done",
     "Period end",
-
     "Entered in the 'randomness_transaction_submission' round for period 1",
     "Entered in the 'select_keeper_transaction_submission_a' round for period 1",
     "Entered in the 'collect_signature' round for period 1",

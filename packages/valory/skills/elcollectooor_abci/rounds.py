@@ -177,6 +177,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get the safe contract address."""
         return cast(str, self.db.get_strict("safe_contract_address"))
 
+
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the El Collectooor skill."""
 
