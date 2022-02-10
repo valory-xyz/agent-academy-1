@@ -125,3 +125,7 @@ run-ropsten-fork-docker:
 run-mainnet-fork-docker:
 	@echo Running mainnet fork as a docker container;\
 	docker run -d -e KEY=$(MAINNET_KEY) --name mainnet-fork -e NETWORK=mainnet -e BLOCK_NUMBER=$(BLOCK_NUMBER) -p $(MAINNET_DOCKER_PORT):8545 hardhat:latest
+
+.PHONY: copyright
+copyright:
+	tox -e check-copyright
