@@ -112,10 +112,10 @@ jobs:
         tox -e flake8
         tox -e vulture
         tox -e darglint
-    - name: Static type check
-      run: tox -e mypy
-    - name: Pylint
-      run: tox -e pylint
+    # - name: Static type check
+    #   run: tox -e mypy
+    # - name: Pylint
+    #   run: tox -e pylint
 
   test:
     continue-on-error: True

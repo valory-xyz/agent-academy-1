@@ -129,7 +129,18 @@ def check_copyright(file: Path) -> Tuple[bool, str]:
 
 
 if __name__ == "__main__":
-    exclude_files = {Path("scripts", "whitelist.py"), Path("packages", "valory", "connections", "abci", "tendermint", "abci", "types_pb2_grpc.py")}
+    exclude_files = {
+        Path("scripts", "whitelist.py"),
+        Path(
+            "packages",
+            "valory",
+            "connections",
+            "abci",
+            "tendermint",
+            "abci",
+            "types_pb2_grpc.py",
+        ),
+    }
     python_files = filter(
         lambda x: x not in exclude_files,
         itertools.chain(
