@@ -7,14 +7,14 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
-  __init__.py: QmRopqpTcQw4mGvNahif4SmSEb3Lm3Dyp9PoFQD7gzkpih
-  behaviours.py: QmbnsqHWiH93TpdWrpCXNoY9fLxQ7hsGX63diSHD3ym7L6
+  __init__.py: QmfMGnm6mwZaoKUaJ9abNMuh2eEsMTY5ykxCTPY8ztDLrW
+  behaviours.py: QmVCtobZfr2q5e7sUzrdL5c6nJpr2v4BuPyjQTKG6WFW2K
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
-  models.py: QmSJDpoBvaNyZheGUSefqBFtrmdWGw8pJrV5mxZbpLoB7Z
-  payloads.py: QmYmotMpRtSTf1DHYLTDgz57stdgxTQQvwvFGRrv3S1QJm
-  rounds.py: QmWp25PkC5xfSnMrcLX51QRZtL3A9afVWebqNZnjnjXwBW
-  simple_decision_model.py: QmSqpWEKHqP4f9SSuX6pn2dr5PYgrtSusc4BVyaJXckZiC
+  models.py: QmXPhcfgsJNhNJwMkZ1tTYw5mpzUthB9Esqs4SpK3DLRWh
+  payloads.py: QmeJvV7eps5uuSFWefWK6eGAAQ9HnrSh1EPofXXRy47yHJ
+  rounds.py: QmQFGfVzzvYKW4PgTunNmUqEp39QRuqYiJg8DiAajgckfa
+  simple_decision_model.py: QmUUiEBumb8u7EZY5zeahPAx1Rw5i6rKopTSXWXDToYgda
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0

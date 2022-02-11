@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 """Integration tests for the valory/price_estimation_abci skill."""
 
+import pytest
 
 from tests.fixture_helpers import UseGnosisSafeHardHatNet
 from tests.test_packages.test_agents.base import BaseTestEnd2EndNormalExecution
@@ -65,6 +66,7 @@ CHECK_STRINGS = (
 )
 
 
+@pytest.mark.e2e
 class TestABCIPriceEstimationSingleAgent(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -78,6 +80,7 @@ class TestABCIPriceEstimationSingleAgent(
     check_strings = CHECK_STRINGS
 
 
+@pytest.mark.e2e
 class TestABCIPriceEstimationTwoAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
@@ -91,6 +94,7 @@ class TestABCIPriceEstimationTwoAgents(
     check_strings = CHECK_STRINGS
 
 
+@pytest.mark.e2e
 class TestABCIPriceEstimationFourAgents(
     BaseTestEnd2EndNormalExecution,
     UseGnosisSafeHardHatNet,
