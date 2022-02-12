@@ -62,6 +62,9 @@ from packages.valory.skills.elcollectooor_abci.behaviours import (
     ResetFromObservationBehaviour,
     TransactionRoundBehaviour,
 )
+from packages.valory.skills.elcollectooor_abci.decision_models import (
+    SimpleDecisionModel as DecisionModel,
+)
 from packages.valory.skills.elcollectooor_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
@@ -69,9 +72,6 @@ from packages.valory.skills.elcollectooor_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import Event, PeriodState
-from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
-    DecisionModel,
-)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )

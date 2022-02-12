@@ -35,9 +35,7 @@ from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogues
-from packages.valory.connections.abci.tendermint.abci import (
-    types_pb2_grpc,
-)
+from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
     Request,
     RequestApplySnapshotChunk,
@@ -79,6 +77,7 @@ from packages.valory.connections.abci.tendermint_encoder import (
     _TendermintProtocolEncoder,
 )
 from packages.valory.protocols.abci import AbciMessage
+
 
 PUBLIC_ID = CONNECTION_PUBLIC_ID
 
@@ -169,7 +168,7 @@ class _TendermintABCISerializer:
 
     @classmethod
     def read_messages(
-            cls, buffer: BytesIO, message_cls: Type
+        cls, buffer: BytesIO, message_cls: Type
     ) -> Generator[Request, None, None]:
         """
         Return an iterator over the messages found in the `reader` buffer.
@@ -201,7 +200,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
     # pylint: disable=invalid-overridden-method, no-member
 
     def __init__(
-            self, request_queue: asyncio.Queue, dialogues: AbciDialogues, target_skill: str
+        self, request_queue: asyncio.Queue, dialogues: AbciDialogues, target_skill: str
     ):
         """
         Initializes the abci handler.
@@ -246,7 +245,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         await self._response_queues[message.performative].put(envelope)
 
     async def Echo(
-            self, request: RequestEcho, context: grpc.ServicerContext
+        self, request: RequestEcho, context: grpc.ServicerContext
     ) -> ResponseEcho:
         """
         Handles "Echo" gRPC requests
@@ -277,7 +276,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.echo
 
     async def Flush(
-            self, request: RequestFlush, context: grpc.ServicerContext
+        self, request: RequestFlush, context: grpc.ServicerContext
     ) -> ResponseFlush:
         """
         Handles "Flush" gRPC requests
@@ -308,7 +307,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.flush
 
     async def Info(
-            self, request: RequestInfo, context: grpc.ServicerContext
+        self, request: RequestInfo, context: grpc.ServicerContext
     ) -> ResponseInfo:
         """
         Handles "Info" gRPC requests
@@ -339,7 +338,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.info
 
     async def SetOption(
-            self, request: RequestSetOption, context: grpc.ServicerContext
+        self, request: RequestSetOption, context: grpc.ServicerContext
     ) -> ResponseSetOption:
         """
         Handles "SetOption" gRPC requests
@@ -370,7 +369,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.set_option
 
     async def DeliverTx(
-            self, request: RequestDeliverTx, context: grpc.ServicerContext
+        self, request: RequestDeliverTx, context: grpc.ServicerContext
     ) -> ResponseDeliverTx:
         """
         Handles "DeliverTx" gRPC requests
@@ -401,7 +400,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.deliver_tx
 
     async def CheckTx(
-            self, request: RequestCheckTx, context: grpc.ServicerContext
+        self, request: RequestCheckTx, context: grpc.ServicerContext
     ) -> ResponseCheckTx:
         """
         Handles "CheckTx" gRPC requests
@@ -432,7 +431,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.check_tx
 
     async def Query(
-            self, request: RequestQuery, context: grpc.ServicerContext
+        self, request: RequestQuery, context: grpc.ServicerContext
     ) -> ResponseQuery:
         """
         Handles "Query" gRPC requests
@@ -463,7 +462,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.query
 
     async def Commit(
-            self, request: RequestCommit, context: grpc.ServicerContext
+        self, request: RequestCommit, context: grpc.ServicerContext
     ) -> ResponseCommit:
         """
         Handles "Commit" gRPC requests
@@ -494,7 +493,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.commit
 
     async def InitChain(
-            self, request: RequestInitChain, context: grpc.ServicerContext
+        self, request: RequestInitChain, context: grpc.ServicerContext
     ) -> ResponseInitChain:
         """
         Handles "InitChain" gRPC requests
@@ -525,7 +524,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.init_chain
 
     async def BeginBlock(
-            self, request: RequestBeginBlock, context: grpc.ServicerContext
+        self, request: RequestBeginBlock, context: grpc.ServicerContext
     ) -> ResponseBeginBlock:
         """
         Handles "BeginBlock" gRPC requests
@@ -556,7 +555,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.begin_block
 
     async def EndBlock(
-            self, request: RequestEndBlock, context: grpc.ServicerContext
+        self, request: RequestEndBlock, context: grpc.ServicerContext
     ) -> ResponseEndBlock:
         """
         Handles "EndBlock" gRPC requests
@@ -587,7 +586,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.end_block
 
     async def ListSnapshots(
-            self, request: RequestListSnapshots, context: grpc.ServicerContext
+        self, request: RequestListSnapshots, context: grpc.ServicerContext
     ) -> ResponseListSnapshots:
         """
         Handles "ListSnapshots" gRPC requests
@@ -618,7 +617,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.list_snapshots
 
     async def OfferSnapshot(
-            self, request: RequestOfferSnapshot, context: grpc.ServicerContext
+        self, request: RequestOfferSnapshot, context: grpc.ServicerContext
     ) -> ResponseOfferSnapshot:
         """
         Handles "OfferSnapshot" gRPC requests
@@ -649,7 +648,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.list_snapshots
 
     async def LoadSnapshotChunk(
-            self, request: RequestLoadSnapshotChunk, context: grpc.ServicerContext
+        self, request: RequestLoadSnapshotChunk, context: grpc.ServicerContext
     ) -> ResponseLoadSnapshotChunk:
         """
         Handles "LoadSnapshotChunk" gRPC requests
@@ -680,7 +679,7 @@ class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
         return response.load_snapshot_chunk
 
     async def ApplySnapshotChunk(
-            self, request: RequestApplySnapshotChunk, context: grpc.ServicerContext
+        self, request: RequestApplySnapshotChunk, context: grpc.ServicerContext
     ) -> ResponseApplySnapshotChunk:
         """
         Handles "ApplySnapshotChunk" gRPC requests
@@ -715,11 +714,11 @@ class GrpcServerChannel:  # pylint: disable=too-many-instance-attributes
     """gRPC server channel to handle incoming communication from the Tendermint node."""
 
     def __init__(
-            self,
-            target_skill_id: PublicId,
-            address: str,
-            port: int,
-            logger: Optional[Logger] = None,
+        self,
+        target_skill_id: PublicId,
+        address: str,
+        port: int,
+        logger: Optional[Logger] = None,
     ):
         """
         Initialize the gRPC server.
@@ -802,11 +801,11 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
     """TCP server channel to handle incoming communication from the Tendermint node."""
 
     def __init__(
-            self,
-            target_skill_id: PublicId,
-            address: str,
-            port: int,
-            logger: Optional[Logger] = None,
+        self,
+        target_skill_id: PublicId,
+        address: str,
+        port: int,
+        logger: Optional[Logger] = None,
     ):
         """
         Initialize the TCP server.
@@ -876,7 +875,7 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
         self._request_id_to_socket = {}
 
     async def receive_messages(
-            self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
+        self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter
     ) -> None:
         """Receive incoming messages."""
         self.logger = cast(Logger, self.logger)
@@ -916,9 +915,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                 try:
                     message = next(message_iterator, sentinel)
                 except (
-                        DecodeVarintError,
-                        ShortBufferLengthError,
-                        DecodeError,
+                    DecodeVarintError,
+                    ShortBufferLengthError,
+                    DecodeError,
                 ) as e:  # pragma: nocover
                     self.logger.error(
                         f"an error occurred while reading a message: "
@@ -982,14 +981,14 @@ class TendermintParams:  # pylint: disable=too-few-public-methods
     """Tendermint node parameters."""
 
     def __init__(  # pylint: disable=too-many-arguments
-            self,
-            proxy_app: str,
-            rpc_laddr: str,
-            p2p_laddr: str,
-            p2p_seeds: List[str],
-            consensus_create_empty_blocks: bool,
-            home: Optional[str] = None,
-            use_grpc: bool = False,
+        self,
+        proxy_app: str,
+        rpc_laddr: str,
+        p2p_laddr: str,
+        p2p_seeds: List[str],
+        consensus_create_empty_blocks: bool,
+        home: Optional[str] = None,
+        use_grpc: bool = False,
     ):
         """
         Initialize the parameters to the Tendermint node.
@@ -1139,7 +1138,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         )
 
         if (
-                self.host is None or self.port is None or target_skill_id_string is None
+            self.host is None or self.port is None or target_skill_id_string is None
         ):  # pragma: no cover
             raise ValueError("host and port and target_skill_id must be set!")
         target_skill_id = PublicId.try_from_str(target_skill_id_string)

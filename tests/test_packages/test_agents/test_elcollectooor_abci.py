@@ -21,8 +21,8 @@
 
 from tests.fixture_helpers import UseGanacheFork
 from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
-
 from tests.test_packages.test_agents.base import BaseTestElCollectooorEnd2End
+
 
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
 
@@ -88,7 +88,6 @@ TRANSACTION_CHECK_STRING = (
     "Entered in the 'validate_transaction' round for period 0",
     "'validate_transaction' round is done",
     "Period end",
-
 )
 
 FINISH_AND_RESET_CHECK_STRINGS = (
@@ -110,11 +109,13 @@ class TestDecidedForYes(
     skill_package = "valory/elcollectooor_abci:0.1.0"
     DECISION_MODEL_TYPE = "yes"
     wait_to_finish = 120
-    check_strings = REGISTRATION_CHECK_STRINGS + \
-                    BASE_ELCOLLECTOOOR_CHECK_STRINGS + \
-                    DECIDED_YES_CHECK_STRINGS + \
-                    TRANSACTION_CHECK_STRING + \
-                    FINISH_AND_RESET_CHECK_STRINGS
+    check_strings = (
+        REGISTRATION_CHECK_STRINGS
+        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + DECIDED_YES_CHECK_STRINGS
+        + TRANSACTION_CHECK_STRING
+        + FINISH_AND_RESET_CHECK_STRINGS
+    )
 
 
 class TestDecidedForNo(
@@ -128,9 +129,11 @@ class TestDecidedForNo(
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
     DECISION_MODEL_TYPE = "no"
-    check_strings = REGISTRATION_CHECK_STRINGS + \
-                    BASE_ELCOLLECTOOOR_CHECK_STRINGS + \
-                    DECIDED_NO_CHECK_STRINGS
+    check_strings = (
+        REGISTRATION_CHECK_STRINGS
+        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + DECIDED_NO_CHECK_STRINGS
+    )
 
 
 class TestDecidedForGibDetailsThenYes(
@@ -144,8 +147,10 @@ class TestDecidedForGibDetailsThenYes(
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
     DECISION_MODEL_TYPE = "gib_details_then_yes"
-    check_strings = REGISTRATION_CHECK_STRINGS + \
-                    BASE_ELCOLLECTOOOR_CHECK_STRINGS + \
-                    DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS + \
-                    TRANSACTION_CHECK_STRING + \
-                    FINISH_AND_RESET_CHECK_STRINGS
+    check_strings = (
+        REGISTRATION_CHECK_STRINGS
+        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS
+        + TRANSACTION_CHECK_STRING
+        + FINISH_AND_RESET_CHECK_STRINGS
+    )

@@ -19,17 +19,23 @@
 
 """This module contains the shared state for the 'elcollectooor_abci' application."""
 
-from typing import Any, Optional, Type, Dict
+from typing import Any, Dict, Optional, Type
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.elcollectooor_abci.decision_models import BaseDecisionModel, SimpleDecisionModel, \
-    YesDecisionModel, NoDecisionModel, GibDetailsThenYesDecisionModel
+from packages.valory.skills.elcollectooor_abci.decision_models import (
+    BaseDecisionModel,
+    GibDetailsThenYesDecisionModel,
+    NoDecisionModel,
+    SimpleDecisionModel,
+    YesDecisionModel,
+)
 from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+
 
 MARGIN = 5
 
@@ -50,7 +56,7 @@ class SharedState(BaseSharedState):
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
         ElCollectooorAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
-                self.context.params.observation_interval + MARGIN
+            self.context.params.observation_interval + MARGIN
         )
 
 
@@ -91,7 +97,7 @@ class ElCollectooorParams(BaseParams):
         """
         Get the decision model type to use
 
-        :params kwargs: provided keyword arguments
+        :param kwargs: provided keyword arguments
         :return: the decision model type
         """
 
@@ -101,7 +107,7 @@ class ElCollectooorParams(BaseParams):
             "yes": YesDecisionModel,
             "no": NoDecisionModel,
             "gib_details_then_yes": GibDetailsThenYesDecisionModel,
-            "simple": SimpleDecisionModel
+            "simple": SimpleDecisionModel,
         }
 
         if not model_type or str(model_type).lower() not in valid_types.keys():

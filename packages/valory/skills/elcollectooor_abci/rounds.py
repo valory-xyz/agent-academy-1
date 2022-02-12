@@ -72,7 +72,7 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     DECIDED_YES = "decided_yes"
     DECIDED_NO = "decided_no"
-    GIB_DETAILS = "gib_details"  # TODO: consider renaming event
+    GIB_DETAILS = "gib_details"
 
 
 def encode_float(value: float) -> bytes:
@@ -244,7 +244,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_project=MappingProxyType(self.collection),
-                most_voted_project=self.most_voted_payload,  # TODO: define a "no new project found" payload
+                most_voted_project=self.most_voted_payload,
                 last_processed_project_id=project_id,
             )
             return state, Event.DONE
@@ -298,7 +298,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
 
             if self.most_voted_payload == 0:
                 return state, Event.DECIDED_NO
-            elif self.most_voted_payload == -1:
+            if self.most_voted_payload == -1:
                 return state, Event.GIB_DETAILS
             return state, Event.DECIDED_YES
 

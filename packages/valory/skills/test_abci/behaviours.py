@@ -49,7 +49,3 @@ class TestAbciConsensusBehaviour(AbstractRoundBehaviour):
     behaviour_states: Set[Type[DummyBehaviour]] = {  # type: ignore
         DummyBehaviour,  # type: ignore
     }
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()

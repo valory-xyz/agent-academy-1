@@ -37,11 +37,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseState,
 )
 from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
-from packages.valory.skills.elcollectooor_abci.models import (
-    ElCollectooorParams,
-    Params,
-    SharedState,
-)
+from packages.valory.skills.elcollectooor_abci.models import Params, SharedState
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
@@ -70,7 +66,9 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
-from packages.valory.skills.transaction_settlement_abci.payload_tools import hash_payload_to_hex
+from packages.valory.skills.transaction_settlement_abci.payload_tools import (
+    hash_payload_to_hex,
+)
 
 
 def random_selection(elements: List[str], randomness: float) -> str:
@@ -99,7 +97,7 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
     @property
     def params(self) -> Params:
         """Return the params."""
-        return cast(ElCollectooorParams, self.context.params)
+        return cast(Params, self.context.params)
 
 
 class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
@@ -299,9 +297,12 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
             most_voted_project = json.loads(self.period_state.most_voted_project)
             most_voted_details = json.loads(self.period_state.most_voted_details)
 
-            enforce(type(most_voted_project) == dict, "most_voted_project is not dict")
             enforce(
-                type(most_voted_details) == list, "most_voted_details is not an array"
+                isinstance(most_voted_project, dict), "most_voted_project is not dict"
+            )
+            enforce(
+                isinstance(most_voted_details, list),
+                "most_voted_details is not an array",
             )
 
             decision = self._make_decision(most_voted_project, most_voted_details)
@@ -370,16 +371,16 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 "couldn't find project_id, or project_id is None",
             )
 
-            purchase_data = yield from self._get_purchase_data(project_id)
-            purchase_data = bytes.fromhex(purchase_data[2:])
+            purchase_data_str = yield from self._get_purchase_data(project_id)
+            purchase_data = bytes.fromhex(purchase_data_str[2:])
             tx_hash = yield from self._get_safe_hash(purchase_data)
 
             payload_data = hash_payload_to_hex(
                 safe_tx_hash=tx_hash,
                 ether_value=self._get_value_in_wei(),
-                safe_tx_gas=10**7,
+                safe_tx_gas=10 ** 7,
                 to_address=self.params.artblocks_periphery_contract,
-                data=purchase_data
+                data=purchase_data,
             )
 
             payload = TransactionPayload(
@@ -451,9 +452,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
     def _format_payload(self, tx_hash: str, data: str) -> str:
         tx_hash = tx_hash[2:]
         ether_value = int.to_bytes(self._get_value_in_wei(), 32, "big").hex().__str__()
-        safe_tx_gas = (
-            int.to_bytes(10 ** 7, 32, "big").hex().__str__()
-        )  # TODO: should this be dynamic?
+        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()
         address = self.params.artblocks_periphery_contract
         data = data[2:]  # remove starting '0x'
 
