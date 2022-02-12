@@ -60,9 +60,6 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     ResetFromObservationRound,
     TransactionRound,
 )
-from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
-    DecisionModel,
-)
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     TendermintHealthcheckBehaviour,
@@ -73,6 +70,7 @@ from packages.valory.skills.safe_deployment_abci.behaviours import (
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
+from packages.valory.skills.transaction_settlement_abci.payload_tools import hash_payload_to_hex
 
 
 def random_selection(elements: List[str], randomness: float) -> str:
@@ -324,7 +322,8 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         self, project_details: dict, most_voted_details: List[dict]
     ) -> int:
         """Method that decides on an outcome"""
-        decision_model = DecisionModel()
+        decision_model = self.params.decision_model_type()
+
         if decision_model.static(project_details):
             self.context.logger.info(
                 f'making decision on project with id {project_details["project_id"]}'
@@ -372,9 +371,16 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
             purchase_data = yield from self._get_purchase_data(project_id)
-            tx_hash = yield from self._get_safe_hash(bytes.fromhex(purchase_data[2:]))
+            purchase_data = bytes.fromhex(purchase_data[2:])
+            tx_hash = yield from self._get_safe_hash(purchase_data)
 
-            payload_data = self._format_payload(tx_hash, purchase_data)
+            payload_data = hash_payload_to_hex(
+                safe_tx_hash=tx_hash,
+                ether_value=self._get_value_in_wei(),
+                safe_tx_gas=10**7,
+                to_address=self.params.artblocks_periphery_contract,
+                data=purchase_data
+            )
 
             payload = TransactionPayload(
                 self.context.agent_address,
@@ -408,7 +414,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             "contract returned and empty body or empty tx_hash",
         )
 
-        tx_hash = cast(str, response.state.body["tx_hash"])
+        tx_hash = cast(str, response.state.body["tx_hash"])[2:]
 
         return tx_hash
 

@@ -19,13 +19,15 @@
 
 """This module contains the shared state for the 'elcollectooor_abci' application."""
 
-from typing import Any, Optional
+from typing import Any, Optional, Type, Dict
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
+from packages.valory.skills.elcollectooor_abci.decision_models import BaseDecisionModel, SimpleDecisionModel, \
+    YesDecisionModel, NoDecisionModel, GibDetailsThenYesDecisionModel
 from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
@@ -70,19 +72,47 @@ class ElCollectooorParams(BaseParams):
         )
         self.starting_project_id = self._get_starting_project_id(kwargs)
         self.max_retries = int(kwargs.pop("max_retries", 5))
+        self.decision_model_type = self._get_decision_model_type(kwargs)
 
     def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
         """Get the value of starting_project_id, or warn and return None"""
         key = "starting_project_id"
-        res = kwargs.pop(key)
 
         try:
+            res = kwargs.pop(key)
             return int(res)
         except TypeError:
             self.context.logger.warning(
                 f"'{key}' was not provided, None was used as fallback"
             )
             return None
+
+    def _get_decision_model_type(self, kwargs: dict) -> Type[BaseDecisionModel]:
+        """
+        Get the decision model type to use
+
+        :params kwargs: provided keyword arguments
+        :return: the decision model type
+        """
+
+        key = "decision_model_type"
+        model_type = kwargs.pop(key, None)
+        valid_types: Dict[str, Type[BaseDecisionModel]] = {
+            "yes": YesDecisionModel,
+            "no": NoDecisionModel,
+            "gib_details_then_yes": GibDetailsThenYesDecisionModel,
+            "simple": SimpleDecisionModel
+        }
+
+        if not model_type or str(model_type).lower() not in valid_types:
+            self.context.logger.warning(
+                f"{key} was None or was not in types={valid_types}, using type 'simple' as the model type"
+            )
+            model_type = "simple"
+
+        model_type = str(model_type).lower()
+
+        return valid_types[model_type]
 
 
 class Params(ElCollectooorParams, TransactionParams):
