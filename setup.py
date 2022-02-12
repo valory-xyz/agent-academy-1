@@ -1,7 +1,8 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,9 +18,8 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI 'El Collectooor' skill for an AEA."""
-
-from aea.configurations.base import PublicId
+from setuptools import find_packages, setup  # type: ignore
 
 
-PUBLIC_ID = PublicId.from_str("valory/elcollectooor_abci:0.1.0")
+if __name__ == "__main__":
+    setup()

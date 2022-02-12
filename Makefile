@@ -5,7 +5,7 @@ ROPSTEN_DOCKER_PORT ?= 8545
 MAINNET_DOCKER_PORT ?= 8546
 
 .PHONY: clean
-clean: clean-build clean-pyc clean-test clean-docs
+clean: clean-build clean-pyc clean-test
 
 .PHONY: clean-build
 clean-build:
@@ -16,10 +16,6 @@ clean-build:
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -fr {} +
 	rm -fr Pipfile.lock
-
-.PHONY: clean-docs
-clean-docs:
-	rm -fr site/
 
 .PHONY: clean-pyc
 clean-pyc:
@@ -125,3 +121,7 @@ run-ropsten-fork-docker:
 run-mainnet-fork-docker:
 	@echo Running mainnet fork as a docker container;\
 	docker run -d -e KEY=$(MAINNET_KEY) --name mainnet-fork -e NETWORK=mainnet -e BLOCK_NUMBER=$(BLOCK_NUMBER) -p $(MAINNET_DOCKER_PORT):8545 hardhat:latest
+
+.PHONY: copyright
+copyright:
+	tox -e check-copyright
