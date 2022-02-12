@@ -22,17 +22,18 @@
 from tests.fixture_helpers import UseGanacheFork
 from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
 
-# check log messages of the happy path
 from tests.test_packages.test_agents.base import BaseTestElCollectooorEnd2End
-
 
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
 
-CHECK_STRINGS = (
+REGISTRATION_CHECK_STRINGS = (
     "Entered in the 'tendermint_healthcheck' behaviour state",
     "'tendermint_healthcheck' behaviour state is done",
     "Entered in the 'registration_startup' round for period 0",
     "'registration_startup' round is done",
+)
+
+SAFE_CHECK_STRINGS = (
     "Entered in the 'randomness_safe' round for period 0",
     "'randomness_safe' round is done",
     "Entered in the 'select_keeper_safe' round for period 0",
@@ -41,6 +42,9 @@ CHECK_STRINGS = (
     "'deploy_safe' round is done",
     "Entered in the 'validate_safe' round for period 0",
     "'validate_safe' round is done",
+)
+
+BASE_ELCOLLECTOOOR_CHECK_STRINGS = (
     "Entered in the 'observation' round for period 0",
     f"Retrieved project with id {TARGET_PROJECT_ID}",
     "'observation' round is done",
@@ -49,8 +53,27 @@ CHECK_STRINGS = (
     "Total length of details array 1.",
     "'details' round is done",
     "Entered in the 'decision' round",
-    f"decided 1 for project with id {TARGET_PROJECT_ID}",
     "'decision' round is done",
+)
+
+DECIDED_YES_CHECK_STRINGS = (
+    "decided 1 for project with id 56",
+    "'decision' round is done with event: Event.DECIDED_YES",
+)
+
+DECIDED_NO_CHECK_STRINGS = (
+    "decided 0 for project with id 56",
+    "'decision' round is done with event: Event.DECIDED_NO",
+)
+
+DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS = (
+    "decided -1 for project with id 56",
+    "'decision' round is done with event: Event.GIB_DETAILS",
+    "decided 1 for project with id 56",
+    "'decision' round is done with event: Event.DECIDED_YES",
+)
+
+TRANSACTION_CHECK_STRING = (
     "Entered in the 'transaction_collection' round for period 0",
     "'transaction_collection' round is done",
     "Entered in the 'randomness_transaction_submission' round for period 0",
@@ -65,52 +88,64 @@ CHECK_STRINGS = (
     "Entered in the 'validate_transaction' round for period 0",
     "'validate_transaction' round is done",
     "Period end",
+
+)
+
+FINISH_AND_RESET_CHECK_STRINGS = (
+    "Period end",
     "Entered in the 'reset_and_pause' round for period 0",
     "'reset_and_pause' round is done",
     "Period end",
-    "Entered in the 'randomness_transaction_submission' round for period 1",
-    "Entered in the 'select_keeper_transaction_submission_a' round for period 1",
-    "Entered in the 'collect_signature' round for period 1",
-    "Entered in the 'finalization' round for period 1",
-    "Entered in the 'validate_transaction' round for period 1",
-    "Entered in the 'reset_and_pause' round for period 1",
 )
 
 
-class TestSingleAgentElCollectooor(
+class TestDecidedForYes(
     BaseTestElCollectooorEnd2End,
     UseGanacheFork,
 ):
-    """Test the El Collectooor with only one agent."""
+    """Test the El Collectooor that decides for yes on the target project, and goes through the whole flow."""
+
+    NB_AGENTS = 1
+    agent_package = "valory/elcollectooor:0.1.0"
+    skill_package = "valory/elcollectooor_abci:0.1.0"
+    DECISION_MODEL_TYPE = "yes"
+    wait_to_finish = 120
+    check_strings = REGISTRATION_CHECK_STRINGS + \
+                    BASE_ELCOLLECTOOOR_CHECK_STRINGS + \
+                    DECIDED_YES_CHECK_STRINGS + \
+                    TRANSACTION_CHECK_STRING + \
+                    FINISH_AND_RESET_CHECK_STRINGS
+
+
+class TestDecidedForNo(
+    BaseTestElCollectooorEnd2End,
+    UseGanacheFork,
+):
+    """Test the El Collectooor that decides for no on the target project."""
 
     NB_AGENTS = 1
     agent_package = "valory/elcollectooor:0.1.0"
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
-    check_strings = CHECK_STRINGS
+    DECISION_MODEL_TYPE = "no"
+    check_strings = REGISTRATION_CHECK_STRINGS + \
+                    BASE_ELCOLLECTOOOR_CHECK_STRINGS + \
+                    DECIDED_NO_CHECK_STRINGS
 
 
-class TestTwoAgentsElCollectooor(
+class TestDecidedForGibDetailsThenYes(
     BaseTestElCollectooorEnd2End,
     UseGanacheFork,
 ):
-    """Test the El Collectooor with two agents."""
+    """Test the El Collectooor that decides for no on the target project."""
 
-    NB_AGENTS = 2
+    NB_AGENTS = 1
     agent_package = "valory/elcollectooor:0.1.0"
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
-    check_strings = CHECK_STRINGS
-
-
-class TestFourAgentsElCollectooor(
-    BaseTestElCollectooorEnd2End,
-    UseGanacheFork,
-):
-    """Test the El Collectooor with four agents."""
-
-    NB_AGENTS = 4
-    agent_package = "valory/elcollectooor:0.1.0"
-    skill_package = "valory/elcollectooor_abci:0.1.0"
-    wait_to_finish = 120
-    check_strings = CHECK_STRINGS
+    DECISION_MODEL_TYPE = "gib_details_then_yes"
+    check_strings = REGISTRATION_CHECK_STRINGS + \
+                    BASE_ELCOLLECTOOOR_CHECK_STRINGS + \
+                    DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS + \
+                    TRANSACTION_CHECK_STRING + \
+                    FINISH_AND_RESET_CHECK_STRINGS

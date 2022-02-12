@@ -30,13 +30,6 @@ from aea.exceptions import enforce
 _default_logger = logging.getLogger(__name__)
 
 
-class ModelTypes(Enum):
-    SIMPLE = "simple"
-    YES = "yes"
-    NO = "no"
-    GIB_DETAILS_THEN_YES = "gib_details_then_yes"
-
-
 class BaseDecisionModel(ABC):
     """Framework for any decision models."""
 

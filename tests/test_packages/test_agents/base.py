@@ -28,11 +28,12 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
 
-from tests.helpers.constants import ARTBLOCKS_ADDRESS as _DEFAULT_ARTBLOCKS_ADDRESS
 from tests.helpers.constants import (
     ARTBLOCKS_PERIPHERY_ADDRESS as _DEFAULT_ARTBLOCKS_PERIPHERY_ADDRESS,
+    ARTBLOCKS_ADDRESS as _DEFAULT_ARTBLOCKS_ADDRESS,
+    TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID,
+    DECISION_MODEL_TYPE as _DEFAULT_DECISION_MODEL_TYPE,
 )
-from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
@@ -168,7 +169,7 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
                 process, self.check_strings, self.wait_to_finish
             )
             assert (
-                missing_strings == []
+                    missing_strings == []
             ), "Strings {} didn't appear in agent output.".format(missing_strings)
 
             if not self.is_successfully_terminated(process):
@@ -189,6 +190,7 @@ class BaseTestElCollectooorEnd2End(BaseTestEnd2EndNormalExecution):
     STARTING_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID + 1
     ARTBLOCKS_ADDRESS = _DEFAULT_ARTBLOCKS_ADDRESS
     ARTBLOCKS_PERIPHERY_ADDRESS = _DEFAULT_ARTBLOCKS_PERIPHERY_ADDRESS
+    DECISION_MODEL_TYPE = _DEFAULT_DECISION_MODEL_TYPE
 
     def setup(self) -> None:
         """Update the config with the provided attrs."""
@@ -206,4 +208,12 @@ class BaseTestElCollectooorEnd2End(BaseTestEnd2EndNormalExecution):
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_periphery_contract",
             self.ARTBLOCKS_PERIPHERY_ADDRESS,
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_periphery_contract",
+            self.ARTBLOCKS_PERIPHERY_ADDRESS,
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.decision_model_type",
+            self.DECISION_MODEL_TYPE,
         )

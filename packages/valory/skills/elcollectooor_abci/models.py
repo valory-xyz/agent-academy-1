@@ -104,9 +104,9 @@ class ElCollectooorParams(BaseParams):
             "simple": SimpleDecisionModel
         }
 
-        if not model_type or str(model_type).lower() not in valid_types:
+        if not model_type or str(model_type).lower() not in valid_types.keys():
             self.context.logger.warning(
-                f"{key} was None or was not in types={valid_types}, using type 'simple' as the model type"
+                f"{key} was None or was not in types={valid_types.keys()}, using type 'simple' as the model type"
             )
             model_type = "simple"
 
