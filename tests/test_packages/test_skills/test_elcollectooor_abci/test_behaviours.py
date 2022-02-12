@@ -41,6 +41,7 @@ from packages.valory.contracts.artblocks.contract import ArtBlocksContract
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -137,16 +138,16 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         cls.elcollectooor_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
         assert (
-            cast(BaseState, cls.elcollectooor_abci_behaviour.current_state).state_id
-            == cls.elcollectooor_abci_behaviour.initial_state_cls.state_id
+                cast(BaseState, cls.elcollectooor_abci_behaviour.current_state).state_id
+                == cls.elcollectooor_abci_behaviour.initial_state_cls.state_id
         )
         cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
 
     def fast_forward_to_state(
-        self,
-        behaviour: AbstractRoundBehaviour,
-        state_id: str,
-        period_state: BasePeriodState,
+            self,
+            behaviour: AbstractRoundBehaviour,
+            state_id: str,
+            period_state: BasePeriodState,
     ) -> None:
         """Fast forward the FSM to a state."""
         next_state = {s.state_id: s for s in behaviour.behaviour_states}[state_id]
@@ -166,7 +167,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             )
 
     def mock_ledger_api_request(
-        self, request_kwargs: Dict, response_kwargs: Dict
+            self, request_kwargs: Dict, response_kwargs: Dict
     ) -> None:
         """
         Mock http request.
@@ -204,7 +205,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         self.elcollectooor_abci_behaviour.act_wrapper()
 
     def mock_contract_api_request(
-        self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
+            self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
     ) -> None:
         """
         Mock http request.
@@ -308,7 +309,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         self.elcollectooor_abci_behaviour.act_wrapper()
 
     def mock_a2a_transaction(
-        self,
+            self,
     ) -> None:
         """Performs mock a2a transaction."""
 
@@ -381,7 +382,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         current_state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)  # type: ignore
         assert not self.elcollectooor_abci_behaviour.current_state.is_done()  # type: ignore
         with mock.patch.object(
-            self.elcollectooor_abci_behaviour.context.state, "period"
+                self.elcollectooor_abci_behaviour.context.state, "period"
         ) as mock_period:
             mock_period.last_round_id = cast(
                 AbstractRound,
@@ -403,7 +404,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
     next_behaviour_class: Type[BaseState]
 
     def test_randomness_behaviour(
-        self,
+            self,
     ) -> None:
         """Test RandomnessBehaviour."""
 
@@ -414,11 +415,11 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         )
         # TODO: why casting to BaseState twice?
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.randomness_behaviour_class.state_id
         )
         self.elcollectooor_abci_behaviour.act_wrapper()
         self.mock_http_request(
@@ -452,7 +453,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
     def test_invalid_response(
-        self,
+            self,
     ) -> None:
         """Test invalid json response."""
         self.fast_forward_to_state(
@@ -461,11 +462,11 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
             PeriodState(StateDB(0, dict())),
         )
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.randomness_behaviour_class.state_id
         )
         self.elcollectooor_abci_behaviour.act_wrapper()
 
@@ -486,7 +487,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         self.elcollectooor_abci_behaviour.act_wrapper()
 
     def test_max_retries_reached(
-        self,
+            self,
     ) -> None:
         """Test with max retries reached."""
         self.fast_forward_to_state(
@@ -495,16 +496,16 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
             PeriodState(StateDB(0, dict())),
         )
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.randomness_behaviour_class.state_id
         )
         with mock.patch.object(
-            self.elcollectooor_abci_behaviour.context.randomness_api,
-            "is_retries_exceeded",
-            return_value=True,
+                self.elcollectooor_abci_behaviour.context.randomness_api,
+                "is_retries_exceeded",
+                return_value=True,
         ):
             self.elcollectooor_abci_behaviour.act_wrapper()
             state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
@@ -512,7 +513,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
             self._test_done_flag_set()
 
     def test_clean_up(
-        self,
+            self,
     ) -> None:
         """Test when `observed` value is none."""
         self.fast_forward_to_state(
@@ -521,18 +522,18 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
             PeriodState(StateDB(0, dict())),
         )
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.randomness_behaviour_class.state_id
         )
         self.elcollectooor_abci_behaviour.context.randomness_api._retries_attempted = 1
         assert self.elcollectooor_abci_behaviour.current_state is not None
         self.elcollectooor_abci_behaviour.current_state.clean_up()
         assert (
-            self.elcollectooor_abci_behaviour.context.randomness_api._retries_attempted
-            == 0
+                self.elcollectooor_abci_behaviour.context.randomness_api._retries_attempted
+                == 0
         )
 
 
@@ -543,7 +544,7 @@ class BaseSelectKeeperBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
     next_behaviour_class: Type[BaseState]
 
     def test_select_keeper(
-        self,
+            self,
     ) -> None:
         """Test select keeper agent."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
@@ -561,11 +562,11 @@ class BaseSelectKeeperBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
             ),
         )
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.select_keeper_behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.select_keeper_behaviour_class.state_id
         )
         self.elcollectooor_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
@@ -582,7 +583,7 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
     next_behaviour_class = ObservationRoundBehaviour
 
     def test_pause_and_reset_behaviour(
-        self,
+            self,
     ) -> None:
         """Test pause and reset behaviour."""
         self.fast_forward_to_state(
@@ -591,24 +592,23 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
             period_state=PeriodState(StateDB(0, dict())),
         )
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.behaviour_class.state_id
         )
         self.elcollectooor_abci_behaviour.context.params.observation_interval = 0.1
         self.elcollectooor_abci_behaviour.act_wrapper()
         time.sleep(0.3)
         self.elcollectooor_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
     def test_reset_behaviour(
-        self,
+            self,
     ) -> None:
         """Test reset behaviour."""
         self.fast_forward_to_state(
@@ -618,18 +618,18 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
         self.elcollectooor_abci_behaviour.current_state.pause = False  # type: ignore
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.behaviour_class.state_id
         )
         self.elcollectooor_abci_behaviour.context.params.observation_interval = 0.1
         self.elcollectooor_abci_behaviour.act_wrapper()
         time.sleep(0.3)
         self.elcollectooor_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
+
         self.end_round()
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -651,14 +651,14 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
+                cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+                == self.behaviour_class.state_id
         )
 
         self.elcollectooor_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+                self.elcollectooor_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -687,16 +687,15 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
             mock_logger.assert_any_call(
                 logging.INFO,
-                "Retrieved project id: 121.",
+                "Retrieved project with id 121.",
             )
 
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
 
         self.end_round()
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-        assert state.state_id == DecisionRoundBehaviour.state_id
+        assert state.state_id == DetailsRoundBehaviour.state_id
 
     def test_contract_returns_empty_project(self) -> None:
         """The agent queries the contract and doesnt get back a project"""
@@ -708,14 +707,14 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
+                cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+                == self.behaviour_class.state_id
         )
 
         self.elcollectooor_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+                self.elcollectooor_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -746,19 +745,19 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             PeriodState(StateDB(0, dict())),
         )
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.behaviour_class.state_id
         )
 
         self.elcollectooor_abci_behaviour.act_wrapper()
 
         with mock.patch.object(
-            target=self.behaviour_class,
-            attribute="is_retries_exceeded",
-            return_value=True,
+                target=self.behaviour_class,
+                attribute="is_retries_exceeded",
+                return_value=True,
         ):
             assert self.behaviour_class.is_retries_exceeded()  # type: ignore
             state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
@@ -806,12 +805,12 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
+                cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+                == self.behaviour_class.state_id
         )
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+                self.elcollectooor_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooor_abci_behaviour.act_wrapper()
 
@@ -849,7 +848,6 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             )
 
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -891,12 +889,12 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
+                cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+                == self.behaviour_class.state_id
         )
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+                self.elcollectooor_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooor_abci_behaviour.act_wrapper()
 
@@ -934,7 +932,6 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             )
 
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -985,12 +982,12 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
+                cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+                == self.behaviour_class.state_id
         )
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+                self.elcollectooor_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooor_abci_behaviour.act_wrapper()
 
@@ -1005,7 +1002,6 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.decided_yes_behaviour_class.state_id
@@ -1111,12 +1107,20 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
+            PeriodState(
+                StateDB(0,
+                        {
+                            "most_voted_project": json.dumps(test_project),
+                            "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                            "most_voted_details": json.dumps([{"price_per_token_in_wei": 123}]),
+                        }
+                        ),
+            )
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
+                cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+                == self.behaviour_class.state_id
         )
 
         self.elcollectooor_abci_behaviour.act_wrapper()
@@ -1125,7 +1129,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441",
+                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
@@ -1138,64 +1142,28 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             ),
         )
 
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
+        self.mock_contract_api_request(
+            contract_id=str(GnosisSafeContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    body={
+                        "tx_hash": "0x" + "0" * 64
+                    },
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
 
+        self.mock_a2a_transaction()
         self.end_round()
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_contract_returns_invalid_data(self) -> None:
-        """The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data,the agent should retry"""
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "ipfs_hash": "",
-        }
-
-        self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
-        )
-
-        assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
-        )
-
-        self.elcollectooor_abci_behaviour.act_wrapper()
-
-        with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
-        ) as mock_logger:
-            self.mock_contract_api_request(
-                contract_id=str(ArtBlocksPeripheryContract.contract_id),
-                request_kwargs=dict(
-                    performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441",
-                ),
-                response_kwargs=dict(
-                    performative=ContractApiMessage.Performative.STATE,
-                    state=State(ledger_id="ethereum", body={"data": ""}),
-                ),
-            )
-
-            mock_logger.assert_any_call(
-                logging.ERROR,
-                "couldn't extract purchase_data from contract response",
-            )
-
-            self.elcollectooor_abci_behaviour.act_wrapper()
-            time.sleep(1.1)
-            self.elcollectooor_abci_behaviour.act_wrapper()
 
     def test_retries_exceeded(self) -> None:
         """The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data the agent should retry"""
@@ -1218,19 +1186,19 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
+                cast(
+                    BaseState,
+                    cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                ).state_id
+                == self.behaviour_class.state_id
         )
 
         self.elcollectooor_abci_behaviour.act_wrapper()
 
         with mock.patch.object(
-            target=self.behaviour_class,
-            attribute="is_retries_exceeded",
-            return_value=True,
+                target=self.behaviour_class,
+                attribute="is_retries_exceeded",
+                return_value=True,
         ):
             assert self.behaviour_class.is_retries_exceeded()  # type: ignore
             state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
@@ -1265,7 +1233,7 @@ class TestDecisionModel:
         assert static_score == 1
 
     def test_static_should_return_0_when_empty_desc_and_no_royalty_receiver(
-        self,
+            self,
     ) -> None:
         """Static should return 1 when there is no royalty receiver, and empty desc"""
 
@@ -1278,7 +1246,7 @@ class TestDecisionModel:
         assert static_score == 0
 
     def test_static_should_return_1_when_nonempty_desc_and_no_royalty_receiver(
-        self,
+            self,
     ) -> None:
         """Static should return 1 when there is no royalty receiver and the description is not empty."""
 
@@ -1295,7 +1263,7 @@ class TestDecisionModel:
 
     # TODO: add tests for dynamic part
     def test_dynamic_should_return_1_when_cheap_often_minted_NFT_is_observed(
-        self,
+            self,
     ) -> None:
         """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
 
@@ -1313,7 +1281,7 @@ class TestDecisionModel:
         assert model.dynamic(project_hist) == 1
 
     def test_dynamic_should_return_0_when_NFT_rarely_minted_after_some_time(
-        self,
+            self,
     ) -> None:
         """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
@@ -1340,7 +1308,7 @@ class TestDecisionModel:
         assert model.dynamic(project_dict_example) == -1
 
     def test_dynamic_should_return_negative_1_when_too_expensive_minted_NFT_is_observed(
-        self,
+            self,
     ) -> None:
         """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
