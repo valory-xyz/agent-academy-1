@@ -6,3 +6,4 @@ coverage.xml
 .coverage
 .hypothesis
 htmlcov
+*.egg-info
