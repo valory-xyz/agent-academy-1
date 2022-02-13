@@ -375,7 +375,7 @@ class SimpleAbciFSMBehaviourBaseCase(BaseSkillTestCase):
         current_state = cast(BaseState, self.simple_abci_behaviour.current_state)
         assert not current_state.is_done()
         with mock.patch.object(
-            self.simple_abci_behaviour.context.state, "period"
+            self.simple_abci_behaviour.context.state, "_period"
         ) as mock_period:
             mock_period.last_round_id = cast(
                 AbstractRound, current_state.matching_round
@@ -437,6 +437,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
 
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
 
         state = cast(BaseState, self.simple_abci_behaviour.current_state)
@@ -500,6 +501,7 @@ class BaseRandomnessBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
             self.simple_abci_behaviour.act_wrapper()
             state = cast(BaseState, self.simple_abci_behaviour.current_state)
             assert state.state_id == self.randomness_behaviour_class.state_id
+            self._test_done_flag_set()
 
     def test_clean_up(
         self,
@@ -556,6 +558,7 @@ class BaseSelectKeeperBehaviourTest(SimpleAbciFSMBehaviourBaseCase):
         )
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.simple_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -726,6 +729,7 @@ class TestRegistrationBehaviour(SimpleAbciFSMBehaviourBaseCase):
         )
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
 
         self.end_round()
         state = cast(BaseState, self.simple_abci_behaviour.current_state)
@@ -773,6 +777,7 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         time.sleep(0.3)
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.simple_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -799,6 +804,7 @@ class TestResetAndPauseBehaviour(SimpleAbciFSMBehaviourBaseCase):
         time.sleep(0.3)
         self.simple_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.simple_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
