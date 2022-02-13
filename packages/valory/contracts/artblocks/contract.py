@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021 Valory AG
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ from aea.exceptions import enforce
 class ArtBlocksContract(Contract):
     """The scaffold contract class for a smart contract."""
 
-    contract_id = PublicId.from_str("collectooor/artblocks:0.1.0")
+    contract_id = PublicId.from_str("valory/artblocks:0.1.0")
 
     @classmethod
     def get_raw_transaction(

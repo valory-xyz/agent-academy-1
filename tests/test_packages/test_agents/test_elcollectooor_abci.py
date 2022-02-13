@@ -19,18 +19,21 @@
 
 """Integration tests for the valory/price_estimation_abci skill."""
 
-import pytest
+from tests.fixture_helpers import UseGanacheFork
+from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
+from tests.test_packages.test_agents.base import BaseTestElCollectooorEnd2End
 
-from tests.fixture_helpers import UseGnosisSafeHardHatNet
-from tests.test_packages.test_agents.base import BaseTestEnd2EndNormalExecution
 
+TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
 
-# check log messages of the happy path
-CHECK_STRINGS = (
+REGISTRATION_CHECK_STRINGS = (
     "Entered in the 'tendermint_healthcheck' behaviour state",
     "'tendermint_healthcheck' behaviour state is done",
     "Entered in the 'registration_startup' round for period 0",
     "'registration_startup' round is done",
+)
+
+SAFE_CHECK_STRINGS = (
     "Entered in the 'randomness_safe' round for period 0",
     "'randomness_safe' round is done",
     "Entered in the 'select_keeper_safe' round for period 0",
@@ -39,7 +42,40 @@ CHECK_STRINGS = (
     "'deploy_safe' round is done",
     "Entered in the 'validate_safe' round for period 0",
     "'validate_safe' round is done",
-    "TBD",
+)
+
+BASE_ELCOLLECTOOOR_CHECK_STRINGS = (
+    "Entered in the 'observation' round for period 0",
+    f"Retrieved project with id {TARGET_PROJECT_ID}",
+    "'observation' round is done",
+    "Entered in the 'details' round for period 0",
+    f"Successfully gathered details on project with id={TARGET_PROJECT_ID}.",
+    "Total length of details array 1.",
+    "'details' round is done",
+    "Entered in the 'decision' round",
+    "'decision' round is done",
+)
+
+DECIDED_YES_CHECK_STRINGS = (
+    "decided 1 for project with id 56",
+    "'decision' round is done with event: Event.DECIDED_YES",
+)
+
+DECIDED_NO_CHECK_STRINGS = (
+    "decided 0 for project with id 56",
+    "'decision' round is done with event: Event.DECIDED_NO",
+)
+
+DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS = (
+    "decided -1 for project with id 56",
+    "'decision' round is done with event: Event.GIB_DETAILS",
+    "decided 1 for project with id 56",
+    "'decision' round is done with event: Event.DECIDED_YES",
+)
+
+TRANSACTION_CHECK_STRING = (
+    "Entered in the 'transaction_collection' round for period 0",
+    "'transaction_collection' round is done",
     "Entered in the 'randomness_transaction_submission' round for period 0",
     "'randomness_transaction_submission' round is done",
     "Entered in the 'select_keeper_transaction_submission_a' round for period 0",
@@ -49,60 +85,72 @@ CHECK_STRINGS = (
     "'collect_signature' round is done",
     "Entered in the 'finalization' round for period 0",
     "'finalization' round is done",
-    "Finalized estimate",
     "Entered in the 'validate_transaction' round for period 0",
     "'validate_transaction' round is done",
+    "Period end",
+)
+
+FINISH_AND_RESET_CHECK_STRINGS = (
     "Period end",
     "Entered in the 'reset_and_pause' round for period 0",
     "'reset_and_pause' round is done",
     "Period end",
-    "TBD",
-    "Entered in the 'randomness_transaction_submission' round for period 1",
-    "Entered in the 'select_keeper_transaction_submission_a' round for period 1",
-    "Entered in the 'collect_signature' round for period 1",
-    "Entered in the 'finalization' round for period 1",
-    "Entered in the 'validate_transaction' round for period 1",
-    "Entered in the 'reset_and_pause' round for period 1",
 )
 
 
-@pytest.mark.e2e
-class TestABCIPriceEstimationSingleAgent(
-    BaseTestEnd2EndNormalExecution,
-    UseGnosisSafeHardHatNet,
+class TestDecidedForYes(
+    BaseTestElCollectooorEnd2End,
+    UseGanacheFork,
 ):
-    """Test that the ABCI price_estimation skill with only one agent."""
+    """Test the El Collectooor that decides for yes on the target project, and goes through the whole flow."""
+
+    NB_AGENTS = 1
+    agent_package = "valory/elcollectooor:0.1.0"
+    skill_package = "valory/elcollectooor_abci:0.1.0"
+    DECISION_MODEL_TYPE = "yes"
+    wait_to_finish = 120
+    check_strings = (
+        REGISTRATION_CHECK_STRINGS
+        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + DECIDED_YES_CHECK_STRINGS
+        + TRANSACTION_CHECK_STRING
+        + FINISH_AND_RESET_CHECK_STRINGS
+    )
+
+
+class TestDecidedForNo(
+    BaseTestElCollectooorEnd2End,
+    UseGanacheFork,
+):
+    """Test the El Collectooor that decides for no on the target project."""
 
     NB_AGENTS = 1
     agent_package = "valory/elcollectooor:0.1.0"
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
-    check_strings = CHECK_STRINGS
+    DECISION_MODEL_TYPE = "no"
+    check_strings = (
+        REGISTRATION_CHECK_STRINGS
+        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + DECIDED_NO_CHECK_STRINGS
+    )
 
 
-@pytest.mark.e2e
-class TestABCIPriceEstimationTwoAgents(
-    BaseTestEnd2EndNormalExecution,
-    UseGnosisSafeHardHatNet,
+class TestDecidedForGibDetailsThenYes(
+    BaseTestElCollectooorEnd2End,
+    UseGanacheFork,
 ):
-    """Test that the ABCI price_estimation skill with two agents."""
+    """Test the El Collectooor that decides for no on the target project."""
 
-    NB_AGENTS = 2
+    NB_AGENTS = 1
     agent_package = "valory/elcollectooor:0.1.0"
     skill_package = "valory/elcollectooor_abci:0.1.0"
     wait_to_finish = 120
-    check_strings = CHECK_STRINGS
-
-
-@pytest.mark.e2e
-class TestABCIPriceEstimationFourAgents(
-    BaseTestEnd2EndNormalExecution,
-    UseGnosisSafeHardHatNet,
-):
-    """Test that the ABCI price_estimation skill with four agents."""
-
-    NB_AGENTS = 4
-    agent_package = "valory/elcollectooor:0.1.0"
-    skill_package = "valory/elcollectooor_abci:0.1.0"
-    wait_to_finish = 120
-    check_strings = CHECK_STRINGS
+    DECISION_MODEL_TYPE = "gib_details_then_yes"
+    check_strings = (
+        REGISTRATION_CHECK_STRINGS
+        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS
+        + TRANSACTION_CHECK_STRING
+        + FINISH_AND_RESET_CHECK_STRINGS
+    )

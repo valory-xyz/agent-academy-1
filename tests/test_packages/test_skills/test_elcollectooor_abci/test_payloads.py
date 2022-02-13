@@ -46,7 +46,7 @@ def test_observation_payload() -> None:
     frozen_project_details = json.dumps(test_project_details)
 
     payload = ObservationPayload(
-        sender="sender", project_details=test_project_details, id_="id"
+        sender="sender", project_details=frozen_project_details, id_="id"
     )
 
     assert payload.project_details is not None

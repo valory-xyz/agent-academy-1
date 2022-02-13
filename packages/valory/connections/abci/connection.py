@@ -35,9 +35,7 @@ from google.protobuf.message import DecodeError
 
 from packages.valory.connections.abci import PUBLIC_ID as CONNECTION_PUBLIC_ID
 from packages.valory.connections.abci.dialogues import AbciDialogues
-from packages.valory.connections.abci.tendermint.abci import (
-    types_pb2_grpc as types_pb2_grpc,
-)
+from packages.valory.connections.abci.tendermint.abci import types_pb2_grpc
 from packages.valory.connections.abci.tendermint.abci.types_pb2 import (
     Request,
     RequestApplySnapshotChunk,
@@ -198,6 +196,8 @@ class _TendermintABCISerializer:
 
 class ABCIApplicationServicer(types_pb2_grpc.ABCIApplicationServicer):
     """Implements the gRPC servicer (handler)"""
+
+    # pylint: disable=invalid-overridden-method, no-member
 
     def __init__(
         self, request_queue: asyncio.Queue, dialogues: AbciDialogues, target_skill: str

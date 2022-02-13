@@ -41,6 +41,7 @@ from packages.valory.contracts.artblocks.contract import ArtBlocksContract
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -62,6 +63,9 @@ from packages.valory.skills.elcollectooor_abci.behaviours import (
     ResetFromObservationBehaviour,
     TransactionRoundBehaviour,
 )
+from packages.valory.skills.elcollectooor_abci.decision_models import (
+    SimpleDecisionModel as DecisionModel,
+)
 from packages.valory.skills.elcollectooor_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
@@ -69,9 +73,6 @@ from packages.valory.skills.elcollectooor_abci.handlers import (
     SigningHandler,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import Event, PeriodState
-from packages.valory.skills.elcollectooor_abci.simple_decision_model import (
-    DecisionModel,
-)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )
@@ -602,7 +603,6 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
         time.sleep(0.3)
         self.elcollectooor_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round()
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -629,7 +629,7 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
         time.sleep(0.3)
         self.elcollectooor_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
+
         self.end_round()
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -687,16 +687,15 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
             mock_logger.assert_any_call(
                 logging.INFO,
-                "Retrieved project id: 121.",
+                "Retrieved project with id 121.",
             )
 
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
 
         self.end_round()
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-        assert state.state_id == DecisionRoundBehaviour.state_id
+        assert state.state_id == DetailsRoundBehaviour.state_id
 
     def test_contract_returns_empty_project(self) -> None:
         """The agent queries the contract and doesnt get back a project"""
@@ -849,7 +848,6 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             )
 
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -934,7 +932,6 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             )
 
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
@@ -1005,7 +1002,6 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         self.mock_a2a_transaction()
-        self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.decided_yes_behaviour_class.state_id
@@ -1111,7 +1107,18 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooor_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "most_voted_project": json.dumps(test_project),
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                        "most_voted_details": json.dumps(
+                            [{"price_per_token_in_wei": 123}]
+                        ),
+                    },
+                ),
+            ),
         )
 
         assert (
@@ -1125,7 +1132,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441",
+                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
@@ -1138,64 +1145,26 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
             ),
         )
 
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
+        self.mock_contract_api_request(
+            contract_id=str(GnosisSafeContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    body={"tx_hash": "0x" + "0" * 64},
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
 
+        self.mock_a2a_transaction()
         self.end_round()
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_contract_returns_invalid_data(self) -> None:
-        """The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data,the agent should retry"""
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "ipfs_hash": "",
-        }
-
-        self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
-        )
-
-        assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
-        )
-
-        self.elcollectooor_abci_behaviour.act_wrapper()
-
-        with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
-        ) as mock_logger:
-            self.mock_contract_api_request(
-                contract_id=str(ArtBlocksPeripheryContract.contract_id),
-                request_kwargs=dict(
-                    performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441",
-                ),
-                response_kwargs=dict(
-                    performative=ContractApiMessage.Performative.STATE,
-                    state=State(ledger_id="ethereum", body={"data": ""}),
-                ),
-            )
-
-            mock_logger.assert_any_call(
-                logging.ERROR,
-                "couldn't extract purchase_data from contract response",
-            )
-
-            self.elcollectooor_abci_behaviour.act_wrapper()
-            time.sleep(1.1)
-            self.elcollectooor_abci_behaviour.act_wrapper()
 
     def test_retries_exceeded(self) -> None:
         """The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data the agent should retry"""

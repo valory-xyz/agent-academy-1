@@ -19,14 +19,22 @@
 
 """This module contains the shared state for the 'elcollectooor_abci' application."""
 
-from typing import Any
+from typing import Any, Dict, Optional, Type
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
+from packages.valory.skills.elcollectooor_abci.decision_models import (
+    BaseDecisionModel,
+    GibDetailsThenYesDecisionModel,
+    NoDecisionModel,
+    SimpleDecisionModel,
+    YesDecisionModel,
+)
 from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
 
 MARGIN = 5
@@ -52,7 +60,69 @@ class SharedState(BaseSharedState):
         )
 
 
-Params = BaseParams
+class ElCollectooorParams(BaseParams):
+    """El Collectooor Specific Params Class"""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """
+        Initialize the El Collectooor parameters object.
+
+        :param *args: param args, used only in the superclass
+        :param **kwargs: dict with the parameters needed for the El Collectooor
+        """
+
+        super().__init__(*args, **kwargs)
+        self.artblocks_contract = self._ensure("artblocks_contract", kwargs)
+        self.artblocks_periphery_contract = self._ensure(
+            "artblocks_periphery_contract", kwargs
+        )
+        self.starting_project_id = self._get_starting_project_id(kwargs)
+        self.max_retries = int(kwargs.pop("max_retries", 5))
+        self.decision_model_type = self._get_decision_model_type(kwargs)
+
+    def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
+        """Get the value of starting_project_id, or warn and return None"""
+        key = "starting_project_id"
+
+        try:
+            res = kwargs.pop(key)
+            return int(res)
+        except TypeError:
+            self.context.logger.warning(
+                f"'{key}' was not provided, None was used as fallback"
+            )
+            return None
+
+    def _get_decision_model_type(self, kwargs: dict) -> Type[BaseDecisionModel]:
+        """
+        Get the decision model type to use
+
+        :param kwargs: provided keyword arguments
+        :return: the decision model type
+        """
+
+        key = "decision_model_type"
+        model_type = kwargs.pop(key, None)
+        valid_types: Dict[str, Type[BaseDecisionModel]] = {
+            "yes": YesDecisionModel,
+            "no": NoDecisionModel,
+            "gib_details_then_yes": GibDetailsThenYesDecisionModel,
+            "simple": SimpleDecisionModel,
+        }
+
+        if not model_type or str(model_type).lower() not in valid_types.keys():
+            self.context.logger.warning(
+                f"{key} was None or was not in types={valid_types.keys()}, using type 'simple' as the model type"
+            )
+            model_type = "simple"
+
+        model_type = str(model_type).lower()
+
+        return valid_types[model_type]
+
+
+class Params(ElCollectooorParams, TransactionParams):
+    """Union class for ElCollectoor and Transaction Settlement ABCI"""
 
 
 class RandomnessApi(ApiSpecs):

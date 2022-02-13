@@ -19,6 +19,7 @@
 
 """This module provides a very simple decision algorithm for NFT selection on Art Blocks."""
 import logging
+from abc import ABC, abstractmethod
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -29,8 +30,32 @@ from aea.exceptions import enforce
 _default_logger = logging.getLogger(__name__)
 
 
-class DecisionModel:
+class BaseDecisionModel(ABC):
     """Framework for any decision models."""
+
+    @abstractmethod
+    def static(self, project_details: Dict) -> int:
+        """
+        Initial filtering of viable projects.
+
+        :param project_details: a dictionary with the static project_details
+        :return: the decision 0=No, 1=Yes
+        """
+
+    @abstractmethod
+    def dynamic(self, most_voted_details: List[Dict]) -> int:
+        """
+        Automatic participation in the auction and optimal price discovery.
+
+        :param most_voted_details: a list of changing attributes over time
+        :return: the decision 0=No, 1=Yes, -1=GIB DETAILS
+        """
+
+
+class SimpleDecisionModel(BaseDecisionModel):
+    """A decision model that decides on a project by looking at multiple static and dynamic attrs of a project."""
+
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(self) -> None:
         """Initializes a DecisionModel instance"""
@@ -45,8 +70,15 @@ class DecisionModel:
         self.logger = _default_logger
 
     def static(self, project_details: Dict) -> int:
-        """First filtering of viable projects."""
-        enforce(type(project_details) == dict, "Wrong data format of project details.")
+        """
+        Initial filtering of viable projects.
+
+        :param project_details: a dictionary with the static project_details
+        :return: the decision 0=No, 1=Yes
+        """
+        enforce(
+            isinstance(project_details, dict), "Wrong data format of project details."
+        )
 
         if (
             not project_details["royalty_receiver"]
@@ -60,8 +92,12 @@ class DecisionModel:
         return 0
 
     def dynamic(self, most_voted_details: List[Dict]) -> int:
-        """Automatic participation in the auction and optimal price discovery."""
-        # TODO: define get more details
+        """
+        Automatic participation in the auction and optimal price discovery.
+
+        :param most_voted_details: a list of changing attributes over time
+        :return: the decision 0=No, 1=Yes, -1=Not enough details
+        """
 
         price_per_token_in_wei = most_voted_details[-1]["price_per_token_in_wei"]
         series = pd.DataFrame(most_voted_details).values
@@ -89,7 +125,7 @@ class DecisionModel:
             ):
                 return 1
 
-            elif price_per_token_in_wei > self.price_threshold:
+            if price_per_token_in_wei > self.price_threshold:
                 return 0
 
         if (
@@ -102,5 +138,66 @@ class DecisionModel:
 
         if series.shape[0] > 1000 and blocks_to_go > self.cancel_threshold:
             return 0
+
+        return -1
+
+
+class YesDecisionModel(BaseDecisionModel):
+    """Decision model that always decides to buy"""
+
+    def static(self, project_details: Dict) -> int:
+        """
+        Decide for yes
+
+        :param project_details: a dictionary with the static project_details
+        :return: 1=Yes
+        """
+        return 1
+
+    def dynamic(self, most_voted_details: List[Dict]) -> int:
+        """
+        Decide for yes
+
+        :param most_voted_details: a list of changing attributes over time
+        :return: 1=Yes
+        """
+        return 1
+
+
+class NoDecisionModel(BaseDecisionModel):
+    """A model that always decides to not buy a project"""
+
+    def static(self, project_details: Dict) -> int:
+        """
+        Decide for no
+
+        :param project_details: a dictionary with the static project_details
+        :return: 0=No
+        """
+        return 0
+
+    def dynamic(self, most_voted_details: List[Dict]) -> int:
+        """
+        Decide for no
+
+        :param most_voted_details: a list of changing attributes over time
+        :return: 0=No
+        """
+        return 0
+
+
+class GibDetailsThenYesDecisionModel(YesDecisionModel):
+    """A model that initially asks for more details, then decides for yes."""
+
+    def dynamic(self, most_voted_details: List[Dict]) -> int:
+        """
+        Decide for yes if details are provided, otherwise decide for "GIB DETAILS"
+
+        :param most_voted_details: a list of changing attributes over time
+        :return: 1=Yes, -1=GIB DETAILS
+        """
+
+        if len(most_voted_details) > 1:
+            return 1
 
         return -1
