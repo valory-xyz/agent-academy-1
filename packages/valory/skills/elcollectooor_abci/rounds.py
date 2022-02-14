@@ -329,7 +329,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            if self.most_voted_payload == {}:
+            if self.most_voted_payload == "":
                 return self.period_state, Event.ERROR
 
             state = self.period_state.update(

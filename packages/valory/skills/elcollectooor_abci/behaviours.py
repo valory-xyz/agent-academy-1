@@ -314,6 +314,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         """Implement the act."""
+        payload_data = ""
 
         with benchmark_tool.measure(
             self,
