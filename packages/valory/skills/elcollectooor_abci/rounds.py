@@ -73,6 +73,7 @@ class Event(Enum):
     DECIDED_YES = "decided_yes"
     DECIDED_NO = "decided_no"
     GIB_DETAILS = "gib_details"
+    ERROR = "error"
 
 
 def encode_float(value: float) -> bytes:
@@ -239,14 +240,22 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            project_id = json.loads(self.most_voted_payload)["project_id"]
+            most_voted_payload = json.loads(self.most_voted_payload)
 
+            if (
+                "project_id" not in most_voted_payload.keys()
+                or not most_voted_payload["project_id"]
+            ):
+                return self.period_state, Event.ERROR
+
+            project_id = most_voted_payload["project_id"]
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_project=MappingProxyType(self.collection),
                 most_voted_project=self.most_voted_payload,
                 last_processed_project_id=project_id,
             )
+
             return state, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
@@ -320,11 +329,15 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            if self.most_voted_payload == {}:
+                return self.period_state, Event.ERROR
+
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_voted_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
             )
+
             return state, Event.DONE
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
@@ -352,8 +365,9 @@ class ElCollectooorBaseAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         ObservationRound: {
             Event.DONE: DetailsRound,
-            Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
+            Event.ROUND_TIMEOUT: ResetFromObservationRound,
             Event.NO_MAJORITY: ResetFromObservationRound,
+            Event.ERROR: ResetFromObservationRound,
         },
         DetailsRound: {
             Event.DONE: DecisionRound,
@@ -362,15 +376,16 @@ class ElCollectooorBaseAbciApp(AbciApp[Event]):
         },
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
-            Event.DECIDED_NO: ResetFromObservationRound,  # decided to not purchase
+            Event.DECIDED_NO: ResetFromObservationRound,
             Event.GIB_DETAILS: DetailsRound,
-            Event.ROUND_TIMEOUT: ResetFromObservationRound,  # if the round times out we restart
-            Event.NO_MAJORITY: ResetFromObservationRound,  # if the round has no majority we start from registration
+            Event.ROUND_TIMEOUT: ResetFromObservationRound,
+            Event.NO_MAJORITY: ResetFromObservationRound,
         },
         TransactionRound: {
             Event.DONE: FinishedElCollectoorBaseRound,
             Event.ROUND_TIMEOUT: ResetFromObservationRound,
             Event.NO_MAJORITY: ResetFromObservationRound,
+            Event.ERROR: ResetFromObservationRound,
         },
         ResetFromObservationRound: {
             Event.DONE: ObservationRound,

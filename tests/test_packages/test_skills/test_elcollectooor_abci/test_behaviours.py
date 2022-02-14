@@ -25,7 +25,7 @@ from copy import copy
 from pathlib import Path
 from typing import Any, Dict, List, Type, cast
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from aea.helpers.transaction.base import SignedMessage, State
 from aea.test_tools.test_skill import BaseSkillTestCase
@@ -728,41 +728,11 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                 ),
             )
 
-            mock_logger.assert_any_call(
-                logging.ERROR,
-                "project_id couldn't be extracted from contract response",
-            )
+            mock_logger.assert_any_call(logging.ERROR, ANY)
 
             self.elcollectooor_abci_behaviour.act_wrapper()
             time.sleep(1.1)
             self.elcollectooor_abci_behaviour.act_wrapper()
-
-    def test_contract_retries_are_exceeded(self) -> None:
-        """Test with max retries reached."""
-        self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict())),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-
-        self.elcollectooor_abci_behaviour.act_wrapper()
-
-        with mock.patch.object(
-            target=self.behaviour_class,
-            attribute="is_retries_exceeded",
-            return_value=True,
-        ):
-            assert self.behaviour_class.is_retries_exceeded()  # type: ignore
-            state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-            assert state.state_id == self.behaviour_class.state_id
-            # self._test_done_flag_set() # TODO: make this work
 
 
 class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
@@ -1165,46 +1135,6 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_retries_exceeded(self) -> None:
-        """The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data the agent should retry"""
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "ipfs_hash": "",
-        }
-
-        self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
-        )
-
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-
-        self.elcollectooor_abci_behaviour.act_wrapper()
-
-        with mock.patch.object(
-            target=self.behaviour_class,
-            attribute="is_retries_exceeded",
-            return_value=True,
-        ):
-            assert self.behaviour_class.is_retries_exceeded()  # type: ignore
-            state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-            assert state.state_id == self.behaviour_class.state_id
-            # self._test_done_flag_set() # TODO: make this work
 
 
 class TestDecisionModel:

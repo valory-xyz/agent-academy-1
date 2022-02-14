@@ -21,7 +21,6 @@
 
 import json
 from abc import ABC
-from math import floor
 from typing import Dict, Generator, List, Set, Type, cast
 
 from aea.exceptions import AEAEnforceError, enforce
@@ -71,18 +70,6 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 
 
-def random_selection(elements: List[str], randomness: float) -> str:
-    """
-    Select a random element from a list.
-
-    :param: elements: a list of elements to choose among
-    :param: randomness: a random number in the [0,1) interval
-    :return: a randomly chosen element
-    """
-    random_position = floor(randomness * len(elements))
-    return elements[random_position]
-
-
 benchmark_tool = BenchmarkTool()
 
 
@@ -105,24 +92,15 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
 
     state_id = "observation"
     matching_round = ObservationRound
-    _retries_made = 0
 
     def async_act(self) -> Generator:
         """The observation act."""
 
-        if self.is_retries_exceeded():
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-            self._reset_retries()
-            return
-
         with benchmark_tool.measure(
             self,
         ).local():
+            project_details = {}
+
             try:
                 # fetch an active project
                 response = yield from self.get_contract_api_response(
@@ -141,47 +119,35 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
                     "response, response.state, response.state.body must exist",
                 )
 
-                project_details = response.state.body
+                _project_details = response.state.body
 
                 enforce(
-                    "project_id" in project_details.keys(),
+                    "project_id" in _project_details.keys(),
                     "project_details was none, or project_id was not found in project_details",
                 )
 
-                project_id = project_details["project_id"]
+                project_id = _project_details["project_id"]
+                project_details = _project_details
 
                 self.context.logger.info(f"Retrieved project with id {project_id}.")
+
+            except AEAEnforceError as e:
+                self.context.logger.error(
+                    f"project_id couldn't be extracted from contract response, e={e}"
+                )
+
+            with benchmark_tool.measure(
+                self,
+            ).consensus():
                 payload = ObservationPayload(
                     self.context.agent_address,
                     json.dumps(project_details),
                 )
 
-                with benchmark_tool.measure(
-                    self,
-                ).consensus():
-                    yield from self.send_a2a_transaction(payload)
-                    yield from self.wait_until_round_end()
-
-            except AEAEnforceError:
-                self.context.logger.error(
-                    "project_id couldn't be extracted from contract response"
-                )
-                yield from self.sleep(self.params.sleep_time)
-                self._increment_retries()
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
 
         self.set_done()
-
-    def _increment_retries(self) -> None:
-        """Increments the retries."""
-        self._retries_made += 1
-
-    def is_retries_exceeded(self) -> bool:
-        """Checks whether retires are exceeded."""
-        return self._retries_made > self.params.max_retries
-
-    def _reset_retries(self) -> None:
-        """Resets the retries."""
-        self._retries_made = 0
 
 
 class BaseResetBehaviour(ElCollectooorABCIBaseState):
@@ -345,52 +311,47 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
     state_id = "transaction_collection"
     matching_round = TransactionRound
-    _retries_made = 0
 
     def async_act(self) -> Generator:
         """Implement the act."""
-
-        if self.is_retries_exceeded():
-            with benchmark_tool.measure(
-                self,
-            ).consensus():
-                yield from self.wait_until_round_end()
-
-            self.set_done()
-            self._reset_retries()
-            return
 
         with benchmark_tool.measure(
             self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
-            project_id = json.loads(self.period_state.most_voted_project)["project_id"]
+            try:
+                project_id = json.loads(self.period_state.most_voted_project)[
+                    "project_id"
+                ]
 
-            enforce(
-                project_id is not None,
-                "couldn't find project_id, or project_id is None",
-            )
+                enforce(
+                    project_id is not None,
+                    "couldn't find project_id, or project_id is None",
+                )
 
-            purchase_data_str = yield from self._get_purchase_data(project_id)
-            purchase_data = bytes.fromhex(purchase_data_str[2:])
-            tx_hash = yield from self._get_safe_hash(purchase_data)
+                purchase_data_str = yield from self._get_purchase_data(project_id)
+                purchase_data = bytes.fromhex(purchase_data_str[2:])
+                tx_hash = yield from self._get_safe_hash(purchase_data)
 
-            payload_data = hash_payload_to_hex(
-                safe_tx_hash=tx_hash,
-                ether_value=self._get_value_in_wei(),
-                safe_tx_gas=10 ** 7,
-                to_address=self.params.artblocks_periphery_contract,
-                data=purchase_data,
-            )
+                payload_data = hash_payload_to_hex(
+                    safe_tx_hash=tx_hash,
+                    ether_value=self._get_value_in_wei(),
+                    safe_tx_gas=10 ** 7,
+                    to_address=self.params.artblocks_periphery_contract,
+                    data=purchase_data,
+                )
 
+            except AEAEnforceError as e:
+                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
             payload = TransactionPayload(
                 self.context.agent_address,
                 payload_data,
             )
 
-        with benchmark_tool.measure(
-            self,
-        ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -457,18 +418,6 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         data = data[2:]  # remove starting '0x'
 
         return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
-
-    def _increment_retries(self) -> None:
-        """Increment the retries counter"""
-        self._retries_made += 1
-
-    def is_retries_exceeded(self) -> bool:
-        """Check if the retries limit has been exceeded"""
-        return self._retries_made > self.params.max_retries
-
-    def _reset_retries(self) -> None:
-        """Reset the retries"""
-        self._retries_made = 0
 
 
 class ResetFromObservationBehaviour(BaseResetBehaviour):
