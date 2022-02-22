@@ -18,28 +18,16 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to a Fractional Basket contract."""
-import binascii
 import logging
-import secrets
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from eth_typing import ChecksumAddress, HexAddress, HexStr
-from hexbytes import HexBytes
-from packaging.version import Version
-from py_eth_sig_utils.eip712 import encode_typed_data
-from requests import HTTPError
-from web3.exceptions import SolidityError, TransactionNotFound
-from web3.types import Nonce, TxData, TxParams, Wei
 
-from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
-    GnosisSafeProxyFactoryContract,
-)
+from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 
 PUBLIC_ID = PublicId.from_str("valory/basket:0.1.0")
 
@@ -55,12 +43,51 @@ class BasketContract(Contract):
 
     @classmethod
     def get_raw_transaction(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]:
+        """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_raw_message(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[bytes]:
+        """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_state(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]:
+        """Get raw message."""
         raise NotImplementedError
+
+    @classmethod
+    def get_deploy_transaction(
+            cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
+    ) -> JSONLike:
+        """
+        Get deploy transaction.
+
+        :param ledger_api: ledger API object.
+        :param deployer_address: the deployer address.
+        :param kwargs: the keyword arguments.
+
+        :return: an optional JSON-like object.
+        """
+
+        factory_address = kwargs.pop("basket_factory_address", None)
+        tx_params = BasketFactoryContract.create_basket(ledger_api, factory_address, deployer_address)
+
+        return tx_params
+
+    @classmethod
+    def verify_contract(
+            cls, ledger_api: EthereumApi, contract_address: str
+    ) -> JSONLike:
+        """
+        Verify the contract's bytecode
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the verified status
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
+        local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
+        verified = deployed_bytecode == local_bytecode
+        return dict(verified=verified)

@@ -54,6 +54,22 @@ class TokenVaultFactoryContract(Contract):
     contract_id = PUBLIC_ID
 
     @classmethod
+    def get_deploy_transaction(
+            cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
+    ) -> Optional[JSONLike]:
+        """
+        Get deploy transaction.
+
+        :param ledger_api: ledger API object.
+        :param deployer_address: the deployer address.
+        :param kwargs: the keyword arguments.
+        :return: an optional JSON-like object.
+        """
+        if not "_settings" in kwargs.keys():
+            _logger.error("'_settings' is required to construct ")
+        return super().get_deploy_transaction(ledger_api, deployer_address, **kwargs)
+
+    @classmethod
     def get_raw_transaction(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]:
         raise NotImplementedError
 
