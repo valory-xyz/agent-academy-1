@@ -23,8 +23,9 @@ import datetime
 import json
 import pprint
 from abc import ABC
-from typing import Dict, Generator, Optional, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast
 
+from aea.protocols.base import Message
 from web3.types import Nonce, TxData
 
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -51,9 +52,11 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
     SignaturePayload,
+    SynchronizeLateMessagesPayload,
     ValidatePayload,
 )
 from packages.valory.skills.transaction_settlement_abci.rounds import (
+    CheckLateTxHashesRound,
     CheckTransactionHistoryRound,
     CollectSignatureRound,
     FinalizationRound,
@@ -63,10 +66,14 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
     ResetRound,
     SelectKeeperTransactionSubmissionRoundA,
     SelectKeeperTransactionSubmissionRoundB,
+    SelectKeeperTransactionSubmissionRoundBAfterTimeout,
+    SynchronizeLateMessagesRound,
     TransactionSubmissionAbciApp,
     ValidateTransactionRound,
 )
 
+
+TxDataType = Dict[str, Union[VerificationStatus, str, int]]
 
 benchmark_tool = BenchmarkTool()
 drand_check = VerifyDrand()
@@ -84,6 +91,53 @@ class TransactionSettlementBaseState(BaseState, ABC):
     def params(self) -> TransactionParams:
         """Return the params."""
         return cast(TransactionParams, super().params)
+
+    def _get_tx_data(
+        self, message: ContractApiMessage
+    ) -> Generator[None, None, TxDataType]:
+        """Get the transaction data from a `ContractApiMessage`."""
+        tx_data: TxDataType = {
+            "status": VerificationStatus.PENDING,
+            "tx_digest": "",
+            "nonce": "",
+            "max_priority_fee_per_gas": "",
+        }
+
+        if (
+            message.performative == ContractApiMessage.Performative.ERROR
+            and message.message is not None
+        ):
+            if self._safe_nonce_reused(message.message):
+                tx_data["status"] = VerificationStatus.VERIFIED
+            else:
+                tx_data["status"] = VerificationStatus.ERROR
+            self.context.logger.warning(
+                f"get_raw_safe_transaction unsuccessful! Received: {message}"
+            )
+            return tx_data
+
+        if (
+            message.performative != ContractApiMessage.Performative.RAW_TRANSACTION
+        ):  # pragma: nocover
+            self.context.logger.warning(
+                f"get_raw_safe_transaction unsuccessful! Received: {message}"
+            )
+            return tx_data
+
+        tx_digest = yield from self.send_raw_transaction(message.raw_transaction)
+        tx_data["tx_digest"] = tx_digest if tx_digest is not None else ""
+        tx_data["nonce"] = int(cast(str, message.raw_transaction.body["nonce"]))
+        tx_data["max_priority_fee_per_gas"] = int(
+            cast(
+                str,
+                message.raw_transaction.body["maxPriorityFeePerGas"],
+            )
+        )
+        # Set nonce and tip.
+        self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
+        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
+
+        return tx_data
 
     def _verify_tx(self, tx_hash: str) -> Generator[None, None, ContractApiMessage]:
         """Verify a transaction."""
@@ -123,7 +177,9 @@ class RandomnessTransactionSubmissionBehaviour(RandomnessBehaviour):
     payload_class = RandomnessPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
+class SelectKeeperTransactionSubmissionBehaviourA(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
     """Select the keeper agent."""
 
     state_id = "select_keeper_transaction_submission_a"
@@ -131,13 +187,23 @@ class SelectKeeperTransactionSubmissionBehaviourA(SelectKeeperBehaviour):
     payload_class = SelectKeeperPayload
 
 
-class SelectKeeperTransactionSubmissionBehaviourB(
+class SelectKeeperTransactionSubmissionBehaviourB(  # pylint: disable=too-many-ancestors
     SelectKeeperBehaviour, TransactionSettlementBaseState
 ):
-    """Select the keeper agent."""
+    """Select the keeper b agent."""
 
     state_id = "select_keeper_transaction_submission_b"
     matching_round = SelectKeeperTransactionSubmissionRoundB
+    payload_class = SelectKeeperPayload
+
+
+class SelectKeeperTransactionSubmissionBehaviourBAfterTimeout(  # pylint: disable=too-many-ancestors
+    SelectKeeperBehaviour, TransactionSettlementBaseState
+):
+    """Select the keeper b agent after a timeout."""
+
+    state_id = "select_keeper_transaction_submission_b_after_timeout"
+    matching_round = SelectKeeperTransactionSubmissionRoundBAfterTimeout
     payload_class = SelectKeeperPayload
 
 
@@ -177,20 +243,22 @@ class ValidateTransactionBehaviour(TransactionSettlementBaseState):
     def has_transaction_been_sent(self) -> Generator[None, None, Optional[bool]]:
         """Transaction verification."""
         response = yield from self.get_transaction_receipt(
-            self.period_state.final_tx_hash,
+            self.period_state.to_be_validated_tx_hash,
             self.params.retry_timeout,
             self.params.retry_attempts,
         )
         if response is None:  # pragma: nocover
             self.context.logger.error(
-                f"tx {self.period_state.final_tx_hash} receipt check timed out!"
+                f"tx {self.period_state.to_be_validated_tx_hash} receipt check timed out!"
             )
             return None
 
         # Reset tx parameters.
         self.params.reset_tx_params()
 
-        contract_api_msg = yield from self._verify_tx(self.period_state.final_tx_hash)
+        contract_api_msg = yield from self._verify_tx(
+            self.period_state.to_be_validated_tx_hash
+        )
         if (
             contract_api_msg.performative != ContractApiMessage.Performative.STATE
         ):  # pragma: nocover
@@ -224,11 +292,13 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if verification_status == VerificationStatus.VERIFIED:
                 self.context.logger.info(
-                    f"A previous transaction has already been verified for {self.period_state.final_tx_hash}."
+                    f"A previous transaction {tx_hash} has already been verified for "
+                    f"{self.period_state.to_be_validated_tx_hash}."
                 )
             elif verification_status == VerificationStatus.NOT_VERIFIED:
                 self.context.logger.info(
-                    f"No previous transaction has been verified for {self.period_state.final_tx_hash}."
+                    f"No previous transaction has been verified for "
+                    f"{self.period_state.to_be_validated_tx_hash}."
                 )
 
             verified_res = tx_hist_payload_to_hex(verification_status, tx_hash)
@@ -248,14 +318,20 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
         self,
     ) -> Generator[None, None, Tuple[VerificationStatus, Optional[str]]]:
         """Check the transaction history."""
-        if self.period_state.tx_hashes_history is None:
+        history = (
+            self.period_state.tx_hashes_history
+            if self.state_id == "check_transaction_history"
+            else self.period_state.late_arriving_tx_hashes
+        )
+
+        if history is None:
             self.context.logger.error(
                 "An unexpected error occurred! The state's history does not contain any transaction hashes, "
-                "but entered the `CheckTransactionHistoryBehaviour`."
+                f"but entered the `{self.state_id}` state."
             )
             return VerificationStatus.ERROR, None
 
-        for tx_hash in self.period_state.tx_hashes_history[::-1]:
+        for tx_hash in history[::-1]:
             contract_api_msg = yield from self._verify_tx(tx_hash)
 
             if (
@@ -282,8 +358,14 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
 
             if revert_reason is not None:
                 if self._safe_nonce_reused(revert_reason):
+                    check_expected_to_be_verified = (
+                        "The next tx check"
+                        if self.state_id == "check_transaction_history"
+                        else "One of the next tx checks"
+                    )
                     self.context.logger.info(
-                        f"The safe's nonce has been reused for {tx_hash}. The next tx check is expected to be verified!"
+                        f"The safe's nonce has been reused for {tx_hash}. "
+                        f"{check_expected_to_be_verified} is expected to be verified!"
                     )
                     continue
 
@@ -314,6 +396,57 @@ class CheckTransactionHistoryBehaviour(TransactionSettlementBaseState):
             return None
 
         return cast(str, contract_api_msg.state.body["revert_reason"])
+
+
+class CheckLateTxHashesBehaviour(  # pylint: disable=too-many-ancestors
+    CheckTransactionHistoryBehaviour
+):
+    """Check the late-arriving transaction hashes."""
+
+    state_id = "check_late_tx_hashes"
+    matching_round = CheckLateTxHashesRound
+
+
+class SynchronizeLateMessagesBehaviour(TransactionSettlementBaseState):
+    """Synchronize late-arriving messages state."""
+
+    state_id = "sync_late_messages"
+    matching_round = SynchronizeLateMessagesRound
+
+    def __init__(self, **kwargs: Any):
+        """Initialize a `SynchronizeLateMessagesBehaviour`"""
+        super().__init__(**kwargs)
+        self._tx_hashes: str = ""
+
+    def async_act(self) -> Generator:
+        """Do the action."""
+
+        with benchmark_tool.measure(
+            self,
+        ).local():
+            if len(self.params.late_messages) > 0:
+                current_message = self.params.late_messages.pop()
+                tx_data = yield from self._get_tx_data(current_message)
+                # here, we concatenate the tx_hashes of all the late-arriving messages. Later, we will parse them.
+                self._tx_hashes += cast(str, tx_data["tx_digest"])
+                return
+
+            payload = SynchronizeLateMessagesPayload(
+                self.context.agent_address, self._tx_hashes
+            )
+
+        with benchmark_tool.measure(
+            self,
+        ).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def set_done(self) -> None:
+        """Set the behaviour to done and clean the local late message parameter."""
+        super().set_done()
+        self.params.late_messages = []
 
 
 class SignatureBehaviour(TransactionSettlementBaseState):
@@ -461,53 +594,18 @@ class FinalizeBehaviour(TransactionSettlementBaseState):
             operation=tx_params["operation"],
         )
 
-        tx_data: Dict[str, Union[VerificationStatus, str, int]] = {
-            "status": VerificationStatus.PENDING,
-            "tx_digest": "",
-            "nonce": "",
-            "max_priority_fee_per_gas": "",
-        }
-
-        if (
-            contract_api_msg.performative == ContractApiMessage.Performative.ERROR
-            and contract_api_msg.message is not None
-        ):
-            if self._safe_nonce_reused(contract_api_msg.message):
-                tx_data["status"] = VerificationStatus.VERIFIED
-            else:
-                tx_data["status"] = VerificationStatus.ERROR
-            self.context.logger.warning(
-                f"get_raw_safe_transaction unsuccessful! Received: {contract_api_msg}"
-            )
-            return tx_data
-
-        if (
-            contract_api_msg.performative
-            != ContractApiMessage.Performative.RAW_TRANSACTION
-        ):  # pragma: nocover
-            self.context.logger.warning(
-                f"get_raw_safe_transaction unsuccessful! Received: {contract_api_msg}"
-            )
-            return tx_data
-
-        tx_digest = yield from self.send_raw_transaction(
-            contract_api_msg.raw_transaction
-        )
-        tx_data["tx_digest"] = tx_digest if tx_digest is not None else ""
-        tx_data["nonce"] = int(
-            cast(str, contract_api_msg.raw_transaction.body["nonce"])
-        )
-        tx_data["max_priority_fee_per_gas"] = int(
-            cast(
-                str,
-                contract_api_msg.raw_transaction.body["maxPriorityFeePerGas"],
-            )
-        )
-        # Set nonce and tip.
-        self.params.nonce = Nonce(int(cast(str, tx_data["nonce"])))
-        self.params.tip = int(cast(str, tx_data["max_priority_fee_per_gas"]))
-
+        tx_data = yield from self._get_tx_data(contract_api_msg)
         return tx_data
+
+    def handle_late_messages(self, message: Message) -> None:
+        """Store a potentially late-arriving message locally.
+
+        :param message: the late arriving message to handle.
+        """
+        if isinstance(message, ContractApiMessage):
+            self.params.late_messages.append(message)
+        else:
+            super().handle_late_messages(message)
 
 
 class BaseResetBehaviour(TransactionSettlementBaseState):
@@ -652,7 +750,7 @@ class BaseResetBehaviour(TransactionSettlementBaseState):
         self.set_done()
 
 
-class ResetBehaviour(BaseResetBehaviour):
+class ResetBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
     """Reset state."""
 
     matching_round = ResetRound
@@ -660,7 +758,7 @@ class ResetBehaviour(BaseResetBehaviour):
     pause = False
 
 
-class ResetAndPauseBehaviour(BaseResetBehaviour):
+class ResetAndPauseBehaviour(BaseResetBehaviour):  # pylint: disable=too-many-ancestors
     """Reset and pause state."""
 
     matching_round = ResetAndPauseRound
@@ -677,10 +775,13 @@ class TransactionSettlementRoundBehaviour(AbstractRoundBehaviour):
         RandomnessTransactionSubmissionBehaviour,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourA,  # type: ignore
         SelectKeeperTransactionSubmissionBehaviourB,  # type: ignore
+        SelectKeeperTransactionSubmissionBehaviourBAfterTimeout,  # type: ignore
         ValidateTransactionBehaviour,  # type: ignore
         CheckTransactionHistoryBehaviour,  # type: ignore
         SignatureBehaviour,  # type: ignore
         FinalizeBehaviour,  # type: ignore
+        SynchronizeLateMessagesBehaviour,  # type: ignore
+        CheckLateTxHashesBehaviour,  # type: ignore
         ResetBehaviour,  # type: ignore
         ResetAndPauseBehaviour,  # type: ignore
     }
