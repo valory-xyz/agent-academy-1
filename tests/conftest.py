@@ -42,9 +42,11 @@ from tests.helpers.docker.gnosis_safe_net import (
     GnosisSafeNetDockerImage,
 )
 
+
 def get_key(key_path: Path) -> str:
     """Returns key value from file.""" ""
     return key_path.read_bytes().strip().decode()
+
 
 ROOT_DIR = _ROOT_DIR
 

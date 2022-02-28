@@ -25,14 +25,15 @@ fingerprint:
   scripts/genproto.py: QmSXcBiVGzjokqQrsvpBXkvSrtWDJNT15Y31cPWxHJbU4w
   tendermint/__init__.py: Qmdb8Dfjbme2z6SBpDmnZw5kNt9aFZD2yVyCN6M6hX5PHC
   tendermint/abci/types_pb2.py: Qmb1YoGv34WhNM38M6nzHLajAra5NK18Pg4JQy42inQ4Ne
+  tendermint/abci/types_pb2_grpc.py: QmeEPqkfBFD4vfTzxgZAmbfaKh7pSiSQi5XRotj8wi7YRi
   tendermint/crypto/keys_pb2.py: Qma7KXYmK66s5PZso9d7NosNv4Mm6yikrg3hzcWNYGs513
   tendermint/crypto/proof_pb2.py: QmUPgricNi5rQHFZ6zEz7jPWVc5P7gnkWiuPFSUHyvzbQG
   tendermint/types/params_pb2.py: QmPQZ1k51YHJAeuLbDYo2vpQToqso9Pdkz4dAm1yhKHe4B
   tendermint/types/types_pb2.py: QmV8KomC2K2aCM947y6j7JGtjvsukqm5nQQdecz6UYknSY
   tendermint/types/validator_pb2.py: QmdXSKTxGBVEwpvdDPkQMvFwkNy5SBbuEDzySSRSFyGYSn
   tendermint/version/types_pb2.py: QmXHigkbDKNvT5ThMs1LtusqE7eZSk2skShjVdfmeotyfj
-  tendermint_decoder.py: QmPnE51oMt1y1qRQFUjr4ZiqKTMHUCUeZEw5uqjq3zFrAa
-  tendermint_encoder.py: QmbH1hSdAqmjon72m4kKXiHEdJQVrYiSg8XwrdMCe3rKzU
+  tendermint_decoder.py: QmPrHyEbaK6uqHXpHZGotaTkHHcr2ap1X6jPh88ugB4Jsm
+  tendermint_encoder.py: QmSnee7AmrxCJWQ21hNGF71JkNsutBx5kyxpDMVQZ4S9F3
   version.txt: QmUMea8qXm2mXS5n4T1uXDkULE5cuWjM2mjQnkUegzdAFK
 fingerprint_ignore_patterns: []
 build_entrypoint: check_dependencies.py
