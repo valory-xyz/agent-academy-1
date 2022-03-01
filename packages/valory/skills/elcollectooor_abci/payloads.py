@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for the elcollectooor_abci app."""
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -47,7 +47,7 @@ class ResetPayload(BaseTxPayload):
     transaction_type = TransactionType.RESET
 
     def __init__(
-        self, sender: str, period_count: int, id_: Optional[str] = None
+        self, sender: str, period_count: int, **kwargs: Any
     ) -> None:
         """Initialize an 'rest' transaction payload.
 
@@ -55,7 +55,7 @@ class ResetPayload(BaseTxPayload):
         :param period_count: the period count id
         :param id_: the id of the transaction
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._period_count = period_count
 
     @property
@@ -75,7 +75,7 @@ class ObservationPayload(BaseTxPayload):
     transaction_type = TransactionType.OBSERVATION
 
     def __init__(
-        self, sender: str, project_details: str, id_: Optional[str] = None
+        self, sender: str, project_details: str, **kwargs: Any
     ) -> None:
         """Initialize an 'rest' transaction payload.
 
@@ -83,7 +83,7 @@ class ObservationPayload(BaseTxPayload):
         :param project_details: the observed project id
         :param id_: the id of the transaction
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._project_details = project_details
 
     @property
@@ -102,14 +102,14 @@ class DecisionPayload(BaseTxPayload):
 
     transaction_type = TransactionType.DECISION
 
-    def __init__(self, sender: str, decision: int, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, decision: int, **kwargs: Any) -> None:
         """Initialize an 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param decision: the decision 0 for NO, any other value YES
         :param id_: the id of the transaction
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._decision = decision
 
     @property
@@ -128,14 +128,14 @@ class DetailsPayload(BaseTxPayload):
 
     transaction_type = TransactionType.DETAILS
 
-    def __init__(self, sender: str, details: str, id_: Optional[str] = None) -> None:
+    def __init__(self, sender: str, details: str, **kwargs: Any) -> None:
         """Initialize a 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
         :param details: the necessary info to create a tx for
         :param id_: the id of the transaction
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._details = details
 
     @property
@@ -155,7 +155,7 @@ class TransactionPayload(BaseTxPayload):
     transaction_type = TransactionType.TRANSACTION
 
     def __init__(
-        self, sender: str, purchase_data: str, id_: Optional[str] = None
+        self, sender: str, purchase_data: str, **kwargs: Any
     ) -> None:
         """Initialize a 'rest' transaction payload.
 
@@ -163,7 +163,7 @@ class TransactionPayload(BaseTxPayload):
         :param purchase_data: the necessary info to create a tx for
         :param id_: the id of the transaction
         """
-        super().__init__(sender, id_)
+        super().__init__(sender, **kwargs)
         self._purchase_data = purchase_data
 
     @property
