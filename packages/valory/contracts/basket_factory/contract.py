@@ -84,23 +84,64 @@ class BasketFactoryContract(Contract):
 
     @classmethod
     def create_basket(
-            cls, ledger_api: LedgerApi, factory_contract_address: str, deployer_address: str
+            cls, ledger_api: LedgerApi,
+            factory_contract_address: str,
+            deployer_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Builds and returns the tx to create a basket
 
-        :param deployer_address: The eth address of the sender
         :param ledger_api: ledger API object.
         :param factory_contract_address: Address of the Basket Factory Contract
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
         :return: the
         """
 
         ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, factory_contract_address)
-        tx_params = factory_contract.functions.createBasket().buildTransaction()
+        tx_parameters = TxParams()
 
-        return tx_params
+        if gas_price is not None:
+            tx_parameters["gasPrice"] = Wei(gas_price)  # pragma: nocover
 
+        if max_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)  # pragma: nocover
+
+        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxPriorityFeePerGas"] = Wei(  # pragma: nocover
+                max_priority_fee_per_gas
+            )
+
+        if (
+                gas_price is None
+                and max_fee_per_gas is None
+                and max_priority_fee_per_gas is None
+        ):
+            tx_parameters.update(ledger_api.try_get_gas_pricing())
+
+        if gas is not None:
+            tx_parameters["gas"] = Wei(gas)
+
+        nonce = (
+            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
+                deployer_address
+            )
+        )
+        tx_parameters["nonce"] = Nonce(nonce)
+
+        if nonce is None:
+            raise ValueError("No nonce returned.")  # pragma: nocover
+
+        tx_response = factory_contract.functions.createBasket().buildTransaction(tx_parameters)
+
+        return tx_response
 
     @classmethod
     def verify_contract(
@@ -118,3 +159,36 @@ class BasketFactoryContract(Contract):
         local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
         verified = deployed_bytecode == local_bytecode
         return dict(verified=verified)
+
+    @classmethod
+    def get_basket_address(
+            cls,
+            ledger_api: LedgerApi,
+            factory_contract: str,
+            tx_hash: str
+    ) -> Optional[JSONLike]:
+        """
+        Get the basket address and its creator from the events emitted by the "createBasket" transaction.
+
+        :param ledger_api: the ledger API object
+        :param factory_contract: the address of the factory contract
+        :param tx_hash: tx hash of "createBasket"
+        :return: basket contract address and the address of the creator
+        """
+
+        factory_contract = cls.get_instance(ledger_api, factory_contract)
+        receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
+        logs = factory_contract.events.NewBasket().processReceipt(receipt)
+
+        if len(logs) == 0:
+            _logger.error(f"No 'NewBasket' events were emitted in the tx={tx_hash}")
+            return None
+
+        args = logs[-1]["args"]  # in case of multiple logs, take the last
+
+        response = {
+            "basket_address": args["_address"],
+            "creator_address": args["_creator"],
+        }
+
+        return response
