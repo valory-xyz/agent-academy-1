@@ -37,6 +37,7 @@ from aea_ledger_ethereum import (
     EthereumCrypto,
 )
 
+from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 from tests.fixture_helpers import (
     GanacheBaseTest,
     HardHatAMMBaseTest,
@@ -126,4 +127,78 @@ class BaseHardhatGnosisContractTest(BaseContractTest, HardHatGnosisBaseTest):
 
 
 class BaseHardhatAMMContractTest(BaseContractTest, HardHatAMMBaseTest):
+    """Base test case for testing AMM contracts on Hardhat."""
+
+
+class BaseContractWithDependencyTest(BaseContractTest):
+    """Base test contract with contract dependencies"""
+
+    dependencies: List[Tuple[str, Path, Any]] = []
+    dependency_info: Dict[str, Tuple[str, Contract]] = {}
+
+    @classmethod
+    def _deploy_dependencies(cls):
+        """Deploy the dependencies"""
+
+        original_contract_directory = cls.contract_directory
+        original_contract = cls.contract
+
+        for dependency in cls.dependencies:
+            label, path, kwargs = dependency
+            cls.contract_directory = path
+            cls.contract = get_register_contract(cls.contract_directory)
+
+            cls.deploy(**kwargs)
+
+            cls.dependency_info[label] = (cls.contract_address, cls.contract)
+
+        # reset class vars to their initial state
+        cls.contract_directory = original_contract_directory
+        cls.contract = original_contract
+        cls.contract_address = None
+
+    @classmethod
+    def _setup_class(cls, **kwargs: Any) -> None:
+        """Deploy the dependencies then setups the contract"""
+
+        """Setup test."""
+        key_pairs: List[Tuple[str, str]] = kwargs.pop("key_pairs")
+        url: str = kwargs.pop("url")
+        new_config = {
+            "address": url,
+            "chain_id": DEFAULT_CHAIN_ID,
+            "denom": DEFAULT_CURRENCY_DENOM,
+            "default_gas_price_strategy": "eip1559",
+            "gas_price_strategies": {
+                "gas_station": DEFAULT_GAS_STATION_STRATEGY,
+                "eip1559": DEFAULT_EIP1559_STRATEGY,
+            },
+        }
+        cls.contract = get_register_contract(cls.contract_directory)
+        cls.ledger_api = ledger_apis_registry.make(
+            cls.identifier,
+            **new_config,
+        )
+        with TemporaryDirectory() as temp_dir:
+            output_file = Path(os.path.join(temp_dir, "key_file"))
+            with open(output_file, "w") as text_file:
+                text_file.write(key_pairs[0][1])
+            cls.deployer_crypto = crypto_registry.make(
+                cls.identifier, private_key_path=output_file
+            )
+
+        cls._deploy_dependencies()
+
+        cls.deploy(**cls.deployment_kwargs())
+        assert cls.contract_address is not None, "Contract not deployed."
+
+class BaseGanacheContractWithDependencyTest(BaseContractWithDependencyTest, GanacheBaseTest):
+    """Base test case for testing contracts on Ganache."""
+
+
+class BaseHardhatGnosisContractWithDependencyTest(BaseContractWithDependencyTest, HardHatGnosisBaseTest):
+    """Base test case for testing contracts on Hardhat with Gnosis."""
+
+
+class BaseHardhatAMMContractWithDependencyTest(BaseContractWithDependencyTest, HardHatAMMBaseTest):
     """Base test case for testing AMM contracts on Hardhat."""

@@ -67,11 +67,24 @@ class BasketContract(Contract):
         :param deployer_address: the deployer address.
         :param kwargs: the keyword arguments.
 
-        :return: an optional JSON-like object.
+        :return: the transaction params
         """
 
         factory_address = kwargs.pop("basket_factory_address", None)
-        tx_params = BasketFactoryContract.create_basket(ledger_api, factory_address, deployer_address)
+        gas = kwargs.pop("gas", None)
+        gas_price = kwargs.pop("gas_price", None)
+        max_fee_per_gas = kwargs.pop("max_fee_per_gas", None)
+        max_priority_fee_per_gas = kwargs.pop("max_priority_fee_per_gas", None)
+
+        tx_params = BasketFactoryContract.create_basket(
+            ledger_api,
+            factory_address,
+            deployer_address,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
 
         return tx_params
 
