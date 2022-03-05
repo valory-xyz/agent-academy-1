@@ -101,7 +101,7 @@ class BasketFactoryContract(Contract):
         :param gas_price: Gas Price
         :param max_fee_per_gas: max
         :param max_priority_fee_per_gas: max
-        :return: the
+        :return: the raw transaction
         """
 
         ledger_api = cast(EthereumApi, ledger_api)
@@ -139,9 +139,9 @@ class BasketFactoryContract(Contract):
         if nonce is None:
             raise ValueError("No nonce returned.")  # pragma: nocover
 
-        tx_response = factory_contract.functions.createBasket().buildTransaction(tx_parameters)
+        raw_tx = factory_contract.functions.createBasket().buildTransaction(tx_parameters)
 
-        return tx_response
+        return raw_tx
 
     @classmethod
     def verify_contract(

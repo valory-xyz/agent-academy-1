@@ -67,7 +67,7 @@ class BasketContract(Contract):
         :param deployer_address: the deployer address.
         :param kwargs: the keyword arguments.
 
-        :return: the transaction params
+        :return: the raw tx
         """
 
         factory_address = kwargs.pop("basket_factory_address", None)
@@ -76,7 +76,7 @@ class BasketContract(Contract):
         max_fee_per_gas = kwargs.pop("max_fee_per_gas", None)
         max_priority_fee_per_gas = kwargs.pop("max_priority_fee_per_gas", None)
 
-        tx_params = BasketFactoryContract.create_basket(
+        raw_tx = BasketFactoryContract.create_basket(
             ledger_api,
             factory_address,
             deployer_address,
@@ -86,7 +86,7 @@ class BasketContract(Contract):
             max_priority_fee_per_gas,
         )
 
-        return tx_params
+        return raw_tx
 
     @classmethod
     def verify_contract(

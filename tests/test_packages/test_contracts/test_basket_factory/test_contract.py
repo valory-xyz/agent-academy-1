@@ -20,20 +20,18 @@
 """Tests for valory/basket_factory contract."""
 import time
 from pathlib import Path
-from typing import Any, Dict, cast
+from typing import Any, Dict
 
 from aea.crypto.registries import crypto_registry
-from aea_ledger_ethereum import EthereumCrypto, EthereumApi
+from aea_ledger_ethereum import EthereumCrypto
 
 from packages.valory.contracts.basket_factory.contract import (
     BasketFactoryContract,
 )
-
 from tests.conftest import (
     ROOT_DIR,
     ETHEREUM_KEY_PATH_1,
 )
-
 from tests.test_packages.test_contracts.base import BaseGanacheContractTest
 
 DEFAULT_GAS = 10000000

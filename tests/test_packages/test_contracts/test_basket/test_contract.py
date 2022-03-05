@@ -22,14 +22,10 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
 
-from aea.crypto.registries import crypto_registry
-from aea_ledger_ethereum import EthereumCrypto
-
 from packages.valory.contracts.basket.contract import BasketContract
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 from tests.conftest import (
     ROOT_DIR,
-    ETHEREUM_KEY_PATH_1,
 )
 from tests.test_packages.test_contracts.base import BaseGanacheContractWithDependencyTest
 

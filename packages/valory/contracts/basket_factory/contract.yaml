@@ -9,7 +9,7 @@ fingerprint:
   README.md: QmdqbfimghaQvJe5TGroKTxZUCdGEL6v1DGk8fK2v6mhfs
   __init__.py: QmPpQFS7rtv7AeERadhkY3m3ixMS9i5JdYfXE6iGUcUuUK
   build/BasketFactory.json: QmcRSrAXPGVibysuBc95RiykuBSeyX3Q6GfjS1ozjtZSg4
-  contract.py: QmbBiuUAwQmkmVYyqPERCqNN2yhPAoFR4SeKWemCD8hAhj
+  contract.py: QmPhTJSSdy1p5557t3pErpRrJqmTvmkRXHoycKhZZ7mAbz
 fingerprint_ignore_patterns: []
 contracts:
 - valory/basket_factory:0.1.0
