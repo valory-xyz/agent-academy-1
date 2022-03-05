@@ -26,6 +26,7 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
+from web3.types import TxParams, Wei, Nonce
 
 PUBLIC_ID = PublicId.from_str("valory/token_settings:0.1.0")
 
@@ -70,19 +71,64 @@ class TokenSettingsContract(Contract):
             cls,
             ledger_api: LedgerApi,
             contract_address: str,
+            current_owner_address: str,
             new_owner_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
-        Transfer owner of the Settings Contract.
+        Transfer the ownership of the Settings Contract.
 
         :param ledger_api: ledger API object.
         :param contract_address: the address of the contract to change the owner of.
+        :param current_owner_address: current owner.
         :param new_owner_address: the new owner.
-        :return: an optional HexBytes object.
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+
+        :return: the raw transaction.
         """
         ledger_api = cast(EthereumApi, ledger_api)
         settings_contract = cls.get_instance(ledger_api, contract_address)
-        transaction_dict = settings_contract.functions.setFeeReceiver(new_owner_address).buildTransaction()
+
+        tx_parameters = TxParams()
+
+        if gas_price is not None:
+            tx_parameters["gasPrice"] = Wei(gas_price)  # pragma: nocover
+
+        if max_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)  # pragma: nocover
+
+        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxPriorityFeePerGas"] = Wei(  # pragma: nocover
+                max_priority_fee_per_gas
+            )
+
+        if (
+                gas_price is None
+                and max_fee_per_gas is None
+                and max_priority_fee_per_gas is None
+        ):
+            tx_parameters.update(ledger_api.try_get_gas_pricing())
+
+        if gas is not None:
+            tx_parameters["gas"] = Wei(gas)
+
+        nonce = (
+            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
+                current_owner_address
+            )
+        )
+        tx_parameters["nonce"] = Nonce(nonce)
+
+        if nonce is None:
+            raise ValueError("No nonce returned.")  # pragma: nocover
+
+        transaction_dict = settings_contract.functions.transferOwnership(new_owner_address).buildTransaction(tx_parameters)
 
         return transaction_dict
 
@@ -91,32 +137,77 @@ class TokenSettingsContract(Contract):
             cls,
             ledger_api: LedgerApi,
             contract_address: str,
+            owner_address: str,
             new_receiver_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
-        Transfer owner of the Settings Contract.
+        Change the fee receiver of the contract.
 
         :param ledger_api: ledger API object.
         :param contract_address: the address of the contract.
         :param new_receiver_address: the deployer address.
-        :return: JSONLike transactions.
+        :parma owner_address: the owner of the contract
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+
+        :return: the raw tx.
         """
         ledger_api = cast(EthereumApi, ledger_api)
         settings_contract = cls.get_instance(ledger_api, contract_address)
-        transaction_dict = settings_contract.functions.setFeeReceiver(new_receiver_address).buildTransaction()
 
-        return transaction_dict
+        tx_parameters = TxParams()
+
+        if gas_price is not None:
+            tx_parameters["gasPrice"] = Wei(gas_price)  # pragma: nocover
+
+        if max_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)  # pragma: nocover
+
+        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxPriorityFeePerGas"] = Wei(  # pragma: nocover
+                max_priority_fee_per_gas
+            )
+
+        if (
+                gas_price is None
+                and max_fee_per_gas is None
+                and max_priority_fee_per_gas is None
+        ):
+            tx_parameters.update(ledger_api.try_get_gas_pricing())
+
+        if gas is not None:
+            tx_parameters["gas"] = Wei(gas)
+
+        nonce = (
+            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
+                owner_address
+            )
+        )
+        tx_parameters["nonce"] = Nonce(nonce)
+
+        if nonce is None:
+            raise ValueError("No nonce returned.")  # pragma: nocover
+
+        raw_tx = settings_contract.functions.setFeeReceiver(new_receiver_address).buildTransaction(tx_parameters)
+
+        return raw_tx
 
     @classmethod
     def verify_contract(
-            cls, ledger_api: EthereumApi, contract_address: str, safe_contract_address: str,
+            cls, ledger_api: EthereumApi, contract_address: str, expected_owner_address: str,
     ) -> JSONLike:
         """
         Verify the contract's bytecode, owner and fee receiver
 
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
-        :param safe_contract_address: the expected owner and of the contract
+        :param expected_owner_address: the expected owner and of the contract
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
@@ -125,8 +216,8 @@ class TokenSettingsContract(Contract):
         local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
 
         is_bytecode_ok = deployed_bytecode == local_bytecode
-        is_owner_ok = safe_contract_address == contract.functions.owner().call()
-        is_fee_receiver_ok = safe_contract_address == contract.functions.feeReceiver().call()
+        is_owner_ok = expected_owner_address == contract.functions.owner().call()
+        is_fee_receiver_ok = expected_owner_address == contract.functions.feeReceiver().call()
 
         return dict(
             bytecode=is_bytecode_ok,
