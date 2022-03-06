@@ -406,7 +406,7 @@ class TokenVaultFactoryContract(Contract):
             sender_address,
         )
 
-        raw_tx = token_vault_contract.functions.transfer(new_owner_address).buildTransaction(tx_parameters)
+        raw_tx = token_vault_contract.functions.transferOwnership(new_owner_address).buildTransaction(tx_parameters)
 
         return raw_tx
 

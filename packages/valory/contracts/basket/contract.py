@@ -26,6 +26,7 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
+from web3.types import TxParams, Wei, Nonce
 
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 
@@ -104,3 +105,122 @@ class BasketContract(Contract):
         local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
         verified = deployed_bytecode == local_bytecode
         return dict(verified=verified)
+
+    @classmethod
+    def _handle_gas_ops(
+            cls,
+            tx_parameters: TxParams,
+            ledger_api: EthereumApi,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> None:
+        """
+        Handle gas related operations
+
+        :param tx_parameters: the transaction params to update
+        :param ledger_api: the ledger api to be used
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: None
+        """
+
+        if gas_price is not None:
+            tx_parameters["gasPrice"] = Wei(gas_price)  # pragma: nocover
+
+        if max_fee_per_gas is not None:
+            tx_parameters["maxFeePerGas"] = Wei(max_fee_per_gas)  # pragma: nocover
+
+        if max_priority_fee_per_gas is not None:
+            tx_parameters["maxPriorityFeePerGas"] = Wei(  # pragma: nocover
+                max_priority_fee_per_gas
+            )
+
+        if (
+                gas_price is None
+                and max_fee_per_gas is None
+                and max_priority_fee_per_gas is None
+        ):
+            tx_parameters.update(ledger_api.try_get_gas_pricing())
+
+        if gas is not None:
+            tx_parameters["gas"] = Wei(gas)
+
+    @classmethod
+    def _handle_nonce_ops(
+            cls,
+            tx_parameters: TxParams,
+            ledger_api: EthereumApi,
+            sender_address: str
+    ) -> None:
+        """
+        Handle gas nonce operations
+
+        :param tx_parameters: the transaction params to update
+        :param ledger_api: the ledger api to be used
+        :param sender_address: the address to be used for finding nonce
+        :return: None
+        """
+        nonce = (
+            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
+                sender_address
+            )
+        )
+        tx_parameters["nonce"] = Nonce(nonce)
+
+        if nonce is None:
+            raise ValueError("No nonce returned.")  # pragma: nocover
+
+    @classmethod
+    def set_approve_for_all(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            operator_address: str,
+            is_approved: bool,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Set the approval status for the operator.
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param sender_address: the address of the tx sender
+        :param operator_address: the address to set the approval status of
+        :param is_approved: the address of the tx sender
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: the raw transaction
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        tx_parameters = TxParams()
+
+        cls._handle_gas_ops(
+            tx_parameters,
+            ledger_api,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
+        cls._handle_nonce_ops(
+            tx_parameters,
+            ledger_api,
+            sender_address,
+        )
+
+        raw_tx = basket.functions.setApprovalForAll(
+            operator_address,
+            is_approved,
+        ).buildTransaction(tx_parameters)
+
+        return raw_tx
