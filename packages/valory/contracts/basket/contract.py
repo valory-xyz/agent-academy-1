@@ -175,6 +175,57 @@ class BasketContract(Contract):
             raise ValueError("No nonce returned.")  # pragma: nocover
 
     @classmethod
+    def approve(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            operator_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Gives permission to `operator_address` to transfer `tokenId` token to another account.
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param sender_address: the address of the tx sender
+        :param operator_address: the address to set the approval status of
+        :param token_id: the id of the token which should be approved.
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: the raw transaction
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        tx_parameters = TxParams()
+
+        cls._handle_gas_ops(
+            tx_parameters,
+            ledger_api,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
+        cls._handle_nonce_ops(
+            tx_parameters,
+            ledger_api,
+            sender_address,
+        )
+
+        raw_tx = basket.functions.approve(
+            operator_address,
+            token_id,
+        ).buildTransaction(tx_parameters)
+
+        return raw_tx
+
+    @classmethod
     def set_approve_for_all(
             cls,
             ledger_api: EthereumApi,
@@ -224,3 +275,468 @@ class BasketContract(Contract):
         ).buildTransaction(tx_parameters)
 
         return raw_tx
+
+    @classmethod
+    def withdraw_erc721(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            token_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Withdraw an ERC721 token from the contract into the wallet of the sender.
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param sender_address: the address of the tx sender
+        :param token_address: the address of the NFT getting withdrawn
+        :param token_id: the ID of the NFT getting withdrawn
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: the raw transaction
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        tx_parameters = TxParams()
+
+        cls._handle_gas_ops(
+            tx_parameters,
+            ledger_api,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
+        cls._handle_nonce_ops(
+            tx_parameters,
+            ledger_api,
+            sender_address,
+        )
+
+        raw_tx = basket.functions.withdrawERC721(
+            token_address,
+            token_id,
+        ).buildTransaction(tx_parameters)
+
+        return raw_tx
+
+    @classmethod
+    def withdraw_erc721_unsafe(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            token_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Withdraw an ERC721 token from the contract into the wallet of the sender.
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param sender_address: the address of the tx sender
+        :param token_address: the address of the NFT getting withdrawn
+        :param token_id: the ID of the NFT getting withdrawn
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: the raw transaction
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        tx_parameters = TxParams()
+
+        cls._handle_gas_ops(
+            tx_parameters,
+            ledger_api,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
+        cls._handle_nonce_ops(
+            tx_parameters,
+            ledger_api,
+            sender_address,
+        )
+
+        raw_tx = basket.functions.withdrawERC721Unsafe(
+            token_address,
+            token_id,
+        ).buildTransaction(tx_parameters)
+
+        return raw_tx
+
+    @classmethod
+    def withdraw_eth(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Withdraw ETH in the case a held NFT earned ETH (ie. euler beats).
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param sender_address: the address of the tx sender
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: the raw transaction
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        tx_parameters = TxParams()
+
+        cls._handle_gas_ops(
+            tx_parameters,
+            ledger_api,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
+        cls._handle_nonce_ops(
+            tx_parameters,
+            ledger_api,
+            sender_address,
+        )
+
+        raw_tx = basket.functions.withdrawETH().buildTransaction(tx_parameters)
+
+        return raw_tx
+
+    @classmethod
+    def withdraw_erc20(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            token_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Withdraw ERC20 in the case a held NFT earned ERC20.
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param sender_address: the address of the tx sender
+        :param token_address: the address of the NFT getting withdrawn
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: the raw transaction
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        tx_parameters = TxParams()
+
+        cls._handle_gas_ops(
+            tx_parameters,
+            ledger_api,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
+        cls._handle_nonce_ops(
+            tx_parameters,
+            ledger_api,
+            sender_address,
+        )
+
+        raw_tx = basket.functions.withdrawERC20(
+            token_address,
+        ).buildTransaction(tx_parameters)
+
+        return raw_tx
+
+    @classmethod
+    def transfer_from(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            new_owner_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Transfers `tokenId` token to `new_owner_address`
+        WARNING: Usage of this method is discouraged, use `safe_transfer_from` whenever possible.
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param sender_address: the address of the tx sender, should be the current owner
+        :param new_owner_address: the address of the new owner
+        :param token_id: the ID of the NFT getting transferred
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: the raw transaction
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        tx_parameters = TxParams()
+
+        cls._handle_gas_ops(
+            tx_parameters,
+            ledger_api,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
+        cls._handle_nonce_ops(
+            tx_parameters,
+            ledger_api,
+            sender_address,
+        )
+
+        raw_tx = basket.functions.transferFrom(
+            sender_address,
+            new_owner_address,
+            token_id,
+        ).buildTransaction(tx_parameters)
+
+        return raw_tx
+
+    @classmethod
+    def safe_transfer_from(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            new_owner_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Transfers `tokenId` token to `new_owner_address`
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param sender_address: the address of the tx sender, should be the current owner
+        :param new_owner_address: the address of the new owner
+        :param token_id: the ID of the NFT getting transferred
+        :param gas: Gas
+        :param gas_price: Gas Price
+        :param max_fee_per_gas: max
+        :param max_priority_fee_per_gas: max
+        :return: the raw transaction
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        tx_parameters = TxParams()
+
+        cls._handle_gas_ops(
+            tx_parameters,
+            ledger_api,
+            gas,
+            gas_price,
+            max_fee_per_gas,
+            max_priority_fee_per_gas,
+        )
+        cls._handle_nonce_ops(
+            tx_parameters,
+            ledger_api,
+            sender_address,
+        )
+
+        raw_tx = basket.functions.safeTransferFrom(
+            sender_address,
+            new_owner_address,
+            token_id,
+        ).buildTransaction(tx_parameters)
+
+        return raw_tx
+
+    @classmethod
+    def get_balance_of(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            owner_address: str,
+    ) -> Optional[int]:
+        """
+        Returns the number of tokens in `owner_address`'s account.
+
+        :param ledger_api: the LedgerApi object
+        :param contract_address: the contract address to target
+        :param owner_address: the address to check the balance of
+        :return: the balance of the owner
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        balance = basket.functions.owner(owner_address).call()
+
+        return balance
+
+    @classmethod
+    def get_owner_of(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            token_id: int,
+    ) -> Optional[str]:
+        """
+        Returns the owner's address of the `tokenId` token.
+
+        :param ledger_api: the LedgerApi object
+        :param contract_address: the contract address to target
+        :param token_id: the token to check the owner of
+        :return: the owner of the token with id `token_id`
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        owner = basket.functions.ownerOf(token_id).call()
+
+        return owner
+
+    @classmethod
+    def get_base_uri(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+    ) -> Optional[str]:
+        """
+        Get the address of the logic contract.
+
+        :param ledger_api: the LedgerApi object
+        :param contract_address: the contract address to target
+        :return: the baseURI
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        base_uri = basket.functions.baseURI().call()
+
+        return base_uri
+
+    @classmethod
+    def get_approved_account(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            token_id: int,
+    ) -> Optional[str]:
+        """
+        Returns the account approved for `tokenId` token.
+
+        :param ledger_api: the LedgerApi object
+        :param contract_address: the contract address to target
+        :param token_id: the id of the token to check the approved operator of.
+        :return: address of this token's operator
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        operator = basket.functions.getApproved(token_id).call()
+
+        return operator
+
+    @classmethod
+    def is_approved_for_all(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            owner_address: str,
+            operator_address: str,
+    ) -> Optional[bool]:
+        """
+        Returns if the `operator` is allowed to manage all the assets of `owner`.
+
+        :param ledger_api: the LedgerApi object
+        :param contract_address: the contract address to target
+        :param owner_address: the token owner's address
+        :param operator_address: the operator's address
+        :return: the approval status
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        is_approved_for_all = basket.functions.isApprovedForAll(
+            owner_address,
+            operator_address,
+        ).call()
+
+        return is_approved_for_all
+
+    @classmethod
+    def get_total_supply(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+    ) -> Optional[int]:
+        """
+        Returns the total amount of tokens stored by the contract.
+
+        :param ledger_api: the LedgerApi object
+        :param contract_address: the contract address to target
+        :return: the total number of tokens in the basket
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        total_amount = basket.functions.totalSupply().call()
+
+        return total_amount
+
+    @classmethod
+    def get_token_of_owner_by_index(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            owner_address: str,
+            index: int,
+    ) -> Optional[int]:
+        """
+        Returns a token ID owned by `owner` at a given `index` of its token list.
+
+        :param ledger_api: the LedgerApi object
+        :param contract_address: the contract address to target
+        :param owner_address: the token owner's address
+        :param index: the index of the token by owner
+        :return: the token id
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        token_id = basket.functions.tokenOfOwnerByIndex(
+            owner_address,
+            index,
+        ).call()
+
+        return token_id
+
+    @classmethod
+    def get_token_by_index(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            index: int,
+    ) -> Optional[int]:
+        """
+        Returns a token ID at a given `index` of all the tokens stored by the contract.
+
+        :param ledger_api: the LedgerApi object
+        :param contract_address: the contract address to target
+        :param index: the index of the token by owner
+        :return: the token id
+        """
+        basket = cls.get_instance(ledger_api, contract_address)
+        token_id = basket.functions.tokenByIndex(index).call()
+
+        return token_id
