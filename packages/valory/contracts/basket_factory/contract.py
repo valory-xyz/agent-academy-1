@@ -18,28 +18,15 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the class to connect to a Fractional Basket Factory contract."""
-import binascii
 import logging
-import secrets
-from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union, cast
+from typing import Any, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from eth_typing import ChecksumAddress, HexAddress, HexStr
-from hexbytes import HexBytes
-from packaging.version import Version
-from py_eth_sig_utils.eip712 import encode_typed_data
-from requests import HTTPError
-from web3.exceptions import SolidityError, TransactionNotFound
-from web3.types import Nonce, TxData, TxParams, Wei
-
-from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
-    GnosisSafeProxyFactoryContract,
-)
+from web3.types import Nonce, TxParams, Wei
 
 PUBLIC_ID = PublicId.from_str("valory/basket_factory:0.1.0")
 
@@ -103,7 +90,6 @@ class BasketFactoryContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
-
         ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, factory_contract_address)
         tx_parameters = TxParams()
@@ -145,7 +131,7 @@ class BasketFactoryContract(Contract):
 
     @classmethod
     def verify_contract(
-            cls, ledger_api: EthereumApi, contract_address: str
+            cls, ledger_api: LedgerApi, contract_address: str
     ) -> JSONLike:
         """
         Verify the contract's bytecode
@@ -175,7 +161,7 @@ class BasketFactoryContract(Contract):
         :param tx_hash: tx hash of "createBasket"
         :return: basket contract address and the address of the creator
         """
-
+        ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, factory_contract)
         receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
         logs = factory_contract.events.NewBasket().processReceipt(receipt)

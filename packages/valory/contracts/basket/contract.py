@@ -91,7 +91,7 @@ class BasketContract(Contract):
 
     @classmethod
     def verify_contract(
-            cls, ledger_api: EthereumApi, contract_address: str
+            cls, ledger_api: LedgerApi, contract_address: str
     ) -> JSONLike:
         """
         Verify the contract's bytecode
@@ -177,7 +177,7 @@ class BasketContract(Contract):
     @classmethod
     def approve(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             operator_address: str,
@@ -201,6 +201,7 @@ class BasketContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -228,7 +229,7 @@ class BasketContract(Contract):
     @classmethod
     def set_approve_for_all(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             operator_address: str,
@@ -252,6 +253,7 @@ class BasketContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -279,7 +281,7 @@ class BasketContract(Contract):
     @classmethod
     def withdraw_erc721(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             token_address: str,
@@ -303,6 +305,7 @@ class BasketContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -330,7 +333,7 @@ class BasketContract(Contract):
     @classmethod
     def withdraw_erc721_unsafe(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             token_address: str,
@@ -354,6 +357,7 @@ class BasketContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -381,7 +385,7 @@ class BasketContract(Contract):
     @classmethod
     def withdraw_eth(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             gas: Optional[int] = None,
@@ -401,6 +405,7 @@ class BasketContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -425,7 +430,7 @@ class BasketContract(Contract):
     @classmethod
     def withdraw_erc20(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             token_address: str,
@@ -447,6 +452,7 @@ class BasketContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -473,7 +479,7 @@ class BasketContract(Contract):
     @classmethod
     def transfer_from(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             new_owner_address: str,
@@ -498,6 +504,7 @@ class BasketContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -526,7 +533,7 @@ class BasketContract(Contract):
     @classmethod
     def safe_transfer_from(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             new_owner_address: str,
@@ -550,6 +557,7 @@ class BasketContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -590,6 +598,7 @@ class BasketContract(Contract):
         :param owner_address: the address to check the balance of
         :return: the balance of the owner
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         balance = basket.functions.owner(owner_address).call()
 
@@ -598,7 +607,7 @@ class BasketContract(Contract):
     @classmethod
     def get_owner_of(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             token_id: int,
     ) -> Optional[str]:
@@ -610,6 +619,7 @@ class BasketContract(Contract):
         :param token_id: the token to check the owner of
         :return: the owner of the token with id `token_id`
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         owner = basket.functions.ownerOf(token_id).call()
 
@@ -618,7 +628,7 @@ class BasketContract(Contract):
     @classmethod
     def get_base_uri(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
     ) -> Optional[str]:
         """
@@ -628,6 +638,7 @@ class BasketContract(Contract):
         :param contract_address: the contract address to target
         :return: the baseURI
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         base_uri = basket.functions.baseURI().call()
 
@@ -636,7 +647,7 @@ class BasketContract(Contract):
     @classmethod
     def get_approved_account(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             token_id: int,
     ) -> Optional[str]:
@@ -648,6 +659,7 @@ class BasketContract(Contract):
         :param token_id: the id of the token to check the approved operator of.
         :return: address of this token's operator
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         operator = basket.functions.getApproved(token_id).call()
 
@@ -656,7 +668,7 @@ class BasketContract(Contract):
     @classmethod
     def is_approved_for_all(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             owner_address: str,
             operator_address: str,
@@ -670,6 +682,7 @@ class BasketContract(Contract):
         :param operator_address: the operator's address
         :return: the approval status
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         is_approved_for_all = basket.functions.isApprovedForAll(
             owner_address,
@@ -691,6 +704,7 @@ class BasketContract(Contract):
         :param contract_address: the contract address to target
         :return: the total number of tokens in the basket
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         total_amount = basket.functions.totalSupply().call()
 
@@ -699,7 +713,7 @@ class BasketContract(Contract):
     @classmethod
     def get_token_of_owner_by_index(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             owner_address: str,
             index: int,
@@ -713,6 +727,7 @@ class BasketContract(Contract):
         :param index: the index of the token by owner
         :return: the token id
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         token_id = basket.functions.tokenOfOwnerByIndex(
             owner_address,
@@ -724,7 +739,7 @@ class BasketContract(Contract):
     @classmethod
     def get_token_by_index(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             index: int,
     ) -> Optional[int]:
@@ -736,6 +751,7 @@ class BasketContract(Contract):
         :param index: the index of the token by owner
         :return: the token id
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
         token_id = basket.functions.tokenByIndex(index).call()
 

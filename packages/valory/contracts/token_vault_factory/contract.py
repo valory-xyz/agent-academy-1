@@ -83,7 +83,7 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def verify_contract(
-            cls, ledger_api: EthereumApi, contract_address: str, settings_address: str,
+            cls, ledger_api: LedgerApi, contract_address: str, settings_address: str,
     ) -> JSONLike:
         """
         Verify the contract's bytecode
@@ -213,7 +213,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def mint(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             name: str,
@@ -231,7 +231,7 @@ class TokenVaultFactoryContract(Contract):
         """
         Mint a new vault.
 
-        :param ledger_api: EthereumApi object
+        :param ledger_api: LedgerApi object
         :param contract_address: the address of the token vault factory to be used
         :param sender_address: the address of the tx sender
         :param name: name of the vault
@@ -247,6 +247,7 @@ class TokenVaultFactoryContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -279,7 +280,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def pause(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             gas: Optional[int] = None,
@@ -290,7 +291,7 @@ class TokenVaultFactoryContract(Contract):
         """
         Pause the factory.
 
-        :param ledger_api: EthereumApi object
+        :param ledger_api: LedgerApi object
         :param contract_address: the address of the token vault factory to be used
         :param sender_address: the address of the tx sender
         :param gas: Gas
@@ -299,6 +300,7 @@ class TokenVaultFactoryContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -323,7 +325,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def renounce_ownership(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             gas: Optional[int] = None,
@@ -334,7 +336,7 @@ class TokenVaultFactoryContract(Contract):
         """
         Renounce ownership of the factory.
 
-        :param ledger_api: EthereumApi object
+        :param ledger_api: LedgerApi object
         :param contract_address: the address of the token vault factory to be used
         :param sender_address: the address of the tx sender
         :param gas: Gas
@@ -343,6 +345,7 @@ class TokenVaultFactoryContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -367,7 +370,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def transfer_ownership(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             new_owner_address: str,
@@ -379,7 +382,7 @@ class TokenVaultFactoryContract(Contract):
         """
         Renounce ownership of the factory.
 
-        :param ledger_api: EthereumApi object
+        :param ledger_api: LedgerApi object
         :param contract_address: the address of the token vault factory to be used
         :param sender_address: the address of the tx sender
         :param new_owner_address: the address of the new owner
@@ -389,6 +392,7 @@ class TokenVaultFactoryContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -413,7 +417,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def unpause(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             sender_address: str,
             gas: Optional[int] = None,
@@ -424,7 +428,7 @@ class TokenVaultFactoryContract(Contract):
         """
         Unpause the factory.
 
-        :param ledger_api: EthereumApi object
+        :param ledger_api: LedgerApi object
         :param contract_address: the address of the token vault factory to be used
         :param sender_address: the address of the tx sender
         :param gas: Gas
@@ -433,6 +437,7 @@ class TokenVaultFactoryContract(Contract):
         :param max_priority_fee_per_gas: max
         :return: the raw transaction
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         tx_parameters = TxParams()
 
@@ -457,7 +462,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def get_logic(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
     ) -> Optional[str]:
 
@@ -468,6 +473,7 @@ class TokenVaultFactoryContract(Contract):
         :param contract_address: the contract address to target
         :return: the address of the logic contract
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         logic_address = token_vault_contract.functions.logic().call()
 
@@ -476,7 +482,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def is_paused(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
     ) -> Optional[bool]:
         """
@@ -486,6 +492,7 @@ class TokenVaultFactoryContract(Contract):
         :param contract_address: the contract address to target
         :return: paused status
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         is_paused = token_vault_contract.functions.paused().call()
 
@@ -494,7 +501,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def get_owner(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
     ) -> Optional[str]:
         """
@@ -504,6 +511,7 @@ class TokenVaultFactoryContract(Contract):
         :param contract_address: the contract address to target
         :return: the owner of the factory
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         contract_owner = token_vault_contract.functions.owner().call()
 
@@ -512,7 +520,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def get_settings_address(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
     ) -> Optional[str]:
         """
@@ -522,6 +530,7 @@ class TokenVaultFactoryContract(Contract):
         :param contract_address: the contract address to target
         :return: the address of the settings
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         settings = token_vault_contract.functions.settings().call()
 
@@ -530,7 +539,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def get_vault_count(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
     ) -> Optional[int]:
         """
@@ -540,6 +549,7 @@ class TokenVaultFactoryContract(Contract):
         :param contract_address: the contract address to target
         :return: the number of ERC721 vaults
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         vault_count = token_vault_contract.functions.vaultCount().call()
 
@@ -548,7 +558,7 @@ class TokenVaultFactoryContract(Contract):
     @classmethod
     def get_vault(
             cls,
-            ledger_api: EthereumApi,
+            ledger_api: LedgerApi,
             contract_address: str,
             index: int,
     ) -> Optional[str]:
@@ -560,6 +570,7 @@ class TokenVaultFactoryContract(Contract):
         :param index: the index of the vault
         :return: the address of the vault
         """
+        ledger_api = cast(EthereumApi, ledger_api)
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         vault_address = token_vault_contract.functions.vaults(index).call()
 
