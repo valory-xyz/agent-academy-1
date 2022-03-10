@@ -148,6 +148,12 @@ class BaseContractWithDependencyTest(BaseContractTest):
             cls.contract_directory = path
             cls.contract = get_register_contract(cls.contract_directory)
 
+            deps = kwargs.pop('deps', {})  # dependencies this contract has
+
+            for dep_name, dep in deps.items():
+                dep_address, _ = cls.dependency_info[dep]
+                kwargs[dep_name] = dep_address
+
             cls.deploy(**kwargs)
 
             cls.dependency_info[label] = (cls.contract_address, cls.contract)
@@ -191,6 +197,7 @@ class BaseContractWithDependencyTest(BaseContractTest):
 
         cls.deploy(**cls.deployment_kwargs())
         assert cls.contract_address is not None, "Contract not deployed."
+
 
 class BaseGanacheContractWithDependencyTest(BaseContractWithDependencyTest, GanacheBaseTest):
     """Base test case for testing contracts on Ganache."""
