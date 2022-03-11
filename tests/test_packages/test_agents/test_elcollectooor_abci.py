@@ -27,8 +27,6 @@ from tests.test_packages.test_agents.base import BaseTestElCollectooorEnd2End
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
 
 REGISTRATION_CHECK_STRINGS = (
-    "Entered in the 'tendermint_healthcheck' behaviour state",
-    "'tendermint_healthcheck' behaviour state is done",
     "Entered in the 'registration_startup' round for period 0",
     "'registration_startup' round is done",
 )
