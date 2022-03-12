@@ -28,11 +28,15 @@ from aea_ledger_ethereum import EthereumCrypto
 from packages.valory.contracts.basket.contract import BasketContract
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 from packages.valory.contracts.token_vault.contract import TokenVaultContract
-from packages.valory.contracts.token_vault_factory.contract import TokenVaultFactoryContract
-from tests.conftest import (
-    ROOT_DIR, ETHEREUM_KEY_PATH_1,
+from packages.valory.contracts.token_vault_factory.contract import (
+    TokenVaultFactoryContract,
 )
-from tests.test_packages.test_contracts.base import BaseGanacheContractWithDependencyTest
+
+from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
+from tests.test_packages.test_contracts.base import (
+    BaseGanacheContractWithDependencyTest,
+)
+
 
 DEFAULT_GAS = 1000000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
@@ -50,27 +54,21 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
     dependencies = [
         (
             "token_settings",
-            Path(
-                ROOT_DIR, "packages", "valory", "contracts", "token_settings"
-            ),
+            Path(ROOT_DIR, "packages", "valory", "contracts", "token_settings"),
             dict(
                 gas=DEFAULT_GAS,
             ),
         ),
         (
             "basket_factory",
-            Path(
-                ROOT_DIR, "packages", "valory", "contracts", "basket_factory"
-            ),
+            Path(ROOT_DIR, "packages", "valory", "contracts", "basket_factory"),
             dict(
                 gas=DEFAULT_GAS,
             ),
         ),
         (
             "basket",
-            Path(
-                ROOT_DIR, "packages", "valory", "contracts", "basket"
-            ),
+            Path(ROOT_DIR, "packages", "valory", "contracts", "basket"),
             dict(
                 gas=DEFAULT_GAS,
                 is_basket=True,
@@ -78,23 +76,17 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         ),
         (
             "token_vault_factory",
-            Path(
-                ROOT_DIR, "packages", "valory", "contracts", "token_vault_factory"
-            ),
-            dict(
-                gas=DEFAULT_GAS,
-                deps={
-                    '_settings': 'token_settings'
-                }
-            )
-        )
-
+            Path(ROOT_DIR, "packages", "valory", "contracts", "token_vault_factory"),
+            dict(gas=DEFAULT_GAS, deps={"_settings": "token_settings"}),
+        ),
     ]
 
     @classmethod
     def deployment_kwargs(cls) -> Dict[str, Any]:
         """Get deployment kwargs."""
-        assert cls.dependency_info["token_settings"] is not None, "token_settings is not ready"
+        assert (
+            cls.dependency_info["token_settings"] is not None
+        ), "token_settings is not ready"
 
         basket_address, _ = cls.dependency_info["basket"]
         vault_factory_address, _ = cls.dependency_info["token_vault_factory"]
@@ -113,7 +105,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         )
 
     @classmethod
-    def _deploy_basket(cls, **kwargs: Any):
+    def _deploy_basket(cls, **kwargs: Any) -> None:
         """Deploy basket"""
 
         basket_factory_address, _ = cls.dependency_info["basket_factory"]
@@ -131,15 +123,18 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
 
         time.sleep(3)  # wait for the transaction to settle
 
-        basket_info = BasketFactoryContract.get_basket_address(
-            cls.ledger_api,
-            basket_factory_address,
-            tx_hash,
+        basket_info = cast(
+            Dict,
+            BasketFactoryContract.get_basket_address(
+                cls.ledger_api,
+                basket_factory_address,
+                str(tx_hash),
+            ),
         )
-        cls.contract_address = basket_info["basket_address"]
+        cls.contract_address = str(basket_info["basket_address"])
 
     @classmethod
-    def _permission_vault_factory(cls):
+    def _permission_vault_factory(cls) -> None:
         """Permission the vault factory to use the basket"""
 
         basket_address, basket_contract = cls.dependency_info["basket"]
@@ -163,10 +158,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         assert tx_hash is not None, "Tx hash is none"
 
     @classmethod
-    def _deploy_token_vault(
-            cls,
-            **kwargs: Any
-    ):
+    def _deploy_token_vault(cls, **kwargs: Any) -> None:
         """Deploy the Token Vault"""
         tx = cls.contract.get_deploy_transaction(
             ledger_api=cls.ledger_api,
@@ -181,7 +173,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         time.sleep(3)  # wait for the transaction to settle
 
         address, contract = cls.dependency_info["token_vault_factory"]
-        contract = cast(contract, TokenVaultFactoryContract)
+        contract = cast(TokenVaultFactoryContract, contract)
 
         cls.contract_address = contract.get_vault(
             ledger_api=cls.ledger_api,
@@ -189,7 +181,9 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
             index=0,
         )
 
-        assert cls.contract_address != '0x0000000000000000000000000000000000000000', "couldn't create vault"
+        assert (
+            cls.contract_address != "0x0000000000000000000000000000000000000000"
+        ), "couldn't create vault"
 
     @classmethod
     def deploy(cls, **kwargs: Any) -> None:
@@ -230,7 +224,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
 
         raw_tx = self.contract.kick_curator(
             ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+            contract_address=str(self.contract_address),
             sender_address=self.deployer_crypto.address,
             curator_address=new_curator.address,
             gas=DEFAULT_GAS,
@@ -244,8 +238,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         time.sleep(3)  # give 3 seconds for the transaction to go through
 
         contract = TokenVaultContract.get_instance(
-            self.ledger_api,
-            self.contract_address
+            self.ledger_api, self.contract_address
         )
 
         actual_value = contract.functions.curator().call()
@@ -262,7 +255,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
 
         raw_tx = self.contract.transfer_erc20(
             ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+            contract_address=str(self.contract_address),
             sender_address=self.deployer_crypto.address,
             receiver_address=receiver.address,
             amount=3,
@@ -277,8 +270,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         time.sleep(3)  # give 3 seconds for the transaction to go through
 
         contract = TokenVaultContract.get_instance(
-            self.ledger_api,
-            self.contract_address
+            self.ledger_api, self.contract_address
         )
 
         actual_value = contract.functions.balanceOf(receiver.address).call()
@@ -286,35 +278,35 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
 
         assert actual_value == expected_value, "transfer of tokens was not made"
 
-    def test_get_balance(self):
+    def test_get_balance(self) -> None:
         """Test that get_balance returns the correct value"""
 
         contract = TokenVaultContract.get_instance(
-            self.ledger_api,
-            self.contract_address
+            self.ledger_api, self.contract_address
         )
 
         actual_value = self.contract.get_balance(
             self.ledger_api,
-            self.contract_address,
+            str(self.contract_address),
             self.deployer_crypto.address,
         )
 
-        expected_value = contract.functions.balanceOf(self.deployer_crypto.address).call()
+        expected_value = contract.functions.balanceOf(
+            self.deployer_crypto.address
+        ).call()
 
         assert actual_value == expected_value, "get_balance returned the wrong value"
 
-    def test_get_curator(self):
+    def test_get_curator(self) -> None:
         """Test that get_curator returns the correct value"""
 
         contract = TokenVaultContract.get_instance(
-            self.ledger_api,
-            self.contract_address
+            self.ledger_api, self.contract_address
         )
 
         actual_value = self.contract.get_curator(
             self.ledger_api,
-            self.contract_address,
+            str(self.contract_address),
         )
 
         expected_value = contract.functions.curator().call()

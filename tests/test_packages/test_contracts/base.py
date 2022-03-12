@@ -37,7 +37,6 @@ from aea_ledger_ethereum import (
     EthereumCrypto,
 )
 
-from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 from tests.fixture_helpers import (
     GanacheBaseTest,
     HardHatAMMBaseTest,
@@ -137,7 +136,7 @@ class BaseContractWithDependencyTest(BaseContractTest):
     dependency_info: Dict[str, Tuple[str, Contract]] = {}
 
     @classmethod
-    def _deploy_dependencies(cls):
+    def _deploy_dependencies(cls) -> None:
         """Deploy the dependencies"""
 
         original_contract_directory = cls.contract_directory
@@ -148,7 +147,7 @@ class BaseContractWithDependencyTest(BaseContractTest):
             cls.contract_directory = path
             cls.contract = get_register_contract(cls.contract_directory)
 
-            deps = kwargs.pop('deps', {})  # dependencies this contract has
+            deps = kwargs.pop("deps", {})  # dependencies this contract has
 
             for dep_name, dep in deps.items():
                 dep_address, _ = cls.dependency_info[dep]
@@ -156,7 +155,7 @@ class BaseContractWithDependencyTest(BaseContractTest):
 
             cls.deploy(**kwargs)
 
-            cls.dependency_info[label] = (cls.contract_address, cls.contract)
+            cls.dependency_info[label] = (str(cls.contract_address), cls.contract)
 
         # reset class vars to their initial state
         cls.contract_directory = original_contract_directory
@@ -199,13 +198,19 @@ class BaseContractWithDependencyTest(BaseContractTest):
         assert cls.contract_address is not None, "Contract not deployed."
 
 
-class BaseGanacheContractWithDependencyTest(BaseContractWithDependencyTest, GanacheBaseTest):
+class BaseGanacheContractWithDependencyTest(
+    BaseContractWithDependencyTest, GanacheBaseTest
+):
     """Base test case for testing contracts on Ganache."""
 
 
-class BaseHardhatGnosisContractWithDependencyTest(BaseContractWithDependencyTest, HardHatGnosisBaseTest):
+class BaseHardhatGnosisContractWithDependencyTest(
+    BaseContractWithDependencyTest, HardHatGnosisBaseTest
+):
     """Base test case for testing contracts on Hardhat with Gnosis."""
 
 
-class BaseHardhatAMMContractWithDependencyTest(BaseContractWithDependencyTest, HardHatAMMBaseTest):
+class BaseHardhatAMMContractWithDependencyTest(
+    BaseContractWithDependencyTest, HardHatAMMBaseTest
+):
     """Base test case for testing AMM contracts on Hardhat."""

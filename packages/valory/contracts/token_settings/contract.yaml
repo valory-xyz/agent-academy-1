@@ -7,9 +7,9 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmcRTDz9bUBUaXGwCgn7wombfH9sEtP7Wgz9sVnxFcvJD1
-  __init__.py: QmaRwA91m9Rdfaq9u3FH1fdMVxw1wFPjKL38czkWMxh3KB
+  __init__.py: QmS1hDj9B77dePME7aGaFHsoh35cMw6Jfsb9ZfMeqcm1JM
   build/TokenSettings.json: QmXJ6eBMcrF3SUjVT1tBp91SjDpWKFsdXQ2sP46gPEEtMD
-  contract.py: QmRHzYAHBMKP4Dyj4r6vx9FaNoGV6nwrj3oTP8r3z6pD2U
+  contract.py: QmcSL17pBKw8cYtwVjQDWnYX4ymBfZQVmEXRLUZigUthoS
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: TokenSettingsContract

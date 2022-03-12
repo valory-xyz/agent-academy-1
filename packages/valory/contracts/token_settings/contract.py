@@ -26,7 +26,8 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from web3.types import TxParams, Wei, Nonce
+from web3.types import Nonce, TxParams, Wei
+
 
 PUBLIC_ID = PublicId.from_str("valory/token_settings:0.1.0")
 
@@ -42,7 +43,7 @@ class TokenSettingsContract(Contract):
 
     @classmethod
     def get_deploy_transaction(
-            cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
+        cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """
         Get deploy transaction.
@@ -55,28 +56,67 @@ class TokenSettingsContract(Contract):
         return super().get_deploy_transaction(ledger_api, deployer_address, **kwargs)
 
     @classmethod
-    def get_raw_transaction(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]:
+    def get_raw_transaction(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> Optional[JSONLike]:
+        """
+        Handler method for the 'GET_RAW_TRANSACTION' requests.
+
+        Implement this method in the subclass if you want
+        to handle the contract requests manually.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param kwargs: the keyword arguments.
+        :return: the tx  # noqa: DAR202
+        """
         raise NotImplementedError
 
     @classmethod
-    def get_raw_message(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[bytes]:
+    def get_raw_message(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> bytes:
+        """
+        Handler method for the 'GET_RAW_MESSAGE' requests.
+
+        Implement this method in the subclass if you want
+        to handle the contract requests manually.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param kwargs: the keyword arguments.
+        :return: the tx  # noqa: DAR202
+        """
         raise NotImplementedError
 
     @classmethod
-    def get_state(cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any) -> Optional[JSONLike]:
+    def get_state(
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+    ) -> JSONLike:
+        """
+        Handler method for the 'GET_STATE' requests.
+
+        Implement this method in the subclass if you want
+        to handle the contract requests manually.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param kwargs: the keyword arguments.
+        :return: the tx  # noqa: DAR202
+        """
         raise NotImplementedError
 
     @classmethod
     def transfer_ownership(
-            cls,
-            ledger_api: LedgerApi,
-            contract_address: str,
-            current_owner_address: str,
-            new_owner_address: str,
-            gas: Optional[int] = None,
-            gas_price: Optional[int] = None,
-            max_fee_per_gas: Optional[int] = None,
-            max_priority_fee_per_gas: Optional[int] = None,
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        current_owner_address: str,
+        new_owner_address: str,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Transfer the ownership of the Settings Contract.
@@ -92,7 +132,7 @@ class TokenSettingsContract(Contract):
 
         :return: the raw transaction.
         """
-        ledger_api = cast(EthereumApi, ledger_api)
+        eth_api = cast(EthereumApi, ledger_api)
         settings_contract = cls.get_instance(ledger_api, contract_address)
 
         tx_parameters = TxParams()
@@ -109,40 +149,40 @@ class TokenSettingsContract(Contract):
             )
 
         if (
-                gas_price is None
-                and max_fee_per_gas is None
-                and max_priority_fee_per_gas is None
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
         ):
-            tx_parameters.update(ledger_api.try_get_gas_pricing())
+            tx_parameters.update(eth_api.try_get_gas_pricing())
 
         if gas is not None:
             tx_parameters["gas"] = Wei(gas)
 
-        nonce = (
-            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
-                current_owner_address
-            )
+        nonce = eth_api._try_get_transaction_count(  # pylint: disable=protected-access
+            current_owner_address
         )
         tx_parameters["nonce"] = Nonce(nonce)
 
         if nonce is None:
             raise ValueError("No nonce returned.")  # pragma: nocover
 
-        transaction_dict = settings_contract.functions.transferOwnership(new_owner_address).buildTransaction(tx_parameters)
+        transaction_dict = settings_contract.functions.transferOwnership(
+            new_owner_address
+        ).buildTransaction(tx_parameters)
 
         return transaction_dict
 
     @classmethod
     def set_fee_receiver(
-            cls,
-            ledger_api: LedgerApi,
-            contract_address: str,
-            owner_address: str,
-            new_receiver_address: str,
-            gas: Optional[int] = None,
-            gas_price: Optional[int] = None,
-            max_fee_per_gas: Optional[int] = None,
-            max_priority_fee_per_gas: Optional[int] = None,
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        owner_address: str,
+        new_receiver_address: str,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Change the fee receiver of the contract.
@@ -150,7 +190,7 @@ class TokenSettingsContract(Contract):
         :param ledger_api: ledger API object.
         :param contract_address: the address of the contract.
         :param new_receiver_address: the deployer address.
-        :parma owner_address: the owner of the contract
+        :param owner_address: the owner of the contract
         :param gas: Gas
         :param gas_price: Gas Price
         :param max_fee_per_gas: max
@@ -158,7 +198,7 @@ class TokenSettingsContract(Contract):
 
         :return: the raw tx.
         """
-        ledger_api = cast(EthereumApi, ledger_api)
+        eth_api = cast(EthereumApi, ledger_api)
         settings_contract = cls.get_instance(ledger_api, contract_address)
 
         tx_parameters = TxParams()
@@ -175,32 +215,35 @@ class TokenSettingsContract(Contract):
             )
 
         if (
-                gas_price is None
-                and max_fee_per_gas is None
-                and max_priority_fee_per_gas is None
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
         ):
-            tx_parameters.update(ledger_api.try_get_gas_pricing())
+            tx_parameters.update(eth_api.try_get_gas_pricing())
 
         if gas is not None:
             tx_parameters["gas"] = Wei(gas)
 
-        nonce = (
-            ledger_api._try_get_transaction_count(  # pylint: disable=protected-access
-                owner_address
-            )
+        nonce = eth_api._try_get_transaction_count(  # pylint: disable=protected-access
+            owner_address
         )
         tx_parameters["nonce"] = Nonce(nonce)
 
         if nonce is None:
             raise ValueError("No nonce returned.")  # pragma: nocover
 
-        raw_tx = settings_contract.functions.setFeeReceiver(new_receiver_address).buildTransaction(tx_parameters)
+        raw_tx = settings_contract.functions.setFeeReceiver(
+            new_receiver_address
+        ).buildTransaction(tx_parameters)
 
         return raw_tx
 
     @classmethod
     def verify_contract(
-            cls, ledger_api: EthereumApi, contract_address: str, expected_owner_address: str,
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        expected_owner_address: str,
     ) -> JSONLike:
         """
         Verify the contract's bytecode, owner and fee receiver
@@ -217,7 +260,9 @@ class TokenSettingsContract(Contract):
 
         is_bytecode_ok = deployed_bytecode == local_bytecode
         is_owner_ok = expected_owner_address == contract.functions.owner().call()
-        is_fee_receiver_ok = expected_owner_address == contract.functions.feeReceiver().call()
+        is_fee_receiver_ok = (
+            expected_owner_address == contract.functions.feeReceiver().call()
+        )
 
         return dict(
             bytecode=is_bytecode_ok,

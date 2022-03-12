@@ -68,6 +68,7 @@ GANACHE_CONFIGURATION = dict(
     ],
 )
 
+
 @pytest.fixture()
 def key_pairs() -> List[Tuple[str, str]]:
     """Get the default key paris for hardhat."""

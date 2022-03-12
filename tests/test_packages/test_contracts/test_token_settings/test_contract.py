@@ -26,11 +26,10 @@ from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 
 from packages.valory.contracts.token_settings.contract import TokenSettingsContract
-from tests.conftest import (
-    ROOT_DIR,
-    ETHEREUM_KEY_PATH_2,
-)
+
+from tests.conftest import ETHEREUM_KEY_PATH_2, ROOT_DIR
 from tests.test_packages.test_contracts.base import BaseGanacheContractTest
+
 
 DEFAULT_GAS = 10000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
@@ -52,7 +51,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
             gas=DEFAULT_GAS,
         )
 
-    def test_transfer_ownership(self):
+    def test_transfer_ownership(self) -> None:
         """Test fee_reciever change then test ownership change"""
 
         # test changing fee receiver
@@ -62,7 +61,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
 
         tx = self.contract.set_fee_receiver(
             ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+            contract_address=str(self.contract_address),
             owner_address=self.deployer_crypto.address,
             new_receiver_address=new_receiver.address,
             gas=DEFAULT_GAS,
@@ -75,10 +74,14 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
 
         time.sleep(3)  # give 3 seconds for the transaction to go through
 
-        contract = TokenSettingsContract.get_instance(self.ledger_api, contract_address=self.contract_address)
+        contract = TokenSettingsContract.get_instance(
+            self.ledger_api, contract_address=self.contract_address
+        )
         fee_receiver = contract.functions.feeReceiver().call()
 
-        assert fee_receiver == new_receiver.address, f"Expected the fee receiver to be: {new_receiver.address}"
+        assert (
+            fee_receiver == new_receiver.address
+        ), f"Expected the fee receiver to be: {new_receiver.address}"
 
         # test changing owner
         new_owner = crypto_registry.make(
@@ -87,7 +90,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
 
         tx = self.contract.transfer_ownership(
             ledger_api=self.ledger_api,
-            contract_address=self.contract_address,
+            contract_address=str(self.contract_address),
             current_owner_address=self.deployer_crypto.address,
             new_owner_address=new_owner.address,
             gas=DEFAULT_GAS,
@@ -100,10 +103,14 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
 
         time.sleep(3)  # give 3 seconds for the transaction to go through
 
-        contract = TokenSettingsContract.get_instance(self.ledger_api, contract_address=self.contract_address)
+        contract = TokenSettingsContract.get_instance(
+            self.ledger_api, contract_address=self.contract_address
+        )
         contract_owner = contract.functions.owner().call()
 
-        assert contract_owner == new_owner.address, f"Expected the owner to be: {new_owner.address}"
+        assert (
+            contract_owner == new_owner.address
+        ), f"Expected the owner to be: {new_owner.address}"
 
     def test_verify(self) -> None:
         """Test verification of deployed contract results."""
@@ -115,7 +122,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
         result = self.contract.verify_contract(
             ledger_api=self.ledger_api,
             contract_address=self.contract_address,
-            expected_owner_address=new_receiver.address
+            expected_owner_address=new_receiver.address,
         )
 
         assert result["bytecode"], "The bytecode was incorrect."

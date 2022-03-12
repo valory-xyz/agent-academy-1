@@ -24,10 +24,12 @@ from typing import Any, Dict, Optional, cast
 
 from packages.valory.contracts.basket.contract import BasketContract
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
-from tests.conftest import (
-    ROOT_DIR,
+
+from tests.conftest import ROOT_DIR
+from tests.test_packages.test_contracts.base import (
+    BaseGanacheContractWithDependencyTest,
 )
-from tests.test_packages.test_contracts.base import BaseGanacheContractWithDependencyTest
+
 
 DEFAULT_GAS = 10000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
@@ -37,19 +39,15 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 class TestBasket(BaseGanacheContractWithDependencyTest):
     """Test deployment of the proxy to Ganache."""
 
-    contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "basket"
-    )
+    contract_directory = Path(ROOT_DIR, "packages", "valory", "contracts", "basket")
     contract: BasketContract
     dependencies = [
         (
             "basket_factory",
-            Path(
-                ROOT_DIR, "packages", "valory", "contracts", "basket_factory"
-            ),
+            Path(ROOT_DIR, "packages", "valory", "contracts", "basket_factory"),
             dict(
                 gas=DEFAULT_GAS,
-            )
+            ),
         )
     ]
     create_basket_tx_hash: Optional[str] = None
@@ -74,9 +72,11 @@ class TestBasket(BaseGanacheContractWithDependencyTest):
         tx_signed = cls.deployer_crypto.sign_transaction(tx)
         tx_hash = cls.ledger_api.send_signed_transaction(tx_signed)
 
-        time.sleep(3) # wait for the transaction to settle
+        time.sleep(3)  # wait for the transaction to settle
 
-        cls.contract_address = "0x" # to avoid failing test because of missing contract address
+        cls.contract_address = (
+            "0x"  # to avoid failing test because of missing contract address
+        )
         cls.create_basket_tx_hash = tx_hash
 
     @classmethod
@@ -90,29 +90,37 @@ class TestBasket(BaseGanacheContractWithDependencyTest):
             is_basket=True,
         )
 
-    def test_deploy_and_verify(self):
+    def test_deploy_and_verify(self) -> None:
         """Test that the contract is deployed, then check if the bytecode is deployed correctly"""
 
         assert self.create_basket_tx_hash is not None, "createBasket hasn't been called"
 
-        basket_factory_address, basket_factory_contract = self.dependency_info["basket_factory"]
+        basket_factory_address, basket_factory_contract = self.dependency_info[
+            "basket_factory"
+        ]
         basket_factory_contract = cast(BasketFactoryContract, basket_factory_contract)
 
         basket_info = basket_factory_contract.get_basket_address(
             ledger_api=self.ledger_api,
             factory_contract=basket_factory_address,
-            tx_hash=self.create_basket_tx_hash
+            tx_hash=self.create_basket_tx_hash,
         )
 
         assert basket_info is not None, "couldn't get the basket data"
-        assert basket_info["basket_address"] is not None, "contract_address should not be None"
-        assert basket_info["creator_address"] is not None, "creator_address should not be None"
-        assert basket_info["creator_address"] == self.deployer_crypto.address, "creator_address doesnt match signer"
+        assert (
+            basket_info["basket_address"] is not None
+        ), "contract_address should not be None"
+        assert (
+            basket_info["creator_address"] is not None
+        ), "creator_address should not be None"
+        assert (
+            basket_info["creator_address"] == self.deployer_crypto.address
+        ), "creator_address doesnt match signer"
 
         # verify the contract is deployed correctly
         result = self.contract.verify_contract(
             ledger_api=self.ledger_api,
-            contract_address=basket_info["basket_address"],
+            contract_address=str(basket_info["basket_address"]),
         )
 
         assert result["verified"], "Contract not verified."
