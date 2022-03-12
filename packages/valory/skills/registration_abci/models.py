@@ -17,4 +17,25 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for Valory's contracts."""
+"""This module contains the shared state for the registration abci skill."""
+
+from typing import Any
+
+from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
+from packages.valory.skills.abstract_round_abci.models import (
+    SharedState as BaseSharedState,
+)
+from packages.valory.skills.registration_abci.rounds import AgentRegistrationAbciApp
+
+
+class SharedState(BaseSharedState):
+    """Keep the current shared state of the skill."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the state."""
+        super().__init__(*args, abci_app_cls=AgentRegistrationAbciApp, **kwargs)
+
+
+Params = BaseParams
+Requests = BaseRequests

@@ -9,13 +9,18 @@ fingerprint:
   README.md: QmYNXPppPSnW61ipqKNH8pyMh8qzTERwQaducYYq1dnBJb
   __init__.py: QmPuJK7gMKruSTcaYk9otrFncfD9h6vBZVoAtkwhTBgcxa
   abci_app_chain.py: QmeCPxwjec4pxtedv8NeG2Gmj58GY2GycXvgwfyjEyqPGm
-  base.py: QmQLuSVLtRRskbAyZRCf89udL76n3ezXd8HaDxxasNkG4F
-  behaviour_utils.py: QmZYvQSK1wuxdJsYNW8DfwXTYN7ikc1eoobLnfJrUjhPVG
-  behaviours.py: QmNZiFSYdw7jes51c8Go4jykSSjoQWHtYt1DcLShrfHHCg
+  base.py: QmS1dPDgTpU1boSPHfZySUuYaVEWtvMFtCP7AK2QT4WHgb
+  behaviour_utils.py: Qmd5mPbZw7LLhQDLFDevkRHgVu14mgrCe5pgeMhxe6mF6n
+  behaviours.py: QmNVt88WsMUfvYs33dDzLWH18T1jUzWa9noczfcWfZd8bX
   common.py: QmdoSkkkCRqoHX9T2rnPLpii5KVvEmibktKDik3pe2mNB7
   dialogues.py: QmemiTJxfwp2PFxFQyAUHTx8FsthhWL3mYgonBhC3cTjWH
-  handlers.py: QmX82xDvh14N4LFLGMpA2FyKjh1KwNCSQqY1LSjZzgoWC9
-  models.py: QmTkJFZ8r4JKECKuW8au4Qc1Lce8re4C8hzJeFzn4DEpWs
+  handlers.py: QmZ5g9Mc9wqTt3699yweN46XJN5XU5yQnurjGP9spwi3iL
+  io/__init__.py: QmPfA2syTybFaGmmMMt5gevZHEXPyjVf7wR1UE22NzpZZ3
+  io/ipfs.py: QmWic3FTmyjGbDTKxPzH5vSH8vjhbkNB7qWBUXW57FTpy1
+  io/load.py: QmcQYtKgpJZBb3WAVsqqyxLfy5SfxiJ28h1L1qE6HBbMSV
+  io/paths.py: QmT1e6Ygak8Fe4NxSrd2mb6EB1Rr6dsYZPL8dWh3aNMb12
+  io/store.py: QmUa5sLTW8dkhx2KK3iNoHFNss9BRrQ2bTMrad7hx54LdL
+  models.py: QmR6bqX89CzqCQY1jVWG1cHprwcr15R6BVeBGGVMkpJrAB
   serializer.py: QmV1rutPMEPbbMVwvM4My6s8fwT7S9KhgLTqrbjHLEfdJG
   utils.py: QmTQgTJGJZT352mKxUgaVEdDEreh8Khd2MnXhoq6wzD5HD
 fingerprint_ignore_patterns: []
@@ -77,6 +82,14 @@ models:
     args: {}
     class_name: SharedState
 dependencies:
+  joblib:
+    version: <1.2,>=1.1.0
+  open-aea-cli-ipfs:
+    version: <2.0.0,>=1.5.0
+  pandas:
+    version: <1.4,>=1.3.4
+  pmdarima:
+    version: <1.9,>=1.8.4
   py-ecc:
     version: ==5.2.0
 is_abstract: true

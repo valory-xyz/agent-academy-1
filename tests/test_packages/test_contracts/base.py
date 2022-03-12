@@ -128,7 +128,6 @@ class BaseHardhatGnosisContractTest(BaseContractTest, HardHatGnosisBaseTest):
 class BaseHardhatAMMContractTest(BaseContractTest, HardHatAMMBaseTest):
     """Base test case for testing AMM contracts on Hardhat."""
 
-
 class BaseContractWithDependencyTest(BaseContractTest):
     """Base test contract with contract dependencies"""
 

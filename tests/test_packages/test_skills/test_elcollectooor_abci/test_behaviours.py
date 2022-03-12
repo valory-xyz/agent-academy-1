@@ -22,10 +22,11 @@ import json
 import logging
 import time
 from copy import copy
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Type, cast
 from unittest import mock
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 from aea.helpers.transaction.base import SignedMessage, State
 from aea.test_tools.test_skill import BaseSkillTestCase
@@ -53,12 +54,13 @@ from packages.valory.skills.abstract_round_abci.base import (
     StateDB,
     _MetaPayload,
 )
-from packages.valory.skills.abstract_round_abci.behaviour_utils import BaseState
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    AbstractRoundBehaviour,
+    BaseState,
+)
 from packages.valory.skills.elcollectooor_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
-    ElCollectooorFullRoundBehaviour,
     ObservationRoundBehaviour,
     ResetFromObservationBehaviour,
     TransactionRoundBehaviour,
@@ -95,13 +97,12 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
 
     path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "elcollectooor_abci")
 
-    elcollectooor_abci_behaviour: ElCollectooorFullRoundBehaviour
+    elcollectooor_abci_behaviour: AbstractRoundBehaviour
     ledger_handler: LedgerApiHandler
     http_handler: HttpHandler
     contract_handler: ContractApiHandler
     signing_handler: SigningHandler
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
-    period_state: PeriodState
 
     @classmethod
     def setup(cls, **kwargs: Any) -> None:
@@ -109,7 +110,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         # we need to store the current value of the meta-class attribute
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
         # in the teardown function. We do a shallow copy so we avoid
-        # modifying the old mapping during the execution of the tests.
+        # to modify the old mapping during the execution of the tests.
         cls.old_tx_type_to_payload_cls = copy(
             _MetaPayload.transaction_type_to_payload_cls
         )
@@ -121,7 +122,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         )
         cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
         cls.elcollectooor_abci_behaviour = cast(
-            ElCollectooorFullRoundBehaviour,
+            AbstractRoundBehaviour,
             cls._skill.skill_context.behaviours.main,
         )
         cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)
@@ -135,13 +136,21 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
         )
 
+        if kwargs.get("param_overrides") is not None:
+            for param_name, param_value in kwargs["param_overrides"].items():
+                setattr(
+                    cls.elcollectooor_abci_behaviour.context.params,
+                    param_name,
+                    param_value,
+                )
+
         cls.elcollectooor_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
+        cls._skill.skill_context.state.period.end_sync()
         assert (
             cast(BaseState, cls.elcollectooor_abci_behaviour.current_state).state_id
             == cls.elcollectooor_abci_behaviour.initial_state_cls.state_id
         )
-        cls.period_state = PeriodState(StateDB(initial_period=0, initial_data={}))
 
     def fast_forward_to_state(
         self,
@@ -242,7 +251,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             to=str(self.skill.skill_context.skill_id),
             sender=str(LEDGER_CONNECTION_PUBLIC_ID),
             ledger_id="ethereum",
-            contract_id=contract_id,
+            contract_id="mock_contract_id",
             **response_kwargs,
         )
         self.contract_handler.handle(incoming_message)
@@ -291,7 +300,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         has_attributes, error_str = self.message_has_attributes(
             actual_message=actual_signing_message,
             message_type=SigningMessage,
-            to="dummy_decision_maker_address",
+            to=self.skill.skill_context.decision_maker_address,
             sender=str(self.skill.skill_context.skill_id),
             **request_kwargs,
         )
@@ -302,7 +311,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             target=actual_signing_message.message_id,
             message_id=-1,
             to=str(self.skill.skill_context.skill_id),
-            sender="dummy_decision_maker_address",
+            sender=self.skill.skill_context.decision_maker_address,
             **response_kwargs,
         )
         self.signing_handler.handle(incoming_message)
@@ -360,7 +369,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             ),
         )
 
-    def end_round(self, event: Event = Event.DONE) -> None:
+    def end_round(self, event: Enum = Event.DONE) -> None:
         """Ends round early to cover `wait_for_end` generator."""
         current_state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         if current_state is None:
@@ -379,14 +388,13 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
 
     def _test_done_flag_set(self) -> None:
         """Test that, when round ends, the 'done' flag is set."""
-        current_state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)  # type: ignore
-        assert not self.elcollectooor_abci_behaviour.current_state.is_done()  # type: ignore
+        current_state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        assert not current_state.is_done()
         with mock.patch.object(
-            self.elcollectooor_abci_behaviour.context.state, "period"
+            self.elcollectooor_abci_behaviour.context.state, "_period"
         ) as mock_period:
             mock_period.last_round_id = cast(
-                AbstractRound,
-                self.elcollectooor_abci_behaviour.current_state.matching_round,  # type: ignore
+                AbstractRound, current_state.matching_round
             ).round_id
             current_state.act_wrapper()
             assert current_state.is_done()
@@ -728,41 +736,11 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
                 ),
             )
 
-            mock_logger.assert_any_call(
-                logging.ERROR,
-                "project_id couldn't be extracted from contract response",
-            )
+            mock_logger.assert_any_call(logging.ERROR, ANY)
 
             self.elcollectooor_abci_behaviour.act_wrapper()
             time.sleep(1.1)
             self.elcollectooor_abci_behaviour.act_wrapper()
-
-    def test_contract_retries_are_exceeded(self) -> None:
-        """Test with max retries reached."""
-        self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict())),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-
-        self.elcollectooor_abci_behaviour.act_wrapper()
-
-        with mock.patch.object(
-            target=self.behaviour_class,
-            attribute="is_retries_exceeded",
-            return_value=True,
-        ):
-            assert self.behaviour_class.is_retries_exceeded()  # type: ignore
-            state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-            assert state.state_id == self.behaviour_class.state_id
-            # self._test_done_flag_set() # TODO: make this work
 
 
 class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
@@ -1161,50 +1139,10 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         self.mock_a2a_transaction()
-        self.end_round()
+        self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_retries_exceeded(self) -> None:
-        """The agent gathers the necessary data to make the purchase, makes a contract requests and receives invalid data the agent should retry"""
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "ipfs_hash": "",
-        }
-
-        self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict(most_voted_project=json.dumps(test_project)))),
-        )
-
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-
-        self.elcollectooor_abci_behaviour.act_wrapper()
-
-        with mock.patch.object(
-            target=self.behaviour_class,
-            attribute="is_retries_exceeded",
-            return_value=True,
-        ):
-            assert self.behaviour_class.is_retries_exceeded()  # type: ignore
-            state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
-            assert state.state_id == self.behaviour_class.state_id
-            # self._test_done_flag_set() # TODO: make this work
 
 
 class TestDecisionModel:
