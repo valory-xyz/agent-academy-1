@@ -1,0 +1,19 @@
+name: token_settings
+author: valory
+version: 0.1.0
+type: contract
+description: Fractional Token Settings contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmcRTDz9bUBUaXGwCgn7wombfH9sEtP7Wgz9sVnxFcvJD1
+  __init__.py: QmZkFz6MN9UmmHgtQ32q1Gt35TFiR1sLJ5Bw6PVgCL8kN1
+  build/TokenSettings.json: QmXJ6eBMcrF3SUjVT1tBp91SjDpWKFsdXQ2sP46gPEEtMD
+  contract.py: QmcSL17pBKw8cYtwVjQDWnYX4ymBfZQVmEXRLUZigUthoS
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: TokenSettingsContract
+contract_interface_paths:
+  ethereum: build/TokenSettings.json
+dependencies:
+  py-eth-sig-utils: {}

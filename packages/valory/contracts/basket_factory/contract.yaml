@@ -1,0 +1,20 @@
+name: basket_factory
+author: valory
+version: 0.1.0
+type: contract
+description: Fractional Basket Factory contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmdqbfimghaQvJe5TGroKTxZUCdGEL6v1DGk8fK2v6mhfs
+  __init__.py: QmPpQFS7rtv7AeERadhkY3m3ixMS9i5JdYfXE6iGUcUuUK
+  build/BasketFactory.json: QmcRSrAXPGVibysuBc95RiykuBSeyX3Q6GfjS1ozjtZSg4
+  contract.py: QmcqfPcgaPUMWK4fAbMRTMNpBmYemaukdZXRtWJL48bA9m
+fingerprint_ignore_patterns: []
+contracts:
+- valory/basket_factory:0.1.0
+class_name: BasketFactoryContract
+contract_interface_paths:
+  ethereum: build/BasketFactory.json
+dependencies:
+  py-eth-sig-utils: {}

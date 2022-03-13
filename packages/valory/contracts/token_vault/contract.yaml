@@ -1,0 +1,20 @@
+name: token_vault
+author: valory
+version: 0.1.0
+type: contract
+description: Fractional Token Vault contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: Qme8wotyeEGfWmapjicTZSjAARhukPrgzccjVx77fbFy34
+  __init__.py: QmPpQFS7rtv7AeERadhkY3m3ixMS9i5JdYfXE6iGUcUuUK
+  build/TokenVault.json: QmfEMhE6yr6sssHKzs7soyX8gzNirDX5Vwok4KscvdhBkg
+  contract.py: QmTu6J2T6cfJSUNgLK16XtaWwHRn7iS5rQ6d4tEociczqV
+fingerprint_ignore_patterns: []
+contracts:
+- valory/token_vault_factory:0.1.0
+class_name: TokenVaultContract
+contract_interface_paths:
+  ethereum: build/TokenVault.json
+dependencies:
+  py-eth-sig-utils: {}
