@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 valory
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,14 +17,23 @@
 #
 # ------------------------------------------------------------------------------
 
-"""
-This module contains the support resources for the contract_api protocol.
+"""This module contains the handler for the 'reset_pause_abci' skill."""
 
-It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.6.0`.
-"""
+from packages.valory.skills.abstract_round_abci.handlers import (
+    ContractApiHandler as AbstractRoundContractApiHandler,
+)
+from packages.valory.skills.abstract_round_abci.handlers import (
+    HttpHandler as BaseHttpHandler,
+)
+from packages.valory.skills.abstract_round_abci.handlers import (
+    LedgerApiHandler as AbstractRoundLedgerApiHandler,
+)
+from packages.valory.skills.abstract_round_abci.handlers import (
+    SigningHandler as BaseSigningHandler,
+)
 
-from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.protocols.contract_api.serialization import ContractApiSerializer
 
-
-ContractApiMessage.serializer = ContractApiSerializer
+HttpHandler = BaseHttpHandler
+SigningHandler = BaseSigningHandler
+ContractApiHandler = AbstractRoundContractApiHandler
+LedgerApiHandler = AbstractRoundLedgerApiHandler
