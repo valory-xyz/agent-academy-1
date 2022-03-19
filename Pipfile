@@ -4,8 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea-ledger-ethereum = "<2.0.0,>=1.5.0"
-open-aea-cli-ipfs = "<2.0.0,>=1.5.0"
+open-aea-ledger-ethereum = "<2.0.0,>=1.6.0"
+open-aea-cli-ipfs = "<2.0.0,>=1.6.0"
 tox = "*"
 
 [dev-packages]
@@ -53,7 +53,7 @@ vulture = "==2.3"
 python_version = "3.8"
 
 [packages.open-aea]
-version = "<2.0.0,>=1.4.0.post1"
+version = "<2.0.0,>=1.6.0"
 extras = [ "all",]
 
 [dev-packages.mkdocs-mermaid-plugin]

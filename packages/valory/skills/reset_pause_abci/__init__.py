@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2022 valory
+#   Copyright 2021-2022 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -17,14 +17,9 @@
 #
 # ------------------------------------------------------------------------------
 
-"""
-This module contains the support resources for the contract_api protocol.
+"""This module contains the Reset & Pause skill for an AEA."""
 
-It was created with protocol buffer compiler version `libprotoc 3.19.4` and aea version `1.6.0`.
-"""
-
-from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.protocols.contract_api.serialization import ContractApiSerializer
+from aea.configurations.base import PublicId
 
 
-ContractApiMessage.serializer = ContractApiSerializer
+PUBLIC_ID = PublicId.from_str("valory/reset_pause_abci:0.1.0")

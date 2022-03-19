@@ -1,30 +1,33 @@
-name: registration_abci
+name: reset_pause_abci
 author: valory
 version: 0.1.0
 type: skill
-description: ABCI application for common apps.
+description: ABCI application for resetting and pausing app executions.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmYgDsnQnryPwFXnaNTns1ypH9jqvYeHGgmP9K2y4tXFJy
-  __init__.py: QmcMo5TeB1s4UWwEwXT8Xdsw7nNXzwJe7YXE3RgsSwEp7R
-  behaviours.py: QmZUyyQWAXhPWY3ny2HZkykb5fJgHjkqxKPFVYfR1wCSh1
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_specification.yaml: QmPmcDVTn1PEZhTuZdxrA68thbvz1iCjM88cR8984Ez7Js
-  handlers.py: QmThK5PB67624VnCWmBXBz1MzwVp9XBWA97x3rsAwADnW1
-  models.py: QmP1o1MJF1qQtRurgzZ2fdRHWdu3G6xrTxUWy9GdYtHihT
-  payloads.py: QmdJ8VRZmEXnJWx4oNcizaxjgBtEhanFBY2cU3g4UWM7s5
-  rounds.py: QmaDFKBbYCYAekDFWT2trbDgcUvhFuor3EMaDBxjV6T6HK
+  README.md: Qmcvjeds5EyiUvea61GNy8YE4rYzvMDh79GJMhBz3NK7Q5
+  __init__.py: QmUFuoq77B1FjZSeHGAyW8AgJnGNh9Z1amEGK7UTH8iP7J
+  behaviours.py: Qmdf4yY3bEckHtkrqLd9z7JvrCvavdjSndBLRF8r9JDrHL
+  dialogues.py: Qmd54DnNEsybMJb78HTcW2HABVBZCL1FuQL8ELKq3xB6Jw
+  fsm_specification.yaml: QmNqaU5EuBQfJ9MstwNoHP4BU1uW6jMMHf7XPYsxdEcaWZ
+  handlers.py: QmetZ5zoEr9SSkqgR9zfWdB9CEsDeBQqrXypYZ1f9UAF6H
+  models.py: QmPegRgrqVr6fMECoYCd3k7VDKdndBNMTuiPVrGTM9SW3o
+  payloads.py: QmSds2L9BKR4157xqGgH22dG8ojq6hc1BG2JH9NgzhxgVp
+  rounds.py: QmfXwDXfqLQWS5THNPaz4N7rk515hJqyd3u4aV6W995FH1
 fingerprint_ignore_patterns: []
-connections: []
+connections:
+- valory/abci:0.1.0
 contracts: []
-protocols: []
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
 skills:
 - valory/abstract_round_abci:0.1.0
 behaviours:
   main:
     args: {}
-    class_name: AgentRegistrationRoundBehaviour
+    class_name: ResetPauseABCIConsensusBehaviour
 handlers:
   contract_api:
     args: {}
@@ -46,15 +49,9 @@ models:
     args:
       log_dir: /logs
     class_name: BenchmarkTool
-  contract_api_dialogues:
-    args: {}
-    class_name: ContractApiDialogues
   http_dialogues:
     args: {}
     class_name: HttpDialogues
-  ledger_api_dialogues:
-    args: {}
-    class_name: LedgerApiDialogues
   params:
     args:
       cleanup_history_depth: 1
@@ -64,11 +61,12 @@ models:
       keeper_timeout: 30.0
       max_healthcheck: 120
       observation_interval: 10
+      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
-      service_id: registration
+      service_id: reset_pause_abci
       sleep_time: 1
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
