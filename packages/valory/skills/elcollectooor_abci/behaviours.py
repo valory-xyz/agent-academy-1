@@ -69,7 +69,6 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 
 
-
 class ElCollectooorABCIBaseState(BaseState, ABC):
     """Base state behaviour for the El Collectooor abci skill."""
 
@@ -166,7 +165,7 @@ class BaseResetBehaviour(ElCollectooorABCIBaseState):
         """
         if self.pause:
             self.context.logger.info("Period end.")
-            benchmark_tool.save()
+            self.context.benchmark_tool.save()
             yield from self.sleep(self.params.observation_interval)
         else:
             self.context.logger.info(
