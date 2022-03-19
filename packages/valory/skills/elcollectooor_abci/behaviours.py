@@ -35,7 +35,6 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.abstract_round_abci.utils import BenchmarkTool
 from packages.valory.skills.elcollectooor_abci.models import Params, SharedState
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
@@ -70,8 +69,6 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 
 
-benchmark_tool = BenchmarkTool()
-
 
 class ElCollectooorABCIBaseState(BaseState, ABC):
     """Base state behaviour for the El Collectooor abci skill."""
@@ -96,7 +93,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
     def async_act(self) -> Generator:
         """The observation act."""
 
-        with benchmark_tool.measure(
+        with self.context.benchmark_tool.measure(
             self,
         ).local():
             project_details = {}
@@ -136,7 +133,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
                     f"project_id couldn't be extracted from contract response, e={e}"
                 )
 
-            with benchmark_tool.measure(
+            with self.context.benchmark_tool.measure(
                 self,
             ).consensus():
                 payload = ObservationPayload(
@@ -194,7 +191,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
     def async_act(self) -> Generator:
         """The details act"""
 
-        with benchmark_tool.measure(
+        with self.context.benchmark_tool.measure(
             self,
         ).local():
             # fetch an active project
@@ -218,7 +215,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
                 json.dumps(all_details),
             )
 
-        with benchmark_tool.measure(
+        with self.context.benchmark_tool.measure(
             self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -256,7 +253,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
 
     def async_act(self) -> Generator:
         """The Decision act"""
-        with benchmark_tool.measure(
+        with self.context.benchmark_tool.measure(
             self,
         ).local():
             # fetch an active project
@@ -277,7 +274,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
                 decision,
             )
 
-        with benchmark_tool.measure(
+        with self.context.benchmark_tool.measure(
             self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
@@ -316,7 +313,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         """Implement the act."""
         payload_data = ""
 
-        with benchmark_tool.measure(
+        with self.context.benchmark_tool.measure(
             self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
@@ -345,7 +342,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
             except AEAEnforceError as e:
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
-        with benchmark_tool.measure(
+        with self.context.benchmark_tool.measure(
             self,
         ).consensus():
             payload = TransactionPayload(
@@ -471,4 +468,4 @@ class ElCollectooorFullRoundBehaviour(AbstractRoundBehaviour):
     def setup(self) -> None:
         """Set up the behaviour."""
         super().setup()
-        benchmark_tool.logger = self.context.logger
+        self.context.benchmark_tool.logger = self.context.logger

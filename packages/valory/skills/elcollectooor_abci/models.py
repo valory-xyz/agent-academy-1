@@ -35,12 +35,14 @@ from packages.valory.skills.elcollectooor_abci.decision_models import (
 )
 from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
-
+from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
 
 MARGIN = 5
 
 Requests = BaseRequests
-
+BenchmarkTool = BaseBenchmarkTool
 
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
