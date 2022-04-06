@@ -1,4 +1,4 @@
-agent_name: elcollectooor
+agent_name: elcollectooorr
 author: valory
 version: 0.1.0
 license: Apache-2.0
@@ -25,7 +25,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
-- valory/elcollectooor_abci:0.1.0
+- valory/elcollectooorr_abci:0.1.0
 - valory/registration_abci:0.1.0
 - valory/safe_deployment_abci:0.1.0
 - valory/transaction_settlement_abci:0.1.0
@@ -58,4 +58,4 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/elcollectooor_abci:0.1.0
+  target_skill_id: valory/elcollectooorr_abci:0.1.0

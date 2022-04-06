@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the shared state for the 'elcollectooor_abci' application."""
+"""This module contains the shared state for the 'elcollectooorr_abci' application."""
 
 from typing import Any, Dict, Optional, Type
 
@@ -29,14 +29,14 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.elcollectooor_abci.decision_models import (
+from packages.valory.skills.elcollectooorr_abci.decision_models import (
     BaseDecisionModel,
     GibDetailsThenYesDecisionModel,
     NoDecisionModel,
     SimpleDecisionModel,
     YesDecisionModel,
 )
-from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
+from packages.valory.skills.elcollectooorr_abci.rounds import ElcollectooorrAbciApp, Event
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
 
@@ -51,28 +51,28 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, abci_app_cls=ElCollectooorAbciApp, **kwargs)
+        super().__init__(*args, abci_app_cls=ElcollectooorrAbciApp, **kwargs)
 
     def setup(self) -> None:
         """Set up."""
         super().setup()
-        ElCollectooorAbciApp.event_to_timeout[
+        ElcollectooorrAbciApp.event_to_timeout[
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        ElCollectooorAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+        ElcollectooorrAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
             self.context.params.observation_interval + MARGIN
         )
 
 
-class ElCollectooorParams(BaseParams):
-    """El Collectooor Specific Params Class"""
+class ElcollectooorrParams(BaseParams):
+    """El collectooorr Specific Params Class"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
-        Initialize the El Collectooor parameters object.
+        Initialize the El collectooorr parameters object.
 
         :param *args: param args, used only in the superclass
-        :param **kwargs: dict with the parameters needed for the El Collectooor
+        :param **kwargs: dict with the parameters needed for the El collectooorr
         """
 
         super().__init__(*args, **kwargs)
@@ -125,7 +125,7 @@ class ElCollectooorParams(BaseParams):
         return valid_types[model_type]
 
 
-class Params(ElCollectooorParams, TransactionParams):
+class Params(ElcollectooorrParams, TransactionParams):
     """Union class for ElCollectoor and Transaction Settlement ABCI"""
 
 

@@ -17,4 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/elcollectooor skill."""
+"""Test the dialogues.py module of the skill."""
+
+import packages.valory.skills.elcollectooorr_abci.dialogues  # noqa
+
+
+def test_import() -> None:
+    """Test that the 'dialogues.py' Python module can be imported."""
