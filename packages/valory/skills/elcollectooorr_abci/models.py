@@ -36,7 +36,10 @@ from packages.valory.skills.elcollectooorr_abci.decision_models import (
     SimpleDecisionModel,
     YesDecisionModel,
 )
-from packages.valory.skills.elcollectooorr_abci.rounds import ElcollectooorrAbciApp, Event
+from packages.valory.skills.elcollectooorr_abci.rounds import (
+    ElcollectooorrAbciApp,
+    Event,
+)
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
 

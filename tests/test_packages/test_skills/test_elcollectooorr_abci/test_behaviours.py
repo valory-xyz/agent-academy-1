@@ -95,7 +95,9 @@ class DummyRoundId:
 class ElcollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "elcollectooorr_abci")
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "elcollectooorr_abci"
+    )
 
     elcollectooorr_abci_behaviour: AbstractRoundBehaviour
     ledger_handler: LedgerApiHandler
@@ -375,7 +377,9 @@ class ElcollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
 
     def end_round(self, event: Enum = Event.DONE) -> None:
         """Ends round early to cover `wait_for_end` generator."""
-        current_state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        current_state = cast(
+            BaseState, self.elcollectooorr_abci_behaviour.current_state
+        )
         if current_state is None:
             return
         current_state = cast(BaseState, current_state)
@@ -393,7 +397,9 @@ class ElcollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
 
     def _test_done_flag_set(self) -> None:
         """Test that, when round ends, the 'done' flag is set."""
-        current_state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        current_state = cast(
+            BaseState, self.elcollectooorr_abci_behaviour.current_state
+        )
         assert not current_state.is_done()
         with mock.patch.object(
             self.elcollectooorr_abci_behaviour.context.state, "_period"
