@@ -25,7 +25,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     DetailsPayload,
     ObservationPayload,
     TransactionPayload,
-    TransactionType,
+    TransactionType, FundingPayload,
 )
 
 
@@ -104,3 +104,19 @@ def test_transaction_payload() -> None:
 
     assert str(payload.transaction_type) == str(TransactionType.TRANSACTION)
     assert payload.transaction_type == TransactionType.TRANSACTION
+
+
+def test_funding_payload() -> None:
+    """Test `FundingPayload`"""
+    funds = 123
+    payload = FundingPayload(
+        sender="sender", funds=funds, id_="id"
+    )
+
+    assert payload.funds is not None
+    assert payload.id_ == "id"
+    assert payload.data == dict(funds=funds)
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.FUNDING)
+    assert payload.transaction_type == TransactionType.FUNDING

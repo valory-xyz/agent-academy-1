@@ -63,7 +63,7 @@ from packages.valory.skills.elcollectooor_abci.behaviours import (
     DetailsRoundBehaviour,
     ObservationRoundBehaviour,
     ResetFromObservationBehaviour,
-    TransactionRoundBehaviour,
+    TransactionRoundBehaviour, FundingRoundBehaviour,
 )
 from packages.valory.skills.elcollectooor_abci.decision_models import (
     SimpleDecisionModel as DecisionModel,
@@ -1148,6 +1148,35 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestFundingRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+    """Tests for the Funding Round Behaviour"""
+
+    behaviour_class = FundingRoundBehaviour
+    next_behaviour_class = ObservationRoundBehaviour
+
+    def test_contract_returns_project(self) -> None:
+        """The agent queries the contract and gets back a project"""
+
+        self.fast_forward_to_state(
+            self.elcollectooor_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(StateDB(0, dict())),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self.end_round()
+
+        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        assert state.state_id == ObservationRoundBehaviour.state_id
+
 
 
 class TestDecisionModel:

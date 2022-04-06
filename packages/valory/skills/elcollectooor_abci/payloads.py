@@ -35,10 +35,40 @@ class TransactionType(Enum):
     DETAILS = "details"
     DECISION = "decision"
     TRANSACTION = "transaction"
+    FUNDING = "funding"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
         return self.value
+
+
+class FundingPayload(BaseTxPayload):
+    """Funds in the current period."""
+
+    transaction_type = TransactionType.FUNDING
+
+    def __init__(
+        self, sender: str, funds: int, **kwargs: Any
+    ) -> None:
+        """Initialize an 'FundsInPeriod' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param funds: the amount of funds in the current period (wei)
+        :param kwargs: the keyword arguments
+        """
+        super().__init__(sender, **kwargs)
+        self._funds = funds
+
+    @property
+    def funds(self) -> int:
+        """Get the funds."""
+        return self._funds
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(funds=self.funds)
+
 
 
 class ResetPayload(BaseTxPayload):

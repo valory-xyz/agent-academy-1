@@ -33,7 +33,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,
-    TransactionPayload,
+    TransactionPayload, FundingPayload,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import (
     DecisionRound,
@@ -41,9 +41,9 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     Event,
     ObservationRound,
     PeriodState,
-    ResetFromObservationRound,
+    ResetFromFundingRound,
     TransactionRound,
-    rotate_list,
+    rotate_list, FundingRound,
 )
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
@@ -451,15 +451,15 @@ class TestDetailsRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-class TestResetFromObservationRound(BaseRoundTestClass):
-    """Tests for ResetFromObservationRound."""
+class TestResetFromFundingRound(BaseRoundTestClass):
+    """Tests for ResetFromFundingRound."""
 
     def test_run(
         self,
     ) -> None:
         """Run tests."""
 
-        test_round = ResetFromObservationRound(
+        test_round = ResetFromFundingRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
@@ -495,6 +495,70 @@ class TestResetFromObservationRound(BaseRoundTestClass):
         )
 
         assert event == Event.DONE
+
+
+class TestFundingDecisionRound(BaseRoundTestClass):
+    """Tests for FundingRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_funds = 10 ** 10
+
+        test_round = FundingRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            FundingPayload(sender=participant, funds=test_funds)
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = self.period_state.update(
+            participant_to_funds=MappingProxyType(test_round.collection),
+            most_voted_funds=test_round.most_voted_payload,
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+
+        # a new period has started
+        # make sure the correct project is chosen
+        assert (
+            cast(PeriodState, state).most_voted_funds
+            == cast(PeriodState, actual_next_state).most_voted_funds
+        )
+
+        # make sure all the votes are as expected
+        assert all(
+            [
+                cast(PeriodState, state).participant_to_funds[participant]
+                == actual_vote
+                for (participant, actual_vote) in cast(
+                    PeriodState, actual_next_state
+                ).participant_to_funds.items()
+            ]
+        )
+
+        assert event == Event.DONE
+
 
 
 def test_rotate_list_method() -> None:

@@ -41,7 +41,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     DetailsPayload,
     ObservationPayload,
     ResetPayload,
-    TransactionPayload,
+    TransactionPayload, FundingPayload,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import (
     DecisionRound,
@@ -51,8 +51,8 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     FinishedElCollectoorBaseRound,
     ObservationRound,
     PeriodState,
-    ResetFromObservationRound,
-    TransactionRound,
+    ResetFromFundingRound,
+    TransactionRound, FundingRound,
 )
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
@@ -93,7 +93,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
         """The observation act."""
 
         with self.context.benchmark_tool.measure(
-            self,
+                self,
         ).local():
             project_details = {}
 
@@ -133,7 +133,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
                 )
 
             with self.context.benchmark_tool.measure(
-                self,
+                    self,
             ).consensus():
                 payload = ObservationPayload(
                     self.context.agent_address,
@@ -191,7 +191,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         """The details act"""
 
         with self.context.benchmark_tool.measure(
-            self,
+                self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -215,7 +215,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with self.context.benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -253,7 +253,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
     def async_act(self) -> Generator:
         """The Decision act"""
         with self.context.benchmark_tool.measure(
-            self,
+                self,
         ).local():
             # fetch an active project
             most_voted_project = json.loads(self.period_state.most_voted_project)
@@ -274,7 +274,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
             )
 
         with self.context.benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
@@ -282,7 +282,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
     def _make_decision(
-        self, project_details: dict, most_voted_details: List[dict]
+            self, project_details: dict, most_voted_details: List[dict]
     ) -> int:
         """Method that decides on an outcome"""
         decision_model = self.params.decision_model_type()
@@ -313,7 +313,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-            self,
+                self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
@@ -342,7 +342,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
         with self.context.benchmark_tool.measure(
-            self,
+                self,
         ).consensus():
             payload = TransactionPayload(
                 self.context.agent_address,
@@ -417,10 +417,40 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
 
 
+class FundingRoundBehaviour(BaseState):
+    """Checks the balance of the safe contract."""
+
+    state_id = "funding"
+    matching_round = FundingRound
+
+    def async_act(self) -> Generator:
+        """Get the available funds and store them to state."""
+
+        with self.context.benchmark_tool.measure(self.state_id).local():
+            available_funds = self._get_available_funds()
+
+            payload = FundingPayload(
+                self.context.agent_address, funds=available_funds
+            )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def _get_available_funds(self) -> int:
+        """Returns the available funds"""
+
+        # TODO: implement the logic
+
+        return 0
+
+
 class ResetFromObservationBehaviour(BaseResetBehaviour):
     """Reset state."""
 
-    matching_round = ResetFromObservationRound
+    matching_round = ResetFromFundingRound
     state_id = "reset_from_obs"
     pause = False
 
@@ -441,9 +471,10 @@ class FinishedElCollectoorBaseRoundBehaviour(ElCollectooorABCIBaseState):
 class ElCollectooorRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooor abci app."""
 
-    initial_state_cls = ObservationRoundBehaviour
+    initial_state_cls = FundingRoundBehaviour
     abci_app_cls = ElCollectooorBaseAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        FundingRoundBehaviour,  # type: ignore
         ObservationRoundBehaviour,  # type: ignore
         DetailsRoundBehaviour,  # type: ignore
         DecisionRoundBehaviour,  # type: ignore

@@ -44,7 +44,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     ObservationPayload,
     ResetPayload,
     TransactionPayload,
-    TransactionType,
+    TransactionType, FundingPayload,
 )
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
@@ -178,6 +178,22 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get the safe contract address."""
         return cast(str, self.db.get_strict("safe_contract_address"))
 
+    @property
+    def most_voted_funds(self) -> int:
+        """
+        Returns the most voted funds
+
+        :return: most voted funds amount (in wei)
+        """
+        return cast(int, self.db.get_strict("most_voted_funds"))
+
+    @property
+    def participant_to_funds(self) -> Mapping[str, FundingPayload]:
+        """Get the participant_to_funds."""
+        return cast(
+            Mapping[str, FundingPayload],
+            self.db.get_strict("participant_to_funds"),
+        )
 
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the El Collectooor skill."""
@@ -223,9 +239,36 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
+        return None
+
+
+class FundingRound(CollectSameUntilThresholdRound):
+    """A round in which the funding logic gets exceuted"""
+
+    round_id = "funding_round"
+    allowed_tx_type = FundingPayload.transaction_type
+    payload_attribute = "funds"
+    done_event = Event.DONE
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                most_voted_funds=self.most_voted_payload,
+                participant_to_funding_round=MappingProxyType(self.collection)
+            )
+            return state, Event.DONE
+
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+
         return None
 
 
@@ -243,8 +286,8 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
             most_voted_payload = json.loads(self.most_voted_payload)
 
             if (
-                "project_id" not in most_voted_payload.keys()
-                or not most_voted_payload["project_id"]
+                    "project_id" not in most_voted_payload.keys()
+                    or not most_voted_payload["project_id"]
             ):
                 return self.period_state, Event.ERROR
 
@@ -258,7 +301,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
 
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -282,7 +325,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -312,7 +355,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
             return state, Event.DECIDED_YES
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -340,13 +383,13 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
 
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+                self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
 
 
-class ResetFromObservationRound(BaseResetRound):
+class ResetFromFundingRound(BaseResetRound):
     """This class acts as a transit round to Observation."""
 
     round_id = "reset_from_observation"
@@ -361,13 +404,19 @@ class FinishedElCollectoorBaseRound(DegenerateRound):
 class ElCollectooorBaseAbciApp(AbciApp[Event]):
     """The base logic of El Collectooor."""
 
-    initial_round_cls: Type[AbstractRound] = ObservationRound
+    initial_round_cls: Type[AbstractRound] = FundingRound
     transition_function: AbciAppTransitionFunction = {
+        FundingRound: {
+            Event.DONE: ObservationRound,
+            Event.ROUND_TIMEOUT: ResetFromFundingRound,
+            Event.NO_MAJORITY: ResetFromFundingRound,
+            Event.ERROR: ResetFromFundingRound,
+        },
         ObservationRound: {
             Event.DONE: DetailsRound,
-            Event.ROUND_TIMEOUT: ResetFromObservationRound,
-            Event.NO_MAJORITY: ResetFromObservationRound,
-            Event.ERROR: ResetFromObservationRound,
+            Event.ROUND_TIMEOUT: ResetFromFundingRound,
+            Event.NO_MAJORITY: ResetFromFundingRound,
+            Event.ERROR: ResetFromFundingRound,
         },
         DetailsRound: {
             Event.DONE: DecisionRound,
@@ -376,21 +425,21 @@ class ElCollectooorBaseAbciApp(AbciApp[Event]):
         },
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
-            Event.DECIDED_NO: ResetFromObservationRound,
+            Event.DECIDED_NO: ResetFromFundingRound,
             Event.GIB_DETAILS: DetailsRound,
-            Event.ROUND_TIMEOUT: ResetFromObservationRound,
-            Event.NO_MAJORITY: ResetFromObservationRound,
+            Event.ROUND_TIMEOUT: ResetFromFundingRound,
+            Event.NO_MAJORITY: ResetFromFundingRound,
         },
         TransactionRound: {
             Event.DONE: FinishedElCollectoorBaseRound,
-            Event.ROUND_TIMEOUT: ResetFromObservationRound,
-            Event.NO_MAJORITY: ResetFromObservationRound,
-            Event.ERROR: ResetFromObservationRound,
+            Event.ROUND_TIMEOUT: ResetFromFundingRound,
+            Event.NO_MAJORITY: ResetFromFundingRound,
+            Event.ERROR: ResetFromFundingRound,
         },
-        ResetFromObservationRound: {
+        ResetFromFundingRound: {
             Event.DONE: ObservationRound,
-            Event.ROUND_TIMEOUT: ResetFromObservationRound,
-            Event.NO_MAJORITY: ResetFromObservationRound,
+            Event.ROUND_TIMEOUT: ResetFromFundingRound,
+            Event.NO_MAJORITY: ResetFromFundingRound,
         },
         FinishedElCollectoorBaseRound: {},
     }
