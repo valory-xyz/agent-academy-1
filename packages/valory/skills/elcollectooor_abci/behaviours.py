@@ -417,7 +417,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
 
 
-class FundingRoundBehaviour(BaseState):
+class FundingRoundBehaviour(ElCollectooorABCIBaseState):
     """Checks the balance of the safe contract."""
 
     state_id = "funding"
@@ -427,10 +427,11 @@ class FundingRoundBehaviour(BaseState):
         """Get the available funds and store them to state."""
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            available_funds = self._get_available_funds()
+            in_transfers = self._get_available_funds(from_block=self.period_state.most_voted_epoch_start_block)
 
             payload = FundingPayload(
-                self.context.agent_address, funds=available_funds
+                self.context.agent_address,
+                address_to_funds=json.dumps(in_transfers)
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
@@ -439,12 +440,19 @@ class FundingRoundBehaviour(BaseState):
 
         self.set_done()
 
-    def _get_available_funds(self) -> int:
+    def _get_available_funds(self, from_block: int = 0, to_block='latest') -> Generator:
         """Returns the available funds"""
 
-        # TODO: implement the logic
+        in_transfers = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_ingoing_transfers",
+            from_block=hex(from_block),
+            to_block=to_block
+        )
 
-        return 0
+        return in_transfers
 
 
 class ResetFromObservationBehaviour(BaseResetBehaviour):

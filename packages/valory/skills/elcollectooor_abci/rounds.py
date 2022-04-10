@@ -195,6 +195,20 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             self.db.get_strict("participant_to_funds"),
         )
 
+    @property
+    def most_voted_epoch_start_block(self) -> int:
+        """Get most_voted_epoch_start_block"""
+        return self.db.get("most_voted_epoch_start_block", 0)
+
+    @property
+    def participant_to_epoch_start_block(self) -> Mapping[str, int]:
+        """Get participant_to_epoch_start_block"""
+        return cast(
+            Mapping[str, int],
+            self.db.get("participant_to_epoch_start_block", 0),
+        )
+
+
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the El Collectooor skill."""
 

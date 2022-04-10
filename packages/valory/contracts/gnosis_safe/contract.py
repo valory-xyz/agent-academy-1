@@ -41,7 +41,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
 )
 
-
 PUBLIC_ID = PublicId.from_str("valory/gnosis_safe:0.1.0")
 
 _logger = logging.getLogger(
@@ -80,28 +79,28 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def get_raw_transaction(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get the Safe transaction."""
         raise NotImplementedError
 
     @classmethod
     def get_raw_message(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_state(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get state."""
         raise NotImplementedError
 
     @classmethod
     def get_deploy_transaction(
-        cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """
         Get deploy transaction.
@@ -124,16 +123,16 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def _get_deploy_transaction(  # pylint: disable=too-many-locals,too-many-arguments
-        cls,
-        ledger_api: EthereumApi,
-        deployer_address: str,
-        owners: List[str],
-        threshold: int,
-        salt_nonce: Optional[int] = None,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: EthereumApi,
+            deployer_address: str,
+            owners: List[str],
+            threshold: int,
+            salt_nonce: Optional[int] = None,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> Tuple[TxParams, str]:
         """
         Get the deployment transaction of the new Safe.
@@ -185,7 +184,7 @@ class GnosisSafeContract(Contract):
         )
 
         if not ledger_api.api.eth.get_code(
-            safe_contract_address
+                safe_contract_address
         ) or not ledger_api.api.eth.get_code(proxy_factory_address):
             raise ValueError("Network not supported")  # pragma: nocover
 
@@ -243,21 +242,21 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def get_raw_safe_transaction_hash(  # pylint: disable=too-many-arguments,too-many-locals
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        to_address: str,
-        value: int,
-        data: bytes,
-        operation: int = SafeOperation.CALL.value,
-        safe_tx_gas: int = 0,
-        base_gas: int = 0,
-        gas_price: int = 0,
-        gas_token: str = NULL_ADDRESS,
-        refund_receiver: str = NULL_ADDRESS,
-        safe_nonce: Optional[int] = None,
-        safe_version: Optional[str] = None,
-        chain_id: Optional[int] = None,
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            to_address: str,
+            value: int,
+            data: bytes,
+            operation: int = SafeOperation.CALL.value,
+            safe_tx_gas: int = 0,
+            base_gas: int = 0,
+            gas_price: int = 0,
+            gas_token: str = NULL_ADDRESS,
+            refund_receiver: str = NULL_ADDRESS,
+            safe_nonce: Optional[int] = None,
+            safe_version: Optional[str] = None,
+            chain_id: Optional[int] = None,
     ) -> JSONLike:
         """
         Get the hash of the raw Safe transaction.
@@ -347,7 +346,7 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def _get_packed_signatures(
-        cls, owners: Tuple[str], signatures_by_owner: Dict[str, str]
+            cls, owners: Tuple[str], signatures_by_owner: Dict[str, str]
     ) -> bytes:
         """Get the packed signatures."""
         sorted_owners = sorted(owners, key=str.lower)
@@ -363,26 +362,26 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def get_raw_safe_transaction(  # pylint: disable=too-many-arguments,too-many-locals
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        sender_address: str,
-        owners: Tuple[str],
-        to_address: str,
-        value: int,
-        data: bytes,
-        signatures_by_owner: Dict[str, str],
-        operation: int = SafeOperation.CALL.value,
-        safe_tx_gas: int = 0,
-        base_gas: int = 0,
-        safe_gas_price: int = 0,
-        gas_token: str = NULL_ADDRESS,
-        refund_receiver: str = NULL_ADDRESS,
-        gas_price: Optional[int] = None,
-        nonce: Optional[Nonce] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
-        old_tip: Optional[int] = None,
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            sender_address: str,
+            owners: Tuple[str],
+            to_address: str,
+            value: int,
+            data: bytes,
+            signatures_by_owner: Dict[str, str],
+            operation: int = SafeOperation.CALL.value,
+            safe_tx_gas: int = 0,
+            base_gas: int = 0,
+            safe_gas_price: int = 0,
+            gas_token: str = NULL_ADDRESS,
+            refund_receiver: str = NULL_ADDRESS,
+            gas_price: Optional[int] = None,
+            nonce: Optional[Nonce] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
+            old_tip: Optional[int] = None,
     ) -> JSONLike:
         """
         Get the raw Safe transaction
@@ -439,9 +438,9 @@ class GnosisSafeContract(Contract):
         if max_priority_fee_per_gas is not None:  # pragma: nocover
             tx_parameters["maxPriorityFeePerGas"] = max_priority_fee_per_gas
         if (
-            gas_price is None
-            and max_fee_per_gas is None
-            and max_priority_fee_per_gas is None
+                gas_price is None
+                and max_fee_per_gas is None
+                and max_priority_fee_per_gas is None
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing(old_tip=old_tip))
         # note, the next line makes an eth_estimateGas call!
@@ -477,22 +476,22 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def verify_tx(  # pylint: disable=too-many-arguments,too-many-locals
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        tx_hash: str,
-        owners: Tuple[str],
-        to_address: str,
-        value: int,
-        data: bytes,
-        signatures_by_owner: Dict[str, str],
-        operation: int = SafeOperation.CALL.value,
-        safe_tx_gas: int = 0,
-        base_gas: int = 0,
-        gas_price: int = 0,
-        gas_token: str = NULL_ADDRESS,
-        refund_receiver: str = NULL_ADDRESS,
-        safe_version: Optional[str] = None,
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            tx_hash: str,
+            owners: Tuple[str],
+            to_address: str,
+            value: int,
+            data: bytes,
+            signatures_by_owner: Dict[str, str],
+            operation: int = SafeOperation.CALL.value,
+            safe_tx_gas: int = 0,
+            base_gas: int = 0,
+            gas_price: int = 0,
+            gas_token: str = NULL_ADDRESS,
+            refund_receiver: str = NULL_ADDRESS,
+            safe_version: Optional[str] = None,
     ) -> JSONLike:
         """
         Verify a tx hash exists on the blockchain.
@@ -570,9 +569,9 @@ class GnosisSafeContract(Contract):
             )
             diff = {k: (v, actual[k]) for k, v in expected.items() if v != actual[k]}
             verified = (
-                receipt["status"]
-                and "execTransaction" in str(decoded[0])
-                and len(diff) == 0
+                    receipt["status"]
+                    and "execTransaction" in str(decoded[0])
+                    and len(diff) == 0
             )
         except (TransactionNotFound, KeyError, ValueError):  # pragma: nocover
             verified = False
@@ -587,10 +586,10 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def revert_reason(  # pylint: disable=unused-argument
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        tx: TxData,
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            tx: TxData,
     ) -> JSONLike:
         """Check the revert reason of a transaction.
 
@@ -635,3 +634,35 @@ class GnosisSafeContract(Contract):
         safe_contract = cls.get_instance(ledger_api, contract_address)
         safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
         return dict(safe_nonce=safe_nonce)
+
+    @classmethod
+    def get_ingoing_transfers(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            from_block: str = '0x0',
+            to_block: str = 'latest',
+    ) -> List[JSONLike]:
+        """
+        A list of transfers into the contract.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address,
+        :param from_block: from which block to start tje search
+        :param to_block: at which block to end the search
+        :return: list of transfers
+        """
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+        safe_filter = safe_contract.events.SafeReceived.createFilter(fromBlock=from_block, toBlock=to_block)
+        all_entries = safe_filter.get_all_entries()
+
+        return list(
+            map(
+                lambda entry: {
+                    "sender": entry["args"]["sender"],
+                    "amount": int(entry["args"]["value"]),
+                    "blockNumber": entry["blockNumber"],
+                },
+                all_entries
+            )
+        )

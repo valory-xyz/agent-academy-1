@@ -43,31 +43,31 @@ class TransactionType(Enum):
 
 
 class FundingPayload(BaseTxPayload):
-    """Funds in the current period."""
+    """Funds payload."""
 
     transaction_type = TransactionType.FUNDING
 
     def __init__(
-        self, sender: str, funds: int, **kwargs: Any
+        self, sender: str, address_to_funds: str, **kwargs: Any
     ) -> None:
         """Initialize an 'FundsInPeriod' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param funds: the amount of funds in the current period (wei)
+        :param address_to_funds: stringified json, maps addresses to the funds they provided and their block no.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
-        self._funds = funds
+        self._funds = address_to_funds
 
     @property
-    def funds(self) -> int:
+    def address_to_funds(self) -> int:
         """Get the funds."""
-        return self._funds
+        return self.address_to_funds
 
     @property
     def data(self) -> Dict:
         """Get the data."""
-        return dict(funds=self.funds)
+        return dict(funds=self.address_to_funds)
 
 
 
