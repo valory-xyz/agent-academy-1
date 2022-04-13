@@ -1,4 +1,4 @@
-name: elcollectooor_abci
+name: fractionalize_deployment_abci
 author: valory
 version: 0.1.0
 type: skill
@@ -6,15 +6,14 @@ description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
-  __init__.py: QmfMGnm6mwZaoKUaJ9abNMuh2eEsMTY5ykxCTPY8ztDLrW
-  behaviours.py: QmdzjZ7XR5yGSxFSNwNhwhxYPazENnmPjWQqzVpSVTLVSC
-  decision_models.py: Qmcpea2dRMjbZm54rC3iA293HY8moGRbgvodzHg2kcUseb
-  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
-  models.py: QmRartUKPbU2LgoUN9QAJA2rJf6D1NYeDtAG3Xqcjq6vKr
-  payloads.py: QmX2wCrrj4UEvxCzGtYET55ss9fiJqmUtXod3MtkZz8Z2v
-  rounds.py: QmPE6ddnM3Xcsp3cPP6LPKhrNmE6VnzDq5TTwBwzBuLL2y
+  README.md: QmUF1mDkyn9kgNuY36fUzL7k1FeaxY1V2f2kHy1WDr3F55
+  __init__.py: QmRmnEjrscn996giB78mrGNCHqcYJYxfcMH3gtdaEoPQYu
+  behaviours.py: QmYxWPxUJvg67su6cAKYaCTxw5E6XuxCWaRMunKYWiXCFe
+  dialogues.py: QmZWtN3e1FFPHUWjxAY41UVCJqN8xbZ9ZzkzUoL1XzTEw3
+  handlers.py: QmS5zYcLxNcfvzA5rHmv61kxR7npMsK1HYgDfRnSMeGpYx
+  models.py: QmVMW9tQ6C9rQqTEHnX3jutU9ZRCCqZX63T1Azh9DAm2Eb
+  payloads.py: QmUVioEAcDVe78oiiiP4HfhYXNdujJXWuokd7XEnxPG55c
+  rounds.py: QmTcmcyT5c4gA2m3Z3VGdq8sEd6Gb4xnDf27JDqJfc7NKq
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -37,11 +36,11 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: ElCollectooorFullRoundBehaviour
+    class_name: FractionalizeDeploymentFullRoundBehaviour
 handlers:
   abci:
     args: {}
-    class_name: ElCollectooorABCIHandler
+    class_name: FractionalizeDeploymentABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -73,12 +72,10 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
-      artblocks_contract: '0x1CD623a86751d4C4f20c96000FEC763941f098A2'
-      artblocks_periphery_contract: '0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441'
+      basket_factory_address: '0xde771104C0C44123d22D39bB716339cD0c3333a1'
       cleanup_history_depth: 1
       consensus:
         max_participants: 1
-      decision_model_type: simple
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       keeper_timeout: 30.0
       max_healthcheck: 120
@@ -89,13 +86,15 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
-      service_id: el_collectooor_1
+      service_id: frationalize_deployment_1
+      settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       sleep_time: 1
       starting_project_id: null
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
+      token_vault_factory_address: '0x85aa7f78bdb2de8f3e0c0010d99ad5853ffcfc63'
     class_name: Params
   randomness_api:
     args:

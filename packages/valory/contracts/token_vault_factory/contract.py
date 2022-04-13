@@ -607,3 +607,47 @@ class TokenVaultFactoryContract(Contract):
         vault_address = token_vault_contract.functions.vaults(index).call()
 
         return vault_address
+
+    @classmethod
+    def mint_abi(  # pylint: disable=too-many-locals
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        name: str,
+        symbol: str,
+        token_address: str,
+        token_id: int,
+        token_supply: int,
+        list_price: int,
+        fee: int,
+    ) -> JSONLike:
+        """
+        Mint a new vault.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param name: name of the vault
+        :param symbol: symbol of the vault
+        :param token_address: ERC721 address of the token to fractionalize
+        :param token_id: the ID of the token (ERC721)
+        :param token_supply: the initial number of fractions
+        :param list_price: initial price of the NFT
+        :param fee: curator fee on creation
+        :return: the raw transaction
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        token_vault_contract = cls.get_instance(ledger_api, contract_address)
+        data = token_vault_contract.encodeABI(
+            fn_name="mint",
+            args=[
+                name,
+                symbol,
+                token_address,
+                token_id,
+                token_supply,
+                list_price,
+                fee
+            ]
+        )
+
+        return {"data": data}

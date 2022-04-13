@@ -16,6 +16,10 @@ contracts:
 - valory/artblocks_periphery:0.1.0
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
+- valory/basket_factory:0.1.0
+- valory/basket:0.1.0
+- valory/token_vault:0.1.0
+- valory/token_vault_factory:0.1.0
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0
@@ -25,7 +29,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
-- valory/elcollectooor_abci:0.1.0
+- valory/fractionalize_deployment_abci:0.1.0
 - valory/registration_abci:0.1.0
 - valory/safe_deployment_abci:0.1.0
 - valory/transaction_settlement_abci:0.1.0
@@ -58,4 +62,4 @@ default_connection: null
 public_id: valory/abci:0.1.0
 type: connection
 config:
-  target_skill_id: valory/elcollectooor_abci:0.1.0
+  target_skill_id: valory/fractionalize_deployment_abci:0.1.0
