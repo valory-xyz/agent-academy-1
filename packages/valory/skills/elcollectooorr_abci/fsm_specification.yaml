@@ -1,0 +1,42 @@
+alphabet_in:
+- DECIDED_NO
+- DECIDED_YES
+- DONE
+- ERROR
+- GIB_DETAILS
+- NO_MAJORITY
+- ROUND_TIMEOUT
+default_start_state: ObservationRound
+final_states:
+- FinishedElCollectoorBaseRound
+label: packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp
+start_states:
+- ObservationRound
+states:
+- DecisionRound
+- DetailsRound
+- FinishedElCollectoorBaseRound
+- ObservationRound
+- ResetFromObservationRound
+- TransactionRound
+transition_func:
+    (DecisionRound, DECIDED_NO): ResetFromObservationRound
+    (DecisionRound, DECIDED_YES): TransactionRound
+    (DecisionRound, GIB_DETAILS): DetailsRound
+    (DecisionRound, NO_MAJORITY): ResetFromObservationRound
+    (DecisionRound, ROUND_TIMEOUT): ResetFromObservationRound
+    (DetailsRound, DONE): DecisionRound
+    (DetailsRound, NO_MAJORITY): DecisionRound
+    (DetailsRound, ROUND_TIMEOUT): DecisionRound
+    (ObservationRound, DONE): DetailsRound
+    (ObservationRound, ERROR): ResetFromObservationRound
+    (ObservationRound, NO_MAJORITY): ResetFromObservationRound
+    (ObservationRound, ROUND_TIMEOUT): ResetFromObservationRound
+    (ResetFromObservationRound, DONE): ObservationRound
+    (ResetFromObservationRound, NO_MAJORITY): ResetFromObservationRound
+    (ResetFromObservationRound, ROUND_TIMEOUT): ResetFromObservationRound
+    (TransactionRound, DONE): FinishedElCollectoorBaseRound
+    (TransactionRound, ERROR): ResetFromObservationRound
+    (TransactionRound, NO_MAJORITY): ResetFromObservationRound
+    (TransactionRound, ROUND_TIMEOUT): ResetFromObservationRound
+
