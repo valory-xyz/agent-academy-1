@@ -1,0 +1,49 @@
+name: ledger
+author: valory
+version: 0.1.0
+type: connection
+description: A connection to interact with any ledger API and contract API.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: Qma3Z9MpmS2rFyDw2YCfsYENvam4gnyHNZtKFMkaEPMBnJ
+  __init__.py: QmY8evuRWNZnGN9sGqoK19CJiUqSZYdPhW3sAoDRFqj8VF
+  base.py: QmSZmMgoUhmEqPcmfr3SXDN1G1y1Jbno5xuppdpfwZ2aA5
+  connection.py: QmexsdsiGGTEWbUCRqss9p7bKR8gHJaqCwm9JeQ2ENCtno
+  contract_dispatcher.py: QmPUvYht942zuYDahbP1fr6bfwuYKCtqY5nXHZj7ckgGwB
+  ledger_dispatcher.py: QmTmYYRQZatmx2jxXjeRRJ1vFyDHxNtr15ESuve7qSeb8c
+fingerprint_ignore_patterns: []
+connections: []
+protocols:
+- valory/contract_api:1.0.0
+- valory/ledger_api:1.0.0
+class_name: LedgerConnection
+config:
+  ledger_apis:
+    ethereum:
+      address: http://127.0.0.1:8545
+      chain_id: 1337
+      default_gas_price_strategy: eip1559
+      gas_price_strategies:
+        gas_station:
+          gas_price_api_key: null
+          gas_price_strategy: fast
+        eip1559:
+          max_gas_fast: 1500
+          fee_history_blocks: 10
+          fee_history_percentile: 5
+          priority_fee_estimation_trigger: 100
+          default_priority_fee: 3
+          fallback_estimate:
+            maxFeePerGas: 20000000000
+            maxPriorityFeePerGas: 3000000000
+            baseFee: null
+          priority_fee_increase_boundary: 200
+  retry_attempts: 240
+  retry_timeout: 3
+excluded_protocols: []
+restricted_to_protocols:
+- valory/contract_api:1.0.0
+- valory/ledger_api:1.0.0
+dependencies: {}
+is_abstract: false
