@@ -20,7 +20,11 @@ jobs:
     timeout-minutes: 10
 
     steps:
+<<<<<<< HEAD
     - uses: actions/checkout@master
+=======
+    - uses: actions/checkout@v2
+>>>>>>> main
     - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
@@ -29,11 +33,13 @@ jobs:
         sudo apt-get update --fix-missing
         sudo apt-get autoremove
         sudo apt-get autoclean
+        pip install --upgrade setuptools==60.10.0
         pip install pipenv
-    - name: Pipenv install requirements and check it can be locked
+    - name: Pipenv install requirements
       run: |
         pipenv install --dev --skip-lock
-        pipenv run pip install -e .[all]
+    - name: Pipenv lock
+      run: |
         pipenv lock
 
   copyright_and_doc_check:
@@ -60,7 +66,7 @@ jobs:
         sudo apt-get autoremove
         sudo apt-get autoclean
         pip install tox
-        pip install --user --upgrade setuptools
+        pip install --upgrade setuptools==60.10.0
     - name: Check copyright
       run: tox -e check-copyright
 
@@ -76,7 +82,11 @@ jobs:
     timeout-minutes: 30
 
     steps:
+<<<<<<< HEAD
     - uses: actions/checkout@master
+=======
+    - uses: actions/checkout@v2
+>>>>>>> main
     - uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
@@ -86,7 +96,7 @@ jobs:
         sudo apt-get autoremove
         sudo apt-get autoclean
         pip install tox
-        pip install --user --upgrade setuptools
+        pip install --upgrade setuptools==60.10.0
         # install Protobuf compiler
         wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
         unzip protoc-3.11.4-linux-x86_64.zip -d protoc
@@ -132,11 +142,15 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v2
       - name: Checkout submodules
         uses: srt32/git-actions@v0.0.3
         with:
+<<<<<<< HEAD
           args: git submodule update --init --recursive
+=======
+          args: git config --global --add safe.directory /github/workspace/third_party/safe-contracts && git config --global --add safe.directory /github/workspace && git submodule update --init --recursive
+>>>>>>> main
       - uses: actions/setup-python@v3
         with:
           submodules: recursive
@@ -148,7 +162,7 @@ jobs:
           sudo apt-get autoremove
           sudo apt-get autoclean
           pip install tox
-          pip install --user --upgrade setuptools
+          pip install --upgrade setuptools==60.10.0
 
           # install Protobuf compiler
           wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
