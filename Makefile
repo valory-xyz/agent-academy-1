@@ -79,7 +79,8 @@ v := $(shell pip -V | grep virtualenvs)
 
 .PHONY: new_env
 new_env: clean
-	if [ ! -z "$(which svn)" ];\
+	which svn;\
+	if [ $$? -ne 0 ];\
 	then\
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
@@ -93,6 +94,12 @@ new_env: clean
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
+	which pipenv;\
+	if [ $$? -ne 0 ];\
+	then\
+		echo "The development setup requires Pipenv, exit";\
+		exit 1;\
+	fi;\
 
 .PHONY: run-mainnet-fork
 run-mainnet-fork:
@@ -125,3 +132,9 @@ run-mainnet-fork-docker:
 .PHONY: copyright
 copyright:
 	tox -e check-copyright
+
+.PHONY: check_abci_specs
+check_abci_specs:
+	 python scripts/generate_abciapp_spec.py -c packages.keep3r_co.skills.keep3r_job.rounds.Keep3rJobAbciApp > packages/keep3r_co/skills/keep3r_job/fsm_specification.yaml || (echo "Failed to check job abci consistency" && exit 1)
+	 python scripts/generate_abciapp_spec.py -c packages.keep3r_co.skills.keep3r_abci.composition.Keep3rAbciApp > packages/keep3r_co/skills/keep3r_abci/fsm_specification.yaml || (echo "Failed to check chained abci cosistency" && exit 1)
+	 echo "Successfully validated abcis!"
