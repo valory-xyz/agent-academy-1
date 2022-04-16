@@ -20,7 +20,7 @@
 """Test the payloads.py module of the skill."""
 import json
 
-from packages.valory.skills.elcollectooor_abci.payloads import (
+from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,

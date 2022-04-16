@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the data classes for the El Collectooor ABCI application."""
+"""This module contains the data classes for the El collectooorr ABCI application."""
 import json
 import struct
 from abc import ABC
@@ -38,7 +38,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
-from packages.valory.skills.elcollectooor_abci.payloads import (
+from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,
@@ -64,7 +64,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 
 
 class Event(Enum):
-    """Event enumeration for the El Collectooor."""
+    """Event enumeration for the El collectooorr."""
 
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
@@ -179,8 +179,8 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return cast(str, self.db.get_strict("safe_contract_address"))
 
 
-class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the El Collectooor skill."""
+class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
+    """Abstract round for the El collectooorr skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -196,7 +196,7 @@ class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC)
         return self.period_state, Event.NO_MAJORITY
 
 
-class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the base reset round."""
 
     allowed_tx_type = ResetPayload.transaction_type
@@ -229,7 +229,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
         return None
 
 
-class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Observation Round"""
 
     allowed_tx_type = ObservationPayload.transaction_type
@@ -264,7 +264,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
         return None
 
 
-class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Details Round"""
 
     allowed_tx_type = DetailsPayload.transaction_type
@@ -288,7 +288,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
         return None
 
 
-class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Decision Round"""
 
     allowed_tx_type = DecisionPayload.transaction_type
@@ -318,7 +318,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
         return None
 
 
-class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Transaction Round"""
 
     allowed_tx_type = TransactionPayload.transaction_type
@@ -355,11 +355,11 @@ class ResetFromObservationRound(BaseResetRound):
 class FinishedElCollectoorBaseRound(DegenerateRound):
     """This class represents the finished round during operation."""
 
-    round_id = "finished_base_elcollectooor"
+    round_id = "finished_base_elcollectooorr"
 
 
-class ElCollectooorBaseAbciApp(AbciApp[Event]):
-    """The base logic of El Collectooor."""
+class ElcollectooorrBaseAbciApp(AbciApp[Event]):
+    """The base logic of El collectooorr."""
 
     initial_round_cls: Type[AbstractRound] = ObservationRound
     transition_function: AbciAppTransitionFunction = {
@@ -403,21 +403,21 @@ class ElCollectooorBaseAbciApp(AbciApp[Event]):
     }
 
 
-el_collectooor_app_transition_mapping: AbciAppTransitionMapping = {
+el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
-    FinishedSafeRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedSafeRound: ElcollectooorrBaseAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
-    FinishedRegistrationFFWRound: ElCollectooorBaseAbciApp.initial_round_cls,
-    FinishedTransactionSubmissionRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedRegistrationFFWRound: ElcollectooorrBaseAbciApp.initial_round_cls,
+    FinishedTransactionSubmissionRound: ElcollectooorrBaseAbciApp.initial_round_cls,
     FailedRound: RegistrationRound,
 }
 
-ElCollectooorAbciApp = chain(
+ElcollectooorrAbciApp = chain(
     (
         AgentRegistrationAbciApp,
         SafeDeploymentAbciApp,
-        ElCollectooorBaseAbciApp,
+        ElcollectooorrBaseAbciApp,
         TransactionSubmissionAbciApp,
     ),
-    el_collectooor_app_transition_mapping,
+    el_collectooorr_app_transition_mapping,
 )

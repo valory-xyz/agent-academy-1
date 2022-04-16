@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the behaviour_classes for the 'elcollectooor_abci' skill."""
+"""This module contains the behaviour_classes for the 'elcollectooorr_abci' skill."""
 
 import json
 from abc import ABC
@@ -35,19 +35,19 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.elcollectooor_abci.models import Params, SharedState
-from packages.valory.skills.elcollectooor_abci.payloads import (
+from packages.valory.skills.elcollectooorr_abci.models import Params, SharedState
+from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,
     ResetPayload,
     TransactionPayload,
 )
-from packages.valory.skills.elcollectooor_abci.rounds import (
+from packages.valory.skills.elcollectooorr_abci.rounds import (
     DecisionRound,
     DetailsRound,
-    ElCollectooorAbciApp,
-    ElCollectooorBaseAbciApp,
+    ElcollectooorrAbciApp,
+    ElcollectooorrBaseAbciApp,
     FinishedElCollectoorBaseRound,
     ObservationRound,
     PeriodState,
@@ -69,8 +69,8 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 
 
-class ElCollectooorABCIBaseState(BaseState, ABC):
-    """Base state behaviour for the El Collectooor abci skill."""
+class ElcollectooorrABCIBaseState(BaseState, ABC):
+    """Base state behaviour for the El collectooorr abci skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -83,7 +83,7 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
+class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Observation round behaviour"""
 
     state_id = "observation"
@@ -146,7 +146,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
 
-class BaseResetBehaviour(ElCollectooorABCIBaseState):
+class BaseResetBehaviour(ElcollectooorrABCIBaseState):
     """Reset state."""
 
     pause = True
@@ -181,7 +181,7 @@ class BaseResetBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
 
-class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
+class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Details Round behaviour"""
 
     state_id = "details"
@@ -244,7 +244,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         return new_details
 
 
-class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
+class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Decision Round behaviour"""
 
     state_id = "decision"
@@ -302,7 +302,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         return decision
 
 
-class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
+class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Transaction Round behaviour"""
 
     state_id = "transaction_collection"
@@ -425,24 +425,24 @@ class ResetFromObservationBehaviour(BaseResetBehaviour):
     pause = False
 
 
-class FinishedElCollectoorBaseRoundBehaviour(ElCollectooorABCIBaseState):
+class FinishedElCollectoorBaseRoundBehaviour(ElcollectooorrABCIBaseState):
     """Degenerate behaviour for a degenerate round"""
 
     matching_round = FinishedElCollectoorBaseRound
-    state_id = "finished_el_collectooor_base"
+    state_id = "finished_el_collectooorr_base"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
-        self.context.logger.info("Successfully executed ElCollectooor Base app.")
+        self.context.logger.info("Successfully executed Elcollectooorr Base app.")
         self.set_done()
         yield
 
 
-class ElCollectooorRoundBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the El Collectooor abci app."""
+class ElcollectooorrRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the El collectooorr abci app."""
 
     initial_state_cls = ObservationRoundBehaviour
-    abci_app_cls = ElCollectooorBaseAbciApp  # type: ignore
+    abci_app_cls = ElcollectooorrBaseAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
         ObservationRoundBehaviour,  # type: ignore
         DetailsRoundBehaviour,  # type: ignore
@@ -452,16 +452,16 @@ class ElCollectooorRoundBehaviour(AbstractRoundBehaviour):
     }
 
 
-class ElCollectooorFullRoundBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the El Collectooor abci app."""
+class ElcollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the El collectooorr abci app."""
 
     initial_state_cls = RegistrationStartupBehaviour
-    abci_app_cls = ElCollectooorAbciApp  # type: ignore
+    abci_app_cls = ElcollectooorrAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *SafeDeploymentRoundBehaviour.behaviour_states,
         *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ElCollectooorRoundBehaviour.behaviour_states,
+        *ElcollectooorrRoundBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:

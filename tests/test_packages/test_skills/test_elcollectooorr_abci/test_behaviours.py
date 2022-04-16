@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests for valory/elcollectooor_abci skill's behaviours."""
+"""Tests for valory/elcollectooorr_abci skill's behaviours."""
 import json
 import logging
 import time
@@ -58,23 +58,23 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.elcollectooor_abci.behaviours import (
+from packages.valory.skills.elcollectooorr_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
     ObservationRoundBehaviour,
     ResetFromObservationBehaviour,
     TransactionRoundBehaviour,
 )
-from packages.valory.skills.elcollectooor_abci.decision_models import (
+from packages.valory.skills.elcollectooorr_abci.decision_models import (
     SimpleDecisionModel as DecisionModel,
 )
-from packages.valory.skills.elcollectooor_abci.handlers import (
+from packages.valory.skills.elcollectooorr_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.elcollectooor_abci.rounds import Event, PeriodState
+from packages.valory.skills.elcollectooorr_abci.rounds import Event, PeriodState
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )
@@ -92,12 +92,14 @@ class DummyRoundId:
         self.round_id = round_id
 
 
-class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
+class ElcollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(ROOT_DIR, "packages", "valory", "skills", "elcollectooor_abci")
+    path_to_skill = Path(
+        ROOT_DIR, "packages", "valory", "skills", "elcollectooorr_abci"
+    )
 
-    elcollectooor_abci_behaviour: AbstractRoundBehaviour
+    elcollectooorr_abci_behaviour: AbstractRoundBehaviour
     ledger_handler: LedgerApiHandler
     http_handler: HttpHandler
     contract_handler: ContractApiHandler
@@ -121,7 +123,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             "ethereum"
         )
         cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
-        cls.elcollectooor_abci_behaviour = cast(
+        cls.elcollectooorr_abci_behaviour = cast(
             AbstractRoundBehaviour,
             cls._skill.skill_context.behaviours.main,
         )
@@ -139,17 +141,17 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():
                 setattr(
-                    cls.elcollectooor_abci_behaviour.context.params,
+                    cls.elcollectooorr_abci_behaviour.context.params,
                     param_name,
                     param_value,
                 )
 
-        cls.elcollectooor_abci_behaviour.setup()
+        cls.elcollectooorr_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
         cls._skill.skill_context.state.period.end_sync()
         assert (
-            cast(BaseState, cls.elcollectooor_abci_behaviour.current_state).state_id
-            == cls.elcollectooor_abci_behaviour.initial_state_cls.state_id
+            cast(BaseState, cls.elcollectooorr_abci_behaviour.current_state).state_id
+            == cls.elcollectooorr_abci_behaviour.initial_state_cls.state_id
         )
 
     def fast_forward_to_state(
@@ -215,7 +217,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             **response_kwargs,
         )
         self.ledger_handler.handle(incoming_message)
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
     def mock_contract_api_request(
         self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
@@ -242,7 +244,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             **request_kwargs,
         )
         assert has_attributes, error_str
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
         incoming_message = self.build_incoming_message(
             message_type=ContractApiMessage,
@@ -259,7 +261,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             **response_kwargs,
         )
         self.contract_handler.handle(incoming_message)
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
     def mock_http_request(self, request_kwargs: Dict, response_kwargs: Dict) -> None:
         """
@@ -281,7 +283,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             **request_kwargs,
         )
         assert has_attributes, error_str
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         self.assert_quantity_in_outbox(0)
         incoming_message = self.build_incoming_message(
             message_type=HttpMessage,
@@ -294,7 +296,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             **response_kwargs,
         )
         self.http_handler.handle(incoming_message)
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
     def mock_signing_request(self, request_kwargs: Dict, response_kwargs: Dict) -> None:
         """Mock signing request."""
@@ -319,7 +321,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
             **response_kwargs,
         )
         self.signing_handler.handle(incoming_message)
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
     def mock_a2a_transaction(
         self,
@@ -375,7 +377,9 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
 
     def end_round(self, event: Enum = Event.DONE) -> None:
         """Ends round early to cover `wait_for_end` generator."""
-        current_state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        current_state = cast(
+            BaseState, self.elcollectooorr_abci_behaviour.current_state
+        )
         if current_state is None:
             return
         current_state = cast(BaseState, current_state)
@@ -389,14 +393,16 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         ][event](abci_app.state, abci_app.consensus_params)
         abci_app._previous_rounds.append(old_round)
         abci_app._current_round_height += 1
-        self.elcollectooor_abci_behaviour._process_current_round()
+        self.elcollectooorr_abci_behaviour._process_current_round()
 
     def _test_done_flag_set(self) -> None:
         """Test that, when round ends, the 'done' flag is set."""
-        current_state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        current_state = cast(
+            BaseState, self.elcollectooorr_abci_behaviour.current_state
+        )
         assert not current_state.is_done()
         with mock.patch.object(
-            self.elcollectooor_abci_behaviour.context.state, "_period"
+            self.elcollectooorr_abci_behaviour.context.state, "_period"
         ) as mock_period:
             mock_period.last_round_id = cast(
                 AbstractRound, current_state.matching_round
@@ -410,7 +416,7 @@ class ElCollectooorFSMBehaviourBaseCase(BaseSkillTestCase):
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
 
-class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
+class BaseRandomnessBehaviourTest(ElcollectooorrFSMBehaviourBaseCase):
     """Test RandomnessBehaviour."""
 
     randomness_behaviour_class: Type[BaseState]
@@ -422,7 +428,7 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         """Test RandomnessBehaviour."""
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.randomness_behaviour_class.state_id,
             PeriodState(StateDB(0, dict())),
         )
@@ -430,11 +436,11 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
             ).state_id
             == self.randomness_behaviour_class.state_id
         )
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         self.mock_http_request(
             request_kwargs=dict(
                 method="GET",
@@ -457,12 +463,12 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
             ),
         )
 
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
 
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
     def test_invalid_response(
@@ -470,18 +476,18 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
     ) -> None:
         """Test invalid json response."""
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.randomness_behaviour_class.state_id,
             PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
                 BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
             ).state_id
             == self.randomness_behaviour_class.state_id
         )
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
         self.mock_http_request(
             request_kwargs=dict(
@@ -495,33 +501,33 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
                 version="", status_code=200, status_text="", headers="", body=b""
             ),
         )
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         time.sleep(1)
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
     def test_max_retries_reached(
         self,
     ) -> None:
         """Test with max retries reached."""
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.randomness_behaviour_class.state_id,
             PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
                 BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
             ).state_id
             == self.randomness_behaviour_class.state_id
         )
         with mock.patch.object(
-            self.elcollectooor_abci_behaviour.context.randomness_api,
+            self.elcollectooorr_abci_behaviour.context.randomness_api,
             "is_retries_exceeded",
             return_value=True,
         ):
-            self.elcollectooor_abci_behaviour.act_wrapper()
-            state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
             assert state.state_id == self.randomness_behaviour_class.state_id
             self._test_done_flag_set()
 
@@ -530,27 +536,27 @@ class BaseRandomnessBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
     ) -> None:
         """Test when `observed` value is none."""
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.randomness_behaviour_class.state_id,
             PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
                 BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
             ).state_id
             == self.randomness_behaviour_class.state_id
         )
-        self.elcollectooor_abci_behaviour.context.randomness_api._retries_attempted = 1
-        assert self.elcollectooor_abci_behaviour.current_state is not None
-        self.elcollectooor_abci_behaviour.current_state.clean_up()
+        self.elcollectooorr_abci_behaviour.context.randomness_api._retries_attempted = 1
+        assert self.elcollectooorr_abci_behaviour.current_state is not None
+        self.elcollectooorr_abci_behaviour.current_state.clean_up()
         assert (
-            self.elcollectooor_abci_behaviour.context.randomness_api._retries_attempted
+            self.elcollectooorr_abci_behaviour.context.randomness_api._retries_attempted
             == 0
         )
 
 
-class BaseSelectKeeperBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
+class BaseSelectKeeperBehaviourTest(ElcollectooorrFSMBehaviourBaseCase):
     """Test SelectKeeperBehaviour."""
 
     select_keeper_behaviour_class: Type[BaseState]
@@ -562,7 +568,7 @@ class BaseSelectKeeperBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         """Test select keeper agent."""
         participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
         self.fast_forward_to_state(
-            behaviour=self.elcollectooor_abci_behaviour,
+            behaviour=self.elcollectooorr_abci_behaviour,
             state_id=self.select_keeper_behaviour_class.state_id,
             period_state=PeriodState(
                 StateDB(
@@ -577,19 +583,19 @@ class BaseSelectKeeperBehaviourTest(ElCollectooorFSMBehaviourBaseCase):
         assert (
             cast(
                 BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
             ).state_id
             == self.select_keeper_behaviour_class.state_id
         )
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round()
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
+class TestResetFromObservationBehaviour(ElcollectooorrFSMBehaviourBaseCase):
     """Test ResetFromObservationBehaviour."""
 
     behaviour_class = ResetFromObservationBehaviour
@@ -600,24 +606,24 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
     ) -> None:
         """Test pause and reset behaviour."""
         self.fast_forward_to_state(
-            behaviour=self.elcollectooor_abci_behaviour,
+            behaviour=self.elcollectooorr_abci_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=PeriodState(StateDB(0, dict())),
         )
         assert (
             cast(
                 BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
             ).state_id
             == self.behaviour_class.state_id
         )
-        self.elcollectooor_abci_behaviour.context.params.observation_interval = 0.1
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.context.params.observation_interval = 0.1
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         time.sleep(0.3)
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
         self.end_round()
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
     def test_reset_behaviour(
@@ -625,30 +631,30 @@ class TestResetFromObservationBehaviour(ElCollectooorFSMBehaviourBaseCase):
     ) -> None:
         """Test reset behaviour."""
         self.fast_forward_to_state(
-            behaviour=self.elcollectooor_abci_behaviour,
+            behaviour=self.elcollectooorr_abci_behaviour,
             state_id=self.behaviour_class.state_id,
             period_state=PeriodState(StateDB(0, dict())),
         )
-        self.elcollectooor_abci_behaviour.current_state.pause = False  # type: ignore
+        self.elcollectooorr_abci_behaviour.current_state.pause = False  # type: ignore
         assert (
             cast(
                 BaseState,
-                cast(BaseState, self.elcollectooor_abci_behaviour.current_state),
+                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
             ).state_id
             == self.behaviour_class.state_id
         )
-        self.elcollectooor_abci_behaviour.context.params.observation_interval = 0.1
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.context.params.observation_interval = 0.1
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         time.sleep(0.3)
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
         self.mock_a2a_transaction()
 
         self.end_round()
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+class TestObservationRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
     """Tests for the Observation Round Behaviour"""
 
     behaviour_class = ObservationRoundBehaviour
@@ -658,20 +664,20 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         """The agent queries the contract and gets back a project"""
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(StateDB(0, dict())),
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
             == self.behaviour_class.state_id
         )
 
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -707,27 +713,27 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
         self.end_round()
 
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == DetailsRoundBehaviour.state_id
 
     def test_contract_returns_empty_project(self) -> None:
         """The agent queries the contract and doesnt get back a project"""
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(StateDB(0, dict())),
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
             == self.behaviour_class.state_id
         )
 
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -743,12 +749,12 @@ class TestObservationRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
             mock_logger.assert_any_call(logging.ERROR, ANY)
 
-            self.elcollectooor_abci_behaviour.act_wrapper()
+            self.elcollectooorr_abci_behaviour.act_wrapper()
             time.sleep(1.1)
-            self.elcollectooor_abci_behaviour.act_wrapper()
+            self.elcollectooorr_abci_behaviour.act_wrapper()
 
 
-class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+class TestDetailsRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
     """Tests for details round behaviour"""
 
     behaviour_class = DetailsRoundBehaviour
@@ -774,7 +780,7 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         test_details: List[Dict] = [{}]
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
                 StateDB(
@@ -788,14 +794,14 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
             == self.behaviour_class.state_id
         )
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooor_abci_behaviour.act_wrapper()
+            self.elcollectooorr_abci_behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -832,7 +838,7 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self.end_round(event=Event.DONE)
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
     def test_calling_details_for_the_first_time(self) -> None:
@@ -858,7 +864,7 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         test_details: List[Dict] = []
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
                 StateDB(
@@ -872,14 +878,14 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
             == self.behaviour_class.state_id
         )
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooor_abci_behaviour.act_wrapper()
+            self.elcollectooorr_abci_behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -916,11 +922,11 @@ class TestDetailsRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self.end_round(event=Event.DONE)
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
     """Tests for Decision Round Behaviour"""
 
     behaviour_class = DecisionRoundBehaviour
@@ -951,7 +957,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         ]
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
                 StateDB(
@@ -965,14 +971,14 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
             == self.behaviour_class.state_id
         )
 
         with patch.object(
-            self.elcollectooor_abci_behaviour.context.logger, "log"
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooor_abci_behaviour.act_wrapper()
+            self.elcollectooorr_abci_behaviour.act_wrapper()
 
         mock_logger.assert_any_call(
             logging.INFO,
@@ -986,7 +992,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
 
         self.mock_a2a_transaction()
         self.end_round(event=Event.DECIDED_YES)
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.decided_yes_behaviour_class.state_id
 
     def test_decided_no(self) -> None:
@@ -1009,7 +1015,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         test_details: List[Dict] = [{}]
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
                 StateDB(
@@ -1023,7 +1029,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         self.end_round(event=Event.DECIDED_NO)
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
 
         assert state.state_id == self.decided_no_behaviour_class.state_id
 
@@ -1047,7 +1053,7 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         test_details: List[Dict] = [{}]
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
                 StateDB(
@@ -1061,12 +1067,12 @@ class TestDecisionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         self.end_round(event=Event.GIB_DETAILS)
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
 
         assert state.state_id == self.gib_details_behaviour_class.state_id
 
 
-class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
+class TestTransactionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
     """Tests for Transaction Round Behaviour"""
 
     behaviour_class = TransactionRoundBehaviour
@@ -1088,7 +1094,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         }
 
         self.fast_forward_to_state(
-            self.elcollectooor_abci_behaviour,
+            self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
             PeriodState(
                 StateDB(
@@ -1105,11 +1111,11 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(BaseState, self.elcollectooor_abci_behaviour.current_state).state_id
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
             == self.behaviour_class.state_id
         )
 
-        self.elcollectooor_abci_behaviour.act_wrapper()
+        self.elcollectooorr_abci_behaviour.act_wrapper()
 
         self.mock_contract_api_request(
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
@@ -1146,7 +1152,7 @@ class TestTransactionRoundBehaviour(ElCollectooorFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooor_abci_behaviour.current_state)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id
 
 

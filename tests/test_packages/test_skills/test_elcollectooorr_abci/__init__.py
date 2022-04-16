@@ -17,9 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the ABCI 'El Collectooor' skill for an AEA."""
-
-from aea.configurations.base import PublicId
-
-
-PUBLIC_ID = PublicId.from_str("valory/elcollectooor_abci:0.1.0")
+"""Tests for valory/elcollectooorr skill."""

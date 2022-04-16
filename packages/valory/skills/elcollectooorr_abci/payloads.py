@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the transaction payloads for the elcollectooor_abci app."""
+"""This module contains the transaction payloads for the elcollectooorr_abci app."""
 from enum import Enum
 from typing import Any, Dict
 

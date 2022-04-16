@@ -1,4 +1,4 @@
-name: elcollectooor_abci
+name: elcollectooorr_abci
 author: valory
 version: 0.1.0
 type: skill
@@ -6,15 +6,15 @@ description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
-  __init__.py: QmfMGnm6mwZaoKUaJ9abNMuh2eEsMTY5ykxCTPY8ztDLrW
-  behaviours.py: Qmbn7aCCbv3TM1E4iJZgDx7y6EcEDB9eWqJgDEhocHSS5M
+  README.md: QmPEgsayZSdPvrbq8PmSFMQuWgz5FQPMLz2aDfbESm4GZg
+  __init__.py: QmNMqQffcN9uuYASGYzkk6P2jJALUuVrQpMpYGvtyKyMYY
+  behaviours.py: QmQ4FH2mufe3xYy2qKUwLnKwHkx2dDdfrTws11wAjitGSn
   decision_models.py: Qmcpea2dRMjbZm54rC3iA293HY8moGRbgvodzHg2kcUseb
-  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
-  models.py: QmRartUKPbU2LgoUN9QAJA2rJf6D1NYeDtAG3Xqcjq6vKr
-  payloads.py: QmRKsJMz6YwQFDnf8shD4UPY9CL7KE5Fh9xcyvMzVDB6q6
-  rounds.py: QmVDQLWJFx7sLCtFYPKTFDD18xe7AUnPhsZALj5XChGYgX
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  handlers.py: QmWRH4AYu2crSC6aG7h2BwRJxdvbgns24mQjUQqMV9yKqY
+  models.py: QmQe8j2fdEvbAbhBt886pEXDTHvQGiqU9NxQ36bz3ufB7i
+  payloads.py: QmZzeZykmct9bsKpjjtoMoZdMJG9V8G3M52kZFtn3xHNbb
+  rounds.py: QmRfwog8UzKL234DzJ3aa3RE2WvoZvkjtS5f5g5kCcgNyx
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -37,11 +37,11 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: ElCollectooorFullRoundBehaviour
+    class_name: ElcollectooorrFullRoundBehaviour
 handlers:
   abci:
     args: {}
-    class_name: ElCollectooorABCIHandler
+    class_name: ElcollectooorrABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -90,7 +90,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
-      service_id: el_collectooor_1
+      service_id: el_collectooorr_1
       sleep_time: 1
       starting_project_id: null
       tendermint_check_sleep_delay: 3
