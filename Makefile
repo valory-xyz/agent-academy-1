@@ -135,6 +135,8 @@ copyright:
 
 .PHONY: check_abci_specs
 check_abci_specs:
-	python scripts/generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check job abci consistency" && exit 1)
-	python scripts/generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check job abci consistency" && exit 1)
+	cp scripts/generate_abciapp_spec.py generate_abciapp_spec.py
+	python generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
+	rm generate_abciapp_spec.py
 	echo "Successfully validated abcis!"
