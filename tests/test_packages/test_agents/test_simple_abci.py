@@ -19,7 +19,9 @@
 
 """End2end tests for the valory/simple_abci skill."""
 
-from tests.test_agents.base import BaseTestEnd2EndNormalExecution
+import pytest
+
+from tests.test_packages.test_agents.base import BaseTestEnd2EndNormalExecution
 
 
 # round check log messages of the happy path
@@ -72,3 +74,48 @@ class TestSimpleABCIFourAgents(
     wait_to_finish = 120
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     strict_check_strings = STRICT_CHECK_STRINGS
+
+
+@pytest.mark.e2e
+class TestSimpleABCISingleAgentGrpc(
+    BaseTestEnd2EndNormalExecution,
+):
+    """Test that the ABCI simple_abci skill with only one agent."""
+
+    NB_AGENTS = 1
+    USE_GRPC = True
+    agent_package = "valory/simple_abci:0.1.0"
+    skill_package = "valory/simple_abci:0.1.0"
+    wait_to_finish = 40
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
+
+
+@pytest.mark.e2e
+class TestSimpleABCITwoAgentsGrpc(
+    BaseTestEnd2EndNormalExecution,
+):
+    """Test that the ABCI simple_abci skill with two agents."""
+
+    NB_AGENTS = 2
+    USE_GRPC = True
+    agent_package = "valory/simple_abci:0.1.0"
+    skill_package = "valory/simple_abci:0.1.0"
+    wait_to_finish = 80
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
+
+
+@pytest.mark.e2e
+class TestSimpleABCIFourAgentsGrpc(
+    BaseTestEnd2EndNormalExecution,
+):
+    """Test that the ABCI simple_abci skill with four agents."""
+
+    NB_AGENTS = 4
+    USE_GRPC = True
+    agent_package = "valory/simple_abci:0.1.0"
+    skill_package = "valory/simple_abci:0.1.0"
+    wait_to_finish = 80
+    round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
+    strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
