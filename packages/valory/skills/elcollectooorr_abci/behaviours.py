@@ -438,7 +438,7 @@ class FinishedElCollectoorBaseRoundBehaviour(ElcollectooorrABCIBaseState):
         yield
 
 
-class ElcollectooorroundBehaviour(AbstractRoundBehaviour):
+class ElcollectooorrRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El collectooorr abci app."""
 
     initial_state_cls = ObservationRoundBehaviour
@@ -461,7 +461,7 @@ class ElcollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *SafeDeploymentRoundBehaviour.behaviour_states,
         *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ElcollectooorroundBehaviour.behaviour_states,
+        *ElcollectooorrRoundBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:
