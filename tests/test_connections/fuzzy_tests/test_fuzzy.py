@@ -24,9 +24,7 @@ from tests.test_connections.fuzzy_tests.base import BaseFuzzyTests
 from tests.test_connections.fuzzy_tests.mock_node.channels.grpc_channel import (
     GrpcChannel,
 )
-from tests.test_connections.fuzzy_tests.mock_node.channels.tcp_channel import (
-    TcpChannel,
-)
+from tests.test_connections.fuzzy_tests.mock_node.channels.tcp_channel import TcpChannel
 
 
 class GrpcFuzzyTests(BaseFuzzyTests, TestCase):

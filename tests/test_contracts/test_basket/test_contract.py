@@ -26,9 +26,7 @@ from packages.valory.contracts.basket.contract import BasketContract
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 
 from tests.conftest import ROOT_DIR
-from tests.test_contracts.base import (
-    BaseGanacheContractWithDependencyTest,
-)
+from tests.test_contracts.base import BaseGanacheContractWithDependencyTest
 
 
 DEFAULT_GAS = 10000000

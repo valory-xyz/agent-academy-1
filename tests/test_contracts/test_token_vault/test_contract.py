@@ -33,9 +33,7 @@ from packages.valory.contracts.token_vault_factory.contract import (
 )
 
 from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
-from tests.test_contracts.base import (
-    BaseGanacheContractWithDependencyTest,
-)
+from tests.test_contracts.base import BaseGanacheContractWithDependencyTest
 
 
 DEFAULT_GAS = 1000000000

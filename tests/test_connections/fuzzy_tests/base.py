@@ -26,9 +26,7 @@ from aea.test_tools.test_cases import AEATestCaseMany
 from hypothesis import given
 from hypothesis.strategies import binary, booleans, integers, lists, text, tuples
 
-from tests.test_connections.fuzzy_tests.mock_node.channels.base import (
-    BaseChannel,
-)
+from tests.test_connections.fuzzy_tests.mock_node.channels.base import BaseChannel
 from tests.test_connections.fuzzy_tests.mock_node.node import MockNode
 
 

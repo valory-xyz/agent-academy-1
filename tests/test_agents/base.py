@@ -29,6 +29,12 @@ import pytest
 from aea.configurations.base import PublicId
 from aea.test_tools.test_cases import AEATestCaseMany
 
+from tests.helpers.constants import ARTBLOCKS_ADDRESS as _DEFAULT_ARTBLOCKS_ADDRESS
+from tests.helpers.constants import (
+    ARTBLOCKS_PERIPHERY_ADDRESS as _DEFAULT_ARTBLOCKS_PERIPHERY_ADDRESS,
+)
+from tests.helpers.constants import DECISION_MODEL_TYPE as _DEFAULT_DECISION_MODEL_TYPE
+from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
 from tests.helpers.tendermint_utils import (
     BaseTendermintTestClass,
     TendermintLocalNetworkBuilder,
@@ -55,6 +61,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
     KEEPER_TIMEOUT = 30.0
     HEALTH_CHECK_MAX_RETRIES = 20
     HEALTH_CHECK_SLEEP_INTERVAL = 3.0
+    USE_GRPC = False
     cli_log_options = ["-v", "DEBUG"]
     processes: List
     agent_package: str
@@ -96,6 +103,7 @@ class BaseTestEnd2End(AEATestCaseMany, BaseTendermintTestClass):
             json.dumps(self.tendermint_net_builder.get_p2p_seeds()),
             "list",
         )
+        self.set_config("vendor.valory.connections.abci.config.use_grpc", self.USE_GRPC)
         self.set_config(
             f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.consensus.max_participants",
             self.NB_AGENTS,
@@ -297,71 +305,38 @@ class BaseTestEnd2EndNormalExecution(BaseTestEnd2End):
         self._check_aea_messages()
 
 
-class BaseTestEnd2EndAgentCatchup(BaseTestEnd2End):
+class BaseTestElCollectooorEnd2End(BaseTestEnd2EndNormalExecution):
     """
-    Test that an agent that is launched later can synchronize with the rest of the network
+    Extended base class for conducting E2E tests with the El Collectooor.
 
-    - each agent starts, and sets up the ABCI connection, which in turn spawns both an ABCI
-      server and a local Tendermint node (using the configuration folders we set up previously).
-      The Tendermint node is unique for each agent
-    - when we will stop one agent, also the ABCI server created by the ABCI connection will
-      stop, and in turn the Tendermint node will stop. In particular, it does not keep polling
-      the endpoint until it is up again, it just stops.
-    - when we will restart the previously stopped agent, the ABCI connection will set up again
-      both the server and the Tendermint node. The node will automatically connect to the rest
-      of the Tendermint network, loads the entire blockchain bulit so far by the others, and
-      starts sending ABCI requests to the agent (begin_block; deliver_tx*; end_block), plus
-      other auxiliary requests like info , flush etc. The agent which is already processing
-      incoming messages, forwards the ABCI requests to the ABCIHandler, which produces ABCI
-      responses that are forwarded again via the ABCI connection such that the Tendermint
-      node can receive the responses
+    Test subclasses must set NB_AGENTS, agent_package, wait_to_finish and check_strings.
     """
 
-    # mandatory argument
-    stop_string: str
+    STARTING_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID + 1
+    ARTBLOCKS_ADDRESS = _DEFAULT_ARTBLOCKS_ADDRESS
+    ARTBLOCKS_PERIPHERY_ADDRESS = _DEFAULT_ARTBLOCKS_PERIPHERY_ADDRESS
+    DECISION_MODEL_TYPE = _DEFAULT_DECISION_MODEL_TYPE
 
-    restart_after: int = 60
-    wait_before_stop: int = 15
-
-    def setup(self) -> None:
-        """Set up the test."""
-        if not hasattr(self, "stop_string"):
-            pytest.fail("'stop_string' is a mandatory argument.")
-        super().setup()
-
-    def test_run(self) -> None:
-        """Run the test."""
-
-        for agent_id in range(self.NB_AGENTS):
-            self._launch_agent_i(agent_id)
-
-        logging.info("Waiting Tendermint nodes to be up")
-        self.health_check(
-            self.tendermint_net_builder,
-            max_retries=self.HEALTH_CHECK_MAX_RETRIES,
-            sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
+    def __set_configs(self, node: TendermintNodeInfo) -> None:
+        """Set the current agent's config overrides."""
+        super().__set_configs(node)
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.starting_project_id",
+            self.STARTING_PROJECT_ID,
         )
-
-        # stop the last agent as soon as the "stop string" is found in the output
-        process_to_stop = self.processes[-1]
-        logging.debug(f"Waiting for string {self.stop_string} in last agent output")
-        missing_strict_strings, _ = self.missing_from_output(
-            process=process_to_stop,
-            strict_check_strings=(self.stop_string,),
-            timeout=self.wait_before_stop,
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_contract",
+            self.ARTBLOCKS_ADDRESS,
         )
-        if missing_strict_strings:
-            raise RuntimeError("cannot stop agent correctly")
-        logging.debug("Last agent stopped")
-        self.processes.pop(-1)
-
-        # wait for some time before restarting
-        logging.debug(
-            f"Waiting {self.restart_after} seconds before restarting the agent"
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_periphery_contract",
+            self.ARTBLOCKS_PERIPHERY_ADDRESS,
         )
-        time.sleep(self.restart_after)
-
-        # restart agent
-        logging.debug("Restart the agent")
-        self._launch_agent_i(-1)
-        self._check_aea_messages()
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_periphery_contract",
+            self.ARTBLOCKS_PERIPHERY_ADDRESS,
+        )
+        self.set_config(
+            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.decision_model_type",
+            self.DECISION_MODEL_TYPE,
+        )
