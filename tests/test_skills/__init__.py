@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the protocol packages authored by Valory AG."""
+"""Tests package for Valory's skills."""

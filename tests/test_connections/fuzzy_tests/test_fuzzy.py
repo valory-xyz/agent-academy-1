@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -16,5 +17,27 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+"""Fuzzy tests for valory/abci connection"""
+from unittest import TestCase
 
-"""This module contains the protocol packages authored by Valory AG."""
+from tests.test_connections.fuzzy_tests.base import BaseFuzzyTests
+from tests.test_connections.fuzzy_tests.mock_node.channels.grpc_channel import (
+    GrpcChannel,
+)
+from tests.test_connections.fuzzy_tests.mock_node.channels.tcp_channel import TcpChannel
+
+
+class GrpcFuzzyTests(BaseFuzzyTests, TestCase):
+    """Test the connection when gRPC is used"""
+
+    CHANNEL_TYPE = GrpcChannel
+    USE_GRPC = True
+    AGENT_TIMEOUT = 30  # 3 seconds
+
+
+class TcpFuzzyTests(BaseFuzzyTests, TestCase):
+    """Test the connection when TCP is used"""
+
+    CHANNEL_TYPE = TcpChannel
+    USE_GRPC = False
+    AGENT_TIMEOUT = 30  # 3 seconds

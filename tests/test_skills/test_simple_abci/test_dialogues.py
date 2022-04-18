@@ -17,4 +17,10 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the protocol packages authored by Valory AG."""
+"""Test the dialogues.py module of the skill."""
+
+import packages.valory.skills.simple_abci.dialogues  # noqa
+
+
+def test_import() -> None:
+    """Test that the 'dialogues.py' Python module can be imported."""
