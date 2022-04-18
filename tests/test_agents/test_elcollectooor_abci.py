@@ -21,7 +21,7 @@
 
 from tests.fixture_helpers import UseGanacheFork
 from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
-from tests.test_packages.test_agents.base import BaseTestElCollectooorEnd2End
+from tests.test_agents.base import BaseTestElCollectooorEnd2End
 
 
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID

@@ -29,7 +29,7 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.test_packages.test_contracts.base import BaseGanacheContractTest
+from tests.test_contracts.base import BaseGanacheContractTest
 
 
 DEFAULT_GAS = 1000000
