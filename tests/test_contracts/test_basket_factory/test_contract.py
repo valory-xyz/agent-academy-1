@@ -28,7 +28,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 
 from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
-from tests.test_packages.test_contracts.base import BaseGanacheContractTest
+from tests.test_contracts.base import BaseGanacheContractTest
 
 
 DEFAULT_GAS = 10000000

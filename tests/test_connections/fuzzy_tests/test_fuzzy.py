@@ -20,11 +20,11 @@
 """Fuzzy tests for valory/abci connection"""
 from unittest import TestCase
 
-from tests.test_packages.test_connections.fuzzy_tests.base import BaseFuzzyTests
-from tests.test_packages.test_connections.fuzzy_tests.mock_node.channels.grpc_channel import (
+from tests.test_connections.fuzzy_tests.base import BaseFuzzyTests
+from tests.test_connections.fuzzy_tests.mock_node.channels.grpc_channel import (
     GrpcChannel,
 )
-from tests.test_packages.test_connections.fuzzy_tests.mock_node.channels.tcp_channel import (
+from tests.test_connections.fuzzy_tests.mock_node.channels.tcp_channel import (
     TcpChannel,
 )
 

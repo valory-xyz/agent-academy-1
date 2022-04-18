@@ -29,7 +29,7 @@ from aea.exceptions import enforce
 import packages.valory.connections.abci.tendermint.abci.types_pb2 as abci_types  # type: ignore
 from packages.valory.connections.abci.connection import _TendermintABCISerializer
 
-from tests.test_packages.test_connections.fuzzy_tests.mock_node.channels.base import (
+from tests.test_connections.fuzzy_tests.mock_node.channels.base import (
     BaseChannel,
 )
 

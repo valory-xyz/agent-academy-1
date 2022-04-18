@@ -26,7 +26,7 @@ from packages.valory.contracts.basket.contract import BasketContract
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 
 from tests.conftest import ROOT_DIR
-from tests.test_packages.test_contracts.base import (
+from tests.test_contracts.base import (
     BaseGanacheContractWithDependencyTest,
 )
 
