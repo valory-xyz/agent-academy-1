@@ -651,3 +651,34 @@ class TokenVaultFactoryContract(Contract):
         )
 
         return {"data": data}
+
+
+    @classmethod
+    def get_vault_address(
+            cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
+    ) -> Optional[JSONLike]:
+        """
+        Get the basket address and its creator from the events emitted by the "createBasket" transaction.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the address of the factory contract
+        :param tx_hash: tx hash of "createBasket"
+        :return: basket contract address and the address of the creator
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = cls.get_instance(ledger_api, contract_address)
+        receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
+        logs = contract.events.Mint().processReceipt(receipt)
+
+        if len(logs) == 0:
+            _logger.error(f"No 'Mint' events were emitted in the tx={tx_hash}")
+            return None
+
+        args = logs[-1]["args"]  # in case of multiple logs, take the last
+
+        response = {
+            "vault_address": args["vault"],
+        }
+
+        return response
+

@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmUGuRJKvAhEH4d5DNwXiSRiKxDz4H6Xz1X7agVXVLMQZb
   build/artblocks.json: QmUhpSFK66Pwh71vTJo21v4hY53mRZVcMWGgmV66Pqs2mm
-  contract.py: QmWfPGNetvGAgGamsJ4o5v2C3nCb896ti1yqzberVut2xv
+  contract.py: QmPuufecEsBsWc2dgWVVB5Sg9PFTxWMESvyEwF99AJe7tT
 fingerprint_ignore_patterns: []
 class_name: ArtBlocksContract
 contract_interface_paths:

@@ -21,15 +21,19 @@
 
 import json
 from abc import ABC
-from typing import Dict, Generator, List, Set, Type, cast
+from typing import Dict, Generator, List, Set, Type, cast, Optional
 
+from aea.common import JSONLike
 from aea.exceptions import AEAEnforceError, enforce
+from hexbytes import HexBytes
 
 from packages.valory.contracts.artblocks.contract import ArtBlocksContract
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract, SafeOperation
+from packages.valory.contracts.multisend.contract import MultiSendContract, MultiSendOperation
+from packages.valory.contracts.token_vault.contract import TokenVaultContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
@@ -41,19 +45,22 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     DetailsPayload,
     ObservationPayload,
     ResetPayload,
-    TransactionPayload, FundingPayload,
+    TransactionPayload, FundingPayload, PayoutFractionsPayload, TransferNFTPayload, PurchasedNFTPayload,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import (
     DecisionRound,
     DetailsRound,
     ElCollectooorAbciApp,
     ElCollectooorBaseAbciApp,
-    FinishedElCollectoorBaseRound,
     ObservationRound,
     PeriodState,
     ResetFromFundingRound,
-    TransactionRound, FundingRound,
+    TransactionRound, FundingRound, PostTransactionSettlementRound, TransactionSettlementAbciMultiplexer,
+    BankAbciApp, PayoutFractionsRound, PostPayoutRound, PostFractionPayoutAbciApp,
+    ProcessPurchaseRound, TransferNFTAbciApp, TransferNFTRound,
 )
+from packages.valory.skills.fractionalize_deployment_abci.behaviours import DeployVaultRoundBehaviour, \
+    DeployBasketRoundBehaviour, PostBasketDeploymentRoundBehaviour, PostVaultDeploymentRoundBehaviour
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     RegistrationStartupBehaviour,
@@ -380,13 +387,12 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
     def _get_purchase_data(self, project_id: int) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.params.artblocks_contract,
+            contract_address=self.params.artblocks_periphery_contract,
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             contract_callable="purchase_data",
             project_id=project_id,
         )
 
-        # response body also has project details
         enforce(
             response.state.body is not None
             and "data" in response.state.body.keys()
@@ -407,31 +413,21 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
         return min_value
 
-    def _format_payload(self, tx_hash: str, data: str) -> str:
-        tx_hash = tx_hash[2:]
-        ether_value = int.to_bytes(self._get_value_in_wei(), 32, "big").hex().__str__()
-        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()
-        address = self.params.artblocks_periphery_contract
-        data = data[2:]  # remove starting '0x'
-
-        return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
-
 
 class FundingRoundBehaviour(ElCollectooorABCIBaseState):
     """Checks the balance of the safe contract."""
 
-    state_id = "funding"
+    state_id = "funding_behaviour"
     matching_round = FundingRound
 
     def async_act(self) -> Generator:
         """Get the available funds and store them to state."""
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            in_transfers = self._get_available_funds(from_block=self.period_state.most_voted_epoch_start_block)
-
+            in_transfers = yield from self._get_available_funds()
             payload = FundingPayload(
                 self.context.agent_address,
-                address_to_funds=json.dumps(in_transfers)
+                address_to_funds=json.dumps(in_transfers),
             )
 
         with self.context.benchmark_tool.measure(self.state_id).consensus():
@@ -440,19 +436,398 @@ class FundingRoundBehaviour(ElCollectooorABCIBaseState):
 
         self.set_done()
 
-    def _get_available_funds(self, from_block: int = 0, to_block='latest') -> Generator:
-        """Returns the available funds"""
+    def _get_available_funds(self, from_block: Optional[int] = None, to_block='latest') -> Generator:
+        """Returns all the transfers to the gnosis safe."""
 
         in_transfers = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.period_state.db.get("safe_contract_address"),
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_ingoing_transfers",
-            from_block=hex(from_block),
+            from_block=from_block,
             to_block=to_block
         )
 
-        return in_transfers
+        return in_transfers.state.body['data']
+
+
+class PayoutFractionsRoundBehaviour(ElCollectooorABCIBaseState):
+    """Defines the DeployBasketTxRoundRound behaviour"""
+
+    state_id = "payout_fractions"
+    matching_round = PayoutFractionsRound
+
+    def async_act(self) -> Generator:
+        """Implement the act."""
+        with self.context.benchmark_tool.measure(
+                self,
+        ).local():
+            try:
+                latest_vault = json.loads(self.period_state.db.get("vault_addresses"))[-1]
+                multisend_data_obj = yield from self._get_multisend_tx(latest_vault)
+
+                if multisend_data_obj != {}:
+                    multisend_data_str = multisend_data_obj["encoded"]
+                    multisend_data = bytes.fromhex(multisend_data_str[2:])
+                    tx_hash = yield from self._get_safe_hash(multisend_data)
+                    multisend_data_obj["encoded"] = hash_payload_to_hex(
+                        safe_tx_hash=tx_hash,
+                        ether_value=0,
+                        safe_tx_gas=10 ** 7,
+                        operation=SafeOperation.DELEGATE_CALL.value,
+                        to_address=self.params.multisend_address,
+                        data=multisend_data,
+                    )
+
+            except AEAEnforceError as e:
+                multisend_data_obj = {}
+                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+
+        with self.context.benchmark_tool.measure(
+                self,
+        ).consensus():
+            payload = PayoutFractionsPayload(
+                self.context.agent_address,
+                json.dumps(multisend_data_obj, sort_keys=True),
+            )
+
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.period_state.db.get("safe_contract_address"),
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_raw_safe_transaction_hash",
+            to_address=self.params.multisend_address,
+            value=0,
+            data=data,
+            safe_tx_gas=10 ** 7,
+            operation=SafeOperation.DELEGATE_CALL.value,
+        )
+
+        enforce(
+            response.state.body is not None
+            and "tx_hash" in response.state.body.keys()
+            and response.state.body["tx_hash"] is not None,
+            "contract returned and empty body or empty tx_hash",
+        )
+
+        tx_hash = cast(str, response.state.body["tx_hash"])[2:]
+
+        return tx_hash
+
+    def _get_transferERC20_tx(self, address, amount) -> Generator[None, None, str]:
+        latest_vault = json.loads(self.period_state.db.get("vault_addresses"))[-1]
+
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(TokenVaultContract.contract_id),
+            contract_callable="get_transfer_erc20_data",
+            contract_address=latest_vault,
+            receiver_address=address,
+            amount=amount,
+        )
+
+        enforce(
+            response.state.body is not None
+            and "data" in response.state.body.keys()
+            and response.state.body["data"] is not None,
+            "contract returned and empty body or empty data",
+        )
+
+        data = cast(str, response.state.body["data"])
+
+        return data
+
+    def _available_tokens(self) -> Generator:
+        """Get the tokens that are left undistributed."""
+
+        latest_vault = json.loads(self.period_state.db.get("vault_addresses"))[-1]
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(TokenVaultContract.contract_id),
+            contract_callable="get_balance",
+            contract_address=latest_vault,
+            address=self.period_state.db.get("safe_contract_address"),
+        )
+
+        if (
+                response.state.body is None
+                or "balance" not in response.state.body.keys()
+                or response.state.body["balance"] is None
+        ):
+            self.context.logger.error("Could not retrieve the token balance of the safe contract.")
+            return None
+
+        return cast(int, response.state.body["balance"])
+
+    def _get_unpaid_users(self, wei_to_fractions) -> Generator:
+        """Get a dictionary of addresses and the tokens to be sent to them."""
+
+        paid_users = json.loads(self.period_state.db.get("paid_users", "{}"))
+        all_transfers = json.loads(self.period_state.db.get("most_voted_funds", "[]"))
+        undistributed_tokens: Optional[int] = yield from self._available_tokens()
+        tokens_to_be_distributed = 0
+        address_to_investment, users_to_be_paid = {}, {}
+
+        if len(all_transfers) == 0 or undistributed_tokens is None:
+            return {}
+
+        for tx in all_transfers:
+            sender, amount = tx['sender'], tx['amount']
+
+            if sender in address_to_investment.keys():
+                address_to_investment[sender] += amount
+            else:
+                address_to_investment[sender] = amount
+
+        for address, invested_amount in address_to_investment.items():
+            if tokens_to_be_distributed >= undistributed_tokens:
+                self.context.logger.warning("No more tokens left!")
+                break
+
+            already_paid_amount = 0
+
+            if address in paid_users.keys():
+                already_paid_amount = paid_users[address] * wei_to_fractions
+
+            unpaid_eth_amount = invested_amount - already_paid_amount
+            owned_amount = unpaid_eth_amount // wei_to_fractions
+
+            if owned_amount + tokens_to_be_distributed > undistributed_tokens:
+                self.context.logger.warning(
+                    "Not enough funds to payout all the owned tokens, they will be paid when the next vault is created!"
+                )
+                owned_amount = undistributed_tokens - tokens_to_be_distributed
+
+            if owned_amount != 0:
+                users_to_be_paid[address] = owned_amount
+                tokens_to_be_distributed += owned_amount
+
+        return users_to_be_paid
+
+    def _get_multisend_tx(self, vault_address: str) -> Generator[None, None, JSONLike]:
+        wei_to_fraction = self.params.wei_to_fraction
+        unpaid_users = yield from self._get_unpaid_users(wei_to_fraction)
+        erc20_txs = []
+
+        if unpaid_users == {}:
+            return {}
+
+        for address, amount in unpaid_users.items():
+            tx = yield from self._get_transferERC20_tx(address, amount)
+            erc20_txs.append(
+                {
+                    "operation": MultiSendOperation.CALL,
+                    "to": vault_address,
+                    "value": 0,
+                    "data": HexBytes(tx)
+                }
+            )
+
+        contract_api_msg = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,  # type: ignore
+            contract_address=self.params.multisend_address,
+            contract_id=str(MultiSendContract.contract_id),
+            contract_callable="get_tx_data",
+            multi_send_txs=erc20_txs,
+        )
+        multisend_data = cast(str, contract_api_msg.raw_transaction.body["data"])
+
+        self.context.logger.error(multisend_data)
+
+        return {
+            "encoded": multisend_data,
+            "raw": unpaid_users,
+        }
+
+
+class PostPayoutRoundBehaviour(ElCollectooorABCIBaseState):
+    """Trivial behaviour for post payout"""
+
+    state_id = "post_fraction_payout_behaviour"
+    matching_round = PostPayoutRound
+
+    def async_act(self) -> Generator:
+        """Trivially log that the behaviour is done."""
+        users_paid = self.period_state.db.get("users_being_paid", "{}")
+
+        self.context.logger.info(f"The following users were paid: {users_paid}")
+        yield from self.wait_until_round_end()
+
+        self.set_done()
+
+
+class PostFractionsPayoutRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the Post Payout abci app."""
+
+    initial_state_cls = PostPayoutRoundBehaviour
+    abci_app_cls = PostFractionPayoutAbciApp
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        PostPayoutRoundBehaviour,  # type: ignore
+    }
+
+
+class ProcessPurchaseRoundBehaviour(ElCollectooorABCIBaseState):
+    """Process the purchase of an NFT"""
+
+    state_id = "process_purchase"
+    matching_round = ProcessPurchaseRound
+
+    def async_act(self) -> Generator:
+        """Implement the act."""
+
+        with self.context.benchmark_tool.measure(
+                self,
+        ).local():
+            # we extract the project_id from the frozen set, and throw an error if it doest exist
+            token_id = -1
+            try:
+                token_id = yield from self._get_token_id()
+                self.context.logger.info(f"Purchased token id={token_id}")
+            except AEAEnforceError as e:
+                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+
+        with self.context.benchmark_tool.measure(
+                self,
+        ).consensus():
+            payload = PurchasedNFTPayload(
+                self.context.agent_address,
+                token_id,
+            )
+
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def _get_token_id(self) -> Generator[None, None, int]:
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.params.artblocks_contract,
+            contract_id=str(ArtBlocksContract.contract_id),
+            contract_callable="process_purchase_receipt",
+            tx_hash=self.period_state.db.get("final_tx_hash")
+        )
+
+        if (
+                response.state.body is None
+                or "token_id" not in response.state.body.keys()
+        ):
+            self.context.logger.error("couldn't extract the 'token_id' from the ArtBlocksContract")
+
+            return -1
+
+        data = cast(int, response.state.body["token_id"])
+
+        return data
+
+
+class TransferNFTRoundBehaviour(ElCollectooorABCIBaseState):
+    """Defines the Transaction Round behaviour"""
+
+    state_id = "transfer_nft"
+    matching_round = TransferNFTRound
+
+    def async_act(self) -> Generator:
+        """Implement the act."""
+        payload_data = ""
+
+        with self.context.benchmark_tool.measure(
+                self,
+        ).local():
+            try:
+                transfer_data_str = yield from self._get_safe_transfer_from_data()
+                transfer_data = bytes.fromhex(transfer_data_str[2:])
+                tx_hash = yield from self._get_safe_hash(transfer_data)
+
+                payload_data = hash_payload_to_hex(
+                    safe_tx_hash=tx_hash,
+                    ether_value=0,
+                    safe_tx_gas=10 ** 7,
+                    to_address=self.params.artblocks_contract,
+                    data=transfer_data,
+                )
+
+            except AEAEnforceError as e:
+                self.context.logger.error(f"Couldn't create the transaction payload, e={e}")
+
+        with self.context.benchmark_tool.measure(
+                self,
+        ).consensus():
+            payload = TransferNFTPayload(
+                self.context.agent_address,
+                payload_data,
+            )
+
+            yield from self.send_a2a_transaction(payload)
+            yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_raw_safe_transaction_hash",
+            to_address=self.params.artblocks_contract,
+            value=0,
+            data=data,
+            safe_tx_gas=10 ** 7,
+        )
+        enforce(
+            response.state.body is not None
+            and "tx_hash" in response.state.body.keys()
+            and response.state.body["tx_hash"] is not None,
+            "contract returned and empty body or empty tx_hash",
+        )
+
+        tx_hash = cast(str, response.state.body["tx_hash"])[2:]
+
+        return tx_hash
+
+    def _get_safe_transfer_from_data(self) -> Generator[None, None, str]:
+        latest_basket = json.loads(self.period_state.db.get("basket_addresses"))[-1]
+        token_id = self.period_state.db.get("purchased_nft", None)
+
+        if token_id is None:
+            self.context.logger.info("No token to be transferred.")
+            return ""
+
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.params.artblocks_contract,
+            contract_id=str(ArtBlocksContract.contract_id),
+            contract_callable="safe_transfer_from_data",
+            from_address=self.period_state.db.get("safe_contract_address"),
+            to_address=latest_basket,
+            token_id=token_id,
+        )
+
+        enforce(
+            response.state.body is not None
+            and "data" in response.state.body.keys()
+            and response.state.body["data"] is not None,
+            "contract returned and empty body or empty data",
+        )
+
+        data = cast(str, response.state.body["data"])
+
+        return data
+
+
+class TransferNFTAbciBehaviour(AbstractRoundBehaviour):
+    initial_state_cls = ProcessPurchaseRoundBehaviour
+    abci_app_cls = TransferNFTAbciApp
+    behaviour_states: Set[Type[BaseState]] = {
+        ProcessPurchaseRoundBehaviour,
+        TransferNFTRoundBehaviour,
+    }
 
 
 class ResetFromObservationBehaviour(BaseResetBehaviour):
@@ -463,31 +838,55 @@ class ResetFromObservationBehaviour(BaseResetBehaviour):
     pause = False
 
 
-class FinishedElCollectoorBaseRoundBehaviour(ElCollectooorABCIBaseState):
-    """Degenerate behaviour for a degenerate round"""
-
-    matching_round = FinishedElCollectoorBaseRound
-    state_id = "finished_el_collectooor_base"
+class PostTransactionSettlementBehaviour(ElCollectooorABCIBaseState):
+    """Behaviour for Post TX Settlement Round"""
+    matching_round = PostTransactionSettlementRound
+    state_id = "post_tx_settlement_state"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
-        self.context.logger.info("Successfully executed ElCollectooor Base app.")
+        tx_submitter = self.period_state.db.get("tx_submitter", None)
+
+        if tx_submitter is None:
+            self.context.logger.warning("A TX was settled, but the `tx_submitter` is unavailable!")
+        else:
+            self.context.logger.info(f"The TX submitted by {tx_submitter} was settled.")
+
+        yield from self.wait_until_round_end()
         self.set_done()
-        yield
+
+
+class TransactionSettlementMultiplexerFullBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the Tx Settlement Multiplexer abci app."""
+
+    initial_state_cls = PostTransactionSettlementBehaviour
+    abci_app_cls = TransactionSettlementAbciMultiplexer  # type: ignore
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        PostTransactionSettlementBehaviour,  # type: ignore
+    }
 
 
 class ElCollectooorRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooor abci app."""
 
-    initial_state_cls = FundingRoundBehaviour
+    initial_state_cls = ObservationRoundBehaviour
     abci_app_cls = ElCollectooorBaseAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
-        FundingRoundBehaviour,  # type: ignore
         ObservationRoundBehaviour,  # type: ignore
         DetailsRoundBehaviour,  # type: ignore
         DecisionRoundBehaviour,  # type: ignore
         TransactionRoundBehaviour,  # type: ignore
         ResetFromObservationBehaviour,  # type: ignore
+    }
+
+
+class BankRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the Bank ABCI app."""
+    initial_state_cls = FundingRoundBehaviour
+    abci_app_cls = BankAbciApp
+    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+        FundingRoundBehaviour,  # type: ignore
+        PayoutFractionsRoundBehaviour,  # type: ignore
     }
 
 
@@ -501,6 +900,14 @@ class ElCollectooorFullRoundBehaviour(AbstractRoundBehaviour):
         *SafeDeploymentRoundBehaviour.behaviour_states,
         *TransactionSettlementRoundBehaviour.behaviour_states,
         *ElCollectooorRoundBehaviour.behaviour_states,
+        *DeployVaultRoundBehaviour.behaviour_states,
+        *DeployBasketRoundBehaviour.behaviour_states,
+        *PostBasketDeploymentRoundBehaviour.behaviour_states,
+        *PostVaultDeploymentRoundBehaviour.behaviour_states,
+        *TransactionSettlementMultiplexerFullBehaviour.behaviour_states,
+        *BankRoundBehaviour.behaviour_states,
+        *PostFractionsPayoutRoundBehaviour.behaviour_states,
+        *TransferNFTAbciBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:

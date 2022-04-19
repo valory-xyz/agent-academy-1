@@ -24,7 +24,6 @@ from enum import Enum
 from types import MappingProxyType
 from typing import List, Mapping, Optional, Sequence, Tuple, cast, Type, Dict, Set
 
-from packages.valory.skills.abstract_round_abci.abci_app_chain import chain, AbciAppTransitionMapping
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     BasePeriodState,
@@ -32,12 +31,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     DegenerateRound, AbciApp, AbciAppTransitionFunction, AppState,
 )
 from packages.valory.skills.fractionalize_deployment_abci.payloads import (
-
-    TransactionType, DeployBasketPayload, DeployVaultPayload)
-from packages.valory.skills.registration_abci.rounds import FinishedRegistrationRound, FinishedRegistrationFFWRound, \
-    RegistrationRound, AgentRegistrationAbciApp
-from packages.valory.skills.safe_deployment_abci.rounds import FinishedSafeRound, SafeDeploymentAbciApp
-from packages.valory.skills.transaction_settlement_abci.rounds import TransactionRounds, TransactionSubmissionAbciApp
+    TransactionType, DeployBasketPayload, DeployVaultPayload, BasketAddressesPayload, VaultAddressesPayload,
+    PermissionVaultFactoryPayload, DeployDecisionPayload)
 
 
 class Event(Enum):
@@ -122,6 +117,32 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             self.db.get("participant_to_epoch_start_block", 0),
         )
 
+    @property
+    def participant_to_basket_addresses(self) -> Mapping[str, List[str]]:
+        """Get basket addresses"""
+        return cast(
+            Mapping[str, List[str]],
+            self.db.get_strict("participant_to_basket_addresses"),
+        )
+
+    @property
+    def basket_addresses(self) -> List[str]:
+        """Get basket addresses"""
+        return self.db.get("basket_addresses", [])
+
+    @property
+    def participant_to_vault_addresses(self) -> Mapping[str, List[str]]:
+        """Get vault addresses"""
+        return cast(
+            Mapping[str, List[str]],
+            self.db.get_strict("participant_to_vault_addresses"),
+        )
+
+    @property
+    def vault_addresses(self) -> List[str]:
+        """Get vault addresses"""
+        return self.db.get("vault_addresses", [])
+
 
 class FractionalizeDeploymentABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the FractionalizeDeployment skill."""
@@ -138,6 +159,40 @@ class FractionalizeDeploymentABCIAbstractRound(AbstractRound[Event, TransactionT
         :return: a new period state and a NO_MAJORITY event
         """
         return self.period_state, Event.NO_MAJORITY
+
+
+class DeployDecisionRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+    """Round to check whether deployment is necessary"""
+
+    allowed_tx_type = DeployDecisionPayload.transaction_type
+    round_id = "deploy_decision_round"
+    payload_attribute = "deploy_decision"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_deploy_decision=MappingProxyType(self.collection),
+                most_voted_deploy_decision=self.most_voted_payload,
+            )
+
+            if self.most_voted_payload:
+                return self.period_state, Event.DECIDED_YES
+
+            return state, Event.DECIDED_NO
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class FinishedWithoutDeploymentRound(DegenerateRound):
+    """Degenerate round when no deployment should be made"""
+
+    round_id = "finished_without_deployment"
 
 
 class DeployBasketTxRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
@@ -158,6 +213,7 @@ class DeployBasketTxRound(CollectSameUntilThresholdRound, FractionalizeDeploymen
                 period_state_class=self.period_state_class,
                 participant_to_voted_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
+                tx_submitter=self.round_id,
             )
 
             return state, Event.DONE
@@ -168,7 +224,7 @@ class DeployBasketTxRound(CollectSameUntilThresholdRound, FractionalizeDeploymen
         return None
 
 
-class FinishedDeployBasketTxRound(DegenerateRound, ABC):
+class FinishedDeployBasketTxRound(DegenerateRound):
     """This class represents the finished round during operation."""
 
     round_id = "finished_basket_tx_deployment"
@@ -192,6 +248,7 @@ class DeployVaultTxRound(CollectSameUntilThresholdRound, FractionalizeDeployment
                 period_state_class=self.period_state_class,
                 participant_to_voted_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
+                tx_submitter=self.round_id,
             )
 
             return state, Event.DONE
@@ -208,36 +265,143 @@ class FinishedDeployVaultTxRound(DegenerateRound):
     round_id = "finished_vault_tx_deployment"
 
 
-class VaultTransactionRounds(TransactionRounds):
-    """Wrapper around transaction rounds"""
+class BasketAddressRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+    """This class represents the post basket deployment round"""
+
+    allowed_tx_type = BasketAddressesPayload.transaction_type
+    round_id = "post_deploy_basket_round"
+    payload_attribute = "basket_addresses"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            if self.most_voted_payload == "":
+                return self.period_state, Event.ERROR
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_basket_addresses=MappingProxyType(self.collection),
+                basket_addresses=self.most_voted_payload,
+            )
+
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
-class BasketTransactionRounds(TransactionRounds):
-    """Wrapper around transaction rounds"""
+class PermissionVaultFactoryRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+    """This class represents the round where the vault factory is permission with the basket"""
+
+    allowed_tx_type = PermissionVaultFactoryPayload.transaction_type
+    round_id = "permission_factory_round"
+    payload_attribute = "permission_factory"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            if self.most_voted_payload == "":
+                return self.period_state, Event.ERROR
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=self.most_voted_payload,
+                tx_submitter=self.round_id,
+            )
+
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
-class VaultTransactionSubmissionAbciApp(TransactionSubmissionAbciApp):
-    """Wrapper around transaction rounds"""
-    round_wrapper = VaultTransactionRounds
+class FinishedPostBasketRound(DegenerateRound):
+    """This class represents the last round of the PostBasketDeploymentAbci"""
+
+    round_id = "finished_post_basket_deployment_round"
 
 
-class BasketTransactionSubmissionAbciApp(TransactionSubmissionAbciApp):
-    """Wrapper around transaction rounds"""
-    round_wrapper = BasketTransactionRounds
+class VaultAddressRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+    """This class represents the post vault deployment round"""
+
+    allowed_tx_type = VaultAddressesPayload.transaction_type
+    round_id = "post_deploy_vault_round"
+    payload_attribute = "vault_addresses"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            if self.most_voted_payload == "":
+                return self.period_state, Event.ERROR
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                vault_addresses=self.most_voted_payload,
+            )
+
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class FinishedPostVaultRound(DegenerateRound):
+    """This class represents the last round of the PostVaultDeploymentAbci"""
+
+    round_id = "finished_post_vault_deployment_round"
 
 
 class DeployBasketAbciApp(AbciApp[Event]):
     """The base logic of Deploying Basket Abci app."""
 
-    initial_round_cls: Type[AbstractRound] = DeployBasketTxRound
+    initial_round_cls: Type[AbstractRound] = DeployDecisionRound
     transition_function: AbciAppTransitionFunction = {
+        DeployDecisionRound: {
+            Event.DECIDED_YES: DeployBasketTxRound,
+            Event.DECIDED_NO: FinishedWithoutDeploymentRound,
+        },
         DeployBasketTxRound: {
             Event.DONE: FinishedDeployBasketTxRound
         },
         FinishedDeployBasketTxRound: {},
+        FinishedWithoutDeploymentRound: {},
     }
     final_states: Set[AppState] = {
         FinishedDeployBasketTxRound,
+        FinishedWithoutDeploymentRound,
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
+    }
+
+
+class PostBasketDeploymentAbciApp(AbciApp[Event]):
+    """The base logic of Post Deployment Basket Abci app."""
+
+    initial_round_cls: Type[AbstractRound] = BasketAddressRound
+    transition_function: AbciAppTransitionFunction = {
+        BasketAddressRound: {
+            Event.DONE: PermissionVaultFactoryRound
+        },
+        PermissionVaultFactoryRound: {
+            Event.DONE: FinishedPostBasketRound
+        },
+        FinishedPostBasketRound: {},
+    }
+    final_states: Set[AppState] = {
+        FinishedPostBasketRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
@@ -264,26 +428,20 @@ class DeployVaultAbciApp(AbciApp[Event]):
     }
 
 
-fracionalize_deployment_app_transition_mapping: AbciAppTransitionMapping = {
-    FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
-    FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
-    FinishedRegistrationFFWRound: DeployBasketAbciApp.initial_round_cls,
-    FinishedDeployBasketTxRound: BasketTransactionSubmissionAbciApp.initial_round_cls,
-    BasketTransactionRounds.FinishedTransactionSubmissionRound: DeployVaultAbciApp.initial_round_cls,
-    FinishedDeployVaultTxRound: VaultTransactionSubmissionAbciApp.initial_round_cls,
-    VaultTransactionRounds.FinishedTransactionSubmissionRound: DeployVaultAbciApp.initial_round_cls,
-    BasketTransactionRounds.FailedRound: RegistrationRound,
-    VaultTransactionRounds.FailedRound: RegistrationRound,
-}
+class PostVaultDeploymentAbciApp(AbciApp[Event]):
+    """The base logic of Post Deployment Vault Abci app."""
 
-FractionalizeDeploymentAbciApp = chain(
-    (
-        AgentRegistrationAbciApp,
-        SafeDeploymentAbciApp,
-        DeployBasketAbciApp,
-        BasketTransactionSubmissionAbciApp,
-        DeployVaultAbciApp,
-        VaultTransactionSubmissionAbciApp,
-    ),
-    fracionalize_deployment_app_transition_mapping,
-)
+    initial_round_cls: Type[AbstractRound] = VaultAddressRound
+    transition_function: AbciAppTransitionFunction = {
+        VaultAddressRound: {
+            Event.DONE: FinishedPostVaultRound
+        },
+        FinishedPostVaultRound: {},
+    }
+    final_states: Set[AppState] = {
+        FinishedPostVaultRound,
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
+    }

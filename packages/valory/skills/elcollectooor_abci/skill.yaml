@@ -8,13 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
   __init__.py: QmfMGnm6mwZaoKUaJ9abNMuh2eEsMTY5ykxCTPY8ztDLrW
-  behaviours.py: QmdzjZ7XR5yGSxFSNwNhwhxYPazENnmPjWQqzVpSVTLVSC
-  decision_models.py: Qmcpea2dRMjbZm54rC3iA293HY8moGRbgvodzHg2kcUseb
+  behaviours.py: QmTPpUDxr3AoCxeXtHohmtLZd9f2xMu2cfs7K5DrohahMM
+  decision_models.py: QmTXK8eW42Cwpe7XRonJacUv2etqdDZLZ2pkXBZ7sHh7o4
   dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
   handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
-  models.py: QmRartUKPbU2LgoUN9QAJA2rJf6D1NYeDtAG3Xqcjq6vKr
-  payloads.py: QmX2wCrrj4UEvxCzGtYET55ss9fiJqmUtXod3MtkZz8Z2v
-  rounds.py: QmPE6ddnM3Xcsp3cPP6LPKhrNmE6VnzDq5TTwBwzBuLL2y
+  models.py: QmWyaBnE3kjKDbhssRs17FTyo9T29HkkUKELZYhJf1qHWN
+  payloads.py: QmRjjj4JRW8mrMGP2sGuAyhrsgYiM9s22QRmnEduxXEjxt
+  rounds.py: QmXgJKw3hWWNkLzNR5HC4Ya1qRkfZdcPWGZXVWjeQVouye
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -31,6 +31,7 @@ protocols:
 - valory/ledger_api:1.0.0
 skills:
 - valory/abstract_round_abci:0.1.0
+- valory/fractionalize_deployment_abci:0.1.0
 - valory/registration_abci:0.1.0
 - valory/safe_deployment_abci:0.1.0
 - valory/transaction_settlement_abci:0.1.0
@@ -73,16 +74,18 @@ models:
     class_name: LedgerApiDialogues
   params:
     args:
-      artblocks_contract: '0x1CD623a86751d4C4f20c96000FEC763941f098A2'
-      artblocks_periphery_contract: '0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441'
+      artblocks_contract: '0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270'
+      artblocks_periphery_contract: '0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7'
+      basket_factory_address: '0xde771104C0C44123d22D39bB716339cD0c3333a1'
       cleanup_history_depth: 1
       consensus:
         max_participants: 1
-      decision_model_type: simple
+      decision_model_type: 'yes'
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       keeper_timeout: 30.0
       max_healthcheck: 120
       max_retries: 5
+      multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 10
       period_setup: {}
       reset_tendermint_after: 2
@@ -90,12 +93,15 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 30.0
       service_id: el_collectooor_1
+      settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       sleep_time: 1
-      starting_project_id: null
+      starting_project_id: 301
       tendermint_check_sleep_delay: 3
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
+      token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
+      wei_to_fraction: 10500000000000000
     class_name: Params
   randomness_api:
     args:

@@ -26,7 +26,6 @@ import numpy as np
 import pandas as pd  # type: ignore
 from aea.exceptions import enforce
 
-
 _default_logger = logging.getLogger(__name__)
 
 
@@ -81,8 +80,8 @@ class SimpleDecisionModel(BaseDecisionModel):
         )
 
         if (
-            not project_details["royalty_receiver"]
-            == "0x0000000000000000000000000000000000000000"
+                not project_details["royalty_receiver"]
+                    == "0x0000000000000000000000000000000000000000"
         ):
             self.score += 1
         if not project_details["description"] == "":
@@ -108,20 +107,20 @@ class SimpleDecisionModel(BaseDecisionModel):
             avg_mints = np.mean(series[:, 1])
 
         blocks_to_go = (
-            most_voted_details[-1]["max_invocations"]
-            - most_voted_details[-1]["invocations"]
-        ) / (avg_mints + 0.001)
+                               most_voted_details[-1]["max_invocations"]
+                               - most_voted_details[-1]["invocations"]
+                       ) / (avg_mints + 0.001)
 
         if series.shape[0] > self.dutch_threshold and series[0, 0] == series[-1, 0]:
             self.logger.info("This is no Dutch auction.")
             # Moving Average of "blocks_to_go", window = 10
             ret = np.cumsum(np.diff(series[:, 1]), dtype=float)
             ret[10:] = ret[10:] - ret[:-10]
-            ma_blocks = ret[10 - 1 :] / 10
+            ma_blocks = ret[10 - 1:] / 10
 
             if (
-                np.sum(ma_blocks[-20:] > 0) > self.TIOLI_threshold
-                and price_per_token_in_wei < self.price_threshold
+                    np.sum(ma_blocks[-20:] > 0) > self.TIOLI_threshold
+                    and price_per_token_in_wei < self.price_threshold
             ):
                 return 1
 
@@ -129,9 +128,9 @@ class SimpleDecisionModel(BaseDecisionModel):
                 return 0
 
         if (
-            blocks_to_go
-            < self.threshold + (100 / most_voted_details[-1]["max_invocations"])
-            and price_per_token_in_wei < self.price_threshold
+                blocks_to_go
+                < self.threshold + (100 / most_voted_details[-1]["max_invocations"])
+                and price_per_token_in_wei < self.price_threshold
         ):
             self.logger.info("This is a Dutch auction or something very fast.")
             return 1
@@ -140,6 +139,37 @@ class SimpleDecisionModel(BaseDecisionModel):
             return 0
 
         return -1
+
+
+class EightyPercentDecisionModel(BaseDecisionModel):
+    """Decision model that purchases when a project is 80% sold."""
+
+    state = {
+        "purchased_curated": False
+    }
+
+    def __init__(self, state: Dict):
+        """
+        Initialize the algorithm with an external state.
+
+        :param state: The external (persisted) state.
+        """
+        self.state.update(state)
+
+    def static(self, project_details: Dict) -> int:
+        """"""
+        is_curated = project_details["is_curated"]
+        purchased_curated = self.state["purchased_curated"]
+
+        if is_curated:
+            # if it is curated, we will consider it
+            return 1
+
+        if not is_curated and purchased_curated:
+            # if its not a curated projects, but we've purchase a curated proj we consider it
+            return 1
+
+        return 0
 
 
 class YesDecisionModel(BaseDecisionModel):

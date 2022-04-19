@@ -37,6 +37,7 @@ from packages.valory.skills.elcollectooor_abci.decision_models import (
     YesDecisionModel,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
+from packages.valory.skills.fractionalize_deployment_abci.models import FractionalizeDeploymentParams
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
 
@@ -83,6 +84,7 @@ class ElCollectooorParams(BaseParams):
         self.starting_project_id = self._get_starting_project_id(kwargs)
         self.max_retries = int(kwargs.pop("max_retries", 5))
         self.decision_model_type = self._get_decision_model_type(kwargs)
+        self.multisend_address = self._ensure("multisend_address", kwargs)
 
     def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
         """Get the value of starting_project_id, or warn and return None"""
@@ -125,7 +127,7 @@ class ElCollectooorParams(BaseParams):
         return valid_types[model_type]
 
 
-class Params(ElCollectooorParams, TransactionParams):
+class Params(ElCollectooorParams, TransactionParams, FractionalizeDeploymentParams):
     """Union class for ElCollectoor and Transaction Settlement ABCI"""
 
 

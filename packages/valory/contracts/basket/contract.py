@@ -30,7 +30,6 @@ from web3.types import Nonce, TxParams, Wei
 
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 
-
 PUBLIC_ID = PublicId.from_str("valory/basket:0.1.0")
 
 _logger = logging.getLogger(
@@ -45,28 +44,28 @@ class BasketContract(Contract):
 
     @classmethod
     def get_raw_transaction(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_raw_message(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_state(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_deploy_transaction(
-        cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Get deploy transaction.
@@ -113,13 +112,13 @@ class BasketContract(Contract):
 
     @classmethod
     def _handle_gas_ops(
-        cls,
-        tx_parameters: TxParams,
-        ledger_api: EthereumApi,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            tx_parameters: TxParams,
+            ledger_api: EthereumApi,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> None:
         """
         Handle gas related operations
@@ -145,9 +144,9 @@ class BasketContract(Contract):
             )
 
         if (
-            gas_price is None
-            and max_fee_per_gas is None
-            and max_priority_fee_per_gas is None
+                gas_price is None
+                and max_fee_per_gas is None
+                and max_priority_fee_per_gas is None
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing())
 
@@ -156,7 +155,7 @@ class BasketContract(Contract):
 
     @classmethod
     def _handle_nonce_ops(
-        cls, tx_parameters: TxParams, ledger_api: EthereumApi, sender_address: str
+            cls, tx_parameters: TxParams, ledger_api: EthereumApi, sender_address: str
     ) -> None:
         """
         Handle gas nonce operations
@@ -178,16 +177,16 @@ class BasketContract(Contract):
 
     @classmethod
     def approve(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        operator_address: str,
-        token_id: int,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            operator_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Gives permission to `operator_address` to transfer `tokenId` token to another account.
@@ -230,16 +229,16 @@ class BasketContract(Contract):
 
     @classmethod
     def set_approve_for_all(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        operator_address: str,
-        is_approved: bool,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            operator_address: str,
+            is_approved: bool,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Set the approval status for the operator.
@@ -282,16 +281,16 @@ class BasketContract(Contract):
 
     @classmethod
     def withdraw_erc721(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        token_address: str,
-        token_id: int,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            token_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Withdraw an ERC721 token from the contract into the wallet of the sender.
@@ -334,16 +333,16 @@ class BasketContract(Contract):
 
     @classmethod
     def withdraw_erc721_unsafe(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        token_address: str,
-        token_id: int,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            token_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Withdraw an ERC721 token from the contract into the wallet of the sender.
@@ -386,14 +385,14 @@ class BasketContract(Contract):
 
     @classmethod
     def withdraw_eth(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Withdraw ETH in the case a held NFT earned ETH (ie. euler beats).
@@ -431,15 +430,15 @@ class BasketContract(Contract):
 
     @classmethod
     def withdraw_erc20(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        token_address: str,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            token_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Withdraw ERC20 in the case a held NFT earned ERC20.
@@ -480,16 +479,16 @@ class BasketContract(Contract):
 
     @classmethod
     def transfer_from(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        new_owner_address: str,
-        token_id: int,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            new_owner_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Transfers `tokenId` token to `new_owner_address`
@@ -535,16 +534,16 @@ class BasketContract(Contract):
 
     @classmethod
     def safe_transfer_from(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        new_owner_address: str,
-        token_id: int,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            new_owner_address: str,
+            token_id: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Transfers `tokenId` token to `new_owner_address`
@@ -588,10 +587,10 @@ class BasketContract(Contract):
 
     @classmethod
     def get_balance_of(
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
-        owner_address: str,
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            owner_address: str,
     ) -> Optional[int]:
         """
         Returns the number of tokens in `owner_address`'s account.
@@ -609,10 +608,10 @@ class BasketContract(Contract):
 
     @classmethod
     def get_owner_of(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        token_id: int,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            token_id: int,
     ) -> Optional[str]:
         """
         Returns the owner's address of the `tokenId` token.
@@ -630,9 +629,9 @@ class BasketContract(Contract):
 
     @classmethod
     def get_base_uri(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
     ) -> Optional[str]:
         """
         Get the address of the logic contract.
@@ -649,10 +648,10 @@ class BasketContract(Contract):
 
     @classmethod
     def get_approved_account(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        token_id: int,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            token_id: int,
     ) -> Optional[str]:
         """
         Returns the account approved for `tokenId` token.
@@ -670,11 +669,11 @@ class BasketContract(Contract):
 
     @classmethod
     def is_approved_for_all(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        owner_address: str,
-        operator_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            owner_address: str,
+            operator_address: str,
     ) -> Optional[bool]:
         """
         Returns if the `operator` is allowed to manage all the assets of `owner`.
@@ -696,9 +695,9 @@ class BasketContract(Contract):
 
     @classmethod
     def get_total_supply(
-        cls,
-        ledger_api: EthereumApi,
-        contract_address: str,
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
     ) -> Optional[int]:
         """
         Returns the total amount of tokens stored by the contract.
@@ -715,11 +714,11 @@ class BasketContract(Contract):
 
     @classmethod
     def get_token_of_owner_by_index(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        owner_address: str,
-        index: int,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            owner_address: str,
+            index: int,
     ) -> Optional[int]:
         """
         Returns a token ID owned by `owner` at a given `index` of its token list.
@@ -741,10 +740,10 @@ class BasketContract(Contract):
 
     @classmethod
     def get_token_by_index(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        index: int,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            index: int,
     ) -> Optional[int]:
         """
         Returns a token ID at a given `index` of all the tokens stored by the contract.
@@ -759,3 +758,32 @@ class BasketContract(Contract):
         token_id = basket.functions.tokenByIndex(index).call()
 
         return token_id
+
+    @classmethod
+    def approve_abi(
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            operator_address: str,
+    ) -> JSONLike:
+        """
+        Gives permission to `operator_address` over the whole basket.
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the basket to be used
+        :param operator_address: the address to set the approval status of
+        :return: the raw transaction
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        basket = cls.get_instance(ledger_api, contract_address)
+        operator_address = ledger_api.api.toChecksumAddress(operator_address)
+
+        data = basket.encodeABI(
+            fn_name="approve",
+            args=[
+                operator_address,
+                0,
+            ]
+        )
+
+        return {"data": data}

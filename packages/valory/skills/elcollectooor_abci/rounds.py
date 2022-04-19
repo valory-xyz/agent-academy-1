@@ -44,13 +44,17 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     ObservationPayload,
     ResetPayload,
     TransactionPayload,
-    TransactionType, FundingPayload,
+    TransactionType, FundingPayload, PayoutFractionsPayload, PaidFractionsPayload, TransferNFTPayload,
+    PurchasedNFTPayload,
 )
+from packages.valory.skills.fractionalize_deployment_abci.rounds import DeployVaultTxRound, DeployBasketTxRound, \
+    DeployVaultAbciApp, DeployBasketAbciApp, FinishedDeployBasketTxRound, FinishedDeployVaultTxRound, \
+    PostVaultDeploymentAbciApp, PostBasketDeploymentAbciApp, FinishedPostBasketRound, FinishedPostVaultRound, \
+    PermissionVaultFactoryRound, FinishedWithoutDeploymentRound
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
     FinishedRegistrationFFWRound,
-    FinishedRegistrationRound,
-    RegistrationRound,
+    FinishedRegistrationRound, RegistrationRound,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
@@ -73,7 +77,20 @@ class Event(Enum):
     DECIDED_YES = "decided_yes"
     DECIDED_NO = "decided_no"
     GIB_DETAILS = "gib_details"
+    NO_PAYOUTS = "no_payouts"
+    NO_TRANSFER = "no_transfer"
     ERROR = "error"
+
+
+class PostTransactionSettlementEvent(Enum):
+    """Event enumeration after the transaction has been settled."""
+
+    EL_COLLECTOOORR_DONE = "elcollectooorr_done"
+    VAULT_DONE = "vault_done"
+    BASKET_DONE = "basket_done"
+    BASKET_PERMISSION = "basket_permission"
+    FRACTION_PAYOUT = "fraction_payout"
+    TRANSFER_NFT_DONE = "transfer_nft_done"
 
 
 def encode_float(value: float) -> bytes:
@@ -208,6 +225,32 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
             self.db.get("participant_to_epoch_start_block", 0),
         )
 
+    @property
+    def participant_to_basket_addresses(self) -> Mapping[str, List[str]]:
+        """Get basket addresses"""
+        return cast(
+            Mapping[str, List[str]],
+            self.db.get_strict("participant_to_basket_addresses"),
+        )
+
+    @property
+    def basket_addresses(self) -> List[str]:
+        """Get basket addresses"""
+        return self.db.get("basket_addresses", [])
+
+    @property
+    def participant_to_vault_addresses(self) -> Mapping[str, List[str]]:
+        """Get vault addresses"""
+        return cast(
+            Mapping[str, List[str]],
+            self.db.get_strict("participant_to_vault_addresses"),
+        )
+
+    @property
+    def vault_addresses(self) -> List[str]:
+        """Get vault addresses"""
+        return self.db.get("vault_addresses", [])
+
 
 class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the El Collectooor skill."""
@@ -256,33 +299,6 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
                 self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
-        return None
-
-
-class FundingRound(CollectSameUntilThresholdRound):
-    """A round in which the funding logic gets exceuted"""
-
-    round_id = "funding_round"
-    allowed_tx_type = FundingPayload.transaction_type
-    payload_attribute = "funds"
-    done_event = Event.DONE
-    period_state_class = PeriodState
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
-                most_voted_funds=self.most_voted_payload,
-                participant_to_funding_round=MappingProxyType(self.collection)
-            )
-            return state, Event.DONE
-
-        if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
-        ):
-            return self.period_state, Event.NO_MAJORITY
-
         return None
 
 
@@ -379,7 +395,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
     """Defines the Transaction Round"""
 
     allowed_tx_type = TransactionPayload.transaction_type
-    round_id = "transaction_collection"
+    round_id = "elcollectooorr_transaction_collection"
     payload_attribute = "purchase_data"
     period_state_class = PeriodState
 
@@ -393,6 +409,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
                 period_state_class=self.period_state_class,
                 participant_to_voted_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
+                tx_submitter=self.round_id,
             )
 
             return state, Event.DONE
@@ -418,14 +435,8 @@ class FinishedElCollectoorBaseRound(DegenerateRound):
 class ElCollectooorBaseAbciApp(AbciApp[Event]):
     """The base logic of El Collectooor."""
 
-    initial_round_cls: Type[AbstractRound] = FundingRound
+    initial_round_cls: Type[AbstractRound] = ObservationRound
     transition_function: AbciAppTransitionFunction = {
-        FundingRound: {
-            Event.DONE: ObservationRound,
-            Event.ROUND_TIMEOUT: ResetFromFundingRound,
-            Event.NO_MAJORITY: ResetFromFundingRound,
-            Event.ERROR: ResetFromFundingRound,
-        },
         ObservationRound: {
             Event.DONE: DetailsRound,
             Event.ROUND_TIMEOUT: ResetFromFundingRound,
@@ -466,13 +477,399 @@ class ElCollectooorBaseAbciApp(AbciApp[Event]):
     }
 
 
+class ProcessPurchaseRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """Round to process the purchase of the token on artblocks"""
+
+    round_id = "process_purchase_round"
+    allowed_tx_type = PurchasedNFTPayload.transaction_type
+    payload_attribute = "purchased_nft"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            if self.most_voted_payload == -1:
+                return self.period_state, Event.ERROR
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                purchased_nft=self.most_voted_payload,
+            )
+            return state, Event.DONE
+
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+
+        return None
+
+
+class TransferNFTRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """A round in which the NFT is transferred from the safe to the basket"""
+
+    round_id = "transfer_nft_round"
+    allowed_tx_type = TransferNFTPayload.transaction_type
+    payload_attribute = "transfer_data"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            if self.most_voted_payload == "":
+                return self.period_state, Event.NO_TRANSFER
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                most_voted_tx_hash=self.most_voted_payload,
+                purchased_nft=None,  # optimistic assumption that the tx will be settled correctly
+                tx_submitter=self.round_id,
+            )
+            return state, Event.DONE
+
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+
+        return None
+
+
+class FinishedWithoutTransferRound(DegenerateRound):
+    """Degenrate round."""
+
+    round_id = "finished_without_transfer_round"
+
+
+class FinishedWithTransferRound(DegenerateRound):
+    """Degenrate round."""
+
+    round_id = "finished_with_transfer_round"
+
+
+class FailedPurchaseProcessingRound(DegenerateRound):
+    """Degenrate round."""
+
+    round_id = "failed_purchase_process_round"
+
+
+class TransferNFTAbciApp(AbciApp[Event]):
+    """ABCI App to handle NFT transfers."""
+
+    initial_round_cls: Type[AbstractRound] = ProcessPurchaseRound
+    transition_function: AbciAppTransitionFunction = {
+        ProcessPurchaseRound: {
+            Event.DONE: TransferNFTRound,
+            Event.ERROR: FailedPurchaseProcessingRound,
+            Event.NO_MAJORITY: ProcessPurchaseRound,
+            Event.RESET_TIMEOUT: ProcessPurchaseRound,
+        },
+        TransferNFTRound: {
+            Event.DONE: FinishedWithTransferRound,
+            Event.NO_TRANSFER: FinishedWithoutTransferRound,
+            Event.ROUND_TIMEOUT: TransferNFTRound,
+            Event.NO_MAJORITY: TransferNFTRound,
+        },
+        FailedPurchaseProcessingRound: {},
+        FinishedWithTransferRound: {},
+        FinishedWithoutTransferRound: {},
+    }
+    final_states: Set[AppState] = {
+        FailedPurchaseProcessingRound,
+        FinishedWithTransferRound,
+        FinishedWithoutTransferRound,
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
+    }
+
+
+class FundingRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """A round in which the funding logic gets exceuted"""
+
+    round_id = "funding_round"
+    allowed_tx_type = FundingPayload.transaction_type
+    payload_attribute = "address_to_funds"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                most_voted_funds=self.most_voted_payload,
+                participant_to_funding_round=MappingProxyType(self.collection)
+            )
+            return state, Event.DONE
+
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
+
+        return None
+
+
+class PayoutFractionsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """This class represents the post vault deployment round"""
+
+    allowed_tx_type = PayoutFractionsPayload.transaction_type
+    round_id = "payout_fractions_round"
+    payload_attribute = "payout_fractions"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            if self.most_voted_payload == '{}':
+                return self.period_state, Event.NO_PAYOUTS
+
+            payload = json.loads(self.most_voted_payload)
+            users_being_paid = payload['raw']
+            tx_hash = payload['encoded']
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                most_voted_tx_hash=tx_hash,
+                users_being_paid=json.dumps(users_being_paid),
+                tx_submitter=self.round_id,
+            )
+
+            return state, Event.DONE
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class FinishedBankWithoutPayoutsRounds(DegenerateRound):
+    """Degnerate round"""
+
+    round_id = "finished_bank_without_payouts"
+
+
+class FinishedBankWithPayoutsRounds(DegenerateRound):
+    """Degnerate round"""
+
+    round_id = "finished_bank_with_payouts"
+
+
+class BankAbciApp(AbciApp[Event]):
+    """ABCI App to handle the deposits and payouts."""
+
+    initial_round_cls: Type[AbstractRound] = FundingRound
+    transition_function: AbciAppTransitionFunction = {
+        FundingRound: {
+            Event.DONE: PayoutFractionsRound,
+            Event.ROUND_TIMEOUT: FundingRound,
+            Event.NO_MAJORITY: FundingRound,
+        },
+        PayoutFractionsRound: {
+            Event.DONE: FinishedBankWithPayoutsRounds,
+            Event.NO_PAYOUTS: FinishedBankWithoutPayoutsRounds,
+            Event.ROUND_TIMEOUT: FundingRound,
+            Event.NO_MAJORITY: FundingRound,
+        },
+        FinishedBankWithoutPayoutsRounds: {},
+        FinishedBankWithPayoutsRounds: {},
+    }
+    final_states: Set[AppState] = {
+        FinishedBankWithPayoutsRounds,
+        FinishedBankWithoutPayoutsRounds,
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
+    }
+
+
+class PostPayoutRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """This class represents the post payout round"""
+
+    allowed_tx_type = PaidFractionsPayload.transaction_type
+    round_id = "post_payout_fractions_round"
+    payload_attribute = "paid_fractions"
+    period_state_class = PeriodState
+
+    @staticmethod
+    def _merge_paid_users(old: Dict[str, int], new: Dict[str, int]) -> Dict[str, int]:
+        merged = {}
+
+        for address, amount in new.items():
+            if address in old.keys():
+                merged[address] = old[address] + amount
+            else:
+                merged[address] = amount
+
+        return merged
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        already_paid = json.loads(self.period_state.db.get("paid_users", '{}'))
+        newly_paid = json.loads(self.period_state.db.get("users_being_paid", '{}'))
+        all_paid_users = self._merge_paid_users(already_paid, newly_paid)
+        state = self.period_state.update(
+            period_state_class=self.period_state_class,
+            users_being_paid='{}',
+            paid_users=json.dumps(all_paid_users),
+        )
+
+        return state, Event.DONE
+
+
+class FinishedPostPayoutRound(DegenerateRound):
+    """This class represents the finished post payout ABCI"""
+
+    round_id = "finished_post_payout_round"
+
+
+class PostFractionPayoutAbciApp(AbciApp[Event]):
+    """ABCI to handle Post Bank tasks"""
+    initial_round_cls: Type[AbstractRound] = PostPayoutRound
+    transition_function: AbciAppTransitionFunction = {
+        PostPayoutRound: {
+            Event.DONE: FinishedPostPayoutRound,
+            Event.ROUND_TIMEOUT: PostPayoutRound,
+        },
+        FinishedPostPayoutRound: {},
+    }
+    final_states: Set[AppState] = {
+        FinishedPostPayoutRound,
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
+    }
+
+
+class PostTransactionSettlementRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "post_transaction_settlement_round"
+
+    round_id_to_event = {
+        TransactionRound.round_id: PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE,
+        DeployBasketTxRound.round_id: PostTransactionSettlementEvent.BASKET_DONE,
+        DeployVaultTxRound.round_id: PostTransactionSettlementEvent.VAULT_DONE,
+        PermissionVaultFactoryRound.round_id: PostTransactionSettlementEvent.BASKET_PERMISSION,
+        PayoutFractionsRound.round_id: PostTransactionSettlementEvent.FRACTION_PAYOUT,
+        TransferNFTRound.round_id: PostTransactionSettlementEvent.TRANSFER_NFT_DONE,
+    }
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        tx_submitter = self.period_state.db.get("tx_submitter", None)
+        if tx_submitter is None or tx_submitter not in self.round_id_to_event.keys():
+            return self.period_state, Event.ERROR
+
+        return self.period_state, self.round_id_to_event[tx_submitter]
+
+
+class FinishedElcollectooorrTxRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "finished_elcollectooorr_round"
+
+
+class FinishedBasketTxRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "finished_basket_round"
+
+
+class FinishedVaultTxRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "finished_vault_round"
+
+
+class FinishedBasketPermissionTxRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "finished_vault_round"
+
+
+class FinishedPayoutTxRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "finished_payout_tx_round"
+
+
+class FinishedTransferNftTxRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "finished_nft_tx_round"
+
+
+class ErrorneousRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "err_round"
+
+
+class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
+    """ABCI app to multiplex the transaction settlement"""
+    initial_round_cls: Type[AbstractRound] = PostTransactionSettlementRound
+    transition_function: AbciAppTransitionFunction = {
+        PostTransactionSettlementRound: {
+            PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE: FinishedElcollectooorrTxRound,
+            PostTransactionSettlementEvent.VAULT_DONE: FinishedVaultTxRound,
+            PostTransactionSettlementEvent.BASKET_DONE: FinishedBasketTxRound,
+            PostTransactionSettlementEvent.BASKET_PERMISSION: FinishedBasketPermissionTxRound,
+            PostTransactionSettlementEvent.FRACTION_PAYOUT: FinishedPayoutTxRound,
+            PostTransactionSettlementEvent.TRANSFER_NFT_DONE: FinishedTransferNftTxRound,
+            Event.ERROR: ErrorneousRound,
+        },
+        FinishedVaultTxRound: {},
+        FinishedBasketTxRound: {},
+        FinishedElcollectooorrTxRound: {},
+        FinishedBasketPermissionTxRound: {},
+        FinishedPayoutTxRound: {},
+        FinishedTransferNftTxRound: {},
+        ErrorneousRound: {},
+    }
+    final_states: Set[AppState] = {
+        ErrorneousRound,
+        FinishedVaultTxRound,
+        FinishedBasketTxRound,
+        FinishedElcollectooorrTxRound,
+        FinishedBasketPermissionTxRound,
+        FinishedPayoutTxRound,
+        FinishedTransferNftTxRound,
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
+    }
+
+
 el_collectooor_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
-    FinishedSafeRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
-    FinishedRegistrationFFWRound: ElCollectooorBaseAbciApp.initial_round_cls,
-    FinishedTransactionSubmissionRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedRegistrationFFWRound: DeployBasketAbciApp.initial_round_cls,
+    FinishedTransactionSubmissionRound: PostTransactionSettlementRound,
+    FinishedDeployVaultTxRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedDeployBasketTxRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedBasketTxRound: PostBasketDeploymentAbciApp.initial_round_cls,
+    FinishedPostBasketRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedBasketPermissionTxRound: DeployVaultAbciApp.initial_round_cls,
+    FinishedElcollectooorrTxRound: TransferNFTAbciApp.initial_round_cls,
+    FinishedVaultTxRound: PostVaultDeploymentAbciApp.initial_round_cls,
+    FinishedPostVaultRound: BankAbciApp.initial_round_cls,
+    FinishedBankWithoutPayoutsRounds: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedPayoutTxRound: PostFractionPayoutAbciApp.initial_round_cls,
+    FinishedPostPayoutRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedBankWithPayoutsRounds: TransactionSubmissionAbciApp.initial_round_cls,
     FailedRound: RegistrationRound,
+    FinishedWithoutDeploymentRound: BankAbciApp.initial_round_cls,
+    FinishedWithoutTransferRound: DeployBasketAbciApp.initial_round_cls,
+    FinishedWithTransferRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedTransferNftTxRound: DeployBasketAbciApp.initial_round_cls,
+    FailedPurchaseProcessingRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    ErrorneousRound: TransactionSubmissionAbciApp.initial_round_cls,
 }
 
 ElCollectooorAbciApp = chain(
@@ -481,6 +878,14 @@ ElCollectooorAbciApp = chain(
         SafeDeploymentAbciApp,
         ElCollectooorBaseAbciApp,
         TransactionSubmissionAbciApp,
+        TransactionSettlementAbciMultiplexer,
+        DeployVaultAbciApp,
+        PostVaultDeploymentAbciApp,
+        DeployBasketAbciApp,
+        PostBasketDeploymentAbciApp,
+        TransferNFTAbciApp,
+        BankAbciApp,
+        PostFractionPayoutAbciApp,
     ),
     el_collectooor_app_transition_mapping,
 )

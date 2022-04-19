@@ -26,10 +26,6 @@ from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
-)
-from packages.valory.skills.fractionalize_deployment_abci.rounds import FractionalizeDeploymentAbciApp, Event
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
 MARGIN = 5
@@ -37,23 +33,6 @@ MARGIN = 5
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
 
-
-class SharedState(BaseSharedState):
-    """Keep the current shared state of the skill."""
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=FractionalizeDeploymentAbciApp, **kwargs)
-
-    def setup(self) -> None:
-        """Set up."""
-        super().setup()
-        FractionalizeDeploymentAbciApp.event_to_timeout[
-            Event.ROUND_TIMEOUT
-        ] = self.context.params.round_timeout_seconds
-        FractionalizeDeploymentAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
-            self.context.params.observation_interval + MARGIN
-        )
 
 
 class FractionalizeDeploymentParams(BaseParams):
@@ -73,8 +52,9 @@ class FractionalizeDeploymentParams(BaseParams):
         self.token_vault_factory_address = self._ensure(
             "token_vault_factory_address", kwargs
         )
-
-
+        self.wei_to_fraction = self._ensure(
+            "wei_to_fraction", kwargs
+        )
 
 class Params(FractionalizeDeploymentParams, TransactionParams):
     """Union class for ElCollectoor and Transaction Settlement ABCI"""

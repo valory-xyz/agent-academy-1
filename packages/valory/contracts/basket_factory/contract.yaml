@@ -9,7 +9,7 @@ fingerprint:
   README.md: QmdqbfimghaQvJe5TGroKTxZUCdGEL6v1DGk8fK2v6mhfs
   __init__.py: QmPpQFS7rtv7AeERadhkY3m3ixMS9i5JdYfXE6iGUcUuUK
   build/BasketFactory.json: QmcRSrAXPGVibysuBc95RiykuBSeyX3Q6GfjS1ozjtZSg4
-  contract.py: QmQEWCnKtPXtfJXiw6arGWawy5CKXtBFEssh32vb5XJXQx
+  contract.py: QmWmGkRfacfTfZ9RBQUEQ4E5EQHP67PBxRG9SLwz3619kT
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: BasketFactoryContract

@@ -429,7 +429,7 @@ class GnosisSafeContract(Contract):
         configured_gas = base_gas + safe_tx_gas + 75000
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,
-            "gas": configured_gas,
+            # "gas": configured_gas,
         }
         if gas_price is not None:
             tx_parameters["gasPrice"] = gas_price
@@ -640,9 +640,9 @@ class GnosisSafeContract(Contract):
             cls,
             ledger_api: EthereumApi,
             contract_address: str,
-            from_block: str = '0x0',
-            to_block: str = 'latest',
-    ) -> List[JSONLike]:
+            from_block: Optional[str] = None,
+            to_block: Optional[str] = 'latest',
+    ) -> JSONLike:
         """
         A list of transfers into the contract.
 
@@ -653,16 +653,27 @@ class GnosisSafeContract(Contract):
         :return: list of transfers
         """
         safe_contract = cls.get_instance(ledger_api, contract_address)
+
+        if from_block is None:
+            logging.info(
+                "'from_block' not provided, checking for transfers to the safe contract in the last 50 blocks."
+            )
+            current_block = ledger_api.api.eth.get_block('latest')['number']
+            from_block = hex(current_block - 50)  # check in the last ~10 min
+
         safe_filter = safe_contract.events.SafeReceived.createFilter(fromBlock=from_block, toBlock=to_block)
         all_entries = safe_filter.get_all_entries()
 
-        return list(
-            map(
-                lambda entry: {
-                    "sender": entry["args"]["sender"],
-                    "amount": int(entry["args"]["value"]),
-                    "blockNumber": entry["blockNumber"],
-                },
-                all_entries
-            )
-        )
+        return {
+            "data":
+                list(
+                    map(
+                        lambda entry: {
+                            "sender": entry["args"]["sender"],
+                            "amount": int(entry["args"]["value"]),
+                            "blockNumber": entry["blockNumber"],
+                        },
+                        all_entries
+                    )
+                )
+        }

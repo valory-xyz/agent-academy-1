@@ -32,10 +32,8 @@ from packages.valory.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
 )
 
-
 PUBLIC_ID = PublicId.from_str("valory/token_vault:0.1.0")
 TOKEN_VAULT_DEPLOYED_CODE = "0x6080604052600436106100225760003560e01c8063d7dfa0dd1461007557610029565b3661002957005b60007f000000000000000000000000d8058efe0198ae9dd7d563e1b4938dcbc86a1f81905060405136600082376000803683855af43d806000843e8160008114610071578184f35b8184fd5b34801561008157600080fd5b5061008a6100a0565b60405161009791906100d3565b60405180910390f35b7f000000000000000000000000d8058efe0198ae9dd7d563e1b4938dcbc86a1f8181565b6100cd816100ee565b82525050565b60006020820190506100e860008301846100c4565b92915050565b60006100f982610100565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff8216905091905056fea2646970667358221220dc1b8611c989c28d353f1703711deb09faf9e2c5a24cfef6bacf2bad3a3de59064736f6c63430008040033"  # nosec
-
 
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
@@ -49,7 +47,7 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def get_raw_transaction(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """
         Handler method for the 'GET_RAW_TRANSACTION' requests.
@@ -66,7 +64,7 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def get_raw_message(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> bytes:
         """
         Handler method for the 'GET_RAW_MESSAGE' requests.
@@ -83,7 +81,7 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def get_state(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Handler method for the 'GET_STATE' requests.
@@ -100,13 +98,13 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def _handle_gas_ops(
-        cls,
-        tx_parameters: TxParams,
-        ledger_api: EthereumApi,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            tx_parameters: TxParams,
+            ledger_api: EthereumApi,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> None:
         """
         Handle gas related operations
@@ -132,9 +130,9 @@ class TokenVaultContract(Contract):
             )
 
         if (
-            gas_price is None
-            and max_fee_per_gas is None
-            and max_priority_fee_per_gas is None
+                gas_price is None
+                and max_fee_per_gas is None
+                and max_priority_fee_per_gas is None
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing())
 
@@ -143,7 +141,7 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def _handle_nonce_ops(
-        cls, tx_parameters: TxParams, ledger_api: EthereumApi, sender_address: str
+            cls, tx_parameters: TxParams, ledger_api: EthereumApi, sender_address: str
     ) -> None:
         """
         Handle gas nonce operations
@@ -165,7 +163,7 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def get_deploy_transaction(  # pylint: disable=too-many-locals
-        cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Get deploy transaction.
@@ -228,15 +226,15 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def kick_curator(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        curator_address: str,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            curator_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Allow governance to boot a bad actor curator.
@@ -280,16 +278,16 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def transfer_erc20(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        receiver_address: str,
-        amount: int,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            receiver_address: str,
+            amount: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Transfer tokens.
@@ -334,11 +332,11 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def get_transfer_erc20_data(
-        cls,  # pylint: disable=unused-argument
-        ledger_api: LedgerApi,
-        contract_address: str,
-        receiver_address: str,
-        amount: int,
+            cls,  # pylint: disable=unused-argument
+            ledger_api: LedgerApi,
+            contract_address: str,
+            receiver_address: str,
+            amount: int,
     ) -> JSONLike:
         """
         Transfer tokens.
@@ -353,16 +351,18 @@ class TokenVaultContract(Contract):
         """
 
         instance = cls.get_instance(ledger_api, contract_address)
+        receiver_address = ledger_api.api.toChecksumAddress(receiver_address)
         data = instance.encodeABI(fn_name="transfer", args=[receiver_address, amount])
 
         return {"data": data}
 
+
     @classmethod
     def get_kick_curator_data(
-        cls,  # pylint: disable=unused-argument
-        ledger_api: LedgerApi,
-        contract_address: str,
-        curator_address: str,
+            cls,  # pylint: disable=unused-argument
+            ledger_api: LedgerApi,
+            contract_address: str,
+            curator_address: str,
     ) -> JSONLike:
         """
         Allow governance to remove bad reserve prices.
@@ -382,9 +382,9 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def get_curator(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
     ) -> Optional[str]:
         """
         Get the curator of the contract.
@@ -402,11 +402,11 @@ class TokenVaultContract(Contract):
 
     @classmethod
     def get_balance(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        address: str,
-    ) -> Optional[int]:
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            address: str,
+    ) -> JSONLike:
         """
         Get the curator of the contract.
 
@@ -420,4 +420,24 @@ class TokenVaultContract(Contract):
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         balance = token_vault_contract.functions.balanceOf(address).call()
 
-        return balance
+        return {"balance": balance}
+
+    @classmethod
+    def get_auction_state(
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+    ) -> JSONLike:
+        """
+        Get the curator of the contract.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the token vault to be used
+        :return: the curator's address
+        """
+
+        ledger_api = cast(EthereumApi, ledger_api)
+        token_vault_contract = cls.get_instance(ledger_api, contract_address)
+        state = token_vault_contract.functions.auctionState().call()
+
+        return {"state": state}

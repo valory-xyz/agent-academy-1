@@ -18,14 +18,20 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the scaffold contract definition."""
-
-from typing import Any, Optional
+import logging
+from typing import Any, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea.exceptions import enforce
+from aea_ledger_ethereum import EthereumApi
+
+
+_logger = logging.getLogger(
+    f"aea.packages.valory.contracts.artblocks.contract"
+)
 
 
 class ArtBlocksContract(Contract):
@@ -35,7 +41,7 @@ class ArtBlocksContract(Contract):
 
     @classmethod
     def get_raw_transaction(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Handler method for the 'GET_RAW_TRANSACTION' requests.
@@ -52,7 +58,7 @@ class ArtBlocksContract(Contract):
 
     @classmethod
     def get_raw_message(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> bytes:
         """
         Handler method for the 'GET_RAW_MESSAGE' requests.
@@ -69,7 +75,7 @@ class ArtBlocksContract(Contract):
 
     @classmethod
     def get_state(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Handler method for the 'GET_STATE' requests.
@@ -86,10 +92,10 @@ class ArtBlocksContract(Contract):
 
     @classmethod
     def get_dynamic_details(
-        cls,  # pylint: disable=unused-argument
-        ledger_api: LedgerApi,
-        contract_address: str,
-        project_id: int = 0,
+            cls,  # pylint: disable=unused-argument
+            ledger_api: LedgerApi,
+            contract_address: str,
+            project_id: int = 0,
     ) -> JSONLike:
         """
         Handler method for the 'get_dynamic_details' requests.
@@ -117,10 +123,10 @@ class ArtBlocksContract(Contract):
 
     @classmethod
     def get_active_project(
-        cls,  # pylint: disable=unused-argument
-        ledger_api: LedgerApi,
-        contract_address: str,
-        starting_id: Optional[int] = None,
+            cls,  # pylint: disable=unused-argument
+            ledger_api: LedgerApi,
+            contract_address: str,
+            starting_id: Optional[int] = None,
     ) -> JSONLike:
         """
         Handler method for the 'get_active_project' requests.
@@ -151,10 +157,9 @@ class ArtBlocksContract(Contract):
         if project_id == 0:
             return {"project_id": None}
         project_details = instance.functions.projectDetails(project_id).call()
-        project_script = instance.functions.projectScriptByIndex(
-            project_id, script_info[1] - 1
-        ).call()
-        royalty_data = instance.functions.getRoyaltyData(project_id).call()
+        # project_script = instance.functions.projectScriptByIndex(
+        #     project_id, script_info[1] - 1
+        # ).call()
 
         result = {
             "artist_address": project_info[0],
@@ -164,10 +169,74 @@ class ArtBlocksContract(Contract):
             "artist": project_details[1],
             "description": project_details[2],
             "website": project_details[3],
-            "script": project_script,
-            "ipfs_hash": script_info[3],
+            # "script": project_script,
             "invocations": project_info[2],
             "max_invocations": project_info[3],
-            "royalty_receiver": royalty_data[1],
         }
         return result
+
+    @classmethod
+    def process_purchase_receipt(
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            tx_hash: str,
+    ) -> Optional[JSONLike]:
+        """
+        Get the Mint event out of the purchase receipt.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param tx_hash: the tx_hash to be processed.
+        :return: the token_id of the purchase
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = cls.get_instance(ledger_api, contract_address)
+        receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
+        logs = contract.events.Mint().processReceipt(receipt)
+
+        if len(logs) == 0:
+            _logger.error(f"No 'Mint' events were emitted in the tx={tx_hash}")
+            return None
+
+        if len(logs) != 1:
+            _logger.warning(f"{len(logs)} 'Mint' events were emitted in the tx={tx_hash}")
+
+        args = logs[-1]["args"]  # in case of multiple logs, take the last
+
+        response = {
+            "token_id": args["_tokenId"],
+        }
+
+        return response
+
+    @classmethod
+    def safe_transfer_from_data(
+        cls,  # pylint: disable=unused-argument
+        ledger_api: LedgerApi,
+        contract_address: str,
+        from_address: str,
+        to_address: str,
+        token_id: int,
+    ) -> JSONLike:
+        """
+        Get `safeTransferFrom` encoded data.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param project_id: the project id.
+        :return: the tx  # noqa: DAR202
+        """
+        instance = cls.get_instance(ledger_api, contract_address)
+        from_address = ledger_api.api.toChecksumAddress(from_address)
+        to_address = ledger_api.api.toChecksumAddress(to_address)
+        data = instance.encodeABI(
+            fn_name="safeTransferFrom",
+            args=[
+                from_address,
+                to_address,
+                token_id,
+            ]
+        )
+
+        return {"data": data}
