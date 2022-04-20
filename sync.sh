@@ -8,6 +8,7 @@ cp -r ../consensus-algorithms/packages/valory/connections/ledger packages/valory
 cp -r ../consensus-algorithms/packages/valory/contracts/__init__.py packages/valory/contracts
 cp -r ../consensus-algorithms/packages/valory/contracts/gnosis_safe packages/valory/contracts
 cp -r ../consensus-algorithms/packages/valory/contracts/gnosis_safe_proxy_factory packages/valory/contracts
+cp -r ../consensus-algorithms/packages/valory/contracts/multisend packages/valory/contracts
 cp -r ../consensus-algorithms/packages/valory/protocols/__init__.py packages/valory/protocols
 cp -r ../consensus-algorithms/packages/valory/protocols/abci packages/valory/protocols
 cp -r ../consensus-algorithms/packages/valory/protocols/contract_api packages/valory/protocols
