@@ -7,3 +7,4 @@ coverage.xml
 .hypothesis
 htmlcov
 *.egg-info
+generate_abciapp_spec.py

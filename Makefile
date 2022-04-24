@@ -41,10 +41,10 @@ clean-test:
 
 .PHONY: lint
 lint:
-	black packages/valory tests scripts
-	isort packages/valory tests scripts
+	black packages tests scripts
+	isort packages tests scripts
 	flake8 packages tests scripts
-	darglint packages/valory/agents packages/valory/connections packages/valory/contracts packages/valory/skills tests
+	darglint packages tests
 
 .PHONY: pylint
 pylint:
@@ -52,7 +52,7 @@ pylint:
 
 .PHONY: hashes
 hashes:
-	python scripts/generate_ipfs_hashes.py --vendor valory
+	python scripts/generate_ipfs_hashes.py
 
 .PHONY: static
 static:
@@ -60,7 +60,7 @@ static:
 
 .PHONY: test
 test:
-	pytest -rfE tests/ --cov-report=html --cov=packages/valory/skills/simple_abci --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
+	pytest -rfE tests/ --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: grpc-fuzzy-tests
@@ -135,6 +135,8 @@ copyright:
 
 .PHONY: check_abci_specs
 check_abci_specs:
-	python scripts/generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check job abci consistency" && exit 1)
-	python scripts/generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check job abci consistency" && exit 1)
+	cp scripts/generate_abciapp_spec.py generate_abciapp_spec.py
+	python generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
+	rm generate_abciapp_spec.py
 	echo "Successfully validated abcis!"
