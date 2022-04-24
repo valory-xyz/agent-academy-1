@@ -50,6 +50,7 @@ class BaseFuzzyTests(AEATestCaseMany):
     IS_LOCAL = True
     USE_GRPC = False
 
+    channel: BaseChannel
     mock_node: MockNode
     agent_package = "valory/test_abci:0.1.0"
     agent_name = "test_abci"
@@ -80,8 +81,14 @@ class BaseFuzzyTests(AEATestCaseMany):
 
         enforce(cls.CHANNEL_TYPE is not None, "A channel type must be provided")
 
-        channel = cls.CHANNEL_TYPE(**cls.CHANNEL_ARGS)
-        cls.mock_node = MockNode(channel)
+        cls.channel = cls.CHANNEL_TYPE(**cls.CHANNEL_ARGS)
+        cls.channel.connect()
+        cls.mock_node = MockNode(cls.channel)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        """Tear down the testing environment."""
+        cls.channel.disconnect()
 
     # flake8: noqa:D102
     @given(message=text())
