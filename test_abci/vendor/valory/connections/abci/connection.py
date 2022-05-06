@@ -29,6 +29,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, cast
 import grpc  # type: ignore
 from aea.configurations.base import PublicId
 from aea.connections.base import Connection, ConnectionStates
+from aea.exceptions import enforce
 from aea.mail.base import Envelope
 from aea.protocols.dialogue.base import DialogueLabel
 from google.protobuf.message import DecodeError
@@ -148,21 +149,25 @@ class _TendermintABCISerializer:
         :return: the decoded int.
 
         :raise: DecodeVarintError if the varint could not be decoded.
+        :raise: EOFError if EOF byte is read and the process of decoding a varint has not started.
         """
+        enforce(max_length >= 1, "max bytes must be at least one")
         nb_read_bytes = 0
         shift = 0
         result = 0
         success = False
         byte = await cls._read_one(buffer)
-        nb_read_bytes += 1
         while byte is not None and nb_read_bytes <= max_length:
+            nb_read_bytes += 1
             result |= (byte & 0x7F) << shift
             shift += 7
             if not byte & 0x80:
                 success = True
                 break
             byte = await cls._read_one(buffer)
-            nb_read_bytes += 1
+        # byte is None when EOF is reached
+        if byte is None and nb_read_bytes == 0:
+            raise EOFError()
         if not success:
             raise DecodeVarintError("could not decode varint")
         return result >> 1
@@ -177,6 +182,7 @@ class _TendermintABCISerializer:
         """
         character = await buffer.read(1)
         if character == b"":
+            # EOF is reached
             return None
         return ord(character)
 
@@ -939,6 +945,9 @@ class TcpServerChannel:  # pylint: disable=too-many-instance-attributes
                     self.logger.info("connection at EOF, stop receiving loop.")
                     return
                 continue
+            except EOFError:
+                self.logger.info("connection at EOF, stop receiving loop.")
+                return
             except CancelledError:  # pragma: nocover
                 self.logger.debug(f"Read task for peer {peer_name} cancelled.")
                 return
