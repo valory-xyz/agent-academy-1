@@ -94,6 +94,9 @@ class TcpChannel(BaseChannel):
         """Tear down the channel."""
         if not self.is_connected:
             return
+
+        cast(asyncio.StreamWriter, self.writer).close()
+
         loop = cast(AbstractEventLoop, self.loop)
         loop.call_soon_threadsafe(loop.stop)
         cast(Thread, self.loop_thread).join(5)
