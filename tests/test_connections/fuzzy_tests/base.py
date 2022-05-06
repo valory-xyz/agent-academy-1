@@ -82,13 +82,13 @@ class BaseFuzzyTests(AEATestCaseMany):
         enforce(cls.CHANNEL_TYPE is not None, "A channel type must be provided")
 
         cls.channel = cls.CHANNEL_TYPE(**cls.CHANNEL_ARGS)
-        cls.channel.connect()
         cls.mock_node = MockNode(cls.channel)
+        cls.mock_node.connect()
 
     @classmethod
     def tearDownClass(cls) -> None:
         """Tear down the testing environment."""
-        cls.channel.disconnect()
+        cls.mock_node.disconnect()
 
     # flake8: noqa:D102
     @given(message=text())
