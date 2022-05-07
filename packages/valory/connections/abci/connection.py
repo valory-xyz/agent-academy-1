@@ -202,11 +202,21 @@ class VarintMessageReader:  # pylint: disable=too-few-public-methods
         """Read next message."""
         varint = await _TendermintABCISerializer.decode_varint(self._reader)
         if varint > MAX_READ_IN_BYTES:
+            await self.discard_until(varint)
             raise TooLargeVarint()
         message_bytes = await self.read_until(varint)
         if len(message_bytes) < varint:
             raise ShortBufferLengthError(varint, message_bytes)
         return message_bytes
+
+    async def discard_until(self, n: int) -> None:
+        """Discard the next n bytes from the stream chunk by chunk."""
+        read_bytes = 0
+        chunk_size = 10 ** 4  # 10K at a time
+        while read_bytes < n:
+            bytes_to_read = min(chunk_size, n - read_bytes)
+            data = await self._reader.read(bytes_to_read)
+            read_bytes += len(data)
 
     async def read_until(self, n: int) -> bytes:
         """Wait until n bytes are read from the stream."""
