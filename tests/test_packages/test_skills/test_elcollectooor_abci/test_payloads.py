@@ -25,7 +25,8 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     DetailsPayload,
     ObservationPayload,
     TransactionPayload,
-    TransactionType, FundingPayload,
+    TransactionType, FundingPayload, PayoutFractionsPayload, PaidFractionsPayload, PurchasedNFTPayload,
+    TransferNFTPayload, PostTxPayload,
 )
 
 
@@ -108,15 +109,103 @@ def test_transaction_payload() -> None:
 
 def test_funding_payload() -> None:
     """Test `FundingPayload`"""
-    funds = 123
+    address_to_funds = json.dumps({"test": "123"})
     payload = FundingPayload(
-        sender="sender", funds=funds, id_="id"
+        sender="sender", address_to_funds=address_to_funds, id_="id"
     )
 
-    assert payload.funds is not None
+    assert payload.address_to_funds is not None
     assert payload.id_ == "id"
-    assert payload.data == dict(funds=funds)
+    assert payload.data == dict(address_to_funds=address_to_funds)
     assert hash(payload) == hash(tuple(sorted(payload.data.items())))
 
     assert str(payload.transaction_type) == str(TransactionType.FUNDING)
     assert payload.transaction_type == TransactionType.FUNDING
+
+
+def test_payout_fractions_payload() -> None:
+    """Test `PayoutFractionsPayload`"""
+    payout_fractions = json.dumps({"test": "123"})
+
+    payload = PayoutFractionsPayload(
+        sender="sender", payout_fractions=payout_fractions, id_="id"
+    )
+
+    assert payload.payout_fractions is not None
+    assert payload.id_ == "id"
+    assert payload.data == dict(payout_fractions=payout_fractions)
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.PAYOUT_FRACTIONS)
+    assert payload.transaction_type == TransactionType.PAYOUT_FRACTIONS
+
+
+def test_paid_fractions_payload() -> None:
+    """Test `PaidFractionsPayload`"""
+    paid_fractions = json.dumps({"test": "123"})
+
+    payload = PaidFractionsPayload(
+        sender="sender", paid_fractions=paid_fractions, id_="id"
+    )
+
+    assert payload.paid_fractions is not None
+    assert payload.id_ == "id"
+    assert payload.data == dict(paid_fractions=paid_fractions)
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.PAID_FRACTIONS)
+    assert payload.transaction_type == TransactionType.PAID_FRACTIONS
+
+
+def test_purchased_nft_payload() -> None:
+    """Test `PurchasedNFTPayload`"""
+
+    purchased_nft = 123  # token purchased
+
+    payload = PurchasedNFTPayload(
+        sender="sender", purchased_nft=purchased_nft, id_="id"
+    )
+
+    assert payload.purchased_nft is not None
+    assert payload.id_ == "id"
+    assert payload.data == dict(purchased_nft=purchased_nft)
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.PURCHASED_NFT)
+    assert payload.transaction_type == TransactionType.PURCHASED_NFT
+
+
+def test_transfer_nft_payload() -> None:
+    """Test `TransferNFTPayload`"""
+
+    transfer_data = "transfer_data"
+
+    payload = TransferNFTPayload(
+        sender="sender", transfer_data=transfer_data, id_="id"
+    )
+
+    assert payload.transfer_data is not None
+    assert payload.id_ == "id"
+    assert payload.data == dict(transfer_data=transfer_data)
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.TRANSFER_NFT)
+    assert payload.transaction_type == TransactionType.TRANSFER_NFT
+
+
+def test_post_tx_payload() -> None:
+    """Test `PostTxPayload`"""
+
+    post_tx_data = "post_tx_data"
+
+    payload = PostTxPayload(
+        sender="sender", post_tx_data=post_tx_data, id_="id"
+    )
+
+    assert payload.post_tx_data is not None
+    assert payload.id_ == "id"
+    assert payload.data == dict(post_tx_data=post_tx_data)
+    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
+
+    assert str(payload.transaction_type) == str(TransactionType.POST_TX)
+    assert payload.transaction_type == TransactionType.POST_TX
