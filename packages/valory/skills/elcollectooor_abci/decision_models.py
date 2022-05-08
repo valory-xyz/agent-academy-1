@@ -29,6 +29,43 @@ from aea.exceptions import enforce
 _default_logger = logging.getLogger(__name__)
 
 
+class EightyPercentDecisionModel(ABC):
+    """Decision model that purchases only 80% minted projects."""
+
+    @staticmethod
+    def decide(
+            active_projects: List[dict],
+            purchased_projects: List[dict],
+            budget: int,
+    ) -> List[Dict]:
+        """
+        Method to decide on what projects to purchase.
+
+        :param active_projects: projects that are currently active.
+        :param purchased_projects: projects that have been purchased.
+        :param budget: the available budget in wei.
+        :return: an ordered list of projects, based on "fitness" to purchase.
+        """
+        purchased_curated = [p for p in purchased_projects if p["is_curated"]]
+        purchased_non_curated = [p for p in purchased_projects if not p["is_curated"]]
+        # only purchase non-curated if there are more curated than non-curated
+        can_purchase_non_curated = len(purchased_curated) > len(purchased_non_curated)
+        potential_projects = []
+
+        for project in active_projects:
+            if project["price"] > budget:
+                continue
+
+            if not project["is_curated"] and not can_purchase_non_curated:
+                continue
+
+            potential_projects.append(project)
+
+        potential_projects.sort(key=lambda p: p["minted_percentage"], reverse=True)
+
+        return potential_projects
+
+
 class BaseDecisionModel(ABC):
     """Framework for any decision models."""
 
@@ -139,37 +176,6 @@ class SimpleDecisionModel(BaseDecisionModel):
             return 0
 
         return -1
-
-
-class EightyPercentDecisionModel(BaseDecisionModel):
-    """Decision model that purchases when a project is 80% sold."""
-
-    state = {
-        "purchased_curated": False
-    }
-
-    def __init__(self, state: Dict):
-        """
-        Initialize the algorithm with an external state.
-
-        :param state: The external (persisted) state.
-        """
-        self.state.update(state)
-
-    def static(self, project_details: Dict) -> int:
-        """"""
-        is_curated = project_details["is_curated"]
-        purchased_curated = self.state["purchased_curated"]
-
-        if is_curated:
-            # if it is curated, we will consider it
-            return 1
-
-        if not is_curated and purchased_curated:
-            # if its not a curated projects, but we've purchase a curated proj we consider it
-            return 1
-
-        return 0
 
 
 class YesDecisionModel(BaseDecisionModel):

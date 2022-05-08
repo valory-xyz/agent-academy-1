@@ -18,13 +18,19 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the scaffold contract definition."""
-
-from typing import Any
-
+import asyncio
+import concurrent.futures
+import logging
+import math
+from typing import Any, Optional, List, cast
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
+
+_logger = logging.getLogger(
+    f"aea.packages.valory.contracts.artblocks_periphery.contract"
+)
 
 
 class ArtBlocksPeripheryContract(Contract):
@@ -34,7 +40,7 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def get_raw_transaction(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Handler method for the 'GET_RAW_TRANSACTION' requests.
@@ -51,7 +57,7 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def get_raw_message(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> bytes:
         """
         Handler method for the 'GET_RAW_MESSAGE' requests.
@@ -68,7 +74,7 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def get_state(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Handler method for the 'GET_STATE' requests.
@@ -85,10 +91,10 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def purchase_data(
-        cls,  # pylint: disable=unused-argument
-        ledger_api: LedgerApi,
-        contract_address: str,
-        project_id: int,
+            cls,  # pylint: disable=unused-argument
+            ledger_api: LedgerApi,
+            contract_address: str,
+            project_id: int,
     ) -> JSONLike:
         """
         Handler method for the 'get_active_project' requests.
@@ -104,3 +110,65 @@ class ArtBlocksPeripheryContract(Contract):
         instance = cls.get_instance(ledger_api, contract_address)
         data = instance.encodeABI(fn_name="purchase", args=[project_id])
         return {"data": data}
+
+    @classmethod
+    def is_project_mintable(
+            cls,  # pylint: disable=unused-argument
+            ledger_api: LedgerApi,
+            contract_address: str,
+            project_id: int,
+    ) -> JSONLike:
+        """
+        Method to check whether a project is mintable via a contract.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param project_id: the project id.
+        :return: the tx  # noqa: DAR202
+        """
+        instance = cls.get_instance(ledger_api, contract_address)
+        is_mintable = instance.functions.contractFilterProject(project_id).call()
+
+        return {
+            "project_id": project_id,
+            "is_mintable": is_mintable,
+        }
+
+    @classmethod
+    def are_projects_mintable(
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            project_ids: Optional[List[int]] = None,
+    ) -> JSONLike:
+        """
+        Check if the projects are mintable via contracts.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param project_ids: the ids of the projects to check whether they are mintable.
+        :return: the active projects
+        """
+        if len(project_ids) == 0:
+            _logger.warning("An empty list of projects was provided. Returning an empty array.")
+
+            return {
+                "results": []
+            }
+
+        num_threads = math.ceil(len(project_ids) / 30)  # 30 projects per thread
+
+        with concurrent.futures.ThreadPoolExecutor(num_threads) as pool:
+            loop = asyncio.new_event_loop()
+            tasks = []
+
+            for project_id in project_ids:
+                task = loop.run_in_executor(pool, cls.is_project_mintable, ledger_api, contract_address, project_id)
+                tasks.append(task)
+
+            list_of_results = cast(List[JSONLike], loop.run_until_complete(asyncio.gather(*tasks)))
+            results = {r["project_id"]: r["is_mintable"] for r in list_of_results}
+
+            loop.close()
+
+        return results

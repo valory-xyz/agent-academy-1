@@ -45,7 +45,7 @@ from packages.valory.skills.elcollectooor_abci.payloads import (
     ResetPayload,
     TransactionPayload,
     TransactionType, FundingPayload, PayoutFractionsPayload, PaidFractionsPayload, TransferNFTPayload,
-    PurchasedNFTPayload,
+    PurchasedNFTPayload, PostTxPayload,
 )
 from packages.valory.skills.fractionalize_deployment_abci.rounds import DeployVaultTxRound, DeployBasketTxRound, \
     DeployVaultAbciApp, DeployBasketAbciApp, FinishedDeployBasketTxRound, FinishedDeployVaultTxRound, \
@@ -79,6 +79,7 @@ class Event(Enum):
     GIB_DETAILS = "gib_details"
     NO_PAYOUTS = "no_payouts"
     NO_TRANSFER = "no_transfer"
+    NO_ACTIVE_PROJECTS = "no_active_projects"
     ERROR = "error"
 
 
@@ -315,21 +316,29 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
         if self.threshold_reached:
             most_voted_payload = json.loads(self.most_voted_payload)
 
-            if (
-                    "project_id" not in most_voted_payload.keys()
-                    or not most_voted_payload["project_id"]
-            ):
+            if most_voted_payload == {}:
                 return self.period_state, Event.ERROR
 
-            project_id = most_voted_payload["project_id"]
+            most_recent_project = most_voted_payload["most_recent_project"]
+            finished_projects = \
+                self.period_state.db.get("finished_projects", []) + most_voted_payload["newly_finished_projects"]
+            active_projects = most_voted_payload["active_projects"]
+            inactive_projects = most_voted_payload["inactive_projects"]
+
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_project=MappingProxyType(self.collection),
-                most_voted_project=self.most_voted_payload,
-                last_processed_project_id=project_id,
+                finished_projects=finished_projects,
+                active_projects=active_projects,
+                inactive_projects=inactive_projects,
+                last_processed_project_id=most_recent_project,
             )
 
-            return state, Event.DONE
+            if len(active_projects) > 0:
+                return state, Event.DONE
+
+            return state, Event.NO_ACTIVE_PROJECTS
+
         if not self.is_majority_possible(
                 self.collection, self.period_state.nb_participants
         ):
@@ -348,6 +357,10 @@ class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
+            payload = json.loads(self.most_voted_payload)
+            if payload == {}:
+                return self.period_state, Event.ERROR
+
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_details=MappingProxyType(self.collection),
@@ -371,17 +384,20 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
+
         if self.threshold_reached:
+            project_to_purchase = json.loads(self.most_voted_payload)
+
+            if project_to_purchase == {}:
+                # no project needs to be purchased
+                return self.period_state, Event.DECIDED_NO
+
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_decision=MappingProxyType(self.collection),
-                most_voted_decision=self.most_voted_payload,  # it can be binary at this point
+                project_to_purchase=project_to_purchase,
             )
 
-            if self.most_voted_payload == 0:
-                return state, Event.DECIDED_NO
-            if self.most_voted_payload == -1:
-                return state, Event.GIB_DETAILS
             return state, Event.DECIDED_YES
 
         if not self.is_majority_possible(
@@ -420,7 +436,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
         return None
 
 
-class ResetFromFundingRound(BaseResetRound):
+class ResetFromObservationRound(BaseResetRound):
     """This class acts as a transit round to Observation."""
 
     round_id = "reset_from_observation"
@@ -439,32 +455,28 @@ class ElCollectooorBaseAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         ObservationRound: {
             Event.DONE: DetailsRound,
-            Event.ROUND_TIMEOUT: ResetFromFundingRound,
-            Event.NO_MAJORITY: ResetFromFundingRound,
-            Event.ERROR: ResetFromFundingRound,
+            Event.ROUND_TIMEOUT: ObservationRound,
+            Event.NO_MAJORITY: ObservationRound,
+            Event.ERROR: ObservationRound,
         },
         DetailsRound: {
             Event.DONE: DecisionRound,
             Event.ROUND_TIMEOUT: DecisionRound,
             Event.NO_MAJORITY: DecisionRound,
+            Event.ERROR: ObservationRound,
         },
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
-            Event.DECIDED_NO: ResetFromFundingRound,
+            Event.DECIDED_NO: ObservationRound,
             Event.GIB_DETAILS: DetailsRound,
-            Event.ROUND_TIMEOUT: ResetFromFundingRound,
-            Event.NO_MAJORITY: ResetFromFundingRound,
+            Event.ROUND_TIMEOUT: ObservationRound,
+            Event.NO_MAJORITY: ObservationRound,
         },
         TransactionRound: {
             Event.DONE: FinishedElCollectoorBaseRound,
-            Event.ROUND_TIMEOUT: ResetFromFundingRound,
-            Event.NO_MAJORITY: ResetFromFundingRound,
-            Event.ERROR: ResetFromFundingRound,
-        },
-        ResetFromFundingRound: {
-            Event.DONE: ObservationRound,
-            Event.ROUND_TIMEOUT: ResetFromFundingRound,
-            Event.NO_MAJORITY: ResetFromFundingRound,
+            Event.ROUND_TIMEOUT: ObservationRound,
+            Event.NO_MAJORITY: ObservationRound,
+            Event.ERROR: ObservationRound,
         },
         FinishedElCollectoorBaseRound: {},
     }
@@ -491,9 +503,15 @@ class ProcessPurchaseRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbst
             if self.most_voted_payload == -1:
                 return self.period_state, Event.ERROR
 
+            purchased_project = self.period_state.db.get_strict("project_to_purchase")  # the project that got purchased
+            all_purchased_projects = self.period_state.db.get("purchased_projects", [])
+            all_purchased_projects.append(purchased_project)
+
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 purchased_nft=self.most_voted_payload,
+                project_to_purchase=None,
+                purchased_projects=all_purchased_projects,
             )
             return state, Event.DONE
 
@@ -745,10 +763,13 @@ class PostFractionPayoutAbciApp(AbciApp[Event]):
     }
 
 
-class PostTransactionSettlementRound(DegenerateRound):
-    """Initial round for settling the transactions."""
+class PostTransactionSettlementRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+    """After tx settlement via the safe contract."""
 
+    allowed_tx_type = PostTxPayload.transaction_type
     round_id = "post_transaction_settlement_round"
+    payload_attribute = "post_tx_data"
+    period_state_class = PeriodState
 
     round_id_to_event = {
         TransactionRound.round_id: PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE,
@@ -760,11 +781,26 @@ class PostTransactionSettlementRound(DegenerateRound):
     }
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+        """The end block."""
         tx_submitter = self.period_state.db.get("tx_submitter", None)
+
         if tx_submitter is None or tx_submitter not in self.round_id_to_event.keys():
             return self.period_state, Event.ERROR
 
-        return self.period_state, self.round_id_to_event[tx_submitter]
+        if self.threshold_reached:
+            if self.most_voted_payload == '{}':
+                return self.period_state, Event.ERROR
+
+            payload = json.loads(self.most_voted_payload)
+            amount_spent = payload["amount_spent"]
+            total_amount_spent = self.period_state.db.get("amount_spent", 0) + amount_spent
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                amount_spent=total_amount_spent,
+            )
+
+            return state, self.round_id_to_event[tx_submitter]
 
 
 class FinishedElcollectooorrTxRound(DegenerateRound):

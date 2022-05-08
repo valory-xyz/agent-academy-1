@@ -34,12 +34,11 @@ from packages.valory.skills.elcollectooor_abci.decision_models import (
     GibDetailsThenYesDecisionModel,
     NoDecisionModel,
     SimpleDecisionModel,
-    YesDecisionModel,
+    YesDecisionModel, EightyPercentDecisionModel,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import ElCollectooorAbciApp, Event
 from packages.valory.skills.fractionalize_deployment_abci.models import FractionalizeDeploymentParams
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
-
 
 MARGIN = 5
 
@@ -61,7 +60,7 @@ class SharedState(BaseSharedState):
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
         ElCollectooorAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
-            self.context.params.observation_interval + MARGIN
+                self.context.params.observation_interval + MARGIN
         )
 
 
@@ -78,8 +77,12 @@ class ElCollectooorParams(BaseParams):
 
         super().__init__(*args, **kwargs)
         self.artblocks_contract = self._ensure("artblocks_contract", kwargs)
+        self.artblocks_graph_url = self._ensure("artblocks_graph_url", kwargs)
         self.artblocks_periphery_contract = self._ensure(
             "artblocks_periphery_contract", kwargs
+        )
+        self.budget_per_vault = self._ensure(
+            "budget_per_vault", kwargs
         )
         self.starting_project_id = self._get_starting_project_id(kwargs)
         self.max_retries = int(kwargs.pop("max_retries", 5))
@@ -114,6 +117,7 @@ class ElCollectooorParams(BaseParams):
             "no": NoDecisionModel,
             "gib_details_then_yes": GibDetailsThenYesDecisionModel,
             "simple": SimpleDecisionModel,
+            "eighty_percent": EightyPercentDecisionModel,
         }
 
         if not model_type or str(model_type).lower() not in valid_types.keys():

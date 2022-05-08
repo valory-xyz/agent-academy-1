@@ -677,3 +677,39 @@ class GnosisSafeContract(Contract):
                     )
                 )
         }
+
+    @classmethod
+    def get_balance(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike:
+        """
+        Retrieve the safe's balance
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the safe balance (in wei)
+        """
+        return dict(balance=ledger_api.get_balance(address=contract_address))
+
+    @classmethod
+    def get_amount_spent(
+            cls,
+            ledger_api: EthereumApi,
+            contract_address: str,
+            tx_hash: str,
+    ) -> JSONLike:
+        """
+        Get the amount of ether spent in a tx.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address (not used)
+        :param tx_hash: the settled tx hash
+        :return: the safe balance (in wei)
+        """
+        tx_receipt = ledger_api.get_transaction_receipt(tx_hash)
+        tx = ledger_api.get_transaction(tx_hash)
+
+        tx_value = int(tx["value"])
+        gas_price = int(tx["gasPrice"])
+        gas_used = int(tx_receipt["gasUsed"])
+        total_spent = tx_value + (gas_price * gas_used)
+
+        return dict(amount_spent=total_spent)

@@ -18,8 +18,11 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the scaffold contract definition."""
+import asyncio
+import concurrent.futures
 import logging
-from typing import Any, Optional, cast
+import math
+from typing import Any, Optional, cast, List
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -27,7 +30,6 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea.exceptions import enforce
 from aea_ledger_ethereum import EthereumApi
-
 
 _logger = logging.getLogger(
     f"aea.packages.valory.contracts.artblocks.contract"
@@ -122,11 +124,79 @@ class ArtBlocksContract(Contract):
         return result
 
     @classmethod
-    def get_active_project(
+    def get_next_project_id(
             cls,  # pylint: disable=unused-argument
             ledger_api: LedgerApi,
             contract_address: str,
-            starting_id: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Handler method for the 'get_next_project_id' requests.
+
+        Implement this method in the sub class if you want
+        to handle the contract requests manually.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :return: the next project id  # noqa: DAR202
+        """
+        instance = cls.get_instance(ledger_api, contract_address)
+        project_id = instance.functions.nextProjectId().call()
+
+        result = {
+            "next_project_id": project_id,
+        }
+
+        return result
+
+    @classmethod
+    def get_multiple_projects_info(
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            project_ids: Optional[List[int]] = None,
+            last_processed_project: Optional[int] = None,
+    ) -> JSONLike:
+        """
+        Get all active projects in a contract.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param project_ids: the ids of the projects to get the data for, if None all projects are called.
+        :param last_processed_project: the project that was evaluated most recently.
+        :return: the active projects
+        """
+        next_project_id = cls.get_next_project_id(ledger_api, contract_address)["next_project_id"]
+
+        if project_ids is None:
+            project_ids = [i for i in range(1, next_project_id)]
+
+        elif last_processed_project + 1 != next_project_id:
+            # new projects were added, we need to check for those
+            project_ids += [new_project for new_project in range(last_processed_project + 1, next_project_id)]
+
+        loop = asyncio.new_event_loop()
+        tasks = []
+        num_threads = math.ceil(len(project_ids) / 30)  # 30 projects per thread
+
+        with concurrent.futures.ThreadPoolExecutor(num_threads) as pool:
+            for project_id in project_ids:
+                task = loop.run_in_executor(pool, cls.get_project_info, ledger_api, contract_address, project_id)
+                tasks.append(task)
+
+            results = cast(List[JSONLike], loop.run_until_complete(asyncio.gather(*tasks)))
+
+            loop.close()
+
+        return {
+            "results": results
+        }
+
+    @classmethod
+    def get_project_info(
+            cls,  # pylint: disable=unused-argument
+            ledger_api: LedgerApi,
+            contract_address: str,
+            project_id: int = None,
     ) -> JSONLike:
         """
         Handler method for the 'get_active_project' requests.
@@ -136,43 +206,21 @@ class ArtBlocksContract(Contract):
 
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
-        :param starting_id: the starting id of projects from which to work backwards.
+        :param project_id: the id of the project to get the info of.
         :return: the tx  # noqa: DAR202
         """
         instance = cls.get_instance(ledger_api, contract_address)
-        if starting_id is None:
-            next_project_id = instance.functions.nextProjectId().call()
-            project_id = next_project_id - 1
-        else:
-            project_id = starting_id - 1
-        while project_id > 0:
-            project_info = instance.functions.projectTokenInfo(project_id).call()
-            # check if active
-            if project_info[4]:
-                script_info = instance.functions.projectScriptInfo(project_id).call()
-                # check if paused
-                if not script_info[5]:
-                    break
-            project_id -= 1
-        if project_id == 0:
-            return {"project_id": None}
-        project_details = instance.functions.projectDetails(project_id).call()
-        # project_script = instance.functions.projectScriptByIndex(
-        #     project_id, script_info[1] - 1
-        # ).call()
+        project_info = instance.functions.projectTokenInfo(project_id).call()
+        script_info = instance.functions.projectScriptInfo(project_id).call()
 
         result = {
-            "artist_address": project_info[0],
-            "price_per_token_in_wei": project_info[1],
             "project_id": project_id,
-            "project_name": project_details[0],
-            "artist": project_details[1],
-            "description": project_details[2],
-            "website": project_details[3],
-            # "script": project_script,
+            "price_per_token_in_wei": project_info[1],
             "invocations": project_info[2],
             "max_invocations": project_info[3],
+            "is_active": project_info[4] and script_info[5]
         }
+
         return result
 
     @classmethod
@@ -212,19 +260,21 @@ class ArtBlocksContract(Contract):
 
     @classmethod
     def safe_transfer_from_data(
-        cls,  # pylint: disable=unused-argument
-        ledger_api: LedgerApi,
-        contract_address: str,
-        from_address: str,
-        to_address: str,
-        token_id: int,
+            cls,  # pylint: disable=unused-argument
+            ledger_api: LedgerApi,
+            contract_address: str,
+            from_address: str,
+            to_address: str,
+            token_id: int,
     ) -> JSONLike:
         """
         Get `safeTransferFrom` encoded data.
 
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
-        :param project_id: the project id.
+        :param from_address: origin address.
+        :param to_address: destination address.
+        :param token_id: token to transfer.
         :return: the tx  # noqa: DAR202
         """
         instance = cls.get_instance(ledger_api, contract_address)

@@ -40,6 +40,7 @@ class TransactionType(Enum):
     FUNDING = "funding"
     PAYOUT_FRACTIONS = "payout_fractions"
     PAID_FRACTIONS = "paid_fractions"
+    POST_TX = "post_tx"
 
     def __str__(self) -> str:
         """Get the string value of the transaction type."""
@@ -183,18 +184,18 @@ class DecisionPayload(BaseTxPayload):
 
     transaction_type = TransactionType.DECISION
 
-    def __init__(self, sender: str, decision: int, **kwargs: Any) -> None:
+    def __init__(self, sender: str, decision: str, **kwargs: Any) -> None:
         """Initialize an 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param decision: the decision 0 for NO, any other value YES
+        :param decision: the chosen project to be purchased.
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
         self._decision = decision
 
     @property
-    def decision(self) -> int:
+    def decision(self) -> str:
         """Get the decision."""
         return self._decision
 
@@ -306,3 +307,29 @@ class TransferNFTPayload(BaseTxPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(transfer_data=self.transfer_data)
+
+
+class PostTxPayload(BaseTxPayload):
+    """Represent a transaction payload of type 'post_tx'."""
+
+    transaction_type = TransactionType.POST_TX
+
+    def __init__(self, sender: str, post_tx_data: str, **kwargs: Any) -> None:
+        """Initialize a 'rest' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param post_tx_data: the necessary info to create a tx for
+        :param kwargs: the keyword arguments
+        """
+        super().__init__(sender, **kwargs)
+        self._post_tx_data = post_tx_data
+
+    @property
+    def post_tx_data(self) -> str:
+        """Get the decision."""
+        return self._post_tx_data
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(post_tx_data=self.post_tx_data)

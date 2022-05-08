@@ -21,7 +21,7 @@
 
 import json
 from abc import ABC
-from typing import Dict, Generator, List, Set, Type, cast, Optional
+from typing import Dict, Generator, List, Set, Type, cast, Optional, Tuple, Any, OrderedDict
 
 from aea.common import JSONLike
 from aea.exceptions import AEAEnforceError, enforce
@@ -39,13 +39,14 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
+from packages.valory.skills.elcollectooor_abci.decision_models import EightyPercentDecisionModel
 from packages.valory.skills.elcollectooor_abci.models import Params, SharedState
 from packages.valory.skills.elcollectooor_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,
     ResetPayload,
-    TransactionPayload, FundingPayload, PayoutFractionsPayload, TransferNFTPayload, PurchasedNFTPayload,
+    TransactionPayload, FundingPayload, PayoutFractionsPayload, TransferNFTPayload, PurchasedNFTPayload, PostTxPayload,
 )
 from packages.valory.skills.elcollectooor_abci.rounds import (
     DecisionRound,
@@ -54,7 +55,7 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     ElCollectooorBaseAbciApp,
     ObservationRound,
     PeriodState,
-    ResetFromFundingRound,
+    ResetFromObservationRound,
     TransactionRound, FundingRound, PostTransactionSettlementRound, TransactionSettlementAbciMultiplexer,
     BankAbciApp, PayoutFractionsRound, PostPayoutRound, PostFractionPayoutAbciApp,
     ProcessPurchaseRound, TransferNFTAbciApp, TransferNFTRound,
@@ -88,69 +89,6 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, self.context.params)
-
-
-class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
-    """Defines the Observation round behaviour"""
-
-    state_id = "observation"
-    matching_round = ObservationRound
-
-    def async_act(self) -> Generator:
-        """The observation act."""
-
-        with self.context.benchmark_tool.measure(
-                self,
-        ).local():
-            project_details = {}
-
-            try:
-                # fetch an active project
-                response = yield from self.get_contract_api_response(
-                    performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address=self.params.artblocks_contract,
-                    contract_id=str(ArtBlocksContract.contract_id),
-                    contract_callable="get_active_project",
-                    starting_id=self.params.starting_project_id,
-                )
-
-                # response body also has project details
-                enforce(
-                    response is not None
-                    and response.state is not None
-                    and response.state.body is not None,
-                    "response, response.state, response.state.body must exist",
-                )
-
-                _project_details = response.state.body
-
-                enforce(
-                    "project_id" in _project_details.keys(),
-                    "project_details was none, or project_id was not found in project_details",
-                )
-
-                project_id = _project_details["project_id"]
-                project_details = _project_details
-
-                self.context.logger.info(f"Retrieved project with id {project_id}.")
-
-            except AEAEnforceError as e:
-                self.context.logger.error(
-                    f"project_id couldn't be extracted from contract response, e={e}"
-                )
-
-            with self.context.benchmark_tool.measure(
-                    self,
-            ).consensus():
-                payload = ObservationPayload(
-                    self.context.agent_address,
-                    json.dumps(project_details),
-                )
-
-                yield from self.send_a2a_transaction(payload)
-                yield from self.wait_until_round_end()
-
-        self.set_done()
 
 
 class BaseResetBehaviour(ElCollectooorABCIBaseState):
@@ -188,6 +126,122 @@ class BaseResetBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
 
+class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
+    """Defines the Observation round behaviour"""
+
+    state_id = "observation"
+    matching_round = ObservationRound
+
+    def async_act(self) -> Generator:
+        """The observation act."""
+        with self.context.benchmark_tool.measure(
+                self,
+        ).local():
+            payload_data = {}
+
+            try:
+                prev_finished = self.period_state.db.get("finished_projects", [])
+                prev_active = self.period_state.db.get("active_projects", [])
+                prev_inactive = self.period_state.db.get("inactive_projects", [])
+                most_recent_project = self.period_state.db.get("most_recent_project", 0)
+
+                if most_recent_project == 0:
+                    projects_to_check = None
+                else:
+                    projects_to_check = prev_inactive + [p["project_id"] for p in prev_active]
+
+                current_finished_projects, active_projects, inactive_projects = yield from self._get_projects(
+                    last_processed_project=most_recent_project,
+                    project_ids=projects_to_check,
+                )
+
+                newly_finished_projects = self._list_diff(prev_finished, current_finished_projects)
+                most_recent_project = max(
+                    current_finished_projects +
+                    [p["project_id"] for p in active_projects] +
+                    inactive_projects
+                )
+
+                payload_data = {
+                    "active_projects": active_projects,
+                    "inactive_projects": inactive_projects,
+                    "newly_finished_projects": newly_finished_projects,
+                    "most_recent_project": most_recent_project,
+                }
+
+                self.context.logger.info(f"Most recent project is {most_recent_project}.")
+                self.context.logger.info(f"There are {len(newly_finished_projects)} newly finished projects.")
+                self.context.logger.info(f"There are {len(active_projects)} active projects.")
+
+            except AEAEnforceError as e:
+                self.context.logger.error(
+                    f"Couldn't get the projects, the following error was encountered {type(e).__name__}: {e}"
+                )
+
+            with self.context.benchmark_tool.measure(
+                    self,
+            ).consensus():
+                payload = ObservationPayload(
+                    self.context.agent_address,
+                    json.dumps(payload_data),
+                )
+
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+        self.set_done()
+
+    @staticmethod
+    def _list_diff(l1: List[Any], l2: List[Any]) -> List[Any]:
+        return list(set(l1) - set(l2)) + list(set(l2) - set(l1))
+
+    def _get_projects(
+            self,
+            last_processed_project: Optional[int] = None,
+            project_ids: Optional[List[int]] = None
+    ) -> Generator[None, None, Tuple[List[int], List[Dict], List[int]]]:
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.params.artblocks_contract,
+            contract_id=str(ArtBlocksContract.contract_id),
+            contract_callable="get_multiple_projects_info",
+            project_ids=project_ids,
+            last_processed_project=last_processed_project,
+        )
+
+        # response body also has project details
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None,
+            "response, response.state, response.state.body must exist",
+        )
+
+        all_projects = response.state.body["results"]
+        finished_projects, inactive_projects, active_projects = [], [], []
+
+        for project in all_projects:
+            project_id = int(project["project_id"])
+            max_invocations = int(project["max_invocations"])
+            invocations = int(project["invocations"])
+            price_per_token_in_wei = int(project["price_per_token_in_wei"])
+            is_active = project["is_active"]
+
+            if max_invocations == 0 or invocations / max_invocations == 1:
+                finished_projects.append(project_id)
+            elif is_active:
+                active_projects.append({
+                    "project_id": project_id,
+                    "minted_percentage": invocations / max_invocations,
+                    "price": price_per_token_in_wei,
+                    "is_active": is_active,
+                })
+            else:
+                inactive_projects.append(project_id)
+
+        return finished_projects, active_projects, inactive_projects
+
+
 class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
     """Defines the Details Round behaviour"""
 
@@ -200,55 +254,84 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         with self.context.benchmark_tool.measure(
                 self,
         ).local():
-            # fetch an active project
-            most_voted_project = json.loads(self.period_state.most_voted_project)
+            payload_data = {}
 
             try:
-                all_details = json.loads(self.period_state.most_voted_details)
-            except ValueError:
-                all_details = []
+                active_projects = self.period_state.db.get_strict("active_projects")
+                enhanced_projects = yield from self._enhance_active_projects(active_projects)
+                payload_data = {
+                    "active_projects": enhanced_projects
+                }
 
-            new_details = yield from self._get_details(most_voted_project)
-
-            all_details.append(new_details)
-
-            self.context.logger.info(
-                f"Total length of details array {len(all_details)}."
-            )
-
-            payload = DetailsPayload(
-                self.context.agent_address,
-                json.dumps(all_details),
-            )
+            except (ValueError, RuntimeError) as e:
+                self.context.logger.error(
+                    f"Couldn't get projects details, the following error was encountered {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
                 self,
         ).consensus():
+            payload = DetailsPayload(
+                self.context.agent_address,
+                json.dumps(payload_data),
+            )
+
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
-    def _get_details(self, project: dict) -> Generator[None, None, Dict]:
-        self.context.logger.info(
-            f"Gathering details on project with id={project['project_id']}."
-        )
+    def _enhance_active_projects(self, projects: List[Dict]) -> Generator[None, None, List]:
+        """Enhance the project data with 'mintable' and 'curation status'."""
+        enhanced_projects = []
+        are_mintable = yield from self._are_mintable(projects)
+        curated_projects = yield from self._get_curated_projects()
 
+        for project in projects:
+            project_id = project["project_id"]
+            project["is_mintable"] = are_mintable[project_id]
+            project["is_curated"] = project_id in curated_projects
+
+            enhanced_projects.append(project)
+
+        return enhanced_projects
+
+    def _are_mintable(self, projects: List[Dict]) -> Generator[None, None, Dict]:
+        """Check if the projects are mintable via contracts."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.params.artblocks_contract,
-            contract_id=str(ArtBlocksContract.contract_id),
-            contract_callable="get_dynamic_details",
-            project_id=project["project_id"],
+            contract_address=self.params.artblocks_periphery_contract,
+            contract_id=str(ArtBlocksPeripheryContract.contract_id),
+            contract_callable="are_projects_mintable",
+            project_ids=[p["project_id"] for p in projects],
+        )
+        are_mintable = cast(Dict, response.state.body)
+
+        enforce(
+            len(are_mintable) == len(projects),
+            f"Invalid response was received from 'are_projects_mintable'."
         )
 
-        new_details = cast(Dict, response.state.body)
+        return are_mintable
 
-        self.context.logger.info(
-            f"Successfully gathered details on project with id={project['project_id']}."
+    def _get_curated_projects(self) -> Generator[None, None, List[int]]:
+        """Get a list of curated projects."""
+
+        query = """{
+          projects(where: {curationStatus: "curated"}) {
+            projectId
+          }
+        }"""
+
+        response = yield from self.get_http_response(
+            method='POST',
+            url=self.params.artblocks_graph_url,
+            content=json.dumps({"query": query}).encode(),
         )
+        curated_projects = json.loads(response.body)["data"]["projects"]
+        curated_project_ids = [int(p["projectId"]) for p in curated_projects]
 
-        return new_details
+        return curated_project_ids
 
 
 class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
@@ -262,51 +345,80 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         with self.context.benchmark_tool.measure(
                 self,
         ).local():
-            # fetch an active project
-            most_voted_project = json.loads(self.period_state.most_voted_project)
-            most_voted_details = json.loads(self.period_state.most_voted_details)
+            project_to_purchase = {}
 
-            enforce(
-                isinstance(most_voted_project, dict), "most_voted_project is not dict"
-            )
-            enforce(
-                isinstance(most_voted_details, list),
-                "most_voted_details is not an array",
-            )
+            try:
+                active_projects = self.period_state.db.get_strict("active_projects")
+                purchased_projects = self.period_state.db.get("purchased_projects", [])  # NOTE: projects NOT tokens
+                already_spent = self.period_state.db.get_strict("amount_spent")
+                safe_balance = yield from self._get_safe_balance()
+                current_budget = min(self.params.budget_per_vault - already_spent, safe_balance)
 
-            decision = self._make_decision(most_voted_project, most_voted_details)
-            payload = DecisionPayload(
-                self.context.agent_address,
-                decision,
-            )
+                self.context.logger.info(f"The safe contract balance {safe_balance / 10 ** 18}Ξ.")
+                self.context.logger.info(f"Already spent {already_spent / 10 ** 18}Ξ.")
+                self.context.logger.info(f"The current budget is {current_budget / 10 ** 18}Ξ.")
+
+                project_to_purchase = self._get_project_to_purchase(
+                    active_projects=active_projects,
+                    purchased_projects=purchased_projects,
+                    budget=current_budget,
+                )
+
+                if project_to_purchase is None:
+                    # right now {} represents no project
+                    project_to_purchase = {}
+
+            except (ValueError, RuntimeError) as e:
+                self.context.logger.error(
+                    f"Couldn't make a decision, the following error was encountered {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
                 self,
         ).consensus():
+            payload = DecisionPayload(
+                sender=self.context.agent_address,
+                decision=json.dumps(project_to_purchase),
+            )
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
-    def _make_decision(
-            self, project_details: dict, most_voted_details: List[dict]
-    ) -> int:
-        """Method that decides on an outcome"""
-        decision_model = self.params.decision_model_type()
+    def _get_project_to_purchase(
+            self,
+            active_projects: List[dict],
+            purchased_projects: List[dict],
+            budget: int,
+    ) -> Optional[Dict]:
+        """Get the fittest project to purchase."""
 
-        if decision_model.static(project_details):
-            self.context.logger.info(
-                f'making decision on project with id {project_details["project_id"]}'
-            )
-            decision = decision_model.dynamic(most_voted_details)
-        else:
-            decision = 0
+        projects = EightyPercentDecisionModel.decide(active_projects, purchased_projects, budget)
+        self.context.logger.info(f"{len(projects)} fit the reqs.")
 
-        self.context.logger.info(
-            f'decided {decision} for project with id {project_details["project_id"]}'
+        if len(projects) == 0:
+            return None
+
+        return projects[0]  # the first project is the fittest
+
+    def _get_safe_balance(
+            self
+    ) -> Generator[None, None, int]:
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_balance"
         )
 
-        return decision
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None,
+            "response, response.state, response.state.body must exist",
+        )
+
+        return cast(int, response.state.body["balance"])
 
 
 class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
@@ -322,31 +434,24 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         with self.context.benchmark_tool.measure(
                 self,
         ).local():
-            # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
-                project_id = json.loads(self.period_state.most_voted_project)[
-                    "project_id"
-                ]
-
-                enforce(
-                    project_id is not None,
-                    "couldn't find project_id, or project_id is None",
-                )
-
-                purchase_data_str = yield from self._get_purchase_data(project_id)
+                project_to_purchase = self.period_state.db.get_strict("project_to_purchase")
+                value = project_to_purchase["price"]  # price of token in the project in wei
+                purchase_data_str = yield from self._get_purchase_data(project_to_purchase["project_id"])
                 purchase_data = bytes.fromhex(purchase_data_str[2:])
-                tx_hash = yield from self._get_safe_hash(purchase_data)
-
+                tx_hash = yield from self._get_safe_hash(data=purchase_data, value=value)
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
-                    ether_value=self._get_value_in_wei(),
+                    ether_value=value,
                     safe_tx_gas=10 ** 7,
                     to_address=self.params.artblocks_periphery_contract,
                     data=purchase_data,
                 )
 
-            except AEAEnforceError as e:
-                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+            except (AEAEnforceError, ValueError) as e:
+                self.context.logger.error(
+                    f"Couldn't create transaction payload, the following error was encountered {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
                 self,
@@ -361,14 +466,14 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
 
         self.set_done()
 
-    def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
+    def _get_safe_hash(self, data: bytes, value=0) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=self.params.artblocks_periphery_contract,
-            value=self._get_value_in_wei(),
+            value=value,
             data=data,
             safe_tx_gas=10 ** 7,
         )
@@ -403,15 +508,6 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         purchase_data = cast(str, response.state.body["data"])
 
         return purchase_data
-
-    def _get_value_in_wei(self) -> int:
-        details: List[Dict] = json.loads(self.period_state.most_voted_details)
-        min_value = details[0]["price_per_token_in_wei"]
-
-        for detail in details:
-            min_value = min(min_value, detail["price_per_token_in_wei"])
-
-        return min_value
 
 
 class FundingRoundBehaviour(ElCollectooorABCIBaseState):
@@ -688,7 +784,7 @@ class ProcessPurchaseRoundBehaviour(ElCollectooorABCIBaseState):
             token_id = -1
             try:
                 token_id = yield from self._get_token_id()
-                self.context.logger.info(f"Purchased token id={token_id}")
+                self.context.logger.info(f"Purchased token id={token_id}.")
             except AEAEnforceError as e:
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
@@ -830,30 +926,72 @@ class TransferNFTAbciBehaviour(AbstractRoundBehaviour):
     }
 
 
-class ResetFromObservationBehaviour(BaseResetBehaviour):
-    """Reset state."""
-
-    matching_round = ResetFromFundingRound
-    state_id = "reset_from_obs"
-    pause = False
-
-
 class PostTransactionSettlementBehaviour(ElCollectooorABCIBaseState):
-    """Behaviour for Post TX Settlement Round"""
+    """Behaviour for Post TX Settlement Round."""
     matching_round = PostTransactionSettlementRound
     state_id = "post_tx_settlement_state"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
-        tx_submitter = self.period_state.db.get("tx_submitter", None)
+        payload_data = {}
 
-        if tx_submitter is None:
-            self.context.logger.warning("A TX was settled, but the `tx_submitter` is unavailable!")
-        else:
-            self.context.logger.info(f"The TX submitted by {tx_submitter} was settled.")
+        with self.context.benchmark_tool.measure(
+                self,
+        ).local():
+            try:
+                tx_submitter = self.period_state.db.get("tx_submitter", None)
 
-        yield from self.wait_until_round_end()
-        self.set_done()
+                if tx_submitter is None:
+                    self.context.logger.error("A TX was settled, but the `tx_submitter` is unavailable!")
+                else:
+                    self.context.logger.info(
+                        f"The TX submitted by {tx_submitter} was settled."
+                    )
+
+                amount_spent = yield from self._get_amount_spent()
+                payload_data["amount_spent"] = amount_spent
+                self.context.logger.info(f"The settled tx cost: {amount_spent / 10 ** 18}Ξ.")
+
+            except AEAEnforceError as e:
+                self.context.logger.error(
+                    f"Couldn't create the PostTransactionSettlement payload, {type(e).__name__}: {e}."
+                )
+
+            with self.context.benchmark_tool.measure(
+                    self,
+            ).consensus():
+                payload = PostTxPayload(
+                    self.context.agent_address,
+                    json.dumps(payload_data),
+                )
+
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+            yield from self.wait_until_round_end()
+            self.set_done()
+
+    def _get_amount_spent(self) -> Generator[None, None, int]:
+        """Get the amount of ether spent in the last settled tx."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address="0x0000000000000000000000000000000000000000",  # not needed
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_amount_spent",
+            tx_hash=self.period_state.db.get("final_tx_hash"),
+        )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None
+            and response.state.body["amount_spent"] is not None,
+            "response, response.state, response.state.body must exist",
+        )
+
+        data = cast(int, response.state.body["amount_spent"])
+
+        return data
 
 
 class TransactionSettlementMultiplexerFullBehaviour(AbstractRoundBehaviour):
@@ -876,7 +1014,6 @@ class ElCollectooorRoundBehaviour(AbstractRoundBehaviour):
         DetailsRoundBehaviour,  # type: ignore
         DecisionRoundBehaviour,  # type: ignore
         TransactionRoundBehaviour,  # type: ignore
-        ResetFromObservationBehaviour,  # type: ignore
     }
 
 

@@ -72,9 +72,14 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         ).local():
             should_deploy = False
             vault_addresses = json.loads(self.period_state.db.get("vault_addresses", "[]"))
+            amount_spent = self.period_state.db.get("amount_spent", 0)
+            budget = self.params.budget_per_vault - (0.15 * (10 ** 18))  # we leave a 0.15ETH margin
 
             if len(vault_addresses) == 0:
                 # no vaults are deployed, so a new one needs to get deployed
+                should_deploy = True
+
+            elif amount_spent >= budget:
                 should_deploy = True
 
             else:
@@ -291,15 +296,16 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         return tx_hash
 
     def _get_mint_vault(self) -> Generator[None, None, str]:
-        latest_basket = json.loads(self.period_state.db.get("basket_addresses"))[-1]
+        all_baskets = json.loads(self.period_state.db.get("basket_addresses"))
+        latest_basket = all_baskets[-1]
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.params.token_vault_factory_address,
             contract_id=str(TokenVaultFactoryContract.contract_id),
             contract_callable="mint_abi",
-            name="test_vault",
-            symbol="TSV",
+            name=f"El Collectooorr Vault #{len(all_baskets)}",
+            symbol="ELC",
             token_address=latest_basket,
             token_id=0,
             token_supply=1000,
@@ -369,7 +375,7 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=self.params.basket_factory_address,
             contract_id=str(BasketFactoryContract.contract_id),
             contract_callable="get_basket_address",
-            tx_hash=self.period_state.final_tx_hash
+            tx_hash=self.period_state.db.get("final_tx_hash")
         )
 
         # response body also has project details
@@ -528,7 +534,7 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=self.params.token_vault_factory_address,
             contract_id=str(TokenVaultFactoryContract.contract_id),
             contract_callable="get_vault_address",
-            tx_hash=self.period_state.final_tx_hash
+            tx_hash=self.period_state.db.get("final_tx_hash")
         )
 
         # response body also has project details

@@ -179,9 +179,10 @@ class DeployDecisionRound(CollectSameUntilThresholdRound, FractionalizeDeploymen
             )
 
             if self.most_voted_payload:
-                return self.period_state, Event.DECIDED_YES
+                return state.update(amount_spent=0), Event.DECIDED_YES
 
             return state, Event.DECIDED_NO
+
         if not self.is_majority_possible(
                 self.collection, self.period_state.nb_participants
         ):
