@@ -41,7 +41,6 @@ from packages.valory.skills.elcollectooor_abci.rounds import (
     Event,
     ObservationRound,
     PeriodState,
-    ResetFromFundingRound,
     TransactionRound,
     rotate_list, FundingRound,
 )
@@ -50,7 +49,6 @@ from packages.valory.skills.simple_abci.payloads import (
     ResetPayload,
     SelectKeeperPayload,
 )
-
 
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
@@ -62,7 +60,7 @@ def get_participants() -> FrozenSet[str]:
 
 
 def get_participant_to_randomness(
-    participants: FrozenSet[str], round_id: int
+        participants: FrozenSet[str], round_id: int
 ) -> Dict[str, RandomnessPayload]:
     """participant_to_randomness"""
     return {
@@ -76,7 +74,7 @@ def get_participant_to_randomness(
 
 
 def get_participant_to_selection(
-    participants: FrozenSet[str],
+        participants: FrozenSet[str],
 ) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
     return {
@@ -86,7 +84,7 @@ def get_participant_to_selection(
 
 
 def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
+        participants: FrozenSet[str], period_count: int
 ) -> Dict[str, ResetPayload]:
     """participant_to_selection"""
     return {
@@ -104,7 +102,7 @@ class BaseRoundTestClass:
 
     @classmethod
     def setup(
-        cls,
+            cls,
     ) -> None:
         """Setup the test class."""
 
@@ -127,19 +125,28 @@ class TestObservationRound(BaseRoundTestClass):
     """Tests for ObservationRound."""
 
     def test_run(
-        self,
+            self,
     ) -> None:
         """Run tests."""
-        test_project_details = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "omitted due to its length",
-            "ipfs_hash": "",
+        active_projects = [
+            {
+                "project_id": 121,
+            },
+            {
+                "project_id": 122,
+            },
+            {
+                "project_id": 123,
+            }
+        ]
+        inactive_projects = [1, 2, 3]
+        finished_projects = [4, 5, 6]
+
+        payload_data = {
+            "active_projects": active_projects,
+            "inactive_projects": inactive_projects,
+            "newly_finished_projects": finished_projects,
+            "most_recent_project": 123,
         }
 
         test_round = ObservationRound(
@@ -148,7 +155,7 @@ class TestObservationRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             ObservationPayload(
-                sender=participant, project_details=json.dumps(test_project_details)
+                sender=participant, project_details=json.dumps(payload_data)
             )
             for participant in self.participants
         ]
@@ -171,7 +178,9 @@ class TestObservationRound(BaseRoundTestClass):
         actual_next_state = self.period_state.update(
             participant_to_project=MappingProxyType(test_round.collection),
             most_voted_project=test_round.most_voted_payload,
-            last_processed_project_id=121,
+            most_recent_project=123,
+            inactive_projects=inactive_projects,
+            active_projects=active_projects
         )
 
         res = test_round.end_block()
@@ -181,8 +190,8 @@ class TestObservationRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_project
-            == cast(PeriodState, actual_next_state).most_voted_project
+                cast(PeriodState, state).most_voted_project
+                == cast(PeriodState, actual_next_state).most_voted_project
         )
 
         # make sure all the votes are as expected
@@ -191,8 +200,8 @@ class TestObservationRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_project[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
-                ).participant_to_project.items()
+                PeriodState, actual_next_state
+            ).participant_to_project.items()
             ]
         )
 
@@ -203,17 +212,19 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
     """Tests for DecisionRound, when the decision is positive."""
 
     def test_run(
-        self,
+            self,
     ) -> None:
         """Run tests."""
-        test_decision = 1
+        payload_data = {
+            "project_id": 123
+        }
 
         test_round = DecisionRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
-            DecisionPayload(sender=participant, decision=test_decision)
+            DecisionPayload(sender=participant, decision=json.dumps(payload_data))
             for participant in self.participants
         ]
 
@@ -244,8 +255,8 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_decision
-            == cast(PeriodState, actual_next_state).most_voted_decision
+                cast(PeriodState, state).most_voted_decision
+                == cast(PeriodState, actual_next_state).most_voted_decision
         )
 
         # make sure all the votes are as expected
@@ -254,8 +265,8 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_decision[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
-                ).participant_to_decision.items()
+                PeriodState, actual_next_state
+            ).participant_to_decision.items()
             ]
         )
 
@@ -266,17 +277,18 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
     """Tests for DecisionRound, when the decision is negative."""
 
     def test_run(
-        self,
+            self,
     ) -> None:
         """Run tests."""
-        test_decision = 0
 
         test_round = DecisionRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
+        project_to_purchase = {}  # {} represents a NO decision for now
+
         first_payload, *payloads = [
-            DecisionPayload(sender=participant, decision=test_decision)
+            DecisionPayload(sender=participant, decision=json.dumps(project_to_purchase))
             for participant in self.participants
         ]
 
@@ -307,8 +319,8 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_decision
-            == cast(PeriodState, actual_next_state).most_voted_decision
+                cast(PeriodState, state).most_voted_decision
+                == cast(PeriodState, actual_next_state).most_voted_decision
         )
 
         # make sure all the votes are as expected
@@ -317,8 +329,8 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_decision[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
-                ).participant_to_decision.items()
+                PeriodState, actual_next_state
+            ).participant_to_decision.items()
             ]
         )
 
@@ -329,7 +341,7 @@ class TestTransactionRound(BaseRoundTestClass):
     """Tests for TransactionRound."""
 
     def test_run(
-        self,
+            self,
     ) -> None:
         """Run tests."""
         test_purchase_data = "test_data"
@@ -370,8 +382,8 @@ class TestTransactionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_purchase_data
-            == cast(PeriodState, actual_next_state).most_voted_purchase_data
+                cast(PeriodState, state).most_voted_purchase_data
+                == cast(PeriodState, actual_next_state).most_voted_purchase_data
         )
 
         # make sure all the votes are as expected
@@ -380,8 +392,8 @@ class TestTransactionRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_purchase_data[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
-                ).participant_to_purchase_data.items()
+                PeriodState, actual_next_state
+            ).participant_to_purchase_data.items()
             ]
         )
 
@@ -392,7 +404,7 @@ class TestDetailsRound(BaseRoundTestClass):
     """Tests for DetailsRound"""
 
     def test_run(
-        self,
+            self,
     ) -> None:
         """Run tests."""
         test_details = json.dumps([{"data": "more"}])
@@ -433,8 +445,8 @@ class TestDetailsRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_details
-            == cast(PeriodState, actual_next_state).most_voted_details
+                cast(PeriodState, state).most_voted_details
+                == cast(PeriodState, actual_next_state).most_voted_details
         )
 
         # make sure all the votes are as expected
@@ -443,55 +455,9 @@ class TestDetailsRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_details[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
-                ).participant_to_details.items()
+                PeriodState, actual_next_state
+            ).participant_to_details.items()
             ]
-        )
-
-        assert event == Event.DONE
-
-
-class TestResetFromFundingRound(BaseRoundTestClass):
-    """Tests for ResetFromFundingRound."""
-
-    def test_run(
-        self,
-    ) -> None:
-        """Run tests."""
-
-        test_round = ResetFromFundingRound(
-            state=self.period_state, consensus_params=self.consensus_params
-        )
-
-        first_payload, *payloads = [
-            ResetPayload(sender=participant, period_count=1)
-            for participant in self.participants
-        ]
-
-        test_round.process_payload(first_payload)
-        assert test_round.collection[first_payload.sender] == first_payload
-        assert test_round.end_block() is None
-
-        self._test_no_majority_event(test_round)
-
-        for payload in payloads:
-            test_round.process_payload(payload)
-
-        actual_next_state = self.period_state.update(
-            period_count=test_round.most_voted_payload,
-            participant_to_randomness=None,
-            most_voted_randomness=None,
-            participant_to_selection=None,
-            most_voted_keeper_address=None,
-        )
-
-        res = test_round.end_block()
-        assert res is not None
-        state, event = res
-
-        assert (
-            cast(PeriodState, state).period_count
-            == cast(PeriodState, actual_next_state).period_count
         )
 
         assert event == Event.DONE
@@ -501,17 +467,17 @@ class TestFundingDecisionRound(BaseRoundTestClass):
     """Tests for FundingRound."""
 
     def test_run(
-        self,
+            self,
     ) -> None:
         """Run tests."""
-        test_funds = 10 ** 10
+        test_funds = {"0x0": 10 ** 18}
 
         test_round = FundingRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
-            FundingPayload(sender=participant, funds=test_funds)
+            FundingPayload(sender=participant, address_to_funds=json.dumps(test_funds))
             for participant in self.participants
         ]
 
@@ -542,8 +508,8 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_funds
-            == cast(PeriodState, actual_next_state).most_voted_funds
+                cast(PeriodState, state).most_voted_funds
+                == cast(PeriodState, actual_next_state).most_voted_funds
         )
 
         # make sure all the votes are as expected
@@ -552,13 +518,12 @@ class TestFundingDecisionRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_funds[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
-                ).participant_to_funds.items()
+                PeriodState, actual_next_state
+            ).participant_to_funds.items()
             ]
         )
 
         assert event == Event.DONE
-
 
 
 def test_rotate_list_method() -> None:
