@@ -802,6 +802,10 @@ class PostTransactionSettlementRound(CollectSameUntilThresholdRound, ElCollectoo
 
             return state, self.round_id_to_event[tx_submitter]
 
+        if not self.is_majority_possible(
+                self.collection, self.period_state.nb_participants
+        ):
+            return self.period_state, Event.NO_MAJORITY
 
 class FinishedElcollectooorrTxRound(DegenerateRound):
     """Initial round for settling the transactions."""
@@ -856,6 +860,7 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
             PostTransactionSettlementEvent.BASKET_PERMISSION: FinishedBasketPermissionTxRound,
             PostTransactionSettlementEvent.FRACTION_PAYOUT: FinishedPayoutTxRound,
             PostTransactionSettlementEvent.TRANSFER_NFT_DONE: FinishedTransferNftTxRound,
+            Event.NO_MAJORITY: ErrorneousRound,
             Event.ERROR: ErrorneousRound,
         },
         FinishedVaultTxRound: {},
