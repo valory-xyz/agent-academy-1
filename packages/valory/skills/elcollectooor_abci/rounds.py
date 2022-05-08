@@ -331,7 +331,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
                 finished_projects=finished_projects,
                 active_projects=active_projects,
                 inactive_projects=inactive_projects,
-                last_processed_project_id=most_recent_project,
+                most_recent_project=most_recent_project,
             )
 
             if len(active_projects) > 0:
