@@ -11,7 +11,7 @@ if __name__ == '__main__':
     channel = TcpChannel()
     mock_tendermint = MockNode(channel)
 
-    data = 'a' * 100000
+    data = 'a' * 10
     mock_tendermint.connect()
     mock_tendermint.check_tx(data.encode(), False)
     mock_tendermint.disconnect()
