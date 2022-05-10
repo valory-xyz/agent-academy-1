@@ -67,8 +67,15 @@ class TcpChannel(BaseChannel):
         self.reader: Optional[asyncio.StreamReader] = None
         self.writer: Optional[asyncio.StreamWriter] = None
 
+    @property
+    def is_connected(self) -> bool:
+        """Check whether the channel is connected."""
+        return self.loop_thread is not None
+
     def connect(self) -> None:
         """Set up the channel."""
+        if self.is_connected:
+            return
         self.loop = asyncio.new_event_loop()
         self.loop_thread = Thread(target=self._run_loop_in_thread, args=(self.loop,))
         self.loop_thread.start()
@@ -85,6 +92,11 @@ class TcpChannel(BaseChannel):
 
     def disconnect(self) -> None:
         """Tear down the channel."""
+        if not self.is_connected:
+            return
+
+        cast(asyncio.StreamWriter, self.writer).close()
+
         loop = cast(AbstractEventLoop, self.loop)
         loop.call_soon_threadsafe(loop.stop)
         cast(Thread, self.loop_thread).join(5)
@@ -125,7 +137,11 @@ class TcpChannel(BaseChannel):
     def _send_data(self, data: bytes) -> None:
         """Send data over the TCP connection."""
         cast(asyncio.StreamWriter, self.writer).write(data)
-        cast(asyncio.StreamWriter, self.writer).drain()
+        future = asyncio.run_coroutine_threadsafe(
+            cast(asyncio.StreamWriter, self.writer).drain(),
+            cast(AbstractEventLoop, self.loop),
+        )
+        future.result()
 
     def send_info(self, request: abci_types.RequestInfo) -> abci_types.ResponseInfo:
         """
