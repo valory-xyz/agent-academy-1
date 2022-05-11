@@ -1219,12 +1219,13 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         self.logger.debug(f"Tendermint parameters: {self.params}")
         self.node = TendermintNode(self.params, self.logger)
 
-    async def _ensure_channel_not_stopped(self) -> None:
-        """Ensure that the channel used by the connection is not stopped."""
+    def _ensure_connected(self) -> None:
+        """Ensure that the connection and the channel are ready."""
+        super()._ensure_connected()
+
         self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
         if self.channel.is_stopped:
-            self.logger.info("The channel is stopped, tearing down the connection.")
-            await self.disconnect()
+            raise ConnectionError("The channel is stopped.")
 
     async def connect(self) -> None:
         """
@@ -1274,7 +1275,6 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         :param envelope: the envelope to send.
         """
         self._ensure_connected()
-        await self._ensure_channel_not_stopped()
         self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
 
         await self.channel.send(envelope)
@@ -1288,9 +1288,7 @@ class ABCIServerConnection(Connection):  # pylint: disable=too-many-instance-att
         :return: the envelope received, if present.  # noqa: DAR202
         """
         self._ensure_connected()
-        await self._ensure_channel_not_stopped()
         self.channel = cast(Union[TcpServerChannel, GrpcServerChannel], self.channel)
-
         try:
             return await self.channel.get_message()
         except CancelledError:  # pragma: no cover
