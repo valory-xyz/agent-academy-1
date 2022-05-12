@@ -9,7 +9,7 @@ fingerprint:
   README.md: Qme8wotyeEGfWmapjicTZSjAARhukPrgzccjVx77fbFy34
   __init__.py: QmPpQFS7rtv7AeERadhkY3m3ixMS9i5JdYfXE6iGUcUuUK
   build/TokenVault.json: QmfEMhE6yr6sssHKzs7soyX8gzNirDX5Vwok4KscvdhBkg
-  contract.py: QmPz61Q7eCa8kEC3Dp3HGUtc86R4RVLLsHKUBHYYFBST1Y
+  contract.py: QmbJZddARwo8uecuSnn36x23QrS96aCh8mqbvdWc13NFyn
 fingerprint_ignore_patterns: []
 contracts:
 - valory/token_vault_factory:0.1.0

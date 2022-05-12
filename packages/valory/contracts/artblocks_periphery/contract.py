@@ -22,14 +22,16 @@ import asyncio
 import concurrent.futures
 import logging
 import math
-from typing import Any, Optional, List, cast
+from typing import Any, List, Optional, cast
+
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
+
 _logger = logging.getLogger(
-    f"aea.packages.valory.contracts.artblocks_periphery.contract"
+    "aea.packages.valory.contracts.artblocks_periphery.contract"
 )
 
 
@@ -40,7 +42,7 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def get_raw_transaction(
-            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Handler method for the 'GET_RAW_TRANSACTION' requests.
@@ -57,7 +59,7 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def get_raw_message(
-            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> bytes:
         """
         Handler method for the 'GET_RAW_MESSAGE' requests.
@@ -74,7 +76,7 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def get_state(
-            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Handler method for the 'GET_STATE' requests.
@@ -91,10 +93,10 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def purchase_data(
-            cls,  # pylint: disable=unused-argument
-            ledger_api: LedgerApi,
-            contract_address: str,
-            project_id: int,
+        cls,  # pylint: disable=unused-argument
+        ledger_api: LedgerApi,
+        contract_address: str,
+        project_id: int,
     ) -> JSONLike:
         """
         Handler method for the 'get_active_project' requests.
@@ -113,10 +115,10 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def is_project_mintable(
-            cls,  # pylint: disable=unused-argument
-            ledger_api: LedgerApi,
-            contract_address: str,
-            project_id: int,
+        cls,  # pylint: disable=unused-argument
+        ledger_api: LedgerApi,
+        contract_address: str,
+        project_id: int,
     ) -> JSONLike:
         """
         Method to check whether a project is mintable via a contract.
@@ -136,10 +138,10 @@ class ArtBlocksPeripheryContract(Contract):
 
     @classmethod
     def are_projects_mintable(
-            cls,
-            ledger_api: LedgerApi,
-            contract_address: str,
-            project_ids: Optional[List[int]] = None,
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        project_ids: Optional[List[int]] = None,
     ) -> JSONLike:
         """
         Check if the projects are mintable via contracts.
@@ -149,12 +151,19 @@ class ArtBlocksPeripheryContract(Contract):
         :param project_ids: the ids of the projects to check whether they are mintable.
         :return: the active projects
         """
-        if len(project_ids) == 0:
-            _logger.warning("An empty list of projects was provided. Returning an empty array.")
+        if project_ids is None:
+            _logger.warning("No projects were provided. Returning an empty object.")
 
-            return {
-                "results": []
-            }
+            return {}
+
+        project_ids = cast(List[int], project_ids)
+
+        if len(project_ids) == 0:
+            _logger.warning(
+                "An empty list of projects was provided. Returning an empty object."
+            )
+
+            return {}
 
         num_threads = math.ceil(len(project_ids) / 30)  # 30 projects per thread
 
@@ -163,11 +172,21 @@ class ArtBlocksPeripheryContract(Contract):
             tasks = []
 
             for project_id in project_ids:
-                task = loop.run_in_executor(pool, cls.is_project_mintable, ledger_api, contract_address, project_id)
+                task = loop.run_in_executor(
+                    pool,
+                    cls.is_project_mintable,
+                    ledger_api,
+                    contract_address,
+                    project_id,
+                )
                 tasks.append(task)
 
-            list_of_results = cast(List[JSONLike], loop.run_until_complete(asyncio.gather(*tasks)))
-            results = {r["project_id"]: r["is_mintable"] for r in list_of_results}
+            list_of_results = cast(
+                List[JSONLike], loop.run_until_complete(asyncio.gather(*tasks))
+            )
+            results = cast(
+                JSONLike, {r["project_id"]: r["is_mintable"] for r in list_of_results}
+            )
 
             loop.close()
 

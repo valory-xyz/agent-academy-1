@@ -639,23 +639,14 @@ class TokenVaultFactoryContract(Contract):
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         data = token_vault_contract.encodeABI(
             fn_name="mint",
-            args=[
-                name,
-                symbol,
-                token_address,
-                token_id,
-                token_supply,
-                list_price,
-                fee
-            ]
+            args=[name, symbol, token_address, token_id, token_supply, list_price, fee],
         )
 
         return {"data": data}
 
-
     @classmethod
     def get_vault_address(
-            cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
+        cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
     ) -> Optional[JSONLike]:
         """
         Get the basket address and its creator from the events emitted by the "createBasket" transaction.
@@ -681,4 +672,3 @@ class TokenVaultFactoryContract(Contract):
         }
 
         return response
-

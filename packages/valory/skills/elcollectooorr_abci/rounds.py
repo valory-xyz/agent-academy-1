@@ -41,20 +41,36 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
+    FundingPayload,
     ObservationPayload,
+    PaidFractionsPayload,
+    PayoutFractionsPayload,
+    PostTxPayload,
+    PurchasedNFTPayload,
     ResetPayload,
     TransactionPayload,
-    TransactionType, FundingPayload, PayoutFractionsPayload, PaidFractionsPayload, TransferNFTPayload,
-    PurchasedNFTPayload, PostTxPayload,
+    TransactionType,
+    TransferNFTPayload,
 )
-from packages.valory.skills.fractionalize_deployment_abci.rounds import DeployVaultTxRound, DeployBasketTxRound, \
-    DeployVaultAbciApp, DeployBasketAbciApp, FinishedDeployBasketTxRound, FinishedDeployVaultTxRound, \
-    PostVaultDeploymentAbciApp, PostBasketDeploymentAbciApp, FinishedPostBasketRound, FinishedPostVaultRound, \
-    PermissionVaultFactoryRound, FinishedWithoutDeploymentRound
+from packages.valory.skills.fractionalize_deployment_abci.rounds import (
+    DeployBasketAbciApp,
+    DeployBasketTxRound,
+    DeployVaultAbciApp,
+    DeployVaultTxRound,
+    FinishedDeployBasketTxRound,
+    FinishedDeployVaultTxRound,
+    FinishedPostBasketRound,
+    FinishedPostVaultRound,
+    FinishedWithoutDeploymentRound,
+    PermissionVaultFactoryRound,
+    PostBasketDeploymentAbciApp,
+    PostVaultDeploymentAbciApp,
+)
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
     FinishedRegistrationFFWRound,
-    FinishedRegistrationRound, RegistrationRound,
+    FinishedRegistrationRound,
+    RegistrationRound,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
@@ -216,7 +232,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def most_voted_epoch_start_block(self) -> int:
         """Get most_voted_epoch_start_block"""
-        return self.db.get("most_voted_epoch_start_block", 0)
+        return cast(int, self.db.get("most_voted_epoch_start_block", 0))
 
     @property
     def participant_to_epoch_start_block(self) -> Mapping[str, int]:
@@ -237,7 +253,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def basket_addresses(self) -> List[str]:
         """Get basket addresses"""
-        return self.db.get("basket_addresses", [])
+        return cast(List[str], self.db.get("basket_addresses", []))
 
     @property
     def participant_to_vault_addresses(self) -> Mapping[str, List[str]]:
@@ -250,7 +266,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def vault_addresses(self) -> List[str]:
         """Get vault addresses"""
-        return self.db.get("vault_addresses", [])
+        return cast(List[str], self.db.get("vault_addresses", []))
 
 
 class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -297,7 +313,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractR
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -320,8 +336,10 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
                 return self.period_state, Event.ERROR
 
             most_recent_project = most_voted_payload["most_recent_project"]
-            finished_projects = \
-                self.period_state.db.get("finished_projects", []) + most_voted_payload["newly_finished_projects"]
+            finished_projects = (
+                self.period_state.db.get("finished_projects", [])
+                + most_voted_payload["newly_finished_projects"]
+            )
             active_projects = most_voted_payload["active_projects"]
             inactive_projects = most_voted_payload["inactive_projects"]
 
@@ -340,7 +358,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
             return state, Event.NO_ACTIVE_PROJECTS
 
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -368,7 +386,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -401,7 +419,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRo
             return state, Event.DECIDED_YES
 
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -430,7 +448,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -489,7 +507,9 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
     }
 
 
-class ProcessPurchaseRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
+class ProcessPurchaseRound(
+    CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound
+):
     """Round to process the purchase of the token on artblocks"""
 
     round_id = "process_purchase_round"
@@ -503,8 +523,12 @@ class ProcessPurchaseRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbs
             if self.most_voted_payload == -1:
                 return self.period_state, Event.ERROR
 
-            purchased_project = self.period_state.db.get_strict("project_to_purchase")  # the project that got purchased
-            all_purchased_projects = self.period_state.db.get("purchased_projects", [])
+            purchased_project = self.period_state.db.get_strict(
+                "project_to_purchase"
+            )  # the project that got purchased
+            all_purchased_projects = cast(
+                List[Dict], self.period_state.db.get("purchased_projects", [])
+            )
             all_purchased_projects.append(purchased_project)
 
             state = self.period_state.update(
@@ -516,7 +540,7 @@ class ProcessPurchaseRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbs
             return state, Event.DONE
 
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self.period_state, Event.NO_MAJORITY
 
@@ -546,7 +570,7 @@ class TransferNFTRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
             return state, Event.DONE
 
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self.period_state, Event.NO_MAJORITY
 
@@ -617,19 +641,21 @@ class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 most_voted_funds=self.most_voted_payload,
-                participant_to_funding_round=MappingProxyType(self.collection)
+                participant_to_funding_round=MappingProxyType(self.collection),
             )
             return state, Event.DONE
 
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self.period_state, Event.NO_MAJORITY
 
         return None
 
 
-class PayoutFractionsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
+class PayoutFractionsRound(
+    CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound
+):
     """This class represents the post vault deployment round"""
 
     allowed_tx_type = PayoutFractionsPayload.transaction_type
@@ -640,12 +666,12 @@ class PayoutFractionsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbs
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            if self.most_voted_payload == '{}':
+            if self.most_voted_payload == "{}":
                 return self.period_state, Event.NO_PAYOUTS
 
             payload = json.loads(self.most_voted_payload)
-            users_being_paid = payload['raw']
-            tx_hash = payload['encoded']
+            users_being_paid = payload["raw"]
+            tx_hash = payload["encoded"]
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
@@ -657,7 +683,7 @@ class PayoutFractionsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbs
 
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -726,13 +752,15 @@ class PostPayoutRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstract
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
-        already_paid = json.loads(self.period_state.db.get("paid_users", '{}'))
-        newly_paid = json.loads(self.period_state.db.get("users_being_paid", '{}'))
+        already_paid = cast(Dict[str, int], self.period_state.db.get("paid_users", {}))
+        newly_paid = cast(
+            Dict[str, int], self.period_state.db.get("users_being_paid", {})
+        )
         all_paid_users = self._merge_paid_users(already_paid, newly_paid)
         state = self.period_state.update(
             period_state_class=self.period_state_class,
-            users_being_paid='{}',
-            paid_users=json.dumps(all_paid_users),
+            users_being_paid={},
+            paid_users=all_paid_users,
         )
 
         return state, Event.DONE
@@ -746,6 +774,7 @@ class FinishedPostPayoutRound(DegenerateRound):
 
 class PostFractionPayoutAbciApp(AbciApp[Event]):
     """ABCI to handle Post Bank tasks"""
+
     initial_round_cls: Type[AbstractRound] = PostPayoutRound
     transition_function: AbciAppTransitionFunction = {
         PostPayoutRound: {
@@ -763,7 +792,9 @@ class PostFractionPayoutAbciApp(AbciApp[Event]):
     }
 
 
-class PostTransactionSettlementRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
+class PostTransactionSettlementRound(
+    CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound
+):
     """After tx settlement via the safe contract."""
 
     allowed_tx_type = PostTxPayload.transaction_type
@@ -788,12 +819,14 @@ class PostTransactionSettlementRound(CollectSameUntilThresholdRound, Elcollectoo
             return self.period_state, Event.ERROR
 
         if self.threshold_reached:
-            if self.most_voted_payload == '{}':
+            if self.most_voted_payload == "{}":
                 return self.period_state, Event.ERROR
 
             payload = json.loads(self.most_voted_payload)
             amount_spent = payload["amount_spent"]
-            total_amount_spent = self.period_state.db.get("amount_spent", 0) + amount_spent
+            total_amount_spent = (
+                self.period_state.db.get("amount_spent", 0) + amount_spent
+            )
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
@@ -803,9 +836,12 @@ class PostTransactionSettlementRound(CollectSameUntilThresholdRound, Elcollectoo
             return state, self.round_id_to_event[tx_submitter]
 
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self.period_state, Event.NO_MAJORITY
+
+        return None
+
 
 class FinishedElcollectooorrTxRound(DegenerateRound):
     """Initial round for settling the transactions."""
@@ -851,6 +887,7 @@ class ErrorneousRound(DegenerateRound):
 
 class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
     """ABCI app to multiplex the transaction settlement"""
+
     initial_round_cls: Type[AbstractRound] = PostTransactionSettlementRound
     transition_function: AbciAppTransitionFunction = {
         PostTransactionSettlementRound: {

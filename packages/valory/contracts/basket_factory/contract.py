@@ -19,7 +19,7 @@
 
 """This module contains the class to connect to a Fractional Basket Factory contract."""
 import logging
-from typing import Any, Optional, cast, List
+from typing import Any, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -27,6 +27,7 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
+
 
 PUBLIC_ID = PublicId.from_str("valory/basket_factory:0.1.0")
 
@@ -42,28 +43,28 @@ class BasketFactoryContract(Contract):
 
     @classmethod
     def get_raw_transaction(
-            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_raw_message(
-            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[bytes]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_state(
-            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """Get raw message."""
         raise NotImplementedError
 
     @classmethod
     def get_deploy_transaction(
-            cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
+        cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """
         Get deploy transaction.
@@ -77,14 +78,14 @@ class BasketFactoryContract(Contract):
 
     @classmethod
     def create_basket(
-            cls,
-            ledger_api: LedgerApi,
-            factory_contract_address: str,
-            deployer_address: str,
-            gas: Optional[int] = None,
-            gas_price: Optional[int] = None,
-            max_fee_per_gas: Optional[int] = None,
-            max_priority_fee_per_gas: Optional[int] = None,
+        cls,
+        ledger_api: LedgerApi,
+        factory_contract_address: str,
+        deployer_address: str,
+        gas: Optional[int] = None,
+        gas_price: Optional[int] = None,
+        max_fee_per_gas: Optional[int] = None,
+        max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Builds and returns the tx to create a basket
@@ -114,9 +115,9 @@ class BasketFactoryContract(Contract):
             )
 
         if (
-                gas_price is None
-                and max_fee_per_gas is None
-                and max_priority_fee_per_gas is None
+            gas_price is None
+            and max_fee_per_gas is None
+            and max_priority_fee_per_gas is None
         ):
             tx_parameters.update(eth_api.try_get_gas_pricing())
 
@@ -154,7 +155,7 @@ class BasketFactoryContract(Contract):
 
     @classmethod
     def get_basket_address(
-            cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
+        cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
     ) -> Optional[JSONLike]:
         """
         Get the basket address and its creator from the events emitted by the "createBasket" transaction.
@@ -184,9 +185,9 @@ class BasketFactoryContract(Contract):
 
     @classmethod
     def create_basket_abi(
-            cls,
-            ledger_api: LedgerApi,
-            contract_address: str,
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
     ) -> JSONLike:
         """
         Builds and returns the tx to create a basket

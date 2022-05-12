@@ -19,16 +19,20 @@
 
 """Test the payloads.py module of the skill."""
 
-from packages.valory.skills.fractionalize_deployment_abci.payloads import DeployDecisionPayload, TransactionType, \
-    DeployBasketPayload, BasketAddressesPayload, PermissionVaultFactoryPayload, VaultAddressesPayload, \
-    DeployVaultPayload
+from packages.valory.skills.fractionalize_deployment_abci.payloads import (
+    BasketAddressesPayload,
+    DeployBasketPayload,
+    DeployDecisionPayload,
+    DeployVaultPayload,
+    PermissionVaultFactoryPayload,
+    TransactionType,
+    VaultAddressesPayload,
+)
 
 
 def test_deploy_decision_payload() -> None:
     """Test `DeployDecisionPayload`"""
-    payload = DeployDecisionPayload(
-        sender="sender", deploy_decision=True, id_="id"
-    )
+    payload = DeployDecisionPayload(sender="sender", deploy_decision=True, id_="id")
 
     assert payload.deploy_decision is not None
     assert payload.id_ == "id"
@@ -42,7 +46,9 @@ def test_deploy_basket_payload() -> None:
     """Test `DeployBasketPayload`"""
     deploy_basket = "0x0"
 
-    payload = DeployBasketPayload(sender="sender", deploy_basket=deploy_basket, id_="id")
+    payload = DeployBasketPayload(
+        sender="sender", deploy_basket=deploy_basket, id_="id"
+    )
 
     assert payload.deploy_basket is not None
     assert payload.id_ == "id"
@@ -57,7 +63,9 @@ def test_basket_addresses_payload() -> None:
     """Test `BasketAddressesPayload`"""
     basket_addresses = "0x0"
 
-    payload = BasketAddressesPayload(sender="sender", basket_addresses=basket_addresses, id_="id")
+    payload = BasketAddressesPayload(
+        sender="sender", basket_addresses=basket_addresses, id_="id"
+    )
 
     assert payload.basket_addresses is not None
     assert payload.id_ == "id"
@@ -72,14 +80,18 @@ def test_permission_vault_factory_payload() -> None:
     """Test `PermissionVaultFactoryPayload`"""
     permission_factory = "0x0"
 
-    payload = PermissionVaultFactoryPayload(sender="sender", permission_factory=permission_factory, id_="id")
+    payload = PermissionVaultFactoryPayload(
+        sender="sender", permission_factory=permission_factory, id_="id"
+    )
 
     assert payload.permission_factory is not None
     assert payload.id_ == "id"
     assert payload.data == dict(permission_factory=permission_factory)
     assert hash(payload) == hash(tuple(sorted(payload.data.items())))
 
-    assert str(payload.transaction_type) == str(TransactionType.PERMISSION_VAULT_FACTORY)
+    assert str(payload.transaction_type) == str(
+        TransactionType.PERMISSION_VAULT_FACTORY
+    )
     assert payload.transaction_type == TransactionType.PERMISSION_VAULT_FACTORY
 
 

@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the shared state for the 'elcollectooorr_abci' application."""
-
+from abc import ABC
 from typing import Any, Dict, Optional, Type
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
@@ -30,15 +30,21 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.elcollectooorr_abci.decision_models import (
-    BaseDecisionModel,
+    EightyPercentDecisionModel,
     GibDetailsThenYesDecisionModel,
     NoDecisionModel,
     SimpleDecisionModel,
-    YesDecisionModel, EightyPercentDecisionModel,
+    YesDecisionModel,
 )
-from packages.valory.skills.elcollectooorr_abci.rounds import Event, ElCollectooorrAbciApp
-from packages.valory.skills.fractionalize_deployment_abci.models import FractionalizeDeploymentParams
+from packages.valory.skills.elcollectooorr_abci.rounds import (
+    ElCollectooorrAbciApp,
+    Event,
+)
+from packages.valory.skills.fractionalize_deployment_abci.models import (
+    FractionalizeDeploymentParams,
+)
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+
 
 MARGIN = 5
 
@@ -60,7 +66,7 @@ class SharedState(BaseSharedState):
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
         ElCollectooorrAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
-                self.context.params.observation_interval + MARGIN
+            self.context.params.observation_interval + MARGIN
         )
 
 
@@ -81,13 +87,9 @@ class ElCollectooorParams(BaseParams):
         self.artblocks_periphery_contract = self._ensure(
             "artblocks_periphery_contract", kwargs
         )
-        self.budget_per_vault = self._ensure(
-            "budget_per_vault", kwargs
-        )
         self.starting_project_id = self._get_starting_project_id(kwargs)
         self.max_retries = int(kwargs.pop("max_retries", 5))
         self.decision_model_type = self._get_decision_model_type(kwargs)
-        self.multisend_address = self._ensure("multisend_address", kwargs)
 
     def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
         """Get the value of starting_project_id, or warn and return None"""
@@ -102,7 +104,7 @@ class ElCollectooorParams(BaseParams):
             )
             return None
 
-    def _get_decision_model_type(self, kwargs: dict) -> Type[BaseDecisionModel]:
+    def _get_decision_model_type(self, kwargs: dict) -> Type[ABC]:
         """
         Get the decision model type to use
 
@@ -112,7 +114,7 @@ class ElCollectooorParams(BaseParams):
 
         key = "decision_model_type"
         model_type = kwargs.pop(key, None)
-        valid_types: Dict[str, Type[BaseDecisionModel]] = {
+        valid_types: Dict[str, Type[ABC]] = {
             "yes": YesDecisionModel,
             "no": NoDecisionModel,
             "gib_details_then_yes": GibDetailsThenYesDecisionModel,

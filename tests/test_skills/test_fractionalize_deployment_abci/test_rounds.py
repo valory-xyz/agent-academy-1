@@ -28,18 +28,30 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     StateDB,
 )
-from packages.valory.skills.elcollectooorr_abci.rounds import (
-    PeriodState,
+from packages.valory.skills.elcollectooorr_abci.rounds import PeriodState
+from packages.valory.skills.fractionalize_deployment_abci.payloads import (
+    BasketAddressesPayload,
+    DeployBasketPayload,
+    DeployDecisionPayload,
+    DeployVaultPayload,
+    PermissionVaultFactoryPayload,
+    VaultAddressesPayload,
 )
-from packages.valory.skills.fractionalize_deployment_abci.payloads import DeployDecisionPayload, DeployBasketPayload, \
-    DeployVaultPayload, BasketAddressesPayload, PermissionVaultFactoryPayload, VaultAddressesPayload
-from packages.valory.skills.fractionalize_deployment_abci.rounds import DeployDecisionRound, Event, DeployBasketTxRound, \
-    DeployVaultTxRound, BasketAddressRound, PermissionVaultFactoryRound, VaultAddressRound
+from packages.valory.skills.fractionalize_deployment_abci.rounds import (
+    BasketAddressRound,
+    DeployBasketTxRound,
+    DeployDecisionRound,
+    DeployVaultTxRound,
+    Event,
+    PermissionVaultFactoryRound,
+    VaultAddressRound,
+)
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
     ResetPayload,
     SelectKeeperPayload,
 )
+
 
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
@@ -51,7 +63,7 @@ def get_participants() -> FrozenSet[str]:
 
 
 def get_participant_to_randomness(
-        participants: FrozenSet[str], round_id: int
+    participants: FrozenSet[str], round_id: int
 ) -> Dict[str, RandomnessPayload]:
     """participant_to_randomness"""
     return {
@@ -65,7 +77,7 @@ def get_participant_to_randomness(
 
 
 def get_participant_to_selection(
-        participants: FrozenSet[str],
+    participants: FrozenSet[str],
 ) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
     return {
@@ -75,7 +87,7 @@ def get_participant_to_selection(
 
 
 def get_participant_to_period_count(
-        participants: FrozenSet[str], period_count: int
+    participants: FrozenSet[str], period_count: int
 ) -> Dict[str, ResetPayload]:
     """participant_to_selection"""
     return {
@@ -93,7 +105,7 @@ class BaseRoundTestClass:
 
     @classmethod
     def setup(
-            cls,
+        cls,
     ) -> None:
         """Setup the test class."""
 
@@ -116,7 +128,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
     """Tests for DeployDecisionRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         self.period_state.update(amount_spent=10 ** 18)
@@ -128,9 +140,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployDecisionPayload(
-                sender=participant, deploy_decision=payload_data
-            )
+            DeployDecisionPayload(sender=participant, deploy_decision=payload_data)
             for participant in self.participants
         ]
 
@@ -149,31 +159,34 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
-            participant_to_deploy_decision=MappingProxyType(test_round.collection),
-            most_voted_deploy_decision=payload_data,
-            amount_spent=0,
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_deploy_decision=MappingProxyType(test_round.collection),
+                most_voted_deploy_decision=payload_data,
+                amount_spent=0,
+            ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
+        state = cast(PeriodState, state)
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-                cast(PeriodState, state).db.get("most_voted_deploy_decision")
-                == cast(PeriodState, actual_next_state).db.get("most_voted_deploy_decision")
+        assert state.db.get("most_voted_deploy_decision") == actual_next_state.db.get(
+            "most_voted_deploy_decision"
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).db.get("participant_to_deploy_decision")[participant]
+                cast(Dict, state.db.get("participant_to_deploy_decision"))[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).db.get("participant_to_deploy_decision").items()
+                    Dict, actual_next_state.db.get("participant_to_deploy_decision")
+                ).items()
             ]
         )
 
@@ -184,7 +197,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
     """Tests for DeployDecisionRound when there is no deployment."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         self.period_state.update(amount_spent=10 ** 18)
@@ -196,9 +209,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployDecisionPayload(
-                sender=participant, deploy_decision=payload_data
-            )
+            DeployDecisionPayload(sender=participant, deploy_decision=payload_data)
             for participant in self.participants
         ]
 
@@ -217,31 +228,32 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
-            participant_to_deploy_decision=MappingProxyType(test_round.collection),
-            most_voted_deploy_decision=payload_data,
-            amount_spent=10 ** 18,
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_deploy_decision=MappingProxyType(test_round.collection),
+                most_voted_deploy_decision=payload_data,
+                amount_spent=10 ** 18,
+            ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
+        state = cast(PeriodState, state)
 
-        # a new period has started
-        # make sure the correct project is chosen
-        assert (
-                cast(PeriodState, state).db.get("most_voted_deploy_decision")
-                == cast(PeriodState, actual_next_state).db.get("most_voted_deploy_decision")
+        assert state.db.get("most_voted_deploy_decision") == actual_next_state.db.get(
+            "most_voted_deploy_decision"
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).db.get("participant_to_deploy_decision")[participant]
+                cast(Dict, state.db.get("participant_to_deploy_decision"))[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).db.get("participant_to_deploy_decision").items()
+                    Dict, actual_next_state.db.get("participant_to_deploy_decision")
+                ).items()
             ]
         )
 
@@ -252,7 +264,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
     """Tests for DeployBasketTxRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         payload_data = "0x0"
@@ -262,9 +274,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployBasketPayload(
-                sender=participant, deploy_basket=payload_data
-            )
+            DeployBasketPayload(sender=participant, deploy_basket=payload_data)
             for participant in self.participants
         ]
 
@@ -283,31 +293,34 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
-            participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
-            most_voted_tx_hash=payload_data,
-            tx_submitter=DeployBasketTxRound.round_id,
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
+                most_voted_tx_hash=payload_data,
+                tx_submitter=DeployBasketTxRound.round_id,
+            ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
+        state = cast(PeriodState, state)
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-                cast(PeriodState, state).db.get("most_voted_tx_hash")
-                == cast(PeriodState, actual_next_state).db.get("most_voted_tx_hash")
+        assert state.db.get("most_voted_tx_hash") == actual_next_state.db.get(
+            "most_voted_tx_hash"
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).db.get("participant_to_voted_tx_hash")[participant]
+                cast(Dict, state.db.get("participant_to_voted_tx_hash"))[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).db.get("participant_to_voted_tx_hash").items()
+                    Dict, actual_next_state.db.get("participant_to_voted_tx_hash")
+                ).items()
             ]
         )
 
@@ -318,7 +331,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
     """Tests for DeployVaultTxRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         payload_data = "0x0"
@@ -328,9 +341,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployVaultPayload(
-                sender=participant, deploy_vault=payload_data
-            )
+            DeployVaultPayload(sender=participant, deploy_vault=payload_data)
             for participant in self.participants
         ]
 
@@ -349,31 +360,34 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
-            participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
-            most_voted_tx_hash=payload_data,
-            tx_submitter=DeployVaultTxRound.round_id,
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
+                most_voted_tx_hash=payload_data,
+                tx_submitter=DeployVaultTxRound.round_id,
+            ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
+        state = cast(PeriodState, state)
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-                cast(PeriodState, state).db.get("most_voted_tx_hash")
-                == cast(PeriodState, actual_next_state).db.get("most_voted_tx_hash")
+        assert state.db.get("most_voted_tx_hash") == actual_next_state.db.get(
+            "most_voted_tx_hash"
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).db.get("participant_to_voted_tx_hash")[participant]
+                cast(Dict, state.db.get("participant_to_voted_tx_hash"))[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).db.get("participant_to_voted_tx_hash").items()
+                    Dict, actual_next_state.db.get("participant_to_voted_tx_hash")
+                ).items()
             ]
         )
 
@@ -384,7 +398,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
     """Tests for BasketAddressRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         payload_data = "[0x0,0x1,0x2]"
@@ -394,9 +408,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            BasketAddressesPayload(
-                sender=participant, basket_addresses=payload_data
-            )
+            BasketAddressesPayload(sender=participant, basket_addresses=payload_data)
             for participant in self.participants
         ]
 
@@ -415,30 +427,33 @@ class TestBasketAddressRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
-            participant_to_basket_addresses=MappingProxyType(test_round.collection),
-            basket_addresses=payload_data,
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_basket_addresses=MappingProxyType(test_round.collection),
+                basket_addresses=payload_data,
+            ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
+        state = cast(PeriodState, state)
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-                cast(PeriodState, state).db.get("basket_addresses")
-                == cast(PeriodState, actual_next_state).db.get("basket_addresses")
+        assert state.db.get("basket_addresses") == actual_next_state.db.get(
+            "basket_addresses"
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).db.get("participant_to_basket_addresses")[participant]
+                cast(Dict, state.db.get("participant_to_basket_addresses"))[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).db.get("participant_to_basket_addresses").items()
+                    Dict, actual_next_state.db.get("participant_to_basket_addresses")
+                ).items()
             ]
         )
 
@@ -449,7 +464,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
     """Tests for PermissionVaultFactoryRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         payload_data = "0x0"
@@ -480,31 +495,34 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
-            participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
-            most_voted_tx_hash=payload_data,
-            tx_submitter=PermissionVaultFactoryRound.round_id,
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
+                most_voted_tx_hash=payload_data,
+                tx_submitter=PermissionVaultFactoryRound.round_id,
+            ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
+        state = cast(PeriodState, state)
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-                cast(PeriodState, state).db.get("most_voted_tx_hash")
-                == cast(PeriodState, actual_next_state).db.get("most_voted_tx_hash")
+        assert state.db.get("most_voted_tx_hash") == actual_next_state.db.get(
+            "most_voted_tx_hash"
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).db.get("participant_to_voted_tx_hash")[participant]
+                cast(Dict, state.db.get("participant_to_voted_tx_hash"))[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).db.get("participant_to_voted_tx_hash").items()
+                    Dict, actual_next_state.db.get("participant_to_voted_tx_hash")
+                ).items()
             ]
         )
 
@@ -515,7 +533,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
     """Tests for VaultAddressRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         payload_data = "[0x0,0x1,0x2]"
@@ -525,9 +543,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            VaultAddressesPayload(
-                sender=participant, vault_addresses=payload_data
-            )
+            VaultAddressesPayload(sender=participant, vault_addresses=payload_data)
             for participant in self.participants
         ]
 
@@ -546,30 +562,33 @@ class TestVaultAddressRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
-            participant_to_vault_addresses=MappingProxyType(test_round.collection),
-            vault_addresses=payload_data,
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_vault_addresses=MappingProxyType(test_round.collection),
+                vault_addresses=payload_data,
+            ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
+        state = cast(PeriodState, state)
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-                cast(PeriodState, state).db.get("vault_addresses")
-                == cast(PeriodState, actual_next_state).db.get("vault_addresses")
+        assert state.db.get("vault_addresses") == actual_next_state.db.get(
+            "vault_addresses"
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).db.get("participant_to_vault_addresses")[participant]
+                cast(Dict, state.db.get("participant_to_vault_addresses"))[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).db.get("participant_to_vault_addresses").items()
+                    Dict, actual_next_state.db.get("participant_to_vault_addresses")
+                ).items()
             ]
         )
 

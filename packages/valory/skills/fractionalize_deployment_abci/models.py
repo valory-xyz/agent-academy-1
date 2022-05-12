@@ -28,11 +28,11 @@ from packages.valory.skills.abstract_round_abci.models import (
 from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
+
 MARGIN = 5
 
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool
-
 
 
 class FractionalizeDeploymentParams(BaseParams):
@@ -52,12 +52,13 @@ class FractionalizeDeploymentParams(BaseParams):
         self.token_vault_factory_address = self._ensure(
             "token_vault_factory_address", kwargs
         )
-        self.wei_to_fraction = self._ensure(
-            "wei_to_fraction", kwargs
-        )
+        self.wei_to_fraction = self._ensure("wei_to_fraction", kwargs)
+        self.budget_per_vault = self._ensure("budget_per_vault", kwargs)
+        self.multisend_address = self._ensure("multisend_address", kwargs)
+
 
 class Params(FractionalizeDeploymentParams, TransactionParams):
-    """Union class for ElCollectoor and Transaction Settlement ABCI"""
+    """Union class for Fractionalize and Transaction Settlement ABCI"""
 
 
 class RandomnessApi(ApiSpecs):

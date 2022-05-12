@@ -105,6 +105,7 @@ class GnosisSafeContract(Contract):
     ) -> Optional[JSONLike]:
         """
         Get deploy transaction.
+
         :param ledger_api: ledger API object.
         :param deployer_address: the deployer address.
         :param kwargs: the keyword arguments.
@@ -136,8 +137,10 @@ class GnosisSafeContract(Contract):
     ) -> Tuple[TxParams, str]:
         """
         Get the deployment transaction of the new Safe.
+
         Taken from:
             https://github.com/gnosis/safe-cli/blob/contracts_v1.3.0/safe_creator.py
+
         :param ledger_api: Ethereum APIs.
         :param deployer_address: public key of the sender of the transaction
         :param owners: a list of public keys
@@ -258,8 +261,10 @@ class GnosisSafeContract(Contract):
     ) -> JSONLike:
         """
         Get the hash of the raw Safe transaction.
+
         Adapted from https://github.com/gnosis/gnosis-py/blob/69f1ee3263086403f6017effa0841c6a2fbba6d6/gnosis/safe/safe_tx.py#L125
         Note, because safe_nonce is included in the tx_hash the agents implicitly agree on the order of txs if they agree on a tx_hash.
+
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :param to_address: the tx recipient address
@@ -380,6 +385,7 @@ class GnosisSafeContract(Contract):
     ) -> JSONLike:
         """
         Get the raw Safe transaction
+
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :param sender_address: the address of the sender
@@ -456,6 +462,7 @@ class GnosisSafeContract(Contract):
     def verify_contract(cls, ledger_api: LedgerApi, contract_address: str) -> JSONLike:
         """
         Verify the contract's bytecode
+
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :return: the verified status
@@ -489,7 +496,9 @@ class GnosisSafeContract(Contract):
     ) -> JSONLike:
         """
         Verify a tx hash exists on the blockchain.
+
         Currently, the implementation is an overkill as most of the verification is implicit by the acceptance of the transaction in the Safe.
+
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :param tx_hash: the transaction hash
@@ -583,7 +592,9 @@ class GnosisSafeContract(Contract):
         contract_address: str,
         tx: TxData,
     ) -> JSONLike:
-        """Check the revert reason of a transaction.
+        """
+        Check the revert reason of a transaction.
+
         :param ledger_api: the ledger API object.
         :param contract_address: the contract address
         :param tx: the transaction for which we want to get the revert reason.
@@ -616,6 +627,7 @@ class GnosisSafeContract(Contract):
     def get_safe_nonce(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike:
         """
         Retrieve the safe's nonce
+
         :param ledger_api: the ledger API object
         :param contract_address: the contract address
         :return: the safe nonce
@@ -626,11 +638,11 @@ class GnosisSafeContract(Contract):
 
     @classmethod
     def get_ingoing_transfers(
-            cls,
-            ledger_api: EthereumApi,
-            contract_address: str,
-            from_block: Optional[str] = None,
-            to_block: Optional[str] = 'latest',
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        from_block: Optional[str] = None,
+        to_block: Optional[str] = "latest",
     ) -> JSONLike:
         """
         A list of transfers into the contract.
@@ -647,24 +659,25 @@ class GnosisSafeContract(Contract):
             logging.info(
                 "'from_block' not provided, checking for transfers to the safe contract in the last 50 blocks."
             )
-            current_block = ledger_api.api.eth.get_block('latest')['number']
+            current_block = ledger_api.api.eth.get_block("latest")["number"]
             from_block = hex(current_block - 50)  # check in the last ~10 min
 
-        safe_filter = safe_contract.events.SafeReceived.createFilter(fromBlock=from_block, toBlock=to_block)
+        safe_filter = safe_contract.events.SafeReceived.createFilter(
+            fromBlock=from_block, toBlock=to_block
+        )
         all_entries = safe_filter.get_all_entries()
 
         return {
-            "data":
-                list(
-                    map(
-                        lambda entry: {
-                            "sender": entry["args"]["sender"],
-                            "amount": int(entry["args"]["value"]),
-                            "blockNumber": entry["blockNumber"],
-                        },
-                        all_entries
-                    )
+            "data": list(
+                map(
+                    lambda entry: {
+                        "sender": entry["args"]["sender"],
+                        "amount": int(entry["args"]["value"]),
+                        "blockNumber": entry["blockNumber"],
+                    },
+                    all_entries,
                 )
+            )
         }
 
     @classmethod
@@ -679,11 +692,11 @@ class GnosisSafeContract(Contract):
         return dict(balance=ledger_api.get_balance(address=contract_address))
 
     @classmethod
-    def get_amount_spent(
-            cls,
-            ledger_api: EthereumApi,
-            contract_address: str,
-            tx_hash: str,
+    def get_amount_spent(  # pylint: disable=unused-argument
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
     ) -> JSONLike:
         """
         Get the amount of ether spent in a tx.

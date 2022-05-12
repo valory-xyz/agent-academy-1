@@ -23,10 +23,15 @@ import json
 from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
+    FundingPayload,
     ObservationPayload,
+    PaidFractionsPayload,
+    PayoutFractionsPayload,
+    PostTxPayload,
+    PurchasedNFTPayload,
     TransactionPayload,
-    TransactionType, FundingPayload, PayoutFractionsPayload, PaidFractionsPayload, PurchasedNFTPayload,
-    TransferNFTPayload, PostTxPayload,
+    TransactionType,
+    TransferNFTPayload,
 )
 
 
@@ -60,7 +65,7 @@ def test_observation_payload() -> None:
 
 def test_decision_payload() -> None:
     """Test `DecisionPayload`"""
-    test_decision = '0'
+    test_decision = "0"
 
     payload = DecisionPayload(sender="sender", decision=test_decision, id_="id")
 
@@ -180,9 +185,7 @@ def test_transfer_nft_payload() -> None:
 
     transfer_data = "transfer_data"
 
-    payload = TransferNFTPayload(
-        sender="sender", transfer_data=transfer_data, id_="id"
-    )
+    payload = TransferNFTPayload(sender="sender", transfer_data=transfer_data, id_="id")
 
     assert payload.transfer_data is not None
     assert payload.id_ == "id"
@@ -198,9 +201,7 @@ def test_post_tx_payload() -> None:
 
     post_tx_data = "post_tx_data"
 
-    payload = PostTxPayload(
-        sender="sender", post_tx_data=post_tx_data, id_="id"
-    )
+    payload = PostTxPayload(sender="sender", post_tx_data=post_tx_data, id_="id")
 
     assert payload.post_tx_data is not None
     assert payload.id_ == "id"

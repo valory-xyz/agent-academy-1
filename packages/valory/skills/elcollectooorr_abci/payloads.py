@@ -52,9 +52,7 @@ class FundingPayload(BaseTxPayload):
 
     transaction_type = TransactionType.FUNDING
 
-    def __init__(
-            self, sender: str, address_to_funds: str, **kwargs: Any
-    ) -> None:
+    def __init__(self, sender: str, address_to_funds: str, **kwargs: Any) -> None:
         """Initialize an 'FundsInPeriod' transaction payload.
 
         :param sender: the sender (Ethereum) address

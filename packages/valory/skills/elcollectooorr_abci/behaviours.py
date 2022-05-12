@@ -21,7 +21,7 @@
 
 import json
 from abc import ABC
-from typing import Dict, Generator, List, Set, Type, cast, Optional, Tuple, Any, OrderedDict
+from typing import Any, Dict, Generator, List, Optional, Set, Tuple, Type, Union, cast
 
 from aea.common import JSONLike
 from aea.exceptions import AEAEnforceError, enforce
@@ -31,37 +31,61 @@ from packages.valory.contracts.artblocks.contract import ArtBlocksContract
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract, SafeOperation
-from packages.valory.contracts.multisend.contract import MultiSendContract, MultiSendOperation
+from packages.valory.contracts.gnosis_safe.contract import (
+    GnosisSafeContract,
+    SafeOperation,
+)
+from packages.valory.contracts.multisend.contract import (
+    MultiSendContract,
+    MultiSendOperation,
+)
 from packages.valory.contracts.token_vault.contract import TokenVaultContract
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.elcollectooorr_abci.decision_models import EightyPercentDecisionModel
+from packages.valory.skills.elcollectooorr_abci.decision_models import (
+    EightyPercentDecisionModel,
+)
 from packages.valory.skills.elcollectooorr_abci.models import Params, SharedState
 from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
+    FundingPayload,
     ObservationPayload,
+    PayoutFractionsPayload,
+    PostTxPayload,
+    PurchasedNFTPayload,
     ResetPayload,
-    TransactionPayload, FundingPayload, PayoutFractionsPayload, TransferNFTPayload, PurchasedNFTPayload, PostTxPayload,
+    TransactionPayload,
+    TransferNFTPayload,
 )
 from packages.valory.skills.elcollectooorr_abci.rounds import (
+    BankAbciApp,
     DecisionRound,
     DetailsRound,
     ElCollectooorrAbciApp,
     ElcollectooorrBaseAbciApp,
+    FundingRound,
     ObservationRound,
+    PayoutFractionsRound,
     PeriodState,
-    ResetFromObservationRound,
-    TransactionRound, FundingRound, PostTransactionSettlementRound, TransactionSettlementAbciMultiplexer,
-    BankAbciApp, PayoutFractionsRound, PostPayoutRound, PostFractionPayoutAbciApp,
-    ProcessPurchaseRound, TransferNFTAbciApp, TransferNFTRound,
+    PostFractionPayoutAbciApp,
+    PostPayoutRound,
+    PostTransactionSettlementRound,
+    ProcessPurchaseRound,
+    TransactionRound,
+    TransactionSettlementAbciMultiplexer,
+    TransferNFTAbciApp,
+    TransferNFTRound,
 )
-from packages.valory.skills.fractionalize_deployment_abci.behaviours import DeployVaultRoundBehaviour, \
-    DeployBasketRoundBehaviour, PostBasketDeploymentRoundBehaviour, PostVaultDeploymentRoundBehaviour
+from packages.valory.skills.fractionalize_deployment_abci.behaviours import (
+    DeployBasketRoundBehaviour,
+    DeployVaultRoundBehaviour,
+    PostBasketDeploymentRoundBehaviour,
+    PostVaultDeploymentRoundBehaviour,
+)
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     RegistrationStartupBehaviour,
@@ -135,31 +159,47 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
     def async_act(self) -> Generator:
         """The observation act."""
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             payload_data = {}
 
             try:
-                prev_finished = self.period_state.db.get("finished_projects", [])
-                prev_active = self.period_state.db.get("active_projects", [])
-                prev_inactive = self.period_state.db.get("inactive_projects", [])
-                most_recent_project = self.period_state.db.get("most_recent_project", 0)
+                prev_finished = cast(
+                    List[int], self.period_state.db.get("finished_projects", [])
+                )
+                prev_active = cast(
+                    List[Dict], self.period_state.db.get("active_projects", [])
+                )
+                prev_inactive = cast(
+                    List[int], self.period_state.db.get("inactive_projects", [])
+                )
+                most_recent_project = cast(
+                    int, self.period_state.db.get("most_recent_project", 0)
+                )
 
                 if most_recent_project == 0:
                     projects_to_check = None
                 else:
-                    projects_to_check = prev_inactive + [p["project_id"] for p in prev_active]
+                    projects_to_check = prev_inactive + [
+                        p["project_id"] for p in prev_active
+                    ]
 
-                current_finished_projects, active_projects, inactive_projects = yield from self._get_projects(
+                (
+                    current_finished_projects,
+                    active_projects,
+                    inactive_projects,
+                ) = yield from self._get_projects(
                     last_processed_project=most_recent_project,
                     project_ids=projects_to_check,
                 )
 
-                newly_finished_projects = self._list_diff(prev_finished, current_finished_projects)
+                newly_finished_projects = self._list_diff(
+                    prev_finished, current_finished_projects
+                )
                 most_recent_project = max(
-                    current_finished_projects +
-                    [p["project_id"] for p in active_projects] +
-                    inactive_projects
+                    current_finished_projects
+                    + [p["project_id"] for p in active_projects]
+                    + inactive_projects
                 )
 
                 payload_data = {
@@ -169,9 +209,15 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
                     "most_recent_project": most_recent_project,
                 }
 
-                self.context.logger.info(f"Most recent project is {most_recent_project}.")
-                self.context.logger.info(f"There are {len(newly_finished_projects)} newly finished projects.")
-                self.context.logger.info(f"There are {len(active_projects)} active projects.")
+                self.context.logger.info(
+                    f"Most recent project is {most_recent_project}."
+                )
+                self.context.logger.info(
+                    f"There are {len(newly_finished_projects)} newly finished projects."
+                )
+                self.context.logger.info(
+                    f"There are {len(active_projects)} active projects."
+                )
 
             except AEAEnforceError as e:
                 self.context.logger.error(
@@ -179,7 +225,7 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
             with self.context.benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 payload = ObservationPayload(
                     self.context.agent_address,
@@ -196,9 +242,9 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
         return list(set(l1) - set(l2)) + list(set(l2) - set(l1))
 
     def _get_projects(
-            self,
-            last_processed_project: Optional[int] = None,
-            project_ids: Optional[List[int]] = None
+        self,
+        last_processed_project: Optional[int] = None,
+        project_ids: Optional[List[int]] = None,
     ) -> Generator[None, None, Tuple[List[int], List[Dict], List[int]]]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -217,7 +263,7 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
             "response, response.state, response.state.body must exist",
         )
 
-        all_projects = response.state.body["results"]
+        all_projects = cast(List[Dict[str, Any]], response.state.body["results"])
         finished_projects, inactive_projects, active_projects = [], [], []
 
         for project in all_projects:
@@ -230,12 +276,14 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
             if max_invocations == 0 or invocations / max_invocations == 1:
                 finished_projects.append(project_id)
             elif is_active:
-                active_projects.append({
-                    "project_id": project_id,
-                    "minted_percentage": invocations / max_invocations,
-                    "price": price_per_token_in_wei,
-                    "is_active": is_active,
-                })
+                active_projects.append(
+                    {
+                        "project_id": project_id,
+                        "minted_percentage": invocations / max_invocations,
+                        "price": price_per_token_in_wei,
+                        "is_active": is_active,
+                    }
+                )
             else:
                 inactive_projects.append(project_id)
 
@@ -252,16 +300,16 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
         """The details act"""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             payload_data = {}
 
             try:
                 active_projects = self.period_state.db.get_strict("active_projects")
-                enhanced_projects = yield from self._enhance_active_projects(active_projects)
-                payload_data = {
-                    "active_projects": enhanced_projects
-                }
+                enhanced_projects = yield from self._enhance_active_projects(
+                    active_projects
+                )
+                payload_data = {"active_projects": enhanced_projects}
 
             except (ValueError, RuntimeError) as e:
                 self.context.logger.error(
@@ -269,7 +317,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = DetailsPayload(
                 self.context.agent_address,
@@ -281,7 +329,9 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
 
         self.set_done()
 
-    def _enhance_active_projects(self, projects: List[Dict]) -> Generator[None, None, List]:
+    def _enhance_active_projects(
+        self, projects: List[Dict]
+    ) -> Generator[None, None, List]:
         """Enhance the project data with 'mintable' and 'curation status'."""
         enhanced_projects = []
         are_mintable = yield from self._are_mintable(projects)
@@ -309,7 +359,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
 
         enforce(
             len(are_mintable) == len(projects),
-            f"Invalid response was received from 'are_projects_mintable'."
+            "Invalid response was received from 'are_projects_mintable'.",
         )
 
         return are_mintable
@@ -324,7 +374,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
         }"""
 
         response = yield from self.get_http_response(
-            method='POST',
+            method="POST",
             url=self.params.artblocks_graph_url,
             content=json.dumps({"query": query}).encode(),
         )
@@ -343,20 +393,32 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
     def async_act(self) -> Generator:
         """The Decision act"""
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
-            project_to_purchase = {}
+            project_to_purchase: Optional[Dict] = {}
 
             try:
-                active_projects = self.period_state.db.get_strict("active_projects")
-                purchased_projects = self.period_state.db.get("purchased_projects", [])  # NOTE: projects NOT tokens
-                already_spent = self.period_state.db.get_strict("amount_spent")
+                active_projects = cast(
+                    List[Dict], self.period_state.db.get_strict("active_projects")
+                )
+                purchased_projects = cast(
+                    List[Dict], self.period_state.db.get("purchased_projects", [])
+                )  # NOTE: projects NOT tokens
+                already_spent = cast(
+                    int, self.period_state.db.get_strict("amount_spent")
+                )
                 safe_balance = yield from self._get_safe_balance()
-                current_budget = min(self.params.budget_per_vault - already_spent, safe_balance)
+                current_budget = min(
+                    self.params.budget_per_vault - already_spent, safe_balance
+                )
 
-                self.context.logger.info(f"The safe contract balance {safe_balance / 10 ** 18}Ξ.")
+                self.context.logger.info(
+                    f"The safe contract balance is {safe_balance / 10 ** 18}Ξ."
+                )
                 self.context.logger.info(f"Already spent {already_spent / 10 ** 18}Ξ.")
-                self.context.logger.info(f"The current budget is {current_budget / 10 ** 18}Ξ.")
+                self.context.logger.info(
+                    f"The current budget is {current_budget / 10 ** 18}Ξ."
+                )
 
                 project_to_purchase = self._get_project_to_purchase(
                     active_projects=active_projects,
@@ -374,8 +436,9 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
+            project_to_purchase = cast(Dict, project_to_purchase)
             payload = DecisionPayload(
                 sender=self.context.agent_address,
                 decision=json.dumps(project_to_purchase),
@@ -386,14 +449,16 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
         self.set_done()
 
     def _get_project_to_purchase(
-            self,
-            active_projects: List[dict],
-            purchased_projects: List[dict],
-            budget: int,
+        self,
+        active_projects: List[dict],
+        purchased_projects: List[dict],
+        budget: int,
     ) -> Optional[Dict]:
         """Get the fittest project to purchase."""
 
-        projects = EightyPercentDecisionModel.decide(active_projects, purchased_projects, budget)
+        projects = EightyPercentDecisionModel.decide(
+            active_projects, purchased_projects, budget
+        )
         self.context.logger.info(f"{len(projects)} fit the reqs.")
 
         if len(projects) == 0:
@@ -401,14 +466,12 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
 
         return projects[0]  # the first project is the fittest
 
-    def _get_safe_balance(
-            self
-    ) -> Generator[None, None, int]:
+    def _get_safe_balance(self) -> Generator[None, None, int]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
-            contract_callable="get_balance"
+            contract_callable="get_balance",
         )
 
         enforce(
@@ -432,14 +495,22 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             try:
-                project_to_purchase = self.period_state.db.get_strict("project_to_purchase")
-                value = project_to_purchase["price"]  # price of token in the project in wei
-                purchase_data_str = yield from self._get_purchase_data(project_to_purchase["project_id"])
+                project_to_purchase = self.period_state.db.get_strict(
+                    "project_to_purchase"
+                )
+                value = project_to_purchase[
+                    "price"
+                ]  # price of token in the project in wei
+                purchase_data_str = yield from self._get_purchase_data(
+                    project_to_purchase["project_id"]
+                )
                 purchase_data = bytes.fromhex(purchase_data_str[2:])
-                tx_hash = yield from self._get_safe_hash(data=purchase_data, value=value)
+                tx_hash = yield from self._get_safe_hash(
+                    data=purchase_data, value=value
+                )
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
                     ether_value=value,
@@ -454,7 +525,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = TransactionPayload(
                 self.context.agent_address,
@@ -466,7 +537,9 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
 
         self.set_done()
 
-    def _get_safe_hash(self, data: bytes, value=0) -> Generator[None, None, str]:
+    def _get_safe_hash(self, data: bytes, value: int = 0) -> Generator[None, None, str]:
+        """Get the safe hash."""
+
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.safe_contract_address,
@@ -532,7 +605,9 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
 
         self.set_done()
 
-    def _get_available_funds(self, from_block: Optional[int] = None, to_block='latest') -> Generator:
+    def _get_available_funds(
+        self, from_block: Optional[int] = None, to_block: Union[str, int] = "latest"
+    ) -> Generator:
         """Returns all the transfers to the gnosis safe."""
 
         in_transfers = yield from self.get_contract_api_response(
@@ -541,10 +616,10 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_ingoing_transfers",
             from_block=from_block,
-            to_block=to_block
+            to_block=to_block,
         )
 
-        return in_transfers.state.body['data']
+        return in_transfers.state.body["data"]
 
 
 class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
@@ -556,14 +631,16 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     def async_act(self) -> Generator:
         """Implement the act."""
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             try:
-                latest_vault = json.loads(self.period_state.db.get("vault_addresses"))[-1]
+                latest_vault = cast(
+                    List[str], self.period_state.db.get("vault_addresses")
+                )[-1]
                 multisend_data_obj = yield from self._get_multisend_tx(latest_vault)
 
                 if multisend_data_obj != {}:
-                    multisend_data_str = multisend_data_obj["encoded"]
+                    multisend_data_str = cast(str, multisend_data_obj["encoded"])
                     multisend_data = bytes.fromhex(multisend_data_str[2:])
                     tx_hash = yield from self._get_safe_hash(multisend_data)
                     multisend_data_obj["encoded"] = hash_payload_to_hex(
@@ -580,7 +657,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = PayoutFractionsPayload(
                 self.context.agent_address,
@@ -616,8 +693,10 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
 
         return tx_hash
 
-    def _get_transferERC20_tx(self, address, amount) -> Generator[None, None, str]:
-        latest_vault = json.loads(self.period_state.db.get("vault_addresses"))[-1]
+    def _get_transferERC20_tx(
+        self, address: str, amount: int
+    ) -> Generator[None, None, str]:
+        latest_vault = cast(List[str], self.period_state.db.get("vault_addresses"))[-1]
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -641,8 +720,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
 
     def _available_tokens(self) -> Generator:
         """Get the tokens that are left undistributed."""
-
-        latest_vault = json.loads(self.period_state.db.get("vault_addresses"))[-1]
+        latest_vault = cast(List[str], self.period_state.db.get("vault_addresses"))[-1]
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_id=str(TokenVaultContract.contract_id),
@@ -652,31 +730,41 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
         )
 
         if (
-                response.state.body is None
-                or "balance" not in response.state.body.keys()
-                or response.state.body["balance"] is None
+            response.state.body is None
+            or "balance" not in response.state.body.keys()
+            or response.state.body["balance"] is None
         ):
-            self.context.logger.error("Could not retrieve the token balance of the safe contract.")
+            self.context.logger.error(
+                "Could not retrieve the token balance of the safe contract."
+            )
             return None
 
         return cast(int, response.state.body["balance"])
 
-    def _get_unpaid_users(self, wei_to_fractions) -> Generator:
+    def _get_unpaid_users(  # pylint: disable=too-many-locals
+        self, wei_to_fractions: int
+    ) -> Generator:
         """Get a dictionary of addresses and the tokens to be sent to them."""
 
-        paid_users = json.loads(self.period_state.db.get("paid_users", "{}"))
-        all_transfers = json.loads(self.period_state.db.get("most_voted_funds", "[]"))
+        paid_users = cast(Dict[str, int], self.period_state.db.get("paid_users", {}))
+        all_transfers = cast(
+            List[Dict], self.period_state.db.get("most_voted_funds", [])
+        )
         undistributed_tokens: Optional[int] = yield from self._available_tokens()
         tokens_to_be_distributed = 0
-        address_to_investment, users_to_be_paid = {}, {}
+        address_to_investment: Dict = {}
+        users_to_be_paid: Dict = {}
 
         if len(all_transfers) == 0 or undistributed_tokens is None:
             return {}
 
         for tx in all_transfers:
-            sender, amount = tx['sender'], tx['amount']
+            sender, amount = tx["sender"], tx["amount"]
 
-            if sender in address_to_investment.keys():
+            if (
+                sender
+                in address_to_investment.keys()  # pylint: disable=consider-iterating-dictionary
+            ):
                 address_to_investment[sender] += amount
             else:
                 address_to_investment[sender] = amount
@@ -721,7 +809,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
                     "operation": MultiSendOperation.CALL,
                     "to": vault_address,
                     "value": 0,
-                    "data": HexBytes(tx)
+                    "data": HexBytes(tx),
                 }
             )
 
@@ -778,7 +866,7 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
         """Implement the act."""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             token_id = -1
@@ -789,7 +877,7 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = PurchasedNFTPayload(
                 self.context.agent_address,
@@ -807,14 +895,13 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_address=self.params.artblocks_contract,
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="process_purchase_receipt",
-            tx_hash=self.period_state.db.get("final_tx_hash")
+            tx_hash=self.period_state.db.get("final_tx_hash"),
         )
 
-        if (
-                response.state.body is None
-                or "token_id" not in response.state.body.keys()
-        ):
-            self.context.logger.error("couldn't extract the 'token_id' from the ArtBlocksContract")
+        if response.state.body is None or "token_id" not in response.state.body.keys():
+            self.context.logger.error(
+                "couldn't extract the 'token_id' from the ArtBlocksContract"
+            )
 
             return -1
 
@@ -834,7 +921,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             try:
                 transfer_data_str = yield from self._get_safe_transfer_from_data()
@@ -850,10 +937,12 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
             except AEAEnforceError as e:
-                self.context.logger.error(f"Couldn't create the transaction payload, e={e}")
+                self.context.logger.error(
+                    f"Couldn't create the transaction payload, e={e}"
+                )
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = TransferNFTPayload(
                 self.context.agent_address,
@@ -888,7 +977,9 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
         return tx_hash
 
     def _get_safe_transfer_from_data(self) -> Generator[None, None, str]:
-        latest_basket = json.loads(self.period_state.db.get("basket_addresses"))[-1]
+        latest_basket = cast(List[str], self.period_state.db.get("basket_addresses"))[
+            -1
+        ]
         token_id = self.period_state.db.get("purchased_nft", None)
 
         if token_id is None:
@@ -918,6 +1009,8 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
 
 
 class TransferNFTAbciBehaviour(AbstractRoundBehaviour):
+    """Behaviour class for the Transfer NFT Behaviour."""
+
     initial_state_cls = ProcessPurchaseRoundBehaviour
     abci_app_cls = TransferNFTAbciApp
     behaviour_states: Set[Type[BaseState]] = {
@@ -928,6 +1021,7 @@ class TransferNFTAbciBehaviour(AbstractRoundBehaviour):
 
 class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
     """Behaviour for Post TX Settlement Round."""
+
     matching_round = PostTransactionSettlementRound
     state_id = "post_tx_settlement_state"
 
@@ -936,13 +1030,15 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
         payload_data = {}
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             try:
                 tx_submitter = self.period_state.db.get("tx_submitter", None)
 
                 if tx_submitter is None:
-                    self.context.logger.error("A TX was settled, but the `tx_submitter` is unavailable!")
+                    self.context.logger.error(
+                        "A TX was settled, but the `tx_submitter` is unavailable!"
+                    )
                 else:
                     self.context.logger.info(
                         f"The TX submitted by {tx_submitter} was settled."
@@ -950,7 +1046,9 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
 
                 amount_spent = yield from self._get_amount_spent()
                 payload_data["amount_spent"] = amount_spent
-                self.context.logger.info(f"The settled tx cost: {amount_spent / 10 ** 18}Ξ.")
+                self.context.logger.info(
+                    f"The settled tx cost: {amount_spent / 10 ** 18}Ξ."
+                )
 
             except AEAEnforceError as e:
                 self.context.logger.error(
@@ -958,7 +1056,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
                 )
 
             with self.context.benchmark_tool.measure(
-                    self,
+                self,
             ).consensus():
                 payload = PostTxPayload(
                     self.context.agent_address,
@@ -1019,6 +1117,7 @@ class ElCollectooorrRoundBehaviour(AbstractRoundBehaviour):
 
 class BankRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Bank ABCI app."""
+
     initial_state_cls = FundingRoundBehaviour
     abci_app_cls = BankAbciApp
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore

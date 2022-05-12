@@ -61,9 +61,9 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.elcollectooorr_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
+    FundingRoundBehaviour,
     ObservationRoundBehaviour,
-    ResetFromObservationBehaviour,
-    TransactionRoundBehaviour, FundingRoundBehaviour,
+    TransactionRoundBehaviour,
 )
 from packages.valory.skills.elcollectooorr_abci.decision_models import (
     SimpleDecisionModel as DecisionModel,
@@ -92,7 +92,7 @@ class DummyRoundId:
         self.round_id = round_id
 
 
-class ElcollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
+class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(
@@ -416,7 +416,7 @@ class ElcollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
 
-class BaseRandomnessBehaviourTest(ElcollectooorrFSMBehaviourBaseCase):
+class BaseRandomnessBehaviourTest(ElCollectooorrFSMBehaviourBaseCase):
     """Test RandomnessBehaviour."""
 
     randomness_behaviour_class: Type[BaseState]
@@ -556,7 +556,7 @@ class BaseRandomnessBehaviourTest(ElcollectooorrFSMBehaviourBaseCase):
         )
 
 
-class BaseSelectKeeperBehaviourTest(ElcollectooorrFSMBehaviourBaseCase):
+class BaseSelectKeeperBehaviourTest(ElCollectooorrFSMBehaviourBaseCase):
     """Test SelectKeeperBehaviour."""
 
     select_keeper_behaviour_class: Type[BaseState]
@@ -595,66 +595,7 @@ class BaseSelectKeeperBehaviourTest(ElcollectooorrFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestResetFromObservationBehaviour(ElcollectooorrFSMBehaviourBaseCase):
-    """Test ResetFromObservationBehaviour."""
-
-    behaviour_class = ResetFromObservationBehaviour
-    next_behaviour_class = ObservationRoundBehaviour
-
-    def test_pause_and_reset_behaviour(
-        self,
-    ) -> None:
-        """Test pause and reset behaviour."""
-        self.fast_forward_to_state(
-            behaviour=self.elcollectooorr_abci_behaviour,
-            state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(StateDB(0, dict())),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-        self.elcollectooorr_abci_behaviour.context.params.observation_interval = 0.1
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        time.sleep(0.3)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self.end_round()
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_reset_behaviour(
-        self,
-    ) -> None:
-        """Test reset behaviour."""
-        self.fast_forward_to_state(
-            behaviour=self.elcollectooorr_abci_behaviour,
-            state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(StateDB(0, dict())),
-        )
-        self.elcollectooorr_abci_behaviour.current_state.pause = False  # type: ignore
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-        self.elcollectooorr_abci_behaviour.context.params.observation_interval = 0.1
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        time.sleep(0.3)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-
-        self.end_round()
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-
-class TestObservationRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
+class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for the Observation Round Behaviour"""
 
     behaviour_class = ObservationRoundBehaviour
@@ -754,7 +695,7 @@ class TestObservationRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
 
-class TestDetailsRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
+class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for details round behaviour"""
 
     behaviour_class = DetailsRoundBehaviour
@@ -926,12 +867,12 @@ class TestDetailsRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
         assert state.state_id == self.next_behaviour_class.state_id
 
 
-class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
+class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for Decision Round Behaviour"""
 
     behaviour_class = DecisionRoundBehaviour
     decided_yes_behaviour_class = TransactionRoundBehaviour
-    decided_no_behaviour_class = ResetFromObservationBehaviour
+    decided_no_behaviour_class = TransactionRoundBehaviour
     gib_details_behaviour_class = DetailsRoundBehaviour
 
     def test_decided_yes(self) -> None:
@@ -1072,7 +1013,7 @@ class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
         assert state.state_id == self.gib_details_behaviour_class.state_id
 
 
-class TestTransactionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
+class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for Transaction Round Behaviour"""
 
     behaviour_class = TransactionRoundBehaviour
@@ -1182,7 +1123,6 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == ObservationRoundBehaviour.state_id
-
 
 
 class TestDecisionModel:

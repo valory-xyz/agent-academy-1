@@ -20,7 +20,7 @@
 """This module contains the behaviour_classes for the 'fractionalize_deployment_abci' skill."""
 import json
 from abc import ABC
-from typing import Generator, Set, Type, cast, Optional
+from typing import Generator, List, Set, Type, cast
 
 from aea.exceptions import AEAEnforceError, enforce
 
@@ -28,19 +28,38 @@ from packages.valory.contracts.basket.contract import BasketContract
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.token_vault.contract import TokenVaultContract
-from packages.valory.contracts.token_vault_factory.contract import TokenVaultFactoryContract
+from packages.valory.contracts.token_vault_factory.contract import (
+    TokenVaultFactoryContract,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
 from packages.valory.skills.fractionalize_deployment_abci.models import Params
-from packages.valory.skills.fractionalize_deployment_abci.payloads import DeployBasketPayload, DeployVaultPayload, \
-    BasketAddressesPayload, VaultAddressesPayload, PermissionVaultFactoryPayload, DeployDecisionPayload
-from packages.valory.skills.fractionalize_deployment_abci.rounds import PeriodState, DeployBasketTxRound, \
-    FinishedDeployVaultTxRound, DeployVaultTxRound, DeployVaultAbciApp, \
-    DeployBasketAbciApp, FinishedDeployBasketTxRound, VaultAddressRound, BasketAddressRound, \
-    PostBasketDeploymentAbciApp, PostVaultDeploymentAbciApp, PermissionVaultFactoryRound, DeployDecisionRound
+from packages.valory.skills.fractionalize_deployment_abci.payloads import (
+    BasketAddressesPayload,
+    DeployBasketPayload,
+    DeployDecisionPayload,
+    DeployVaultPayload,
+    PermissionVaultFactoryPayload,
+    VaultAddressesPayload,
+)
+from packages.valory.skills.fractionalize_deployment_abci.rounds import (
+    BasketAddressRound,
+    DeployBasketAbciApp,
+    DeployBasketTxRound,
+    DeployDecisionRound,
+    DeployVaultAbciApp,
+    DeployVaultTxRound,
+    FinishedDeployBasketTxRound,
+    FinishedDeployVaultTxRound,
+    PeriodState,
+    PermissionVaultFactoryRound,
+    PostBasketDeploymentAbciApp,
+    PostVaultDeploymentAbciApp,
+    VaultAddressRound,
+)
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
@@ -62,18 +81,23 @@ class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
 
 class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour for deciding whether a new basket & vault should be deployed"""
+
     state_id = "deploy_decision_round_behaviour"
     matching_round = DeployDecisionRound
 
     def async_act(self) -> Generator:
         """Implement the act."""
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             should_deploy = False
-            vault_addresses = json.loads(self.period_state.db.get("vault_addresses", "[]"))
+            vault_addresses = cast(
+                List[str], self.period_state.db.get("vault_addresses", [])
+            )
             amount_spent = self.period_state.db.get("amount_spent", 0)
-            budget = self.params.budget_per_vault - (0.15 * (10 ** 18))  # we leave a 0.15ETH margin
+            budget = self.params.budget_per_vault - (
+                0.15 * (10 ** 18)
+            )  # we leave a 0.15ETH margin
 
             if len(vault_addresses) == 0:
                 # no vaults are deployed, so a new one needs to get deployed
@@ -92,10 +116,12 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 
                 if not should_deploy:
                     tokens_left = yield from self._get_num_tokens_left(latest_vault)
-                    should_deploy = tokens_left == 0  # if no tokens are left, the vault has sold out, deploy a new one
+                    should_deploy = (
+                        tokens_left == 0
+                    )  # if no tokens are left, the vault has sold out, deploy a new one
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = DeployDecisionPayload(
                 self.context.agent_address,
@@ -115,7 +141,7 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=vault_address,
         )
 
-        data = cast(int, response.state.body['state'])
+        data = cast(int, response.state.body["state"])
 
         return data
 
@@ -128,7 +154,7 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             address=self.period_state.db.get_strict("safe_contract_address"),
         )
 
-        data = cast(int, response.state.body['balance'])
+        data = cast(int, response.state.body["balance"])
 
         return data
 
@@ -144,7 +170,7 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
@@ -164,7 +190,7 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = DeployBasketPayload(
                 self.context.agent_address,
@@ -240,7 +266,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
@@ -260,7 +286,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = DeployVaultPayload(
                 self.context.agent_address,
@@ -296,7 +322,9 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         return tx_hash
 
     def _get_mint_vault(self) -> Generator[None, None, str]:
-        all_baskets = json.loads(self.period_state.db.get("basket_addresses"))
+        all_baskets = cast(
+            List[str], self.period_state.db.get_strict("basket_addresses")
+        )
         latest_basket = all_baskets[-1]
 
         response = yield from self.get_contract_api_response(
@@ -345,19 +373,21 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         """Implement the act."""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
                 new_basket = yield from self._get_basket()
-                basket_addresses = json.loads(self.period_state.db.get("basket_addresses", "[]"))
+                basket_addresses = cast(
+                    List[str], self.period_state.db.get("basket_addresses", [])
+                )
                 basket_addresses.append(new_basket)
                 self.context.logger.info(f"New basket address={new_basket}")
             except AEAEnforceError as e:
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = BasketAddressesPayload(
                 self.context.agent_address,
@@ -369,20 +399,20 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 
         self.set_done()
 
-    def _get_basket(self) -> Generator[None, None, Optional[str]]:
+    def _get_basket(self) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.params.basket_factory_address,
             contract_id=str(BasketFactoryContract.contract_id),
             contract_callable="get_basket_address",
-            tx_hash=self.period_state.db.get("final_tx_hash")
+            tx_hash=self.period_state.db.get("final_tx_hash"),
         )
 
         # response body also has project details
         enforce(
             response.state.body is not None
             and "basket_address" in response.state.body.keys(),
-            "couldn't extract the 'basket_address' from the BaketFactoryContract"
+            "couldn't extract the 'basket_address' from the BaketFactoryContract",
         )
 
         data = cast(str, response.state.body["basket_address"])
@@ -401,11 +431,13 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
-                latest_basket = json.loads(self.period_state.db.get("basket_addresses"))[-1]
+                latest_basket = cast(
+                    List[str], self.period_state.db.get_strict("basket_addresses")
+                )[-1]
                 basket_data_str = yield from self._get_permission_tx()
                 basket_data = bytes.fromhex(basket_data_str[2:])
                 tx_hash = yield from self._get_safe_hash(basket_data)
@@ -422,7 +454,7 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = PermissionVaultFactoryPayload(
                 self.context.agent_address,
@@ -435,7 +467,9 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
         self.set_done()
 
     def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
-        latest_basket = json.loads(self.period_state.db.get("basket_addresses"))[-1]
+        latest_basket = cast(
+            List[str], self.period_state.db.get_strict("basket_addresses")
+        )[-1]
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -460,7 +494,9 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
         return tx_hash
 
     def _get_permission_tx(self) -> Generator[None, None, str]:
-        latest_basket = json.loads(self.period_state.db.get("basket_addresses"))[-1]
+        latest_basket = cast(List[str], self.period_state.db.get("basket_addresses"))[
+            -1
+        ]
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -483,7 +519,9 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
         return data
 
     def _format_payload(self, tx_hash: str, data: str) -> str:
-        latest_basket = json.loads(self.period_state.db.get("basket_addresses"))[-1]
+        latest_basket = cast(List[str], self.period_state.db.get("basket_addresses"))[
+            -1
+        ]
         tx_hash = tx_hash[2:]
         ether_value = int.to_bytes(0, 32, "big").hex().__str__()
         safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()
@@ -503,12 +541,13 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         """Implement the act."""
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).local():
-            # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
                 new_vault = yield from self._get_vault()
-                vault_addresses = json.loads(self.period_state.db.get("vault_addresses", "[]"))
+                vault_addresses = cast(
+                    List[str], self.period_state.db.get("vault_addresses", [])
+                )
                 vault_addresses.append(new_vault)
 
                 self.context.logger.info(f"Deployed new TokenVault at: {new_vault}.")
@@ -516,7 +555,7 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 self.context.logger.error(f"couldn't create transaction payload, e={e}")
 
         with self.context.benchmark_tool.measure(
-                self,
+            self,
         ).consensus():
             payload = VaultAddressesPayload(
                 self.context.agent_address,
@@ -534,7 +573,7 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=self.params.token_vault_factory_address,
             contract_id=str(TokenVaultFactoryContract.contract_id),
             contract_callable="get_vault_address",
-            tx_hash=self.period_state.db.get("final_tx_hash")
+            tx_hash=self.period_state.db.get("final_tx_hash"),
         )
 
         # response body also has project details
@@ -557,7 +596,9 @@ class FinishedTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
-        self.context.logger.info("Successfully executed Fractionalize Deployment TX app.")
+        self.context.logger.info(
+            "Successfully executed Fractionalize Deployment TX app."
+        )
         self.set_done()
         yield
 

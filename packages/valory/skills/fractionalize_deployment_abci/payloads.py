@@ -19,7 +19,7 @@
 
 """This module contains the transaction payloads for the fractionalize Deployment_abci app."""
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from packages.valory.skills.abstract_round_abci.base import BaseTxPayload
 
@@ -28,10 +28,10 @@ class TransactionType(Enum):
     """Enumeration of transaction types."""
 
     DEPLOY_DECISION = "deploy_decision"
-    DEPLOY_BASKET = 'deploy_basket'
-    DEPLOY_VAULT = 'deploy_vault'
-    BASKET_ADDRESSES = 'basket_addresses'
-    VAULT_ADDRESSES = 'vault_addresses'
+    DEPLOY_BASKET = "deploy_basket"
+    DEPLOY_VAULT = "deploy_vault"
+    BASKET_ADDRESSES = "basket_addresses"
+    VAULT_ADDRESSES = "vault_addresses"
     PERMISSION_VAULT_FACTORY = "permission_vault_factory"
 
     def __str__(self) -> str:

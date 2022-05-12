@@ -14,13 +14,13 @@ connections:
 contracts:
 - valory/artblocks:0.1.0
 - valory/artblocks_periphery:0.1.0
+- valory/basket:0.1.0
+- valory/basket_factory:0.1.0
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
-- valory/basket_factory:0.1.0
-- valory/basket:0.1.0
+- valory/multisend:0.1.0
 - valory/token_vault:0.1.0
 - valory/token_vault_factory:0.1.0
-- valory/multisend:0.1.0
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0

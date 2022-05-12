@@ -27,6 +27,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from unittest import mock
 
 import pytest
+from aea.common import JSONLike
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from web3 import Web3
@@ -312,46 +313,64 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 
         assert len(res) == 0, "no transfers are made to the "
 
-        self.ledger_api.api.eth.send_transaction({
-            'to': self.contract_address,
-            'from': self.deployer_crypto.address,
-            'value': 10
-        })
-
-        res = self.contract.get_ingoing_transfers(
-            ledger_api=self.ledger_api,
-            contract_address=cast(str, self.contract_address),
+        self.ledger_api.api.eth.send_transaction(
+            {
+                "to": self.contract_address,
+                "from": self.deployer_crypto.address,
+                "value": 10,
+            }
         )
+
+        res = cast(
+            JSONLike,
+            self.contract.get_ingoing_transfers(
+                ledger_api=self.ledger_api,
+                contract_address=cast(str, self.contract_address),
+            ),
+        )
+        data = cast(List[JSONLike], res["data"])
 
         time.sleep(1)
 
         assert len(res) == 1, "one transfer should exist"
-        assert res[0]["amount"] == 10, "transfer amount should be 10"
-        assert res[0]["sender"] == self.deployer_crypto.address, f"{res[0]['sender']} should be the sender"
-        assert res[0]["blockNumber"] is not None, "tx is still pending"
-        assert self.ledger_api.api.eth.get_balance(self.contract_address) == 10, "incorrect balance"
+        assert data[0]["amount"] == 10, "transfer amount should be 10"
+        assert (
+            data[0]["sender"] == self.deployer_crypto.address
+        ), f"{data[0]['sender']} should be the sender"
+        assert data[0]["blockNumber"] is not None, "tx is still pending"
+        assert (
+            self.ledger_api.api.eth.get_balance(self.contract_address) == 10
+        ), "incorrect balance"
 
-        prev_block = res[0]["blockNumber"]
+        prev_block = cast(int, data[0]["blockNumber"])
 
-        self.ledger_api.api.eth.send_transaction({
-            'to': self.contract_address,
-            'from': self.deployer_crypto.address,
-            'value': 100
-        })
+        self.ledger_api.api.eth.send_transaction(
+            {
+                "to": self.contract_address,
+                "from": self.deployer_crypto.address,
+                "value": 100,
+            }
+        )
 
         time.sleep(3)
 
         res = self.contract.get_ingoing_transfers(
             ledger_api=self.ledger_api,
             contract_address=cast(str, self.contract_address),
-            from_block=hex(prev_block + 1)
+            from_block=hex(prev_block + 1),
         )
+        data = cast(List[JSONLike], res["data"])
 
         assert len(res) == 1, "one transfer should exist"
-        assert res[0]["amount"] == 100, "transfer amount should be 100"
-        assert res[0]["sender"] == self.deployer_crypto.address, f"{res[0]['sender']} should be the sender"
-        assert res[0]["blockNumber"] is not None, "tx is still pending"
-        assert self.ledger_api.api.eth.get_balance(self.contract_address) == 110, "incorrect balance"
+        assert data[0]["amount"] == 100, "transfer amount should be 100"
+        assert (
+            data[0]["sender"] == self.deployer_crypto.address
+        ), f"{data[0]['sender']} should be the sender"
+        assert data[0]["blockNumber"] is not None, "tx is still pending"
+        assert (
+            self.ledger_api.api.eth.get_balance(self.contract_address) == 110
+        ), "incorrect balance"
+
 
 class TestRawSafeTransaction(BaseContractTestHardHatSafeNet):
     """Test `get_raw_safe_transaction`"""

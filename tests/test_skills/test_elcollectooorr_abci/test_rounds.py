@@ -33,25 +33,36 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
+    FundingPayload,
     ObservationPayload,
-    TransactionPayload, FundingPayload, PurchasedNFTPayload, TransferNFTPayload, PayoutFractionsPayload,
+    PayoutFractionsPayload,
     PostTxPayload,
+    PurchasedNFTPayload,
+    TransactionPayload,
+    TransferNFTPayload,
 )
 from packages.valory.skills.elcollectooorr_abci.rounds import (
     DecisionRound,
     DetailsRound,
     Event,
+    FundingRound,
     ObservationRound,
+    PayoutFractionsRound,
     PeriodState,
+    PostPayoutRound,
+    PostTransactionSettlementEvent,
+    PostTransactionSettlementRound,
+    ProcessPurchaseRound,
     TransactionRound,
-    rotate_list, FundingRound, ProcessPurchaseRound, TransferNFTRound, PayoutFractionsRound, PostPayoutRound,
-    PostTransactionSettlementRound, PostTransactionSettlementEvent,
+    TransferNFTRound,
+    rotate_list,
 )
 from packages.valory.skills.simple_abci.payloads import (
     RandomnessPayload,
     ResetPayload,
     SelectKeeperPayload,
 )
+
 
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
@@ -63,7 +74,7 @@ def get_participants() -> FrozenSet[str]:
 
 
 def get_participant_to_randomness(
-        participants: FrozenSet[str], round_id: int
+    participants: FrozenSet[str], round_id: int
 ) -> Dict[str, RandomnessPayload]:
     """participant_to_randomness"""
     return {
@@ -77,7 +88,7 @@ def get_participant_to_randomness(
 
 
 def get_participant_to_selection(
-        participants: FrozenSet[str],
+    participants: FrozenSet[str],
 ) -> Dict[str, SelectKeeperPayload]:
     """participant_to_selection"""
     return {
@@ -87,7 +98,7 @@ def get_participant_to_selection(
 
 
 def get_participant_to_period_count(
-        participants: FrozenSet[str], period_count: int
+    participants: FrozenSet[str], period_count: int
 ) -> Dict[str, ResetPayload]:
     """participant_to_selection"""
     return {
@@ -105,7 +116,7 @@ class BaseRoundTestClass:
 
     @classmethod
     def setup(
-            cls,
+        cls,
     ) -> None:
         """Setup the test class."""
 
@@ -128,7 +139,7 @@ class TestObservationRound(BaseRoundTestClass):
     """Tests for ObservationRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         active_projects = [
@@ -140,7 +151,7 @@ class TestObservationRound(BaseRoundTestClass):
             },
             {
                 "project_id": 123,
-            }
+            },
         ]
         inactive_projects = [1, 2, 3]
         finished_projects = [4, 5, 6]
@@ -183,7 +194,7 @@ class TestObservationRound(BaseRoundTestClass):
             most_voted_project=test_round.most_voted_payload,
             most_recent_project=123,
             inactive_projects=inactive_projects,
-            active_projects=active_projects
+            active_projects=active_projects,
         )
 
         res = test_round.end_block()
@@ -193,8 +204,8 @@ class TestObservationRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-                cast(PeriodState, state).most_voted_project
-                == cast(PeriodState, actual_next_state).most_voted_project
+            cast(PeriodState, state).most_voted_project
+            == cast(PeriodState, actual_next_state).most_voted_project
         )
 
         # make sure all the votes are as expected
@@ -203,8 +214,8 @@ class TestObservationRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_project[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).participant_to_project.items()
+                    PeriodState, actual_next_state
+                ).participant_to_project.items()
             ]
         )
 
@@ -215,12 +226,10 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
     """Tests for DecisionRound, when the decision is positive."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
-        payload_data = {
-            "project_id": 123
-        }
+        payload_data = {"project_id": 123}
 
         test_round = DecisionRound(
             state=self.period_state, consensus_params=self.consensus_params
@@ -258,8 +267,8 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-                cast(PeriodState, state).most_voted_decision
-                == cast(PeriodState, actual_next_state).most_voted_decision
+            cast(PeriodState, state).most_voted_decision
+            == cast(PeriodState, actual_next_state).most_voted_decision
         )
 
         # make sure all the votes are as expected
@@ -268,8 +277,8 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_decision[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).participant_to_decision.items()
+                    PeriodState, actual_next_state
+                ).participant_to_decision.items()
             ]
         )
 
@@ -280,7 +289,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
     """Tests for DecisionRound, when the decision is negative."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
 
@@ -288,10 +297,12 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
             state=self.period_state, consensus_params=self.consensus_params
         )
 
-        project_to_purchase = {}  # {} represents a NO decision for now
+        project_to_purchase: Dict = {}  # {} represents a NO decision for now
 
         first_payload, *payloads = [
-            DecisionPayload(sender=participant, decision=json.dumps(project_to_purchase))
+            DecisionPayload(
+                sender=participant, decision=json.dumps(project_to_purchase)
+            )
             for participant in self.participants
         ]
 
@@ -322,8 +333,8 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-                cast(PeriodState, state).most_voted_decision
-                == cast(PeriodState, actual_next_state).most_voted_decision
+            cast(PeriodState, state).most_voted_decision
+            == cast(PeriodState, actual_next_state).most_voted_decision
         )
 
         # make sure all the votes are as expected
@@ -332,8 +343,8 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_decision[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).participant_to_decision.items()
+                    PeriodState, actual_next_state
+                ).participant_to_decision.items()
             ]
         )
 
@@ -344,7 +355,7 @@ class TestTransactionRound(BaseRoundTestClass):
     """Tests for TransactionRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         test_purchase_data = "test_data"
@@ -385,8 +396,8 @@ class TestTransactionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-                cast(PeriodState, state).most_voted_purchase_data
-                == cast(PeriodState, actual_next_state).most_voted_purchase_data
+            cast(PeriodState, state).most_voted_purchase_data
+            == cast(PeriodState, actual_next_state).most_voted_purchase_data
         )
 
         # make sure all the votes are as expected
@@ -395,8 +406,8 @@ class TestTransactionRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_purchase_data[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).participant_to_purchase_data.items()
+                    PeriodState, actual_next_state
+                ).participant_to_purchase_data.items()
             ]
         )
 
@@ -407,7 +418,7 @@ class TestDetailsRound(BaseRoundTestClass):
     """Tests for DetailsRound"""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         test_details = json.dumps([{"data": "more"}])
@@ -448,8 +459,8 @@ class TestDetailsRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-                cast(PeriodState, state).most_voted_details
-                == cast(PeriodState, actual_next_state).most_voted_details
+            cast(PeriodState, state).most_voted_details
+            == cast(PeriodState, actual_next_state).most_voted_details
         )
 
         # make sure all the votes are as expected
@@ -458,8 +469,8 @@ class TestDetailsRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_details[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).participant_to_details.items()
+                    PeriodState, actual_next_state
+                ).participant_to_details.items()
             ]
         )
 
@@ -470,7 +481,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
     """Tests for FundingRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         test_funds = {"0x0": 10 ** 18}
@@ -511,8 +522,8 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-                cast(PeriodState, state).most_voted_funds
-                == cast(PeriodState, actual_next_state).most_voted_funds
+            cast(PeriodState, state).most_voted_funds
+            == cast(PeriodState, actual_next_state).most_voted_funds
         )
 
         # make sure all the votes are as expected
@@ -521,8 +532,8 @@ class TestFundingDecisionRound(BaseRoundTestClass):
                 cast(PeriodState, state).participant_to_funds[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                PeriodState, actual_next_state
-            ).participant_to_funds.items()
+                    PeriodState, actual_next_state
+                ).participant_to_funds.items()
             ]
         )
 
@@ -533,7 +544,7 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
     """Tests for ProcessPurchaseRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         test_project = 123
@@ -584,14 +595,12 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert (
-                cast(PeriodState, state).db.get_strict("purchased_nft")
-                == cast(PeriodState, actual_next_state).db.get_strict("purchased_nft")
-        )
-        assert (
-                cast(PeriodState, state).db.get_strict("purchased_projects")
-                == cast(PeriodState, actual_next_state).db.get_strict("purchased_projects")
-        )
+        assert cast(PeriodState, state).db.get_strict("purchased_nft") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("purchased_nft")
+        assert cast(PeriodState, state).db.get_strict("purchased_projects") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("purchased_projects")
 
         assert event == Event.DONE
 
@@ -600,7 +609,7 @@ class TestTransferNFTRound(BaseRoundTestClass):
     """Tests for TransferNFTRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
 
@@ -644,10 +653,9 @@ class TestTransferNFTRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert (
-                cast(PeriodState, state).db.get_strict("tx_submitter")
-                == cast(PeriodState, actual_next_state).db.get_strict("tx_submitter")
-        )
+        assert cast(PeriodState, state).db.get_strict("tx_submitter") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("tx_submitter")
 
         assert event == Event.DONE
 
@@ -656,13 +664,11 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
     """Tests for PayoutFractionsRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
 
-        initial_state = deepcopy(
-            self.period_state
-        )
+        initial_state = deepcopy(self.period_state)
 
         test_round = PayoutFractionsRound(
             state=initial_state, consensus_params=self.consensus_params
@@ -671,12 +677,7 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
         first_payload, *payloads = [
             PayoutFractionsPayload(
                 sender=participant,
-                payout_fractions=json.dumps(
-                    {
-                        "encoded": "0x0",
-                        "raw": {"0x0": 123}
-                    }
-                )
+                payout_fractions=json.dumps({"encoded": "0x0", "raw": {"0x0": 123}}),
             )
             for participant in self.participants
         ]
@@ -708,18 +709,15 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert (
-                cast(PeriodState, state).db.get_strict("most_voted_tx_hash")
-                == cast(PeriodState, actual_next_state).db.get_strict("most_voted_tx_hash")
-        )
-        assert (
-                cast(PeriodState, state).db.get_strict("users_being_paid")
-                == cast(PeriodState, actual_next_state).db.get_strict("users_being_paid")
-        )
-        assert (
-                cast(PeriodState, state).db.get_strict("tx_submitter")
-                == cast(PeriodState, actual_next_state).db.get_strict("tx_submitter")
-        )
+        assert cast(PeriodState, state).db.get_strict("most_voted_tx_hash") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("most_voted_tx_hash")
+        assert cast(PeriodState, state).db.get_strict("users_being_paid") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("users_being_paid")
+        assert cast(PeriodState, state).db.get_strict("tx_submitter") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("tx_submitter")
 
         assert event == Event.DONE
 
@@ -728,14 +726,14 @@ class TestPostPayoutRound(BaseRoundTestClass):
     """Tests for PostPayoutRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
 
         initial_state = deepcopy(
             self.period_state.update(
                 paid_users=json.dumps({"0x1": 1}),
-                users_being_paid=json.dumps({"0x1": 2, "0x2": 1})
+                users_being_paid=json.dumps({"0x1": 2, "0x2": 1}),
             )
         )
         test_round = PostPayoutRound(
@@ -745,7 +743,7 @@ class TestPostPayoutRound(BaseRoundTestClass):
         # NOTE: No payload for this round.
 
         actual_next_state = initial_state.update(
-            users_being_paid='{}',
+            users_being_paid="{}",
             paid_users=json.dumps({"0x1": 3, "0x2": 1}),
         )
 
@@ -755,14 +753,12 @@ class TestPostPayoutRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert (
-                cast(PeriodState, state).db.get_strict("users_being_paid")
-                == cast(PeriodState, actual_next_state).db.get_strict("users_being_paid")
-        )
-        assert (
-                cast(PeriodState, state).db.get_strict("paid_users")
-                == cast(PeriodState, actual_next_state).db.get_strict("paid_users")
-        )
+        assert cast(PeriodState, state).db.get_strict("users_being_paid") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("users_being_paid")
+        assert cast(PeriodState, state).db.get_strict("paid_users") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("paid_users")
 
         assert event == Event.DONE
 
@@ -771,20 +767,20 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
     """Tests for PostTransactionSettlementRound."""
 
     def test_run(
-            self,
+        self,
     ) -> None:
         """Run tests."""
         test_payload_data = {"amount_spent": 123}
 
-        self.period_state.update(
-            tx_submitter=TransactionRound.round_id
-        )
+        self.period_state.update(tx_submitter=TransactionRound.round_id)
         test_round = PostTransactionSettlementRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
-            PostTxPayload(sender=participant, post_tx_data=json.dumps(test_payload_data))
+            PostTxPayload(
+                sender=participant, post_tx_data=json.dumps(test_payload_data)
+            )
             for participant in self.participants
         ]
 
@@ -813,12 +809,11 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-                cast(PeriodState, state).db.get("actual_next_state")
-                == cast(PeriodState, actual_next_state).db.get("actual_next_state")
-        )
+        assert cast(PeriodState, state).db.get("actual_next_state") == cast(
+            PeriodState, actual_next_state
+        ).db.get("actual_next_state")
 
-        assert event == PostTransactionSettlementEvent.EL_collectooorr_DONE
+        assert event == PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE
 
 
 def test_rotate_list_method() -> None:

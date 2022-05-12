@@ -18,21 +18,31 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the data classes for the Fractionalize Deployment ABCI application."""
+import json
 import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
-from typing import List, Mapping, Optional, Sequence, Tuple, cast, Type, Dict, Set
+from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
 
 from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
+    AbciAppTransitionFunction,
     AbstractRound,
+    AppState,
     BasePeriodState,
     CollectSameUntilThresholdRound,
-    DegenerateRound, AbciApp, AbciAppTransitionFunction, AppState,
+    DegenerateRound,
 )
 from packages.valory.skills.fractionalize_deployment_abci.payloads import (
-    TransactionType, DeployBasketPayload, DeployVaultPayload, BasketAddressesPayload, VaultAddressesPayload,
-    PermissionVaultFactoryPayload, DeployDecisionPayload)
+    BasketAddressesPayload,
+    DeployBasketPayload,
+    DeployDecisionPayload,
+    DeployVaultPayload,
+    PermissionVaultFactoryPayload,
+    TransactionType,
+    VaultAddressesPayload,
+)
 
 
 class Event(Enum):
@@ -107,7 +117,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def most_voted_epoch_start_block(self) -> int:
         """Get most_voted_epoch_start_block"""
-        return self.db.get("most_voted_epoch_start_block", 0)
+        return cast(int, self.db.get("most_voted_epoch_start_block", 0))
 
     @property
     def participant_to_epoch_start_block(self) -> Mapping[str, int]:
@@ -128,7 +138,7 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def basket_addresses(self) -> List[str]:
         """Get basket addresses"""
-        return self.db.get("basket_addresses", [])
+        return cast(List[str], self.db.get("basket_addresses", []))
 
     @property
     def participant_to_vault_addresses(self) -> Mapping[str, List[str]]:
@@ -141,10 +151,12 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
     @property
     def vault_addresses(self) -> List[str]:
         """Get vault addresses"""
-        return self.db.get("vault_addresses", [])
+        return cast(List[str], self.db.get("vault_addresses", []))
 
 
-class FractionalizeDeploymentABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
+class FractionalizeDeploymentABCIAbstractRound(
+    AbstractRound[Event, TransactionType], ABC
+):
     """Abstract round for the FractionalizeDeployment skill."""
 
     @property
@@ -161,7 +173,9 @@ class FractionalizeDeploymentABCIAbstractRound(AbstractRound[Event, TransactionT
         return self.period_state, Event.NO_MAJORITY
 
 
-class DeployDecisionRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+class DeployDecisionRound(
+    CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound
+):
     """Round to check whether deployment is necessary"""
 
     allowed_tx_type = DeployDecisionPayload.transaction_type
@@ -184,7 +198,7 @@ class DeployDecisionRound(CollectSameUntilThresholdRound, FractionalizeDeploymen
             return state, Event.DECIDED_NO
 
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -196,7 +210,9 @@ class FinishedWithoutDeploymentRound(DegenerateRound):
     round_id = "finished_without_deployment"
 
 
-class DeployBasketTxRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+class DeployBasketTxRound(
+    CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound
+):
     """Defines the Deploy Basket Round"""
 
     allowed_tx_type = DeployBasketPayload.transaction_type
@@ -219,7 +235,7 @@ class DeployBasketTxRound(CollectSameUntilThresholdRound, FractionalizeDeploymen
 
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -231,7 +247,9 @@ class FinishedDeployBasketTxRound(DegenerateRound):
     round_id = "finished_basket_tx_deployment"
 
 
-class DeployVaultTxRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+class DeployVaultTxRound(
+    CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound
+):
     """Defines the Deploy Vault Round"""
 
     allowed_tx_type = DeployVaultPayload.transaction_type
@@ -254,7 +272,7 @@ class DeployVaultTxRound(CollectSameUntilThresholdRound, FractionalizeDeployment
 
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -266,7 +284,9 @@ class FinishedDeployVaultTxRound(DegenerateRound):
     round_id = "finished_vault_tx_deployment"
 
 
-class BasketAddressRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+class BasketAddressRound(
+    CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound
+):
     """This class represents the post basket deployment round"""
 
     allowed_tx_type = BasketAddressesPayload.transaction_type
@@ -280,21 +300,25 @@ class BasketAddressRound(CollectSameUntilThresholdRound, FractionalizeDeployment
             if self.most_voted_payload == "":
                 return self.period_state, Event.ERROR
 
+            basket_addresses = json.loads(self.most_voted_payload)
+
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_basket_addresses=MappingProxyType(self.collection),
-                basket_addresses=self.most_voted_payload,
+                basket_addresses=basket_addresses,
             )
 
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
 
 
-class PermissionVaultFactoryRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+class PermissionVaultFactoryRound(
+    CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound
+):
     """This class represents the round where the vault factory is permission with the basket"""
 
     allowed_tx_type = PermissionVaultFactoryPayload.transaction_type
@@ -317,7 +341,7 @@ class PermissionVaultFactoryRound(CollectSameUntilThresholdRound, FractionalizeD
 
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -329,7 +353,9 @@ class FinishedPostBasketRound(DegenerateRound):
     round_id = "finished_post_basket_deployment_round"
 
 
-class VaultAddressRound(CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound):
+class VaultAddressRound(
+    CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound
+):
     """This class represents the post vault deployment round"""
 
     allowed_tx_type = VaultAddressesPayload.transaction_type
@@ -343,15 +369,16 @@ class VaultAddressRound(CollectSameUntilThresholdRound, FractionalizeDeploymentA
             if self.most_voted_payload == "":
                 return self.period_state, Event.ERROR
 
+            vault_addresses = cast(Dict[str, int], json.loads(self.most_voted_payload))
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_voted_tx_hash=MappingProxyType(self.collection),
-                vault_addresses=self.most_voted_payload,
+                vault_addresses=vault_addresses,
             )
 
             return state, Event.DONE
         if not self.is_majority_possible(
-                self.collection, self.period_state.nb_participants
+            self.collection, self.period_state.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -372,9 +399,7 @@ class DeployBasketAbciApp(AbciApp[Event]):
             Event.DECIDED_YES: DeployBasketTxRound,
             Event.DECIDED_NO: FinishedWithoutDeploymentRound,
         },
-        DeployBasketTxRound: {
-            Event.DONE: FinishedDeployBasketTxRound
-        },
+        DeployBasketTxRound: {Event.DONE: FinishedDeployBasketTxRound},
         FinishedDeployBasketTxRound: {},
         FinishedWithoutDeploymentRound: {},
     }
@@ -393,12 +418,8 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = BasketAddressRound
     transition_function: AbciAppTransitionFunction = {
-        BasketAddressRound: {
-            Event.DONE: PermissionVaultFactoryRound
-        },
-        PermissionVaultFactoryRound: {
-            Event.DONE: FinishedPostBasketRound
-        },
+        BasketAddressRound: {Event.DONE: PermissionVaultFactoryRound},
+        PermissionVaultFactoryRound: {Event.DONE: FinishedPostBasketRound},
         FinishedPostBasketRound: {},
     }
     final_states: Set[AppState] = {
@@ -415,9 +436,7 @@ class DeployVaultAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = DeployVaultTxRound
     transition_function: AbciAppTransitionFunction = {
-        DeployVaultTxRound: {
-            Event.DONE: FinishedDeployVaultTxRound
-        },
+        DeployVaultTxRound: {Event.DONE: FinishedDeployVaultTxRound},
         FinishedDeployVaultTxRound: {},
     }
     final_states: Set[AppState] = {
@@ -434,9 +453,7 @@ class PostVaultDeploymentAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = VaultAddressRound
     transition_function: AbciAppTransitionFunction = {
-        VaultAddressRound: {
-            Event.DONE: FinishedPostVaultRound
-        },
+        VaultAddressRound: {Event.DONE: FinishedPostVaultRound},
         FinishedPostVaultRound: {},
     }
     final_states: Set[AppState] = {
