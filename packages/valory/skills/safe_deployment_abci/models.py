@@ -21,7 +21,7 @@
 
 from typing import Any
 
-from packages.valory.skills.abstract_round_abci.models import BaseParams
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
 from packages.valory.skills.abstract_round_abci.models import (
     BenchmarkTool as BaseBenchmarkTool,
 )
@@ -40,6 +40,18 @@ class SharedState(BaseSharedState):
         super().__init__(*args, abci_app_cls=SafeDeploymentAbciApp, **kwargs)
 
 
-Params = BaseParams
+class Params(BaseParams):
+    """Parameters."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the parameters object."""
+        self.validate_timeout = self._ensure("validate_timeout", kwargs)
+        super().__init__(*args, **kwargs)
+
+
+class RandomnessApi(ApiSpecs):
+    """A model for randomness api specifications."""
+
+
 Requests = BaseRequests
 BenchmarkTool = BaseBenchmarkTool

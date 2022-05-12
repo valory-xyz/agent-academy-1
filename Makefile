@@ -41,10 +41,10 @@ clean-test:
 
 .PHONY: lint
 lint:
-	black packages/valory tests scripts
-	isort packages/valory tests scripts
+	black packages tests scripts
+	isort packages tests scripts
 	flake8 packages tests scripts
-	darglint packages/valory/agents packages/valory/connections packages/valory/contracts packages/valory/skills tests
+	darglint packages tests
 
 .PHONY: pylint
 pylint:
@@ -52,7 +52,7 @@ pylint:
 
 .PHONY: hashes
 hashes:
-	python scripts/generate_ipfs_hashes.py --vendor valory
+	python scripts/generate_ipfs_hashes.py
 
 .PHONY: static
 static:
@@ -60,7 +60,7 @@ static:
 
 .PHONY: test
 test:
-	pytest -rfE tests/ --cov-report=html --cov=packages/valory/skills/simple_abci --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
+	pytest -rfE tests/ --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
 .PHONY: grpc-fuzzy-tests
@@ -79,7 +79,8 @@ v := $(shell pip -V | grep virtualenvs)
 
 .PHONY: new_env
 new_env: clean
-	if [ ! -z "$(which svn)" ];\
+	which svn;\
+	if [ $$? -ne 0 ];\
 	then\
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
@@ -93,6 +94,12 @@ new_env: clean
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
+	which pipenv;\
+	if [ $$? -ne 0 ];\
+	then\
+		echo "The development setup requires Pipenv, exit";\
+		exit 1;\
+	fi;\
 
 .PHONY: run-mainnet-fork
 run-mainnet-fork:
@@ -125,3 +132,11 @@ run-mainnet-fork-docker:
 .PHONY: copyright
 copyright:
 	tox -e check-copyright
+
+.PHONY: check_abci_specs
+check_abci_specs:
+	cp scripts/generate_abciapp_spec.py generate_abciapp_spec.py
+	python generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
+	python generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
+	rm generate_abciapp_spec.py
+	echo "Successfully validated abcis!"
