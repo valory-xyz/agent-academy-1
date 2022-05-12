@@ -49,11 +49,15 @@ class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
         """
         purchased_curated = [p for p in purchased_projects if p["is_curated"]]
         purchased_non_curated = [p for p in purchased_projects if not p["is_curated"]]
+        purchased_project_ids = {p["project_id"] for p in purchased_projects}
         # only purchase non-curated if there are more curated than non-curated
         can_purchase_non_curated = len(purchased_curated) > len(purchased_non_curated)
         potential_projects = []
 
         for project in active_projects:
+            if project["project_id"] in purchased_project_ids:
+                continue
+
             if project["price"] > budget:
                 continue
 

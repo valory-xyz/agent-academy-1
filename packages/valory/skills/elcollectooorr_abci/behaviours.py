@@ -194,7 +194,7 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
                 newly_finished_projects = self._list_diff(
-                    prev_finished, current_finished_projects
+                    current_finished_projects, prev_finished
                 )
                 most_recent_project = max(
                     current_finished_projects
@@ -239,7 +239,7 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
 
     @staticmethod
     def _list_diff(l1: List[Any], l2: List[Any]) -> List[Any]:
-        return list(set(l1) - set(l2)) + list(set(l2) - set(l1))
+        return list(set(l1) - set(l2))
 
     def _get_projects(
         self,
@@ -255,11 +255,11 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
             last_processed_project=last_processed_project,
         )
 
-        # response body also has project details
         enforce(
             response is not None
             and response.state is not None
-            and response.state.body is not None,
+            and response.state.body is not None
+            and "results" in response.state.body.keys(),
             "response, response.state, response.state.body must exist",
         )
 
@@ -311,9 +311,9 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
                 payload_data = {"active_projects": enhanced_projects}
 
-            except (ValueError, RuntimeError) as e:
+            except (AEAEnforceError, ValueError, RuntimeError) as e:
                 self.context.logger.error(
-                    f"Couldn't get projects details, the following error was encountered {type(e).__name__}: {e}."
+                    f"Couldn't get projects details, the following error was encountered {type(e).__name__}: {e}"
                 )
 
         with self.context.benchmark_tool.measure(
@@ -355,6 +355,14 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_callable="are_projects_mintable",
             project_ids=[p["project_id"] for p in projects],
         )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None,
+            "response, response.state, response.state.body must exist",
+        )
+
         are_mintable = cast(Dict, response.state.body)
 
         enforce(
@@ -366,19 +374,28 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
 
     def _get_curated_projects(self) -> Generator[None, None, List[int]]:
         """Get a list of curated projects."""
-
-        query = """{
-          projects(where: {curationStatus: "curated"}) {
-            projectId
-          }
-        }"""
-
+        query = '{projects(where:{curationStatus:"curated"}){projectId}}'
         response = yield from self.get_http_response(
             method="POST",
             url=self.params.artblocks_graph_url,
             content=json.dumps({"query": query}).encode(),
         )
-        curated_projects = json.loads(response.body)["data"]["projects"]
+
+        enforce(
+            response is not None
+            and response.status_code == 200
+            and response.body is not None,
+            "Bad response from the graph api.",
+        )
+
+        response_body = json.loads(response.body)
+
+        enforce(
+            "data" in response_body.keys() and "projects" in response_body["data"],
+            "Bad response from the graph api.",
+        )
+
+        curated_projects = response_body["data"]["projects"]
         curated_project_ids = [int(p["projectId"]) for p in curated_projects]
 
         return curated_project_ids
@@ -430,7 +447,7 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
                     # right now {} represents no project
                     project_to_purchase = {}
 
-            except (ValueError, RuntimeError) as e:
+            except (AEAEnforceError, ValueError, RuntimeError) as e:
                 self.context.logger.error(
                     f"Couldn't make a decision, the following error was encountered {type(e).__name__}: {e}."
                 )
@@ -459,7 +476,7 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
         projects = EightyPercentDecisionModel.decide(
             active_projects, purchased_projects, budget
         )
-        self.context.logger.info(f"{len(projects)} fit the reqs.")
+        self.context.logger.info(f"{len(projects)} projects fit the reqs.")
 
         if len(projects) == 0:
             return None
