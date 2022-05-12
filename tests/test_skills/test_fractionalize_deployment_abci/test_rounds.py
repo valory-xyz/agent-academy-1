@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Test the base.py module of the skill."""
+import json
 import logging  # noqa: F401
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
@@ -401,14 +402,16 @@ class TestBasketAddressRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        payload_data = "[0x0,0x1,0x2]"
+        payload_data = [0x0, 0x1, 0x2]
 
         test_round = BasketAddressRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
-            BasketAddressesPayload(sender=participant, basket_addresses=payload_data)
+            BasketAddressesPayload(
+                sender=participant, basket_addresses=json.dumps(payload_data)
+            )
             for participant in self.participants
         ]
 
@@ -467,7 +470,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        payload_data = "0x0"
+        payload_data = 0x0
 
         test_round = PermissionVaultFactoryRound(
             state=self.period_state, consensus_params=self.consensus_params
@@ -475,7 +478,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             PermissionVaultFactoryPayload(
-                sender=participant, permission_factory=payload_data
+                sender=participant, permission_factory=str(payload_data)
             )
             for participant in self.participants
         ]
@@ -536,14 +539,16 @@ class TestVaultAddressRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        payload_data = "[0x0,0x1,0x2]"
+        payload_data = [0x0, 0x1, 0x2]
 
         test_round = VaultAddressRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
-            VaultAddressesPayload(sender=participant, vault_addresses=payload_data)
+            VaultAddressesPayload(
+                sender=participant, vault_addresses=json.dumps(payload_data)
+            )
             for participant in self.participants
         ]
 

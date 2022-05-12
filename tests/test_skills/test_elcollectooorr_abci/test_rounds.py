@@ -732,8 +732,8 @@ class TestPostPayoutRound(BaseRoundTestClass):
 
         initial_state = deepcopy(
             self.period_state.update(
-                paid_users=json.dumps({"0x1": 1}),
-                users_being_paid=json.dumps({"0x1": 2, "0x2": 1}),
+                paid_users={"0x1": 1},
+                users_being_paid={"0x1": 2, "0x2": 1},
             )
         )
         test_round = PostPayoutRound(
@@ -743,8 +743,8 @@ class TestPostPayoutRound(BaseRoundTestClass):
         # NOTE: No payload for this round.
 
         actual_next_state = initial_state.update(
-            users_being_paid="{}",
-            paid_users=json.dumps({"0x1": 3, "0x2": 1}),
+            users_being_paid={},
+            paid_users={"0x1": 3, "0x2": 1},
         )
 
         res = test_round.end_block()
