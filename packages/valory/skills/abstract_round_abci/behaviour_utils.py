@@ -38,6 +38,7 @@ from typing import (
     cast,
 )
 
+import pytz  # type: ignore  # pylint: disable=import-error
 from aea.exceptions import enforce
 from aea.protocols.base import Message
 from aea.protocols.dialogue.base import Dialogue
@@ -517,9 +518,11 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
         :param seconds: the seconds
         :yield: None
         """
+        if seconds < 0:
+            raise ValueError("Can only wait for a positive amount of time")
         deadline = cast(
             SharedState, self.context.state
-        ).period.abci_app.last_timestamp + datetime.timedelta(0, seconds)
+        ).period.abci_app.last_timestamp + datetime.timedelta(seconds=seconds)
 
         def _wait_until() -> bool:
             return datetime.datetime.now() > deadline
@@ -1443,9 +1446,18 @@ class BaseState(AsyncBehaviour, IPFSBehaviour, CleanUpBehaviour, ABC):
             self.context.logger.info(
                 f"Resetting tendermint node at end of period={self.period_state.period_count}."
             )
+            last_round_transition_timestamp = (
+                self.context.state.period.last_round_transition_timestamp
+            )
+            time_string = last_round_transition_timestamp.astimezone(pytz.UTC).strftime(
+                "%Y-%m-%dT%H:%M:%S.%fZ"
+            )
             request_message, http_dialogue = self._build_http_request_message(
                 "GET",
                 self.params.tendermint_com_url + "/hard_reset",
+                parameters=[
+                    ("genesis_time", time_string),
+                ],
             )
             result = yield from self._do_request(request_message, http_dialogue)
             try:
