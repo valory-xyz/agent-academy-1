@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the data classes for the El Collectooor ABCI application."""
+"""This module contains the data classes for the El Collectooorr ABCI application."""
 import json
 import struct
 from abc import ABC
@@ -38,7 +38,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
-from packages.valory.skills.elcollectooor_abci.payloads import (
+from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,
@@ -68,7 +68,7 @@ from packages.valory.skills.transaction_settlement_abci.rounds import (
 
 
 class Event(Enum):
-    """Event enumeration for the El Collectooor."""
+    """Event enumeration for the El Collectooorr."""
 
     DONE = "done"
     ROUND_TIMEOUT = "round_timeout"
@@ -253,8 +253,8 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         return self.db.get("vault_addresses", [])
 
 
-class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
-    """Abstract round for the El Collectooor skill."""
+class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
+    """Abstract round for the El Collectooorr skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -270,7 +270,7 @@ class ElCollectooorABCIAbstractRound(AbstractRound[Event, TransactionType], ABC)
         return self.period_state, Event.NO_MAJORITY
 
 
-class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the base reset round."""
 
     allowed_tx_type = ResetPayload.transaction_type
@@ -303,7 +303,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRo
         return None
 
 
-class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Observation Round"""
 
     allowed_tx_type = ObservationPayload.transaction_type
@@ -346,7 +346,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstract
         return None
 
 
-class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Details Round"""
 
     allowed_tx_type = DetailsPayload.transaction_type
@@ -374,7 +374,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
         return None
 
 
-class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Decision Round"""
 
     allowed_tx_type = DecisionPayload.transaction_type
@@ -407,7 +407,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRou
         return None
 
 
-class TransactionRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Transaction Round"""
 
     allowed_tx_type = TransactionPayload.transaction_type
@@ -445,11 +445,11 @@ class ResetFromObservationRound(BaseResetRound):
 class FinishedElCollectoorBaseRound(DegenerateRound):
     """This class represents the finished round during operation."""
 
-    round_id = "finished_base_elcollectooor"
+    round_id = "finished_base_elcollectooorr"
 
 
-class ElCollectooorBaseAbciApp(AbciApp[Event]):
-    """The base logic of El Collectooor."""
+class ElcollectooorrBaseAbciApp(AbciApp[Event]):
+    """The base logic of El Collectooorr."""
 
     initial_round_cls: Type[AbstractRound] = ObservationRound
     transition_function: AbciAppTransitionFunction = {
@@ -489,7 +489,7 @@ class ElCollectooorBaseAbciApp(AbciApp[Event]):
     }
 
 
-class ProcessPurchaseRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class ProcessPurchaseRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Round to process the purchase of the token on artblocks"""
 
     round_id = "process_purchase_round"
@@ -523,7 +523,7 @@ class ProcessPurchaseRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbst
         return None
 
 
-class TransferNFTRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class TransferNFTRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """A round in which the NFT is transferred from the safe to the basket"""
 
     round_id = "transfer_nft_round"
@@ -603,7 +603,7 @@ class TransferNFTAbciApp(AbciApp[Event]):
     }
 
 
-class FundingRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """A round in which the funding logic gets exceuted"""
 
     round_id = "funding_round"
@@ -629,7 +629,7 @@ class FundingRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRoun
         return None
 
 
-class PayoutFractionsRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class PayoutFractionsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the post vault deployment round"""
 
     allowed_tx_type = PayoutFractionsPayload.transaction_type
@@ -704,7 +704,7 @@ class BankAbciApp(AbciApp[Event]):
     }
 
 
-class PostPayoutRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class PostPayoutRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the post payout round"""
 
     allowed_tx_type = PaidFractionsPayload.transaction_type
@@ -763,7 +763,7 @@ class PostFractionPayoutAbciApp(AbciApp[Event]):
     }
 
 
-class PostTransactionSettlementRound(CollectSameUntilThresholdRound, ElCollectooorABCIAbstractRound):
+class PostTransactionSettlementRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """After tx settlement via the safe contract."""
 
     allowed_tx_type = PostTxPayload.transaction_type
@@ -886,7 +886,7 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
     }
 
 
-el_collectooor_app_transition_mapping: AbciAppTransitionMapping = {
+el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
     FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
@@ -900,24 +900,24 @@ el_collectooor_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedElcollectooorrTxRound: TransferNFTAbciApp.initial_round_cls,
     FinishedVaultTxRound: PostVaultDeploymentAbciApp.initial_round_cls,
     FinishedPostVaultRound: BankAbciApp.initial_round_cls,
-    FinishedBankWithoutPayoutsRounds: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedBankWithoutPayoutsRounds: ElcollectooorrBaseAbciApp.initial_round_cls,
     FinishedPayoutTxRound: PostFractionPayoutAbciApp.initial_round_cls,
-    FinishedPostPayoutRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FinishedPostPayoutRound: ElcollectooorrBaseAbciApp.initial_round_cls,
     FinishedBankWithPayoutsRounds: TransactionSubmissionAbciApp.initial_round_cls,
     FailedRound: RegistrationRound,
     FinishedWithoutDeploymentRound: BankAbciApp.initial_round_cls,
     FinishedWithoutTransferRound: DeployBasketAbciApp.initial_round_cls,
     FinishedWithTransferRound: TransactionSubmissionAbciApp.initial_round_cls,
     FinishedTransferNftTxRound: DeployBasketAbciApp.initial_round_cls,
-    FailedPurchaseProcessingRound: ElCollectooorBaseAbciApp.initial_round_cls,
+    FailedPurchaseProcessingRound: ElcollectooorrBaseAbciApp.initial_round_cls,
     ErrorneousRound: TransactionSubmissionAbciApp.initial_round_cls,
 }
 
-ElCollectooorAbciApp = chain(
+ElCollectooorrAbciApp = chain(
     (
         AgentRegistrationAbciApp,
         SafeDeploymentAbciApp,
-        ElCollectooorBaseAbciApp,
+        ElcollectooorrBaseAbciApp,
         TransactionSubmissionAbciApp,
         TransactionSettlementAbciMultiplexer,
         DeployVaultAbciApp,
@@ -928,5 +928,5 @@ ElCollectooorAbciApp = chain(
         BankAbciApp,
         PostFractionPayoutAbciApp,
     ),
-    el_collectooor_app_transition_mapping,
+    el_collectooorr_app_transition_mapping,
 )

@@ -35,7 +35,7 @@ HTTP_LOCALHOST = f"http://{LOCALHOST}"
 ARTBLOCKS_ADDRESS = "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
 ARTBLOCKS_PERIPHERY_ADDRESS = "0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441"
 TARGET_PROJECT_ID = (
-    56  # id of project that we want to test the behaviour of the El Collectooor
+    56  # id of project that we want to test the behaviour of the El Collectooorr
 )
 DECISION_MODEL_TYPE = "yes"
 

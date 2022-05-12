@@ -60,7 +60,7 @@ def test_observation_payload() -> None:
 
 def test_decision_payload() -> None:
     """Test `DecisionPayload`"""
-    test_decision = 0
+    test_decision = '0'
 
     payload = DecisionPayload(sender="sender", decision=test_decision, id_="id")
 

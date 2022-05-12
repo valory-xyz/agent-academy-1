@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the behaviour_classes for the 'elcollectooor_abci' skill."""
+"""This module contains the behaviour_classes for the 'elcollectooorr_abci' skill."""
 
 import json
 from abc import ABC
@@ -39,20 +39,20 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
     AbstractRoundBehaviour,
     BaseState,
 )
-from packages.valory.skills.elcollectooor_abci.decision_models import EightyPercentDecisionModel
-from packages.valory.skills.elcollectooor_abci.models import Params, SharedState
-from packages.valory.skills.elcollectooor_abci.payloads import (
+from packages.valory.skills.elcollectooorr_abci.decision_models import EightyPercentDecisionModel
+from packages.valory.skills.elcollectooorr_abci.models import Params, SharedState
+from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     ObservationPayload,
     ResetPayload,
     TransactionPayload, FundingPayload, PayoutFractionsPayload, TransferNFTPayload, PurchasedNFTPayload, PostTxPayload,
 )
-from packages.valory.skills.elcollectooor_abci.rounds import (
+from packages.valory.skills.elcollectooorr_abci.rounds import (
     DecisionRound,
     DetailsRound,
-    ElCollectooorAbciApp,
-    ElCollectooorBaseAbciApp,
+    ElCollectooorrAbciApp,
+    ElcollectooorrBaseAbciApp,
     ObservationRound,
     PeriodState,
     ResetFromObservationRound,
@@ -77,8 +77,8 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 
 
-class ElCollectooorABCIBaseState(BaseState, ABC):
-    """Base state behaviour for the El Collectooor abci skill."""
+class ElcollectooorrABCIBaseState(BaseState, ABC):
+    """Base state behaviour for the El Collectooorr abci skill."""
 
     @property
     def period_state(self) -> PeriodState:
@@ -91,7 +91,7 @@ class ElCollectooorABCIBaseState(BaseState, ABC):
         return cast(Params, self.context.params)
 
 
-class BaseResetBehaviour(ElCollectooorABCIBaseState):
+class BaseResetBehaviour(ElcollectooorrABCIBaseState):
     """Reset state."""
 
     pause = True
@@ -126,7 +126,7 @@ class BaseResetBehaviour(ElCollectooorABCIBaseState):
         self.set_done()
 
 
-class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
+class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Observation round behaviour"""
 
     state_id = "observation"
@@ -242,7 +242,7 @@ class ObservationRoundBehaviour(ElCollectooorABCIBaseState):
         return finished_projects, active_projects, inactive_projects
 
 
-class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
+class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Details Round behaviour"""
 
     state_id = "details"
@@ -334,7 +334,7 @@ class DetailsRoundBehaviour(ElCollectooorABCIBaseState):
         return curated_project_ids
 
 
-class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
+class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Decision Round behaviour"""
 
     state_id = "decision"
@@ -421,7 +421,7 @@ class DecisionRoundBehaviour(ElCollectooorABCIBaseState):
         return cast(int, response.state.body["balance"])
 
 
-class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
+class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Transaction Round behaviour"""
 
     state_id = "transaction_collection"
@@ -510,7 +510,7 @@ class TransactionRoundBehaviour(ElCollectooorABCIBaseState):
         return purchase_data
 
 
-class FundingRoundBehaviour(ElCollectooorABCIBaseState):
+class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
     """Checks the balance of the safe contract."""
 
     state_id = "funding_behaviour"
@@ -547,7 +547,7 @@ class FundingRoundBehaviour(ElCollectooorABCIBaseState):
         return in_transfers.state.body['data']
 
 
-class PayoutFractionsRoundBehaviour(ElCollectooorABCIBaseState):
+class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
     state_id = "payout_fractions"
@@ -742,7 +742,7 @@ class PayoutFractionsRoundBehaviour(ElCollectooorABCIBaseState):
         }
 
 
-class PostPayoutRoundBehaviour(ElCollectooorABCIBaseState):
+class PostPayoutRoundBehaviour(ElcollectooorrABCIBaseState):
     """Trivial behaviour for post payout"""
 
     state_id = "post_fraction_payout_behaviour"
@@ -768,7 +768,7 @@ class PostFractionsPayoutRoundBehaviour(AbstractRoundBehaviour):
     }
 
 
-class ProcessPurchaseRoundBehaviour(ElCollectooorABCIBaseState):
+class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
     """Process the purchase of an NFT"""
 
     state_id = "process_purchase"
@@ -823,7 +823,7 @@ class ProcessPurchaseRoundBehaviour(ElCollectooorABCIBaseState):
         return data
 
 
-class TransferNFTRoundBehaviour(ElCollectooorABCIBaseState):
+class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Transaction Round behaviour"""
 
     state_id = "transfer_nft"
@@ -926,7 +926,7 @@ class TransferNFTAbciBehaviour(AbstractRoundBehaviour):
     }
 
 
-class PostTransactionSettlementBehaviour(ElCollectooorABCIBaseState):
+class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
     """Behaviour for Post TX Settlement Round."""
     matching_round = PostTransactionSettlementRound
     state_id = "post_tx_settlement_state"
@@ -1004,11 +1004,11 @@ class TransactionSettlementMultiplexerFullBehaviour(AbstractRoundBehaviour):
     }
 
 
-class ElCollectooorRoundBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the El Collectooor abci app."""
+class ElCollectooorrRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the El Collectooorr abci app."""
 
     initial_state_cls = ObservationRoundBehaviour
-    abci_app_cls = ElCollectooorBaseAbciApp  # type: ignore
+    abci_app_cls = ElcollectooorrBaseAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {  # type: ignore
         ObservationRoundBehaviour,  # type: ignore
         DetailsRoundBehaviour,  # type: ignore
@@ -1027,16 +1027,16 @@ class BankRoundBehaviour(AbstractRoundBehaviour):
     }
 
 
-class ElCollectooorFullRoundBehaviour(AbstractRoundBehaviour):
-    """This behaviour manages the consensus stages for the El Collectooor abci app."""
+class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the El Collectooorr abci app."""
 
     initial_state_cls = RegistrationStartupBehaviour
-    abci_app_cls = ElCollectooorAbciApp  # type: ignore
+    abci_app_cls = ElCollectooorrAbciApp  # type: ignore
     behaviour_states: Set[Type[BaseState]] = {
         *AgentRegistrationRoundBehaviour.behaviour_states,
         *SafeDeploymentRoundBehaviour.behaviour_states,
         *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ElCollectooorRoundBehaviour.behaviour_states,
+        *ElCollectooorrRoundBehaviour.behaviour_states,
         *DeployVaultRoundBehaviour.behaviour_states,
         *DeployBasketRoundBehaviour.behaviour_states,
         *PostBasketDeploymentRoundBehaviour.behaviour_states,

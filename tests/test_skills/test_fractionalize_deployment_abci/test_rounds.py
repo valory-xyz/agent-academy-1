@@ -28,7 +28,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
     StateDB,
 )
-from packages.valory.skills.elcollectooor_abci.rounds import (
+from packages.valory.skills.elcollectooorr_abci.rounds import (
     PeriodState,
 )
 from packages.valory.skills.fractionalize_deployment_abci.payloads import DeployDecisionPayload, DeployBasketPayload, \

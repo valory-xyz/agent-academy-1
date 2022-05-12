@@ -2,7 +2,7 @@ agent_name: elcollectooorr
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: El Collectooor decentralized.
+description: El Collectooorr decentralized.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmZCpKMCRs4rsbLUeCShw94FXFDoc2DEQKBSgHLeesTfVL
@@ -65,3 +65,4 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: valory/elcollectooorr_abci:0.1.0
+  use_tendermint: false

@@ -21,7 +21,7 @@
 
 from tests.fixture_helpers import UseGanacheFork
 from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
-from tests.test_agents.base_elcollectooor import BaseTestElCollectooorEnd2End
+from tests.test_agents.base_elcollectooorr import BaseTestElCollectooorrEnd2End
 
 
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
@@ -42,7 +42,7 @@ SAFE_CHECK_STRINGS = (
     "'validate_safe' round is done",
 )
 
-BASE_ELCOLLECTOOOR_CHECK_STRINGS = (
+BASE_ELCOLLECTOOORR_CHECK_STRINGS = (
     "Entered in the 'observation' round for period 0",
     f"Retrieved project with id {TARGET_PROJECT_ID}",
     "'observation' round is done",
@@ -97,19 +97,19 @@ FINISH_AND_RESET_CHECK_STRINGS = (
 
 
 class TestDecidedForYes(
-    BaseTestElCollectooorEnd2End,
+    BaseTestElCollectooorrEnd2End,
     UseGanacheFork,
 ):
-    """Test the El Collectooor that decides for yes on the target project, and goes through the whole flow."""
+    """Test the El Collectooorr that decides for yes on the target project, and goes through the whole flow."""
 
     NB_AGENTS = 1
-    agent_package = "valory/elcollectooor:0.1.0"
-    skill_package = "valory/elcollectooor_abci:0.1.0"
+    agent_package = "valory/elcollectooorr:0.1.0"
+    skill_package = "valory/elcollectooorr_abci:0.1.0"
     DECISION_MODEL_TYPE = "yes"
     wait_to_finish = 120
     check_strings = (
         REGISTRATION_CHECK_STRINGS
-        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + BASE_ELCOLLECTOOORR_CHECK_STRINGS
         + DECIDED_YES_CHECK_STRINGS
         + TRANSACTION_CHECK_STRING
         + FINISH_AND_RESET_CHECK_STRINGS
@@ -117,37 +117,37 @@ class TestDecidedForYes(
 
 
 class TestDecidedForNo(
-    BaseTestElCollectooorEnd2End,
+    BaseTestElCollectooorrEnd2End,
     UseGanacheFork,
 ):
-    """Test the El Collectooor that decides for no on the target project."""
+    """Test the El Collectooorr that decides for no on the target project."""
 
     NB_AGENTS = 1
-    agent_package = "valory/elcollectooor:0.1.0"
-    skill_package = "valory/elcollectooor_abci:0.1.0"
+    agent_package = "valory/elcollectooorr:0.1.0"
+    skill_package = "valory/elcollectooorr_abci:0.1.0"
     wait_to_finish = 120
     DECISION_MODEL_TYPE = "no"
     check_strings = (
         REGISTRATION_CHECK_STRINGS
-        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + BASE_ELCOLLECTOOORR_CHECK_STRINGS
         + DECIDED_NO_CHECK_STRINGS
     )
 
 
 class TestDecidedForGibDetailsThenYes(
-    BaseTestElCollectooorEnd2End,
+    BaseTestElCollectooorrEnd2End,
     UseGanacheFork,
 ):
-    """Test the El Collectooor that decides for no on the target project."""
+    """Test the El Collectooorr that decides for no on the target project."""
 
     NB_AGENTS = 1
-    agent_package = "valory/elcollectooor:0.1.0"
-    skill_package = "valory/elcollectooor_abci:0.1.0"
+    agent_package = "valory/elcollectooorr:0.1.0"
+    skill_package = "valory/elcollectooorr_abci:0.1.0"
     wait_to_finish = 120
     DECISION_MODEL_TYPE = "gib_details_then_yes"
     check_strings = (
         REGISTRATION_CHECK_STRINGS
-        + BASE_ELCOLLECTOOOR_CHECK_STRINGS
+        + BASE_ELCOLLECTOOORR_CHECK_STRINGS
         + DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS
         + TRANSACTION_CHECK_STRING
         + FINISH_AND_RESET_CHECK_STRINGS

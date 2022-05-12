@@ -1,4 +1,4 @@
-elcollectooor_abci# Fractionalize Deployment ABCI skill
+# Fractionalize Deployment ABCI skill
 
 ## Description
 

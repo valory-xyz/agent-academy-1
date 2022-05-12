@@ -35,7 +35,7 @@ from packages.valory.skills.elcollectooorr_abci.payloads import (
     DetailsPayload,
     ObservationPayload,
     TransactionPayload, FundingPayload, PurchasedNFTPayload, TransferNFTPayload, PayoutFractionsPayload,
-    PaidFractionsPayload, PostTxPayload,
+    PostTxPayload,
 )
 from packages.valory.skills.elcollectooorr_abci.rounds import (
     DecisionRound,
@@ -818,7 +818,7 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
                 == cast(PeriodState, actual_next_state).db.get("actual_next_state")
         )
 
-        assert event == PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE
+        assert event == PostTransactionSettlementEvent.EL_collectooorr_DONE
 
 
 def test_rotate_list_method() -> None:

@@ -31,9 +31,9 @@ from tests.helpers.tendermint_utils import TendermintNodeInfo
 from tests.test_agents.base import BaseTestEnd2EndNormalExecution
 
 
-class BaseTestElCollectooorEnd2End(BaseTestEnd2EndNormalExecution):
+class BaseTestElCollectooorrEnd2End(BaseTestEnd2EndNormalExecution):
     """
-    Extended base class for conducting E2E tests with the El Collectooor.
+    Extended base class for conducting E2E tests with the El Collectooorr.
 
     Test subclasses must set NB_AGENTS, agent_package, wait_to_finish and check_strings.
     """

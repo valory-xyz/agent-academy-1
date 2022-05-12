@@ -34,7 +34,7 @@ from packages.valory.skills.abstract_round_abci.handlers import (
 )
 
 
-ElcollectooorrABCIHandler = ABCIRoundHandler
+ElCollectooorrABCIHandler = ABCIRoundHandler
 HttpHandler = BaseHttpHandler
 SigningHandler = BaseSigningHandler
 LedgerApiHandler = BaseLedgerApiHandler

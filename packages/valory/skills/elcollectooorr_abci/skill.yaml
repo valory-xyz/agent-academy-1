@@ -1,4 +1,4 @@
-name: elcollectooor_abci
+name: elcollectooorr_abci
 author: valory
 version: 0.1.0
 type: skill
@@ -6,15 +6,17 @@ description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmaDGNWAr49iSiM5ngVPzkSMesv9ZQ6DEpjSP2dTDkJUcz
-  __init__.py: QmfMGnm6mwZaoKUaJ9abNMuh2eEsMTY5ykxCTPY8ztDLrW
-  behaviours.py: QmTBSiqPyVVny3xitHgs4VeDootHB8G8Cde4xwma2JazCS
+  README.md: QmPEgsayZSdPvrbq8PmSFMQuWgz5FQPMLz2aDfbESm4GZg
+  __init__.py: QmNMqQffcN9uuYASGYzkk6P2jJALUuVrQpMpYGvtyKyMYY
+  behaviours.py: QmXzmHC1BhxVkZ2cev2dyh3ZTJhF1vYbQ5sUCpAcLRmSqT
   decision_models.py: Qme4z7UTCbinA8bswN2rSgrY3qysQVuEqcPiKKTK6Y7b9C
-  dialogues.py: QmdBmUMWoPbS2faqn8LicQVJfN6a2WjtdZDWFbiYoy7hfY
-  handlers.py: QmawjpXoqq3FfAcbiSJ6m1a6AfkYKYpr9RyVoJA37qqfA9
-  models.py: QmWTqSd9MEDvYXuLJEXxrKvBtxonx4dLnWq7kNcfBfH4fX
-  payloads.py: QmY21TvQyvz5tbuDZu5iQCq8PckJEj9K4E1WQ9Mj11JVth
-  rounds.py: QmTPDRFZPdssNAkRhwJEQsWCSVRxScfbs7hp3YLTmzS2b3
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  fsm_composition_specification.yaml: QmTF7WsdvqPR6oCfZWv6DDUoSNP3P3XnNdeWyLvDdEUy2G
+  fsm_specification.yaml: QmQCdJU74WL5ioMAjpiwDjmymbEqxJoad8C7DdSAeJkHQy
+  handlers.py: Qmech5i8inUuNwSxmB3nGfm7LiF4NDuKcxK33k92r9FXHY
+  models.py: QmPmegiKCq9tyoJc4rzZ5QXvsX2QWcEJpbmz6JsQkm6ESM
+  payloads.py: Qmez6TCX1RCFqz8uzzbtaD84oxizpTjS5We55MoTBHCX5B
+  rounds.py: Qme12EABbiD2U9rP545ZJ9tZnBuK147sKqRV3dp6Li1uom
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -38,11 +40,11 @@ skills:
 behaviours:
   main:
     args: {}
-    class_name: ElCollectooorFullRoundBehaviour
+    class_name: ElCollectooorrFullRoundBehaviour
 handlers:
   abci:
     args: {}
-    class_name: ElCollectooorABCIHandler
+    class_name: ElCollectooorrABCIHandler
   contract_api:
     args: {}
     class_name: ContractApiHandler
@@ -84,6 +86,9 @@ models:
         max_participants: 1
       decision_model_type: 'yes'
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      finalize_timeout: 60.0
+      history_check_timeout: 1205
+      keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
       max_retries: 5
@@ -94,7 +99,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
-      service_id: el_collectooor_1
+      service_id: el_collectooorr_1
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       sleep_time: 1
       starting_project_id: 301
@@ -103,6 +108,7 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
       token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
+      validate_timeout: 1205
       wei_to_fraction: 10500000000000000
     class_name: Params
   randomness_api:
