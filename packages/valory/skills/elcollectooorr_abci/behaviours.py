@@ -767,7 +767,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
         all_transfers = cast(
             List[Dict], self.period_state.db.get("most_voted_funds", [])
         )
-        undistributed_tokens: Optional[int] = yield from self._available_tokens()
+        undistributed_tokens = yield from self._available_tokens()
         tokens_to_be_distributed = 0
         address_to_investment: Dict = {}
         users_to_be_paid: Dict = {}
