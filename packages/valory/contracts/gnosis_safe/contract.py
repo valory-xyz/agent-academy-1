@@ -660,7 +660,7 @@ class GnosisSafeContract(Contract):
                 "'from_block' not provided, checking for transfers to the safe contract in the last 50 blocks."
             )
             current_block = ledger_api.api.eth.get_block("latest")["number"]
-            from_block = hex(current_block - 50)  # check in the last ~10 min
+            from_block = hex(max(0, current_block - 50))  # check in the last ~10 min
 
         safe_filter = safe_contract.events.SafeReceived.createFilter(
             fromBlock=from_block, toBlock=to_block
