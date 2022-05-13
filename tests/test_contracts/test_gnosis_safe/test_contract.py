@@ -306,12 +306,16 @@ class TestDeployTransactionHardhat(BaseContractTestHardHatSafeNet):
 
     def test_get_incoming_transfers(self) -> None:
         """Run get_incoming txs."""
-        res = self.contract.get_ingoing_transfers(
-            ledger_api=self.ledger_api,
-            contract_address=cast(str, self.contract_address),
+        res = cast(
+            JSONLike,
+            self.contract.get_ingoing_transfers(
+                ledger_api=self.ledger_api,
+                contract_address=cast(str, self.contract_address),
+            ),
         )
+        data = cast(List[JSONLike], res["data"])
 
-        assert len(res) == 0, "no transfers are made to the "
+        assert len(data) == 0, "no transfers are made to the "
 
         self.ledger_api.api.eth.send_transaction(
             {
