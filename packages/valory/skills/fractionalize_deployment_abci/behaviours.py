@@ -91,38 +91,47 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             self,
         ).local():
             should_deploy = False
-            vault_addresses = cast(
-                List[str], self.period_state.db.get("vault_addresses", [])
-            )
-            amount_spent = self.period_state.db.get("amount_spent", 0)
-            budget = self.params.budget_per_vault - (
-                0.15 * (10 ** 18)
-            )  # we leave a 0.15ETH margin
 
-            if len(vault_addresses) == 0:
-                # no vaults are deployed, so a new one needs to get deployed
-                should_deploy = True
+            try:
+                vault_addresses = cast(
+                    List[str], self.period_state.db.get("vault_addresses", [])
+                )
+                amount_spent = self.period_state.db.get("amount_spent", 0)
+                budget = self.params.budget_per_vault - (
+                    0.15 * (10 ** 18)
+                )  # we leave a 0.15ETH margin
 
-            elif amount_spent >= budget:
-                should_deploy = True
-
-            else:
-                latest_vault = vault_addresses[-1]
-                status = yield from self._get_vault_state(latest_vault)
-
-                if status != 0:
-                    # the state is not Inactive, the reserve has been met
+                if len(vault_addresses) == 0:
+                    # no vaults are deployed, so a new one needs to get deployed
                     should_deploy = True
 
-                if not should_deploy:
-                    tokens_left = yield from self._get_num_tokens_left(latest_vault)
-                    should_deploy = (
-                        tokens_left == 0
-                    )  # if no tokens are left, the vault has sold out, deploy a new one
+                elif amount_spent >= budget:
+                    should_deploy = True
+
+                else:
+                    latest_vault = vault_addresses[-1]
+                    status = yield from self._get_vault_state(latest_vault)
+
+                    if status != 0:
+                        # the state is not Inactive, the reserve has been met
+                        should_deploy = True
+
+                    if not should_deploy:
+                        tokens_left = yield from self._get_num_tokens_left(latest_vault)
+                        should_deploy = (
+                            tokens_left == 0
+                        )  # if no tokens are left, the vault has sold out, deploy a new one
+
+            except AEAEnforceError as e:
+                self.context.logger.error(
+                    f"Couldn't create the DeployDecisionRound payload, {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
             self,
         ).consensus():
+            self.context.logger.info(f"Deploy new basket and vault? {should_deploy}.")
+
             payload = DeployDecisionPayload(
                 self.context.agent_address,
                 should_deploy,
@@ -141,6 +150,15 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=vault_address,
         )
 
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None
+            and "state" in response.state.body.keys()
+            and response.state.body["state"] is not None,
+            "response, response.state, response.state.body must exist",
+        )
+
         data = cast(int, response.state.body["state"])
 
         return data
@@ -152,6 +170,15 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_callable="get_balance",
             contract_address=vault_address,
             address=self.period_state.db.get_strict("safe_contract_address"),
+        )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None
+            and "balance" in response.state.body.keys()
+            and response.state.body["balance"] is not None,
+            "response, response.state, response.state.body must exist",
         )
 
         data = cast(int, response.state.body["balance"])
@@ -187,7 +214,9 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 )
 
             except AEAEnforceError as e:
-                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+                self.context.logger.error(
+                    f"Couldn't create DeployBasketTxRound payload, {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
             self,
@@ -283,7 +312,9 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 )
 
             except AEAEnforceError as e:
-                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+                self.context.logger.error(
+                    f"Couldn't create DeployVaultTxRound payload, {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
             self,
@@ -384,7 +415,9 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 basket_addresses.append(new_basket)
                 self.context.logger.info(f"New basket address={new_basket}")
             except AEAEnforceError as e:
-                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+                self.context.logger.error(
+                    f"Couldn't create BasketAddressRound payload, {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
             self,
@@ -451,7 +484,9 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
                 )
 
             except AEAEnforceError as e:
-                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+                self.context.logger.error(
+                    f"Couldn't create PermissionVaultFactoryRound payload, {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
             self,
@@ -552,7 +587,9 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 
                 self.context.logger.info(f"Deployed new TokenVault at: {new_vault}.")
             except AEAEnforceError as e:
-                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+                self.context.logger.error(
+                    f"Couldn't create VaultAddressesRoundBehaviour payload, {type(e).__name__}: {e}."
+                )
 
         with self.context.benchmark_tool.measure(
             self,
