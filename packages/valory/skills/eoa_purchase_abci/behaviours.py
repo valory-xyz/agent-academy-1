@@ -37,6 +37,7 @@ from packages.valory.skills.abstract_round_abci.common import (
 )
 from packages.valory.skills.eoa_purchase_abci.models import Params
 from packages.valory.skills.eoa_purchase_abci.payloads import (
+    FundingTransactionPayload,
     PurchaseTokenPayload,
     RandomnessPayload,
     SelectKeeperPayload,
@@ -51,9 +52,6 @@ from packages.valory.skills.eoa_purchase_abci.rounds import (
     RandomnessEoaRound,
     SelectKeeperEoaRound,
     ValidatePurchaseRound,
-)
-from packages.valory.skills.fractionalize_deployment_abci.payloads import (
-    DeployVaultPayload,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
@@ -150,6 +148,9 @@ class PurchaseTokenRoundBehaviour(EoaPurchaseBaseState):
         project_to_purchase = self.period_state.db.get_strict("project_to_purchase")
         project_id = project_to_purchase["project_id"]
         value = project_to_purchase["price"]  # price of token in the project in wei
+        latest_basket = cast(List[str], self.period_state.db.get("basket_addresses"))[
+            -1
+        ]
 
         contract_api_response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
@@ -157,10 +158,11 @@ class PurchaseTokenRoundBehaviour(EoaPurchaseBaseState):
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             contract_callable="purchase_to",
             sender_address=self.context.agent_address,
-            to_address=self.period_state.db.get("safe_contract_address"),
+            to_address=latest_basket,
             project_id=project_id,
             value=value,
         )
+
         if (
             contract_api_response.performative
             != ContractApiMessage.Performative.RAW_TRANSACTION
@@ -224,7 +226,7 @@ class FundKeeperRoundBehaviour(EoaPurchaseBaseState):
         with self.context.benchmark_tool.measure(
             self,
         ).consensus():
-            payload = DeployVaultPayload(
+            payload = FundingTransactionPayload(
                 self.context.agent_address,
                 payload_data,
             )
@@ -299,12 +301,12 @@ class ValidatePurchaseRoundBehaviour(EoaPurchaseBaseState):
         processed_keeper_txs = cast(
             List[str], self.period_state.db.get("processed_keeper_txs", [])
         )
-        status = keeper_report["status"]
+        success = keeper_report["success"]
         tx_digest = keeper_report["tx_digest"]
         project_to_purchase = self.period_state.db.get_strict("project_to_purchase")
         project_id = project_to_purchase["project_id"]
 
-        if status:
+        if success:
             # this means that the keeper claims that the token was purchased
             mint_event = yield from self._get_mint_event(tx_digest)
             return (

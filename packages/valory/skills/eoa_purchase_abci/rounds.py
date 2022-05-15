@@ -34,6 +34,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     OnlyKeeperSendsRound,
 )
 from packages.valory.skills.eoa_purchase_abci.payloads import (
+    FundingTransactionPayload,
     PurchaseTokenPayload,
     RandomnessPayload,
     SelectKeeperPayload,
@@ -97,7 +98,7 @@ class FundKeeperRound(CollectSameUntilThresholdRound):
     """A round in a which a funding transaction for the keeper is prepared."""
 
     round_id = "fund_keeper"
-    allowed_tx_type = SelectKeeperPayload.transaction_type
+    allowed_tx_type = FundingTransactionPayload.transaction_type
     payload_attribute = "funding_tx_data"
     period_state_class = PeriodState
     done_event = Event.DONE
@@ -130,7 +131,7 @@ class ValidatePurchaseRound(CollectSameUntilThresholdRound):
 
     round_id = "validate_purchase"
     allowed_tx_type = ValidatePayload.transaction_type
-    payload_attribute = "vote"
+    payload_attribute = "validation_data"
     period_state_class = PeriodState
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
@@ -147,19 +148,34 @@ class ValidatePurchaseRound(CollectSameUntilThresholdRound):
                 List[str], self.period_state.db.get("processed_txs", [])
             )
             is_correct = validation_payload["is_correct"]
-            keeper_tx_digest = json.loads(
-                self.period_state.db.get_strict("purchase_data")
-            )["tx_digest"]
+            purchase_data = json.loads(self.period_state.db.get_strict("purchase_data"))
+            keeper_tx_digest = purchase_data["tx_digest"]
+            keeper_status = purchase_data["status"]
+
             processed_txs.append(keeper_tx_digest)
 
             if is_correct:
                 # the keeper acted as expected
-                state = self.period_state.update(
-                    period_state_class=self.period_state_class,
-                    participant_to_keeper_validation=MappingProxyType(self.collection),
-                    processed_txs=processed_txs,
+                purchased_project = self.period_state.db.get_strict(
+                    "project_to_purchase"
+                )  # the project that got purchased
+                all_purchased_projects = cast(
+                    List[Dict], self.period_state.db.get("purchased_projects", [])
                 )
-                return state, Event.DONE
+                all_purchased_projects.append(purchased_project)
+
+                if keeper_status:
+                    state = self.period_state.update(
+                        period_state_class=self.period_state_class,
+                        participant_to_keeper_validation=MappingProxyType(
+                            self.collection
+                        ),
+                        processed_txs=processed_txs,
+                        purchased_projects=all_purchased_projects,
+                    )
+                    return state, Event.DONE
+
+                return self._handle_refund()
 
             # the keeper misbehaved, we need to slash his operator's stake/security deposit
             slash_tx = validation_payload["slash_tx"]
@@ -178,6 +194,17 @@ class ValidatePurchaseRound(CollectSameUntilThresholdRound):
             return self.period_state, Event.NO_MAJORITY
 
         return None
+
+    def _handle_refund(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Handle the case when the keeper refunds the safe."""
+        value = self.period_state.db.get_strict("project_to_purchase")["price"]
+        total_amount_spent = self.period_state.db.get_strict("amount_spent") - value
+        state = self.period_state.update(
+            period_state_class=self.period_state_class,
+            amount_spent=total_amount_spent,
+        )
+
+        return state, Event.DONE
 
 
 class FinishedPurchasingRound(DegenerateRound):
@@ -287,6 +314,7 @@ class PurchasingAndValidationAbciApp(AbciApp[Event]):
             Event.DONE: FinishedPurchasingRound,
             Event.NEGATIVE: FinishedWithSlashTxRound,
             Event.VALIDATE_TIMEOUT: ValidatePurchaseRound,
+            Event.FAILED: ValidatePurchaseRound,
             Event.NO_MAJORITY: ValidatePurchaseRound,
         },
         FinishedWithSlashTxRound: {},
