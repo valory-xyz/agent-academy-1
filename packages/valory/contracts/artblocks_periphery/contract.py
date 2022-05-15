@@ -206,10 +206,9 @@ class ArtBlocksPeripheryContract(Contract):
             sender_address,
         )
 
-        raw_tx = contract.functions.purchaseTo(
-            to_address,
-            project_id,
-        ).buildTransaction(tx_parameters)
+        raw_tx = contract.functions.purchaseTo(to_address, project_id).buildTransaction(
+            tx_parameters
+        )
 
         return raw_tx
 
@@ -255,22 +254,73 @@ class ArtBlocksPeripheryContract(Contract):
 
         return {
             "project_id": project_id,
-            "is_mintable": is_mintable,
+            "is_mintable_via_contract": is_mintable,
         }
 
     @classmethod
-    def are_projects_mintable(
+    def get_price_info(
+        cls,  # pylint: disable=unused-argument
+        ledger_api: LedgerApi,
+        contract_address: str,
+        project_id: int,
+    ) -> JSONLike:
+        """
+        Method to check whether a project's price is set in the contract.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param project_id: the project id.
+        :return: the tx  # noqa: DAR202
+        """
+        instance = cls.get_instance(ledger_api, contract_address)
+        price_info = instance.functions.getPriceInfo(project_id).call()
+
+        return {
+            "project_id": project_id,
+            "is_price_configured": price_info[0],
+            "price_per_token_in_wei": price_info[1],
+            "currency_symbol": price_info[2],
+            "currency_address": price_info[3],
+        }
+
+    @classmethod
+    def get_project_details(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        project_id: int,
+    ) -> JSONLike:
+        """
+        Get project details.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param project_id: the id of the project to get the data for.
+        :return: the project details
+        """
+        price_info = cls.get_price_info(ledger_api, contract_address, project_id)
+        is_project_mintable = cls.is_project_mintable(
+            ledger_api, contract_address, project_id
+        )
+
+        return {
+            **price_info,
+            **is_project_mintable,
+        }
+
+    @classmethod
+    def get_multiple_project_details(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
         project_ids: Optional[List[int]] = None,
     ) -> JSONLike:
         """
-        Check if the projects are mintable via contracts.
+        Get project details.
 
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
-        :param project_ids: the ids of the projects to check whether they are mintable.
+        :param project_ids: the ids of the projects to get the details of.
         :return: the active projects
         """
         if project_ids is None:
@@ -306,10 +356,8 @@ class ArtBlocksPeripheryContract(Contract):
             list_of_results = cast(
                 List[JSONLike], loop.run_until_complete(asyncio.gather(*tasks))
             )
-            results = cast(
-                JSONLike, {r["project_id"]: r["is_mintable"] for r in list_of_results}
-            )
+            results = {p["project_id"]: p for p in list_of_results}
 
             loop.close()
 
-        return results
+        return results  # type: ignore

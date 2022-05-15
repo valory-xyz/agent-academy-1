@@ -179,7 +179,7 @@ class ArtBlocksContract(Contract):
 
         loop = asyncio.new_event_loop()
         tasks = []
-        num_threads = math.ceil(len(project_ids) / 30)  # 30 projects per thread
+        num_threads = math.ceil(len(project_ids) / 50)  # 30 projects per thread
 
         with concurrent.futures.ThreadPoolExecutor(num_threads) as pool:
             for project_id in project_ids:
@@ -216,14 +216,13 @@ class ArtBlocksContract(Contract):
         """
         instance = cls.get_instance(ledger_api, contract_address)
         project_info = instance.functions.projectTokenInfo(project_id).call()
-        script_info = instance.functions.projectScriptInfo(project_id).call()
 
         result = {
             "project_id": project_id,
             "price_per_token_in_wei": project_info[1],
             "invocations": project_info[2],
             "max_invocations": project_info[3],
-            "is_active": project_info[4] and script_info[5],
+            "is_active": project_info[4],
         }
 
         return result
