@@ -1,0 +1,104 @@
+name: eoa_purchase_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for purchasing artblocks tokens via an EOA.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmSdHvedQdaQvWBPjhoDqqZioSFgr43sdTaJqbraDqDFFY
+  __init__.py: QmQbudUoyoRCXAj9QQWMWVT3rUzgWR8Kxi9mCZPSGcifdz
+  behaviours.py: QmWsG9rWNmnawn726x9o8hZFtQNvCvpbfYkqEYqRi5RKHb
+  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
+  handlers.py: Qmd3tdXZvKr4GZCFHZA4kowY2B2EQRfLhjAQGbVRrtS98y
+  models.py: QmRfGpUhGuLWc2nSeNFZjfW8tWqurkQXEacMYJAUg18ems
+  payloads.py: QmRb7tQUpAoVRyPEe9uUgoXz9nZhvpmNxRNLvXb26va7FJ
+  rounds.py: QmQF1ynmSJqCUUV6Ad7cNVr5mUjR7X6am8nhaWGrncw4of
+fingerprint_ignore_patterns: []
+connections: []
+contracts:
+- valory/gnosis_safe:0.1.0
+- valory/gnosis_safe_proxy_factory:0.1.0
+protocols:
+- valory/contract_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: SafeDeploymentRoundBehaviour
+handlers:
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      artblocks_contract: '0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270'
+      artblocks_periphery_contract: '0x1dec9e52f1320f7deb29cbcd7b7d67f3df785142'
+      cleanup_history_depth: 1
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      observation_interval: 10
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: registration
+      sleep_time: 1
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+      validate_timeout: 1205
+    class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: true
