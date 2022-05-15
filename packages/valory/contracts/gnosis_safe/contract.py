@@ -715,3 +715,23 @@ class GnosisSafeContract(Contract):
         total_spent = tx_value + (gas_price * gas_used)
 
         return dict(amount_spent=total_spent)
+
+    @classmethod
+    def get_transaction(  # pylint: disable=unused-argument
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+    ) -> JSONLike:
+        """
+        Get the tx.
+
+        Note: There's no need for this function to be in the safe package, just a matter of convenience.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address (not used)
+        :param tx_hash: the settled tx hash
+        :return: the safe balance (in wei)
+        """
+        tx = ledger_api.get_transaction(tx_hash)
+        return tx

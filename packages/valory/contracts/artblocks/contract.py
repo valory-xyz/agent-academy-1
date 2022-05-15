@@ -260,7 +260,9 @@ class ArtBlocksContract(Contract):
         args = logs[-1]["args"]  # in case of multiple logs, take the last
 
         response = {
+            "to": args["_to"],
             "token_id": args["_tokenId"],
+            "project_id": args["_projectId"],
         }
 
         return response
