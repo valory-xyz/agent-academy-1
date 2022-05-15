@@ -229,7 +229,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        payload_data = {"project_id": 123}
+        payload_data = {"project_id": 123, "is_mintable_via_contract": True}
 
         test_round = DecisionRound(
             state=self.period_state, consensus_params=self.consensus_params
@@ -282,7 +282,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
             ]
         )
 
-        assert event == Event.DECIDED_YES
+        assert event == Event.DECIDED_YES_SAFE
 
 
 class TestNegativeDecisionRound(BaseRoundTestClass):

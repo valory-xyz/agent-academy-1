@@ -995,21 +995,41 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
+                contract_address="0x1dec9e52f1320f7deb29cbcd7b7d67f3df785142",
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
                 state=State(
                     ledger_id="ethereum",
                     body={  # type: ignore
-                        1: True,  # type: ignore
-                        2: True,  # type: ignore
-                        3: True,  # type: ignore
+                        1: {  # type: ignore
+                            "project_id": 1,
+                            "is_price_configured": True,
+                            "price_per_token_in_wei": 1,
+                            "currency_symbol": "ETH",
+                            "currency_address": "0x0",
+                            "is_mintable_via_contract": True,
+                        },
+                        2: {  # type: ignore
+                            "project_id": 2,
+                            "is_price_configured": True,
+                            "price_per_token_in_wei": 1,
+                            "currency_symbol": "ETH",
+                            "currency_address": "0x0",
+                            "is_mintable_via_contract": True,
+                        },
+                        3: {  # type: ignore
+                            "project_id": 3,
+                            "is_price_configured": True,
+                            "price_per_token_in_wei": 1,
+                            "currency_symbol": "ETH",
+                            "currency_address": "0x0",
+                            "is_mintable_via_contract": True,
+                        },
                     },
                 ),
             ),
         )
-
         self.mock_http_request(
             request_kwargs=dict(
                 method="POST",
@@ -1090,7 +1110,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 contract_id=str(ArtBlocksPeripheryContract.contract_id),
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
+                    contract_address="0x1dec9e52f1320f7deb29cbcd7b7d67f3df785142",
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
@@ -1186,7 +1206,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 contract_id=str(ArtBlocksPeripheryContract.contract_id),
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
+                    contract_address="0x1dec9e52f1320f7deb29cbcd7b7d67f3df785142",
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
@@ -1200,7 +1220,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             mock_logger.assert_any_call(
                 logging.ERROR,
                 "Couldn't get projects details, the following error was encountered "
-                "AEAEnforceError: Invalid response was received from 'are_projects_mintable'.",
+                "AEAEnforceError: Invalid response was received from 'get_multiple_project_details'.",
             )
 
         self.mock_a2a_transaction()
@@ -1227,6 +1247,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "is_active": True,
                 "is_curated": True,
                 "is_mintable": True,
+                "currency_symbol": "ETH",
+                "is_price_configured": True,
             },
             {
                 "project_id": 2,
@@ -1235,6 +1257,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "is_active": True,
                 "is_curated": True,
                 "is_mintable": True,
+                "currency_symbol": "ETH",
+                "is_price_configured": True,
             },
             {
                 "project_id": 3,
@@ -1243,6 +1267,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "is_active": True,
                 "is_curated": True,
                 "is_mintable": True,
+                "currency_symbol": "ETH",
+                "is_price_configured": True,
             },
         ]
 
@@ -1304,7 +1330,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             )
 
         self.mock_a2a_transaction()
-        self.end_round(event=Event.DECIDED_YES)
+        self.end_round(event=Event.DECIDED_YES_SAFE)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.decided_yes_behaviour_class.state_id
 
@@ -1319,6 +1345,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "is_active": True,
                 "is_curated": True,
                 "is_mintable": True,
+                "currency_symbol": "ETH",
+                "is_price_configured": True,
             },
             {
                 "project_id": 2,
@@ -1327,6 +1355,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "is_active": True,
                 "is_curated": True,
                 "is_mintable": True,
+                "currency_symbol": "ETH",
+                "is_price_configured": True,
             },
             {
                 "project_id": 3,
@@ -1335,6 +1365,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "is_active": True,
                 "is_curated": True,
                 "is_mintable": True,
+                "currency_symbol": "ETH",
+                "is_price_configured": True,
             },
         ]
 
@@ -1485,7 +1517,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
+                contract_address="0x1dec9e52f1320f7deb29cbcd7b7d67f3df785142",
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
