@@ -30,6 +30,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
+- valory/eoa_purchase_abci:0.1.0
 - valory/elcollectooorr_abci:0.1.0
 - valory/fractionalize_deployment_abci:0.1.0
 - valory/registration_abci:0.1.0

@@ -52,6 +52,14 @@ from packages.valory.skills.elcollectooorr_abci.payloads import (
     TransactionType,
     TransferNFTPayload,
 )
+from packages.valory.skills.eoa_purchase_abci.rounds import (
+    FinishedPurchasingRound,
+    FinishedWithSafeTxRound,
+    FinishedWithSlashTxRound,
+    FundKeeperRound,
+    KeeperSelectionAndFundingAbciApp,
+    PurchasingAndValidationAbciApp,
+)
 from packages.valory.skills.fractionalize_deployment_abci.rounds import (
     DeployBasketAbciApp,
     DeployBasketTxRound,
@@ -90,7 +98,8 @@ class Event(Enum):
     ROUND_TIMEOUT = "round_timeout"
     NO_MAJORITY = "no_majority"
     RESET_TIMEOUT = "reset_timeout"
-    DECIDED_YES = "decided_yes"
+    DECIDED_YES_SAFE = "decided_yes_safe"
+    DECIDED_YES_EOA = "decided_yes_eoa"
     DECIDED_NO = "decided_no"
     GIB_DETAILS = "gib_details"
     NO_PAYOUTS = "no_payouts"
@@ -108,6 +117,8 @@ class PostTransactionSettlementEvent(Enum):
     BASKET_PERMISSION = "basket_permission"
     FRACTION_PAYOUT = "fraction_payout"
     TRANSFER_NFT_DONE = "transfer_nft_done"
+    KEEPER_FUNDING_DONE = "keeper_funding_done"
+    KEEPER_SLASHING_DONE = "keeper_slashing_done"
 
 
 def encode_float(value: float) -> bytes:
@@ -416,7 +427,12 @@ class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRo
                 project_to_purchase=project_to_purchase,
             )
 
-            return state, Event.DECIDED_YES
+            if project_to_purchase["is_mintable_via_contract"]:
+                # purchase via the safe contract
+                return state, Event.DECIDED_YES_SAFE
+
+            # purchase via an EOA
+            return state, Event.DECIDED_YES_EOA
 
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
@@ -460,10 +476,16 @@ class ResetFromObservationRound(BaseResetRound):
     round_id = "reset_from_observation"
 
 
-class FinishedElCollectoorBaseRound(DegenerateRound):
-    """This class represents the finished round during operation."""
+class FinishedWithPurchaseViaSafeRound(DegenerateRound):
+    """The ElCollectooorrBaseAbci decided to purchase via the safe contract."""
 
-    round_id = "finished_base_elcollectooorr"
+    round_id = "finished_base_elcollectooorr_with_safe_purchase"
+
+
+class FinishedWithPurchaseViaEoaRound(DegenerateRound):
+    """The ElCollectooorrBaseAbci decided to purchase via an EOA."""
+
+    round_id = "finished_base_elcollectooorr_with_eoa_purchase"
 
 
 class ElcollectooorrBaseAbciApp(AbciApp[Event]):
@@ -484,22 +506,25 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
             Event.ERROR: ObservationRound,
         },
         DecisionRound: {
-            Event.DECIDED_YES: TransactionRound,
+            Event.DECIDED_YES_SAFE: TransactionRound,
+            Event.DECIDED_YES_EOA: FinishedWithPurchaseViaEoaRound,
             Event.DECIDED_NO: ObservationRound,
             Event.GIB_DETAILS: DetailsRound,
             Event.ROUND_TIMEOUT: ObservationRound,
             Event.NO_MAJORITY: ObservationRound,
         },
         TransactionRound: {
-            Event.DONE: FinishedElCollectoorBaseRound,
+            Event.DONE: FinishedWithPurchaseViaSafeRound,
             Event.ROUND_TIMEOUT: ObservationRound,
             Event.NO_MAJORITY: ObservationRound,
             Event.ERROR: ObservationRound,
         },
-        FinishedElCollectoorBaseRound: {},
+        FinishedWithPurchaseViaSafeRound: {},
+        FinishedWithPurchaseViaEoaRound: {},
     }
     final_states: Set[AppState] = {
-        FinishedElCollectoorBaseRound,
+        FinishedWithPurchaseViaSafeRound,
+        FinishedWithPurchaseViaEoaRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
@@ -640,7 +665,7 @@ class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
         if self.threshold_reached:
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                most_voted_funds=self.most_voted_payload,
+                most_voted_funds=json.loads(self.most_voted_payload),
                 participant_to_funding_round=MappingProxyType(self.collection),
             )
             return state, Event.DONE
@@ -677,7 +702,7 @@ class PayoutFractionsRound(
                 period_state_class=self.period_state_class,
                 participant_to_voted_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=tx_hash,
-                users_being_paid=json.dumps(users_being_paid),
+                users_being_paid=users_being_paid,
                 tx_submitter=self.round_id,
             )
 
@@ -809,6 +834,7 @@ class PostTransactionSettlementRound(
         PermissionVaultFactoryRound.round_id: PostTransactionSettlementEvent.BASKET_PERMISSION,
         PayoutFractionsRound.round_id: PostTransactionSettlementEvent.FRACTION_PAYOUT,
         TransferNFTRound.round_id: PostTransactionSettlementEvent.TRANSFER_NFT_DONE,
+        FundKeeperRound.round_id: PostTransactionSettlementEvent.KEEPER_FUNDING_DONE,
     }
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
@@ -879,6 +905,18 @@ class FinishedTransferNftTxRound(DegenerateRound):
     round_id = "finished_nft_tx_round"
 
 
+class FinishedKeeperFundingTxRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "finished_keeper_funding_tx_round"
+
+
+class FinishedKeeperSlashTxRound(DegenerateRound):
+    """Initial round for settling the transactions."""
+
+    round_id = "finished_keeper_slashing_tx_round"
+
+
 class ErrorneousRound(DegenerateRound):
     """Initial round for settling the transactions."""
 
@@ -897,6 +935,8 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
             PostTransactionSettlementEvent.BASKET_PERMISSION: FinishedBasketPermissionTxRound,
             PostTransactionSettlementEvent.FRACTION_PAYOUT: FinishedPayoutTxRound,
             PostTransactionSettlementEvent.TRANSFER_NFT_DONE: FinishedTransferNftTxRound,
+            PostTransactionSettlementEvent.KEEPER_FUNDING_DONE: FinishedKeeperFundingTxRound,
+            PostTransactionSettlementEvent.KEEPER_SLASHING_DONE: FinishedKeeperSlashTxRound,
             Event.NO_MAJORITY: ErrorneousRound,
             Event.ERROR: ErrorneousRound,
         },
@@ -906,6 +946,8 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
         FinishedBasketPermissionTxRound: {},
         FinishedPayoutTxRound: {},
         FinishedTransferNftTxRound: {},
+        FinishedKeeperFundingTxRound: {},
+        FinishedKeeperSlashTxRound: {},
         ErrorneousRound: {},
     }
     final_states: Set[AppState] = {
@@ -916,6 +958,8 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
         FinishedBasketPermissionTxRound,
         FinishedPayoutTxRound,
         FinishedTransferNftTxRound,
+        FinishedKeeperFundingTxRound,
+        FinishedKeeperSlashTxRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
@@ -926,7 +970,13 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
 el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
     FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
-    FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedWithPurchaseViaSafeRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedWithPurchaseViaEoaRound: KeeperSelectionAndFundingAbciApp.initial_round_cls,
+    FinishedWithSafeTxRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedWithSlashTxRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedPurchasingRound: DeployBasketAbciApp.initial_round_cls,
+    FinishedKeeperSlashTxRound: DeployBasketAbciApp.initial_round_cls,
+    FinishedKeeperFundingTxRound: PurchasingAndValidationAbciApp.initial_round_cls,
     FinishedRegistrationFFWRound: DeployBasketAbciApp.initial_round_cls,
     FinishedTransactionSubmissionRound: PostTransactionSettlementRound,
     FinishedDeployVaultTxRound: TransactionSubmissionAbciApp.initial_round_cls,
@@ -964,6 +1014,8 @@ ElCollectooorrAbciApp = chain(
         TransferNFTAbciApp,
         BankAbciApp,
         PostFractionPayoutAbciApp,
+        KeeperSelectionAndFundingAbciApp,
+        PurchasingAndValidationAbciApp,
     ),
     el_collectooorr_app_transition_mapping,
 )

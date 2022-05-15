@@ -38,6 +38,7 @@ class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
         active_projects: List[dict],
         purchased_projects: List[dict],
         budget: int,
+        use_eoa: bool,
     ) -> List[Dict]:
         """
         Method to decide on what projects to purchase.
@@ -45,6 +46,7 @@ class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
         :param active_projects: projects that are currently active.
         :param purchased_projects: projects that have been purchased.
         :param budget: the available budget in wei.
+        :param use_eoa: whether to consider project that are not mintable via contracts.
         :return: an ordered list of projects, based on "fitness" to purchase.
         """
         purchased_curated = [p for p in purchased_projects if p["is_curated"]]
@@ -55,14 +57,46 @@ class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
         potential_projects = []
 
         for project in active_projects:
+            if not use_eoa and not project["is_mintable_via_contract"]:
+                _default_logger.info(
+                    f"Project #{project['project_id']} cannot be purchased via contracts, "
+                    f"and purchasing via EOAs is disabled."
+                )
+                continue
+
+            if project["currency_symbol"] != "ETH":
+                _default_logger.info(
+                    f"Project #{project['project_id']} cannot be purchased with ETH."
+                )
+                continue
+
+            if not project["is_price_configured"]:
+                _default_logger.info(
+                    f"Project #{project['project_id']} doesnt have a price configured."
+                )
+                continue
+
             if project["project_id"] in purchased_project_ids:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is already purchased."
+                )
                 continue
 
             if project["price"] > budget:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is too expensive."
+                )
                 continue
 
             if not project["is_curated"] and not can_purchase_non_curated:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is non-curated, but we need to purchase a curated project."
+                )
                 continue
+
+            _default_logger.info(
+                f"Project #{project['project_id']} is a project we can purchase."
+            )
 
             potential_projects.append(project)
 

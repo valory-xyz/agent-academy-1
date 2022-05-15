@@ -87,6 +87,7 @@ class ElCollectooorParams(BaseParams):
         self.artblocks_periphery_contract = self._ensure(
             "artblocks_periphery_contract", kwargs
         )
+        self.use_eoa_as_fallback = self._ensure("use_eoa_as_fallback", kwargs)
         self.starting_project_id = self._get_starting_project_id(kwargs)
         self.max_retries = int(kwargs.pop("max_retries", 5))
         self.decision_model_type = self._get_decision_model_type(kwargs)

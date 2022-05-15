@@ -80,6 +80,10 @@ from packages.valory.skills.elcollectooorr_abci.rounds import (
     TransferNFTAbciApp,
     TransferNFTRound,
 )
+from packages.valory.skills.eoa_purchase_abci.behaviours import (
+    KeeperSelectionAndFundingAbciAppBehaviour,
+    PurchasingAndValidationAbciAppBehaviour,
+)
 from packages.valory.skills.fractionalize_deployment_abci.behaviours import (
     DeployBasketRoundBehaviour,
     DeployVaultRoundBehaviour,
@@ -334,25 +338,34 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
     ) -> Generator[None, None, List]:
         """Enhance the project data with 'mintable' and 'curation status'."""
         enhanced_projects = []
-        are_mintable = yield from self._are_mintable(projects)
+        all_project_details = yield from self._project_details(projects)
         curated_projects = yield from self._get_curated_projects()
 
         for project in projects:
             project_id = project["project_id"]
-            project["is_mintable"] = are_mintable[project_id]
+            project_details = all_project_details[project_id]
+            project["is_mintable_via_contract"] = project_details[
+                "is_mintable_via_contract"
+            ]
+            project["is_price_configured"] = project_details["is_price_configured"]
+            project["price"] = project_details[
+                "price_per_token_in_wei"
+            ]  # this price always supersedes this core price
+            project["currency_symbol"] = project_details["currency_symbol"]
+            project["currency_address"] = project_details["currency_address"]
             project["is_curated"] = project_id in curated_projects
 
             enhanced_projects.append(project)
 
         return enhanced_projects
 
-    def _are_mintable(self, projects: List[Dict]) -> Generator[None, None, Dict]:
+    def _project_details(self, projects: List[Dict]) -> Generator[None, None, Dict]:
         """Check if the projects are mintable via contracts."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.params.artblocks_periphery_contract,
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
-            contract_callable="are_projects_mintable",
+            contract_callable="get_multiple_project_details",
             project_ids=[p["project_id"] for p in projects],
         )
 
@@ -363,14 +376,14 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
             "response, response.state, response.state.body must exist",
         )
 
-        are_mintable = cast(Dict, response.state.body)
+        details = cast(Dict, response.state.body)
 
         enforce(
-            len(are_mintable) == len(projects),
-            "Invalid response was received from 'are_projects_mintable'.",
+            len(details) == len(projects),
+            "Invalid response was received from 'get_multiple_project_details'.",
         )
 
-        return are_mintable
+        return details
 
     def _get_curated_projects(self) -> Generator[None, None, List[int]]:
         """Get a list of curated projects."""
@@ -441,6 +454,7 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
                     active_projects=active_projects,
                     purchased_projects=purchased_projects,
                     budget=current_budget,
+                    use_eoa=self.params.use_eoa_as_fallback,
                 )
 
                 if project_to_purchase is None:
@@ -470,11 +484,12 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
         active_projects: List[dict],
         purchased_projects: List[dict],
         budget: int,
+        use_eoa: bool = False,
     ) -> Optional[Dict]:
         """Get the fittest project to purchase."""
 
         projects = EightyPercentDecisionModel.decide(
-            active_projects, purchased_projects, budget
+            active_projects, purchased_projects, budget, use_eoa
         )
         self.context.logger.info(f"{len(projects)} projects fit the reqs.")
 
@@ -1161,6 +1176,8 @@ class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
         *BankRoundBehaviour.behaviour_states,
         *PostFractionsPayoutRoundBehaviour.behaviour_states,
         *TransferNFTAbciBehaviour.behaviour_states,
+        *KeeperSelectionAndFundingAbciAppBehaviour.behaviour_states,
+        *PurchasingAndValidationAbciAppBehaviour.behaviour_states,
     }
 
     def setup(self) -> None:
