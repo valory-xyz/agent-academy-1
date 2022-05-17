@@ -477,6 +477,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     0,
                     dict(
+                        vault_addresses=["0x0"],  # a vault exists
                         amount_spent=amount_spent,
                     ),
                 )
@@ -629,6 +630,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 logging.INFO, "Deploy new basket and vault? True."
             )
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
 
         state = cast(
@@ -702,6 +704,85 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 logging.INFO, "Deploy new basket and vault? False."
             )
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DECIDED_NO)
+
+        state = cast(
+            BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+        )
+        assert state.state_id == self.decided_no_class.state_id
+
+    def test_bad_response_from_contract(self) -> None:
+        """The contract returns a bad response."""
+        amount_spent: int = 10 ** 19
+        vault_addresses: List[str] = ["0x0"]
+
+        self.fast_forward_to_state(
+            self.fractionalize_deployment_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        vault_addresses=vault_addresses,
+                        amount_spent=amount_spent,
+                        safe_contract_address="0x0",
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.fractionalize_deployment_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.fractionalize_deployment_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(TokenVaultContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address=vault_addresses[-1],
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body=dict(state=0),
+                    ),
+                ),
+            )
+
+            self.mock_contract_api_request(
+                contract_id=str(TokenVaultContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address=vault_addresses[-1],
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body=dict(bad_key=1),
+                    ),
+                ),
+            )
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create the DeployDecisionRound payload, AEAEnforceError: response, response.state, "
+                "response.state.body must exist.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO, "Deploy new basket and vault? False."
+            )
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_NO)
 
         state = cast(
@@ -714,7 +795,8 @@ class TestDeployBasketTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
     """Tests for DeployBasketTxRoundBehaviour"""
 
     behaviour_class = DeployBasketTxRoundBehaviour
-    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    decided_yes_state = RandomnessTransactionSubmissionBehaviour
+    decided_no_state = FundingRoundBehaviour
 
     def test_contract_returns_valid_data(self) -> None:
         """The agent compiles a create basket tx."""
@@ -774,12 +856,85 @@ class TestDeployBasketTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         )
 
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
         state = cast(
             BaseState, self.fractionalize_deployment_abci_behaviour.current_state
         )
-        assert state.state_id == self.next_behaviour_class.state_id
+        assert state.state_id == self.decided_yes_state.state_id
+
+    def test_contract_returns_invalid_data(self) -> None:
+        """The agent compiles a create basket tx."""
+
+        self.fast_forward_to_state(
+            self.fractionalize_deployment_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.fractionalize_deployment_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.fractionalize_deployment_abci_behaviour.act_wrapper()
+            self.mock_contract_api_request(
+                contract_id=str(BasketFactoryContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={
+                            "data": "0xefef39a10000000000000000000000000000000000000000000000000000000000000079"
+                        },
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={"bad_tx_hash": "0x" + "0" * 64},
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create DeployBasketTxRound payload, AEAEnforceError: contract returned "
+                "and empty body or empty tx_hash.",
+            )
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.ERROR)
+
+        state = cast(
+            BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+        )
+        assert state.state_id == self.decided_no_state.state_id
 
 
 class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
@@ -847,12 +1002,90 @@ class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         )
 
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
         state = cast(
             BaseState, self.fractionalize_deployment_abci_behaviour.current_state
         )
         assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_invalid_data(self) -> None:
+        """The agent compiles a mint tx."""
+
+        self.fast_forward_to_state(
+            self.fractionalize_deployment_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                        "basket_addresses": ["0x0"],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.fractionalize_deployment_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.fractionalize_deployment_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(TokenVaultFactoryContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={
+                            "data": "0xefef39a10000000000000000000000000000000000000000000000000000000000000079"
+                        },
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={"bad_tx_hash": "0x" + "0" * 64},
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create DeployVaultTxRound payload, AEAEnforceError: contract returned "
+                "and empty body or empty tx_hash.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.ERROR)
+
+        state = cast(
+            BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+        )
+        assert (
+            state.state_id == self.behaviour_class.state_id
+        )  # should be in the same behaviour
 
 
 class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
@@ -910,13 +1143,80 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             )
 
             mock_logger.assert_any_call(logging.INFO, "New basket address=0x1")
+
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
         state = cast(
             BaseState, self.fractionalize_deployment_abci_behaviour.current_state
         )
         assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_invalid_data(self) -> None:
+        """The agent fails to get the basket addresses."""
+
+        self.fast_forward_to_state(
+            self.fractionalize_deployment_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                        "basket_addresses": ["0x0"],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.fractionalize_deployment_abci_behaviour.act_wrapper()
+
+        with patch.object(
+            self.fractionalize_deployment_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.fractionalize_deployment_abci_behaviour.act_wrapper()
+            self.mock_contract_api_request(
+                contract_id=str(BasketFactoryContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={
+                            "bad_basket_address": "0x1",
+                            "creator_address": "0x2",
+                        },
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create BasketAddressRound payload, "
+                "AEAEnforceError: couldn't extract the 'basket_address' from the BaketFactoryContract.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.ERROR)
+
+        state = cast(
+            BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+        )
+        assert (
+            state.state_id == self.behaviour_class.state_id
+        )  # should stay in the same round
 
 
 class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
@@ -975,13 +1275,79 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             mock_logger.assert_any_call(
                 logging.INFO, "Deployed new TokenVault at: 0x1."
             )
+
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
         state = cast(
             BaseState, self.fractionalize_deployment_abci_behaviour.current_state
         )
         assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_invalid_data(self) -> None:
+        """The agent fails to extract vault address."""
+
+        self.fast_forward_to_state(
+            self.fractionalize_deployment_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                        "basket_addresses": ["0x0"],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.fractionalize_deployment_abci_behaviour.act_wrapper()
+
+        with patch.object(
+            self.fractionalize_deployment_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.fractionalize_deployment_abci_behaviour.act_wrapper()
+            self.mock_contract_api_request(
+                contract_id=str(TokenVaultFactoryContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={
+                            "bad_vault_address": "0x1",
+                        },
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create VaultAddressesRoundBehaviour payload, AEAEnforceError:"
+                " couldn't extract vault_address from the vault_factory.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.ERROR)
+
+        state = cast(
+            BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+        )
+        assert (
+            state.state_id == self.behaviour_class.state_id
+        )  # it should stay in the same state
 
 
 class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
@@ -1051,6 +1417,84 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
         )
 
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(
+            BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+        )
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_invalid_data(self) -> None:
+        """The fails to compile a permission vault factory tx."""
+
+        self.fast_forward_to_state(
+            self.fractionalize_deployment_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                        "basket_addresses": [
+                            "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState, self.fractionalize_deployment_abci_behaviour.current_state
+            ).state_id
+            == self.behaviour_class.state_id
+        )
+        with patch.object(
+            self.fractionalize_deployment_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.fractionalize_deployment_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(BasketContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={
+                            "data": "0xefef39a10000000000000000000000000000000000000000000000000000000000000079"
+                        },
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={"bad_tx_hash": "0x" + "0" * 64},
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create PermissionVaultFactoryRound payload, AEAEnforceError: "
+                "contract returned and empty body or empty tx_hash.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
         state = cast(
