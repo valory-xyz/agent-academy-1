@@ -274,15 +274,6 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 
         return data
 
-    def _format_payload(self, tx_hash: str, data: str) -> str:
-        tx_hash = tx_hash[2:]
-        ether_value = int.to_bytes(0, 32, "big").hex().__str__()
-        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()
-        address = self.params.basket_factory_address
-        data = data[2:]  # remove starting '0x'
-
-        return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
-
 
 class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
@@ -384,15 +375,6 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 
         return data
 
-    def _format_payload(self, tx_hash: str, data: str) -> str:
-        tx_hash = tx_hash[2:]
-        ether_value = int.to_bytes(0, 32, "big").hex().__str__()
-        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()
-        address = self.params.basket_factory_address
-        data = data[2:]  # remove starting '0x'
-
-        return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
-
 
 class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour of basket addresses round"""
@@ -408,10 +390,10 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
-                new_basket = yield from self._get_basket()
                 basket_addresses = cast(
                     List[str], self.period_state.db.get("basket_addresses", [])
                 )
+                new_basket = yield from self._get_basket()
                 basket_addresses.append(new_basket)
                 self.context.logger.info(f"New basket address={new_basket}")
             except AEAEnforceError as e:
@@ -553,18 +535,6 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
 
         return data
 
-    def _format_payload(self, tx_hash: str, data: str) -> str:
-        latest_basket = cast(List[str], self.period_state.db.get("basket_addresses"))[
-            -1
-        ]
-        tx_hash = tx_hash[2:]
-        ether_value = int.to_bytes(0, 32, "big").hex().__str__()
-        safe_tx_gas = int.to_bytes(10 ** 7, 32, "big").hex().__str__()
-        address = latest_basket
-        data = data[2:]  # remove starting '0x'
-
-        return f"{tx_hash}{ether_value}{safe_tx_gas}{address}{data}"
-
 
 class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour of vault addresses round"""
@@ -579,10 +549,10 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             self,
         ).local():
             try:
-                new_vault = yield from self._get_vault()
                 vault_addresses = cast(
                     List[str], self.period_state.db.get("vault_addresses", [])
                 )
+                new_vault = yield from self._get_vault()
                 vault_addresses.append(new_vault)
 
                 self.context.logger.info(f"Deployed new TokenVault at: {new_vault}.")

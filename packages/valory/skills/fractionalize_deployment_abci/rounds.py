@@ -399,7 +399,10 @@ class DeployBasketAbciApp(AbciApp[Event]):
             Event.DECIDED_YES: DeployBasketTxRound,
             Event.DECIDED_NO: FinishedWithoutDeploymentRound,
         },
-        DeployBasketTxRound: {Event.DONE: FinishedDeployBasketTxRound},
+        DeployBasketTxRound: {
+            Event.DONE: FinishedDeployBasketTxRound,
+            Event.ERROR: FinishedWithoutDeploymentRound,
+        },
         FinishedDeployBasketTxRound: {},
         FinishedWithoutDeploymentRound: {},
     }
@@ -418,8 +421,14 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = BasketAddressRound
     transition_function: AbciAppTransitionFunction = {
-        BasketAddressRound: {Event.DONE: PermissionVaultFactoryRound},
-        PermissionVaultFactoryRound: {Event.DONE: FinishedPostBasketRound},
+        BasketAddressRound: {
+            Event.DONE: PermissionVaultFactoryRound,
+            Event.ERROR: BasketAddressRound,
+        },
+        PermissionVaultFactoryRound: {
+            Event.DONE: FinishedPostBasketRound,
+            Event.ERROR: PermissionVaultFactoryRound,
+        },
         FinishedPostBasketRound: {},
     }
     final_states: Set[AppState] = {
@@ -436,7 +445,10 @@ class DeployVaultAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = DeployVaultTxRound
     transition_function: AbciAppTransitionFunction = {
-        DeployVaultTxRound: {Event.DONE: FinishedDeployVaultTxRound},
+        DeployVaultTxRound: {
+            Event.DONE: FinishedDeployVaultTxRound,
+            Event.ERROR: DeployVaultTxRound,
+        },
         FinishedDeployVaultTxRound: {},
     }
     final_states: Set[AppState] = {
@@ -453,7 +465,10 @@ class PostVaultDeploymentAbciApp(AbciApp[Event]):
 
     initial_round_cls: Type[AbstractRound] = VaultAddressRound
     transition_function: AbciAppTransitionFunction = {
-        VaultAddressRound: {Event.DONE: FinishedPostVaultRound},
+        VaultAddressRound: {
+            Event.DONE: FinishedPostVaultRound,
+            Event.ERROR: VaultAddressRound,
+        },
         FinishedPostVaultRound: {},
     }
     final_states: Set[AppState] = {
