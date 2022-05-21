@@ -57,7 +57,6 @@ from packages.valory.skills.elcollectooorr_abci.payloads import (
     PayoutFractionsPayload,
     PostTxPayload,
     PurchasedNFTPayload,
-    ResetPayload,
     TransactionPayload,
     TransferNFTPayload,
 )
@@ -113,41 +112,6 @@ class ElcollectooorrABCIBaseState(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, self.context.params)
-
-
-class BaseResetBehaviour(ElcollectooorrABCIBaseState):
-    """Reset state."""
-
-    pause = True
-
-    def async_act(self) -> Generator:
-        """
-        Do the action.
-
-        Steps:
-        - Trivially log the state.
-        - Sleep for configured interval.
-        - Build a registration transaction.
-        - Send the transaction and wait for it to be mined.
-        - Wait until ABCI application transitions to the next round.
-        - Go to the next behaviour state (set done event).
-        """
-        if self.pause:
-            self.context.logger.info("Period end.")
-            self.context.benchmark_tool.save()
-            yield from self.sleep(self.params.observation_interval)
-        else:
-            self.context.logger.info(
-                f"Period {self.period_state.period_count} was not finished. Resetting!"
-            )
-
-        payload = ResetPayload(
-            self.context.agent_address, self.period_state.period_count + 1
-        )
-
-        yield from self.send_a2a_transaction(payload)
-        yield from self.wait_until_round_end()
-        self.set_done()
 
 
 class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
@@ -610,13 +574,20 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
         """Get the available funds and store them to state."""
 
         with self.context.benchmark_tool.measure(self.state_id).local():
-            in_transfers = yield from self._get_available_funds()
+            in_transfers = []
+            try:
+                in_transfers = yield from self._get_available_funds()
+            except AEAEnforceError as e:
+                self.context.logger.error(
+                    f"Couldn't get transfers to the safe contract, "
+                    f"the following error was encountered {type(e).__name__}: {e}."
+                )
+
+        with self.context.benchmark_tool.measure(self.state_id).consensus():
             payload = FundingPayload(
                 self.context.agent_address,
                 address_to_funds=json.dumps(in_transfers),
             )
-
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
@@ -627,7 +598,7 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
     ) -> Generator:
         """Returns all the transfers to the gnosis safe."""
 
-        in_transfers = yield from self.get_contract_api_response(
+        response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.period_state.db.get("safe_contract_address"),
             contract_id=str(GnosisSafeContract.contract_id),
@@ -636,7 +607,14 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
             to_block=to_block,
         )
 
-        return in_transfers.state.body["data"]
+        enforce(
+            response.state.body is not None
+            and "data" in response.state.body.keys()
+            and response.state.body["data"] is not None,
+            "contract returned and empty body or empty data",
+        )
+
+        return response.state.body["data"]
 
 
 class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
@@ -671,7 +649,10 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
 
             except AEAEnforceError as e:
                 multisend_data_obj = {}
-                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+                self.context.logger.error(
+                    f"Couldn't create PayoutFractions payload, "
+                    f"the following error was encountered {type(e).__name__}: {e}"
+                )
 
         with self.context.benchmark_tool.measure(
             self,
@@ -746,15 +727,12 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
             address=self.period_state.db.get("safe_contract_address"),
         )
 
-        if (
-            response.state.body is None
-            or "balance" not in response.state.body.keys()
-            or response.state.body["balance"] is None
-        ):
-            self.context.logger.error(
-                "Could not retrieve the token balance of the safe contract."
-            )
-            return None
+        enforce(
+            response.state.body is not None
+            and "balance" in response.state.body.keys()
+            and response.state.body["balance"] is not None,
+            "Could not retrieve the token balance of the safe contract.",
+        )
 
         return cast(int, response.state.body["balance"])
 
@@ -774,6 +752,8 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
 
         if len(all_transfers) == 0 or undistributed_tokens is None:
             return {}
+
+        undistributed_tokens = cast(int, undistributed_tokens)
 
         for tx in all_transfers:
             sender, amount = tx["sender"], tx["amount"]
@@ -816,8 +796,14 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
         unpaid_users = yield from self._get_unpaid_users(wei_to_fraction)
         erc20_txs = []
 
-        if unpaid_users == {}:
+        if unpaid_users == {} or unpaid_users is None:
             return {}
+
+        unpaid_users = cast(Dict, unpaid_users)
+
+        self.context.logger.info(
+            f"{len(unpaid_users)} user(s) is(are) getting paid their fractions."
+        )
 
         for address, amount in unpaid_users.items():
             tx = yield from self._get_transferERC20_tx(address, amount)
@@ -891,7 +877,10 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
                 token_id = yield from self._get_token_id()
                 self.context.logger.info(f"Purchased token id={token_id}.")
             except AEAEnforceError as e:
-                self.context.logger.error(f"couldn't create transaction payload, e={e}")
+                self.context.logger.error(
+                    f"Couldn't create PurchasedNFTPayload payload, "
+                    f"the following error was encountered {type(e).__name__}: {e}"
+                )
 
         with self.context.benchmark_tool.measure(
             self,
@@ -915,12 +904,11 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
             tx_hash=self.period_state.db.get("final_tx_hash"),
         )
 
-        if response.state.body is None or "token_id" not in response.state.body.keys():
-            self.context.logger.error(
-                "couldn't extract the 'token_id' from the ArtBlocksContract"
-            )
-
-            return -1
+        enforce(
+            response.state.body is not None
+            and "token_id" in response.state.body.keys(),
+            "Couldn't get token_id from the purchase tx hash.",
+        )
 
         data = cast(int, response.state.body["token_id"])
 
@@ -955,7 +943,8 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
 
             except AEAEnforceError as e:
                 self.context.logger.error(
-                    f"Couldn't create the transaction payload, e={e}"
+                    f"Couldn't create TransferNFT payload, "
+                    f"the following error was encountered {type(e).__name__}: {e}."
                 )
 
         with self.context.benchmark_tool.measure(
@@ -999,10 +988,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
         ]
         token_id = self.period_state.db.get("purchased_nft", None)
 
-        if token_id is None:
-            self.context.logger.info("No token to be transferred.")
-            return ""
-
+        enforce(token_id is not None, "No token to be transferred")
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.params.artblocks_contract,
@@ -1069,7 +1055,8 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
 
             except AEAEnforceError as e:
                 self.context.logger.error(
-                    f"Couldn't create the PostTransactionSettlement payload, {type(e).__name__}: {e}."
+                    f"Couldn't create the PostTransactionSettlement payload, "
+                    f"the following error was encountered {type(e).__name__}: {e}."
                 )
 
             with self.context.benchmark_tool.measure(
@@ -1083,7 +1070,6 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
-            yield from self.wait_until_round_end()
             self.set_done()
 
     def _get_amount_spent(self) -> Generator[None, None, int]:
@@ -1100,6 +1086,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
             response is not None
             and response.state is not None
             and response.state.body is not None
+            and "amount_spent" in response.state.body.keys()
             and response.state.body["amount_spent"] is not None,
             "response, response.state, response.state.body must exist",
         )
