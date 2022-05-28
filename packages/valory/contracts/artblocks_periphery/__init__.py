@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the support resources for the artblocks periphery contract."""
+"""This module contains the support resources for the artblocks periphery contracts."""
