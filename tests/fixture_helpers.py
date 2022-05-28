@@ -29,6 +29,7 @@ from tests.conftest import GANACHE_CONFIGURATION
 from tests.helpers.constants import KEY_PAIRS, LOCALHOST
 from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
+from tests.helpers.docker.elcol_net import ElColNetDockerImage
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
@@ -207,3 +208,13 @@ class HardHatAMMBaseTest(HardHatBaseTest):
         """Build the image."""
         client = docker.from_env()
         return AMMNetDockerImage(client, cls.addr, cls.port)
+
+
+class HardHatElColBaseTest(HardHatBaseTest):
+    """Base pytest class for HardHat with Gnosis Factory, Fractionalize and Artblocks contracts deployed."""
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return ElColNetDockerImage(client, cls.addr, cls.port)
