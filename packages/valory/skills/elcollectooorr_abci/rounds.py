@@ -382,7 +382,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 participant_to_details=MappingProxyType(self.collection),
-                most_voted_details=self.most_voted_payload,
+                active_projects=payload["active_projects"],
             )
             return state, Event.DONE
         if not self.is_majority_possible(
@@ -640,7 +640,7 @@ class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
         if self.threshold_reached:
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                most_voted_funds=self.most_voted_payload,
+                most_voted_funds=json.loads(self.most_voted_payload),
                 participant_to_funding_round=MappingProxyType(self.collection),
             )
             return state, Event.DONE
@@ -677,7 +677,7 @@ class PayoutFractionsRound(
                 period_state_class=self.period_state_class,
                 participant_to_voted_tx_hash=MappingProxyType(self.collection),
                 most_voted_tx_hash=tx_hash,
-                users_being_paid=json.dumps(users_being_paid),
+                users_being_paid=users_being_paid,
                 tx_submitter=self.round_id,
             )
 

@@ -84,9 +84,7 @@ class ElCollectooorParams(BaseParams):
         super().__init__(*args, **kwargs)
         self.artblocks_contract = self._ensure("artblocks_contract", kwargs)
         self.artblocks_graph_url = self._ensure("artblocks_graph_url", kwargs)
-        self.artblocks_periphery_contract = self._ensure(
-            "artblocks_periphery_contract", kwargs
-        )
+        self.artblocks_minter_filter = self._ensure("artblocks_minter_filter", kwargs)
         self.starting_project_id = self._get_starting_project_id(kwargs)
         self.max_retries = int(kwargs.pop("max_retries", 5))
         self.decision_model_type = self._get_decision_model_type(kwargs)
