@@ -421,7 +421,7 @@ class TestDetailsRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        test_details = json.dumps([{"data": "more"}])
+        test_details = json.dumps({"active_projects": [{"data": "more"}]})
 
         test_round = DetailsRound(
             state=self.period_state, consensus_params=self.consensus_params
@@ -449,7 +449,7 @@ class TestDetailsRound(BaseRoundTestClass):
 
         actual_next_state = self.period_state.update(
             participant_to_details=MappingProxyType(test_round.collection),
-            most_voted_details=test_round.most_voted_payload,
+            active_projects=test_round.most_voted_payload,
         )
 
         res = test_round.end_block()
@@ -458,10 +458,9 @@ class TestDetailsRound(BaseRoundTestClass):
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-            cast(PeriodState, state).most_voted_details
-            == cast(PeriodState, actual_next_state).most_voted_details
-        )
+        assert cast(PeriodState, state).db.get_strict("active_projects") == cast(
+            PeriodState, actual_next_state
+        ).db.get("active_projects")
 
         # make sure all the votes are as expected
         assert all(
