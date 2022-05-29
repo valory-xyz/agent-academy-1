@@ -346,7 +346,7 @@ class ArtBlocksPeripheryContract(Contract):
             for project_id in project_ids:
                 task = loop.run_in_executor(
                     pool,
-                    cls.is_project_mintable,
+                    cls.get_project_details,
                     ledger_api,
                     contract_address,
                     project_id,
