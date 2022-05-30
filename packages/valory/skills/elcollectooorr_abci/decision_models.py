@@ -55,14 +55,46 @@ class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
         potential_projects = []
 
         for project in active_projects:
+            if not project["is_mintable_via_contract"]:
+                _default_logger.info(
+                    f"Project #{project['project_id']} cannot be purchased via contracts, "
+                    f"and purchasing via EOAs is disabled."
+                )
+                continue
+
+            if project["currency_symbol"] != "ETH":
+                _default_logger.info(
+                    f"Project #{project['project_id']} cannot be purchased with ETH."
+                )
+                continue
+
+            if not project["is_price_configured"]:
+                _default_logger.info(
+                    f"Project #{project['project_id']} doesnt have a price configured."
+                )
+                continue
+
             if project["project_id"] in purchased_project_ids:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is already purchased."
+                )
                 continue
 
             if project["price"] > budget:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is too expensive."
+                )
                 continue
 
             if not project["is_curated"] and not can_purchase_non_curated:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is non-curated, but we need to purchase a curated project."
+                )
                 continue
+
+            _default_logger.info(
+                f"Project #{project['project_id']} is a project we can purchase."
+            )
 
             potential_projects.append(project)
 

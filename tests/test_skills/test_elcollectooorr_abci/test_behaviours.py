@@ -38,6 +38,9 @@ from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.contracts.artblocks.contract import ArtBlocksContract
+from packages.valory.contracts.artblocks_minter_filter.contract import (
+    ArtBlocksMinterFilterContract,
+)
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
@@ -530,6 +533,101 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == DetailsRoundBehaviour.state_id
 
+    def test_no_project_was_previously_observed(self) -> None:
+        """The agent queries the contract for the first time."""
+        # no projects were previously observed
+        finished_projects: List = []
+        active_projects: List = []
+        inactive_projects: List = []
+        most_recent_project: int = 0
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        finished_projects=finished_projects,
+                        active_projects=active_projects,
+                        inactive_projects=inactive_projects,
+                        most_recent_project=most_recent_project,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            # project 2 gets finished, project 3 is observed
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={
+                            "results": [
+                                {
+                                    "project_id": 1,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 100,
+                                    "is_active": False,
+                                },
+                                {
+                                    "project_id": 2,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 100,
+                                    "is_active": False,
+                                },
+                                {
+                                    "project_id": 3,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 99,
+                                    "is_active": True,
+                                },
+                            ]
+                        },
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Most recent project is 3.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 2 newly finished projects.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 1 active projects.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+        self.end_round()
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == DetailsRoundBehaviour.state_id
+
     def test_project_becomes_active(self) -> None:
         """The agent queries the contract and a project has become active."""
         # projects 1-6 were previously observed
@@ -830,25 +928,6 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         }
         query = '{projects(where:{curationStatus:"curated"}){projectId}}'
 
-        self.mock_contract_api_request(
-            contract_id=str(ArtBlocksPeripheryContract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.STATE,
-                state=State(
-                    ledger_id="ethereum",
-                    body={  # type: ignore
-                        1: True,  # type: ignore
-                        2: True,  # type: ignore
-                        3: True,  # type: ignore
-                    },
-                ),
-            ),
-        )
-
         self.mock_http_request(
             request_kwargs=dict(
                 method="POST",
@@ -866,6 +945,76 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             ),
         )
 
+        self.mock_contract_api_request(
+            contract_id=str(ArtBlocksMinterFilterContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x4aafce293b9b0fad169c78049a81e400f518e199",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    ledger_id="ethereum",
+                    body={  # type: ignore
+                        1: {  # type: ignore
+                            "minter_for_project": "0x1",
+                        },
+                        2: {  # type: ignore
+                            "minter_for_project": "0x2",
+                        },
+                        3: {  # type: ignore
+                            "minter_for_project": "0x",  # no minter assigned
+                        },
+                    },
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(ArtBlocksPeripheryContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x1",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    ledger_id="ethereum",
+                    body={  # type: ignore
+                        1: {  # type: ignore
+                            "is_mintable_via_contract": True,
+                            "price_per_token_in_wei": 1,
+                            "is_price_configured": True,
+                            "currency_symbol": "ETH",
+                            "currency_address": "0x0000000000000000000000000000000000000000",
+                        },
+                    },
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(ArtBlocksPeripheryContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x2",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    ledger_id="ethereum",
+                    body={  # type: ignore
+                        2: {  # type: ignore
+                            "is_mintable_via_contract": True,
+                            "price_per_token_in_wei": 1,
+                            "is_price_configured": True,
+                            "currency_symbol": "ETH",
+                            "currency_address": "0x0000000000000000000000000000000000000000",
+                        },
+                    },
+                ),
+            ),
+        )
         # test passes if no exception is thrown
 
         self.mock_a2a_transaction()
@@ -922,28 +1071,16 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
-
-            http_response: Dict = {}
             query = '{projects(where:{curationStatus:"curated"}){projectId}}'
-
-            self.mock_contract_api_request(
-                contract_id=str(ArtBlocksPeripheryContract.contract_id),
-                request_kwargs=dict(
-                    performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
-                ),
-                response_kwargs=dict(
-                    performative=ContractApiMessage.Performative.STATE,
-                    state=State(
-                        ledger_id="ethereum",
-                        body={  # type: ignore
-                            1: True,  # type: ignore
-                            2: True,  # type: ignore
-                            3: True,  # type: ignore
-                        },
-                    ),
-                ),
-            )
+            http_response = {
+                "data": {
+                    "projects": [
+                        {"projectId": "1"},
+                        {"projectId": "2"},
+                        {"projectId": "3"},
+                    ]
+                }
+            }
 
             self.mock_http_request(
                 request_kwargs=dict(
@@ -1022,12 +1159,39 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
+            http_response = {
+                "data": {
+                    "projects": [
+                        {"projectId": "1"},
+                        {"projectId": "2"},
+                        {"projectId": "3"},
+                    ]
+                }
+            }
+            query = '{projects(where:{curationStatus:"curated"}){projectId}}'
+
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="POST",
+                    headers="",
+                    version="",
+                    body=json.dumps({"query": query}).encode(),
+                    url="https://api.thegraph.com/subgraphs/name/artblocks/art-blocks",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=200,
+                    status_text="",
+                    headers="",
+                    body=json.dumps(http_response).encode(),
+                ),
+            )
 
             self.mock_contract_api_request(
-                contract_id=str(ArtBlocksPeripheryContract.contract_id),
+                contract_id=str(ArtBlocksMinterFilterContract.contract_id),
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
+                    contract_address="0x4aafce293b9b0fad169c78049a81e400f518e199",
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
@@ -1041,7 +1205,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             mock_logger.assert_any_call(
                 logging.ERROR,
                 "Couldn't get projects details, the following error was encountered "
-                "AEAEnforceError: Invalid response was received from 'are_projects_mintable'.",
+                "AEAEnforceError: Invalid response was received from 'get_multiple_projects_minter'.",
             )
 
         self.mock_a2a_transaction()
@@ -1068,7 +1232,10 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "minted_percentage": 0.99,
                 "is_active": True,
                 "is_curated": True,
-                "is_mintable": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
             },
             {
                 "project_id": 2,
@@ -1076,7 +1243,10 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "minted_percentage": 0.98,
                 "is_active": True,
                 "is_curated": True,
-                "is_mintable": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
             },
             {
                 "project_id": 3,
@@ -1084,7 +1254,10 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "minted_percentage": 0.97,
                 "is_active": True,
                 "is_curated": True,
-                "is_mintable": True,
+                "currency_symbol": "ETH",
+                "is_mintable_via_contract": True,
+                "minter": "0x0",
+                "is_price_configured": True,
             },
         ]
 
@@ -1161,7 +1334,10 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "minted_percentage": 0.99,
                 "is_active": True,
                 "is_curated": True,
-                "is_mintable": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
             },
             {
                 "project_id": 2,
@@ -1169,7 +1345,10 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "minted_percentage": 0.98,
                 "is_active": True,
                 "is_curated": True,
-                "is_mintable": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
             },
             {
                 "project_id": 3,
@@ -1177,7 +1356,10 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 "minted_percentage": 0.97,
                 "is_active": True,
                 "is_curated": True,
-                "is_mintable": True,
+                "currency_symbol": "ETH",
+                "is_mintable_via_contract": True,
+                "minter": "0x0",
+                "is_price_configured": True,
             },
         ]
 
@@ -1282,6 +1464,96 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert state.state_id == self.gib_details_behaviour_class.state_id
 
+    def test_bad_response(self) -> None:
+        """The agent receives a bad response from the contract."""
+        active_projects = [
+            {
+                "project_id": 1,
+                "price": 1,
+                "minted_percentage": 0.99,
+                "is_active": True,
+                "is_curated": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+            {
+                "project_id": 2,
+                "price": 1,
+                "minted_percentage": 0.98,
+                "is_active": True,
+                "is_curated": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+            {
+                "project_id": 3,
+                "price": 1,
+                "minted_percentage": 0.97,
+                "is_active": True,
+                "is_curated": True,
+                "currency_symbol": "ETH",
+                "is_mintable_via_contract": True,
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+        ]
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
+                        active_projects=active_projects,
+                        purchased_projects=[active_projects[-1]],
+                        amount_spent=10 ** 18,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={"bad_balance": 2 * 10 ** 18},
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't make a decision, the following error was encountered "
+                "AEAEnforceError: response, response.state, response.state.body must exist.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DECIDED_YES)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.decided_yes_behaviour_class.state_id
+
 
 class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for Transaction Round Behaviour"""
@@ -1299,6 +1571,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             "is_active": True,
             "is_curated": True,
             "is_mintable": True,
+            "minter": "0x1",
         }
 
         self.fast_forward_to_state(
@@ -1329,7 +1602,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
+                contract_address="0x1",
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
@@ -1374,6 +1647,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             "is_active": True,
             "is_curated": True,
             "is_mintable": True,
+            "minter": "0x1",
         }
 
         self.fast_forward_to_state(
@@ -1406,7 +1680,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 contract_id=str(ArtBlocksPeripheryContract.contract_id),
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7",
+                    contract_address="0x1",
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,

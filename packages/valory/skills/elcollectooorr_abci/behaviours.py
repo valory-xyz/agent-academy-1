@@ -28,6 +28,9 @@ from aea.exceptions import AEAEnforceError, enforce
 from hexbytes import HexBytes
 
 from packages.valory.contracts.artblocks.contract import ArtBlocksContract
+from packages.valory.contracts.artblocks_minter_filter.contract import (
+    ArtBlocksMinterFilterContract,
+)
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
@@ -262,7 +265,6 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
 
     def async_act(self) -> Generator:
         """The details act"""
-
         with self.context.benchmark_tool.measure(
             self,
         ).local():
@@ -298,25 +300,89 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
     ) -> Generator[None, None, List]:
         """Enhance the project data with 'mintable' and 'curation status'."""
         enhanced_projects = []
-        are_mintable = yield from self._are_mintable(projects)
+        all_project_details: Dict[str, Dict] = {}
+        minter_to_projects: Dict[str, List] = {}
         curated_projects = yield from self._get_curated_projects()
+        project_to_minters = yield from self._project_minter(projects)
+
+        for project_id, project in project_to_minters.items():
+            minter = project["minter_for_project"]
+
+            if minter not in minter_to_projects.keys():
+                minter_to_projects[minter] = []
+
+            minter_to_projects[minter].append(project_id)
+
+        for minter, projects_in_minter in minter_to_projects.items():
+            if minter == "0x":
+                continue
+
+            project_details = yield from self._project_details(
+                projects_in_minter, minter
+            )
+            all_project_details.update(project_details)
 
         for project in projects:
             project_id = project["project_id"]
-            project["is_mintable"] = are_mintable[project_id]
+
+            if project_id not in all_project_details:
+                # the project might not be assigned a minter
+                continue
+
+            project_details = all_project_details[project_id]
+            project_minter = project_to_minters[project_id]
+
+            project["is_mintable_via_contract"] = project_details[
+                "is_mintable_via_contract"
+            ]
+            project["is_price_configured"] = project_details["is_price_configured"]
+            project["price"] = project_details[
+                "price_per_token_in_wei"
+            ]  # this price always supersedes this core price
+            project["currency_symbol"] = project_details["currency_symbol"]
+            project["currency_address"] = project_details["currency_address"]
             project["is_curated"] = project_id in curated_projects
+            project["minter"] = project_minter["minter_for_project"]
 
             enhanced_projects.append(project)
 
         return enhanced_projects
 
-    def _are_mintable(self, projects: List[Dict]) -> Generator[None, None, Dict]:
-        """Check if the projects are mintable via contracts."""
+    def _project_details(
+        self, project_ids: List[int], minter_address: str
+    ) -> Generator[None, None, Dict]:
+        """Get the details of all the active projects."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.params.artblocks_periphery_contract,
+            contract_address=minter_address,
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
-            contract_callable="are_projects_mintable",
+            contract_callable="get_multiple_project_details",
+            project_ids=project_ids,
+        )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None,
+            "response, response.state, response.state.body must exist",
+        )
+
+        details = cast(Dict, response.state.body)
+
+        enforce(
+            len(details) == len(project_ids),
+            "Invalid response was received from 'get_multiple_project_details'.",
+        )
+
+        return details
+
+    def _project_minter(self, projects: List[Dict]) -> Generator[None, None, Dict]:
+        """Get the minter of all the active projects."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.params.artblocks_minter_filter,
+            contract_id=str(ArtBlocksMinterFilterContract.contract_id),
+            contract_callable="get_multiple_projects_minter",
             project_ids=[p["project_id"] for p in projects],
         )
 
@@ -327,14 +393,14 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
             "response, response.state, response.state.body must exist",
         )
 
-        are_mintable = cast(Dict, response.state.body)
+        details = cast(Dict, response.state.body)
 
         enforce(
-            len(are_mintable) == len(projects),
-            "Invalid response was received from 'are_projects_mintable'.",
+            len(details) == len(projects),
+            "Invalid response was received from 'get_multiple_projects_minter'.",
         )
 
-        return are_mintable
+        return details
 
     def _get_curated_projects(self) -> Generator[None, None, List[int]]:
         """Get a list of curated projects."""
@@ -458,7 +524,8 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
         enforce(
             response is not None
             and response.state is not None
-            and response.state.body is not None,
+            and response.state.body is not None
+            and "balance" in response.state.body.keys(),
             "response, response.state, response.state.body must exist",
         )
 
@@ -482,11 +549,13 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
                 project_to_purchase = self.period_state.db.get_strict(
                     "project_to_purchase"
                 )
+                minter = project_to_purchase["minter"]
                 value = project_to_purchase[
                     "price"
                 ]  # price of token in the project in wei
                 purchase_data_str = yield from self._get_purchase_data(
-                    project_to_purchase["project_id"]
+                    project_to_purchase["project_id"],
+                    minter,
                 )
                 purchase_data = bytes.fromhex(purchase_data_str[2:])
                 tx_hash = yield from self._get_safe_hash(
@@ -496,7 +565,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
                     safe_tx_hash=tx_hash,
                     ether_value=value,
                     safe_tx_gas=10 ** 7,
-                    to_address=self.params.artblocks_periphery_contract,
+                    to_address=minter,
                     data=purchase_data,
                 )
 
@@ -526,7 +595,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
-            to_address=self.params.artblocks_periphery_contract,
+            to_address=self.params.artblocks_minter_filter,
             value=value,
             data=data,
             safe_tx_gas=10 ** 7,
@@ -543,10 +612,12 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
 
         return tx_hash
 
-    def _get_purchase_data(self, project_id: int) -> Generator[None, None, str]:
+    def _get_purchase_data(
+        self, project_id: int, minter: str
+    ) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.params.artblocks_periphery_contract,
+            contract_address=minter,
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             contract_callable="purchase_data",
             project_id=project_id,
