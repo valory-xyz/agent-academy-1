@@ -138,14 +138,18 @@ module.exports = {
     networks: {
         hardhat: {
             allowUnlimitedContractSize: true,
+            accounts: [{
+                privateKey: "0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1",
+                balance: "100000000000000000000"
+            }]
         },
         ganache: {
             url: "http://localhost:8545",
         }
     },
     etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
+        // Your API key for Etherscan
+        // Obtain one at https://etherscan.io/
         apiKey: ""
     },
     hardhat: {
