@@ -10,11 +10,15 @@
 	path = third_party/v2-core
 	url = https://github.com/Uniswap/v2-core
 	ignore = dirty
-[submodule "third_party/canonical-weth"]
-	path = third_party/canonical-weth
-	url = https://github.com/gnosis/canonical-weth.git
-	ignore = dirty
 [submodule "third_party/openzeppelin-contracts"]
 	path = third_party/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+	ignore = dirty
+[submodule "third_party/contracts-elcol/third_party/canonical-weth"]
+	path = third_party/contracts-elcol/third_party/canonical-weth
+	url = https://github.com/gnosis/canonical-weth.git
+	ignore = dirty
+[submodule "third_party/contracts-elcol/third_party/safe-contracts"]
+	path = third_party/contracts-elcol/third_party/safe-contracts
+	url = https://github.com/gnosis/safe-contracts
 	ignore = dirty
