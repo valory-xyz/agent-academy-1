@@ -41,6 +41,11 @@ from tests.helpers.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
+from tests.helpers.docker.mock_arblocks_api import (
+    DEFAULT_JSON_SERVER_ADDR,
+    DEFAULT_JSON_SERVER_PORT,
+    MockArtblocksJsonServer,
+)
 
 
 def get_key(key_path: Path) -> str:
@@ -167,3 +172,31 @@ def ganache_fork_engine_warmer_function(
         script_info = artblocks.caller.projectScriptInfo(TARGET_PROJECT_ID)
         artblocks.caller.projectScriptByIndex(TARGET_PROJECT_ID, script_info[1] - 1)
     artblocks.caller.projectDetails(TARGET_PROJECT_ID)
+
+
+@pytest.fixture()
+def mock_artblocks_api_addr() -> str:
+    """Get the mock artblocks api addr"""
+    return DEFAULT_JSON_SERVER_ADDR
+
+
+@pytest.fixture()
+def mock_artblocks_api_port() -> int:
+    """Get the mock artblocks api port"""
+    return DEFAULT_JSON_SERVER_PORT
+
+
+@pytest.fixture(scope="function")
+def mock_artblocks_api_function(
+    mock_artblocks_api_addr: Any,
+    mock_artblocks_api_port: Any,
+    timeout: float = 3.0,
+    max_attempts: int = 40,
+) -> Generator:
+    """Launch a mock artblocks api."""
+    client = docker.from_env()
+    logging.info(f"Launching mock artblocks api at port {mock_artblocks_api_port}")
+    image = MockArtblocksJsonServer(
+        client, mock_artblocks_api_addr, mock_artblocks_api_port
+    )
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)

@@ -1,0 +1,25 @@
+{
+  "/projects": {
+    "post": {
+      "data": {
+        "projects": [
+          {
+            "projectId": "4"
+          },
+          {
+            "projectId": "6"
+          },
+          {
+            "projectId": "8"
+          },
+          {
+            "projectId": "10"
+          },
+          {
+            "projectId": "12"
+          }
+        ]
+      }
+    }
+  }
+}

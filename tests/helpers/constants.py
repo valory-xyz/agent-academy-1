@@ -26,6 +26,7 @@ from typing import List, Tuple
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 ROOT_DIR = Path(CUR_PATH, "..", "..").resolve().absolute()
+TEST_DATA_DIR = ROOT_DIR / "tests" / "data"
 THIRD_PARTY = ROOT_DIR / "third_party"
 DEFAULT_ASYNC_TIMEOUT = 5.0
 DEFAULT_REQUESTS_TIMEOUT = 5.0
