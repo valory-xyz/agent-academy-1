@@ -35,6 +35,14 @@ from web3.types import Nonce, TxParams, Wei
 _logger = logging.getLogger(
     "aea.packages.valory.contracts.artblocks_periphery.contract"
 )
+SUPPORTED_MINTER_TYPES = [
+    "MinterSetPriceV0",
+    "MinterSetPriceV1",
+    "MinterDALinV0",
+    "MinterDALinV1",
+    "MinterDAExpV0",
+    "MinterDAExpV1",
+]
 
 
 class ArtBlocksPeripheryContract(Contract):
@@ -250,6 +258,25 @@ class ArtBlocksPeripheryContract(Contract):
         :return: the tx  # noqa: DAR202
         """
         instance = cls.get_instance(ledger_api, contract_address)
+        minter_type = instance.functions.minterType().call()
+
+        if minter_type not in SUPPORTED_MINTER_TYPES:
+            # unknown minter
+            _logger.warning(
+                "Minter of type {minter_type} deployed at address {contract_address} is not supported."
+            )
+            return {
+                "project_id": project_id,
+                "is_mintable_via_contract": False,
+            }
+
+        if minter_type[-2:] == "V1":
+            # V1 minters are always contract mintable
+            return {
+                "project_id": project_id,
+                "is_mintable_via_contract": True,
+            }
+
         is_mintable = instance.functions.contractMintable(project_id).call()
 
         return {
