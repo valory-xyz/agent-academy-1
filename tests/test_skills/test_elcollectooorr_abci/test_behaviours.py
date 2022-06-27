@@ -1220,7 +1220,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = DecisionRoundBehaviour
     decided_yes_behaviour_class = TransactionRoundBehaviour
-    decided_no_behaviour_class = ObservationRoundBehaviour
+    decided_no_behaviour_class = DeployDecisionRoundBehaviour
     gib_details_behaviour_class = DetailsRoundBehaviour
 
     def test_decided_yes(self) -> None:

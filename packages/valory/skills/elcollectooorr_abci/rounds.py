@@ -466,6 +466,12 @@ class FinishedElCollectoorBaseRound(DegenerateRound):
     round_id = "finished_base_elcollectooorr"
 
 
+class FinishedElCollectooorrWithoutPurchase(DegenerateRound):
+    """This class represents the end of the Elcollectooorr Base ABCI App when there is no purchase to be made."""
+
+    round_id = "finished_base_elcollectooorr_no_purchase"
+
+
 class ElcollectooorrBaseAbciApp(AbciApp[Event]):
     """The base logic of El Collectooorr."""
 
@@ -473,6 +479,7 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         ObservationRound: {
             Event.DONE: DetailsRound,
+            Event.NO_ACTIVE_PROJECTS: FinishedElCollectooorrWithoutPurchase,
             Event.ROUND_TIMEOUT: ObservationRound,
             Event.NO_MAJORITY: ObservationRound,
             Event.ERROR: ObservationRound,
@@ -481,14 +488,14 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
             Event.DONE: DecisionRound,
             Event.ROUND_TIMEOUT: DecisionRound,
             Event.NO_MAJORITY: DecisionRound,
-            Event.ERROR: ObservationRound,
+            Event.ERROR: FinishedElCollectooorrWithoutPurchase,
         },
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
-            Event.DECIDED_NO: ObservationRound,
+            Event.DECIDED_NO: FinishedElCollectooorrWithoutPurchase,
             Event.GIB_DETAILS: DetailsRound,
-            Event.ROUND_TIMEOUT: ObservationRound,
-            Event.NO_MAJORITY: ObservationRound,
+            Event.ROUND_TIMEOUT: FinishedElCollectooorrWithoutPurchase,
+            Event.NO_MAJORITY: FinishedElCollectooorrWithoutPurchase,
         },
         TransactionRound: {
             Event.DONE: FinishedElCollectoorBaseRound,
@@ -497,9 +504,11 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
             Event.ERROR: ObservationRound,
         },
         FinishedElCollectoorBaseRound: {},
+        FinishedElCollectooorrWithoutPurchase: {},
     }
     final_states: Set[AppState] = {
         FinishedElCollectoorBaseRound,
+        FinishedElCollectooorrWithoutPurchase,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
@@ -927,6 +936,7 @@ el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
     FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedElCollectooorrWithoutPurchase: DeployBasketAbciApp.initial_round_cls,
     FinishedRegistrationFFWRound: DeployBasketAbciApp.initial_round_cls,
     FinishedTransactionSubmissionRound: PostTransactionSettlementRound,
     FinishedDeployVaultTxRound: TransactionSubmissionAbciApp.initial_round_cls,
