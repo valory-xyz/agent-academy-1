@@ -222,6 +222,83 @@ class TestObservationRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
+class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
+    """Tests for ObservationRound, no active projects case."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        active_projects = []  # type: ignore
+        inactive_projects = [1, 2, 3]
+        finished_projects = [4, 5, 6]
+
+        payload_data = {
+            "active_projects": active_projects,
+            "inactive_projects": inactive_projects,
+            "newly_finished_projects": finished_projects,
+            "most_recent_project": 123,
+        }
+
+        test_round = ObservationRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            ObservationPayload(
+                sender=participant, project_details=json.dumps(payload_data)
+            )
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = self.period_state.update(
+            participant_to_project=MappingProxyType(test_round.collection),
+            most_voted_project=test_round.most_voted_payload,
+            most_recent_project=123,
+            inactive_projects=inactive_projects,
+            active_projects=active_projects,
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+
+        # a new period has started
+        # make sure the correct project is chosen
+        assert (
+            cast(PeriodState, state).most_voted_project
+            == cast(PeriodState, actual_next_state).most_voted_project
+        )
+
+        # make sure all the votes are as expected
+        assert all(
+            [
+                cast(PeriodState, state).participant_to_project[participant]
+                == actual_vote
+                for (participant, actual_vote) in cast(
+                    PeriodState, actual_next_state
+                ).participant_to_project.items()
+            ]
+        )
+
+        assert event == Event.NO_ACTIVE_PROJECTS
+
+
 class TestPositiveDecisionRound(BaseRoundTestClass):
     """Tests for DecisionRound, when the decision is positive."""
 
@@ -421,7 +498,7 @@ class TestDetailsRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        test_details = json.dumps([{"data": "more"}])
+        test_details = json.dumps({"active_projects": [{"data": "more"}]})
 
         test_round = DetailsRound(
             state=self.period_state, consensus_params=self.consensus_params
@@ -449,7 +526,7 @@ class TestDetailsRound(BaseRoundTestClass):
 
         actual_next_state = self.period_state.update(
             participant_to_details=MappingProxyType(test_round.collection),
-            most_voted_details=test_round.most_voted_payload,
+            active_projects=test_round.most_voted_payload,
         )
 
         res = test_round.end_block()
@@ -458,10 +535,9 @@ class TestDetailsRound(BaseRoundTestClass):
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-            cast(PeriodState, state).most_voted_details
-            == cast(PeriodState, actual_next_state).most_voted_details
-        )
+        assert cast(PeriodState, state).db.get_strict("active_projects") == cast(
+            PeriodState, actual_next_state
+        ).db.get("active_projects")
 
         # make sure all the votes are as expected
         assert all(

@@ -8,15 +8,15 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmPEgsayZSdPvrbq8PmSFMQuWgz5FQPMLz2aDfbESm4GZg
   __init__.py: QmNMqQffcN9uuYASGYzkk6P2jJALUuVrQpMpYGvtyKyMYY
-  behaviours.py: QmbLkPcPNstZ9RQ5U56MYeYGmPusKzq31976jcfoxtM3Bq
-  decision_models.py: QmVJxocE7QwMjRhbKVJVnH75brYQ7VXMY1iTNabwo4oKnM
+  behaviours.py: QmQVzUgKCKLaHvugLWEtV3wvvrKkJB774jK8khi9ABApZE
+  decision_models.py: QmbXorndh2AED16av97MsUuptG2VotEGQXezp5UGXz9pYt
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_composition_specification.yaml: QmTF7WsdvqPR6oCfZWv6DDUoSNP3P3XnNdeWyLvDdEUy2G
   fsm_specification.yaml: QmQCdJU74WL5ioMAjpiwDjmymbEqxJoad8C7DdSAeJkHQy
   handlers.py: Qmech5i8inUuNwSxmB3nGfm7LiF4NDuKcxK33k92r9FXHY
-  models.py: QmWYUnckrxvzGSzvtdU2S7EHUcbdDLGuGKqSBDBT862cg8
+  models.py: QmVthM8sUfG8VxPUVvXyvm4tU9aYtWXNXB51hJi1iCM6ye
   payloads.py: QmZ8CLn1nBDC7potZTrhdxg8KpFBJnG87GHAdbcHYoj5L6
-  rounds.py: QmakVjeVFi9YvUoFwtunJVTXmg5SpwfREzm5mcrGQmTGpp
+  rounds.py: QmewKfPaLw3f4NbDR1zLYY9CimkL9JZAMMppBHa9ZB7H1J
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -24,6 +24,7 @@ connections:
 - valory/ledger:0.1.0
 contracts:
 - valory/artblocks:0.1.0
+- valory/artblocks_minter_filter:0.1.0
 - valory/artblocks_periphery:0.1.0
 protocols:
 - open_aea/signing:1.0.0
@@ -78,7 +79,7 @@ models:
     args:
       artblocks_contract: '0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270'
       artblocks_graph_url: https://api.thegraph.com/subgraphs/name/artblocks/art-blocks
-      artblocks_periphery_contract: '0x47e312d99C09Ce61A866c83cBbbbED5A4b9d33E7'
+      artblocks_minter_filter: '0x4aafce293b9b0fad169c78049a81e400f518e199'
       basket_factory_address: '0xde771104C0C44123d22D39bB716339cD0c3333a1'
       budget_per_vault: 10500000000000000000
       cleanup_history_depth: 1
