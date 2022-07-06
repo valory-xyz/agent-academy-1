@@ -68,6 +68,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
 
     Test subclasses must set NB_AGENTS, agent_package, wait_to_finish and check_strings.
     """
+
     cli_log_options = ["-v", "INFO"]  # no need for debug
     ARTBLOCKS_ADDRESS = _DEFAULT_ARTBLOCKS_ADDRESS
     ARTBLOCKS_FILTER_ADDRESS = _DEFAULT_ARTBLOCKS_FILTER_ADDRESS
