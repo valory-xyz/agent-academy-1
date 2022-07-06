@@ -124,6 +124,25 @@ class UseGanache:
         )
 
 
+@pytest.mark.integration
+class UseHardHatElColBaseTest:
+    """Inherit from this class to use HardHat local net with the El Collectooorrr contracts deployed."""
+
+    key_pairs: List[Tuple[str, str]] = []
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_hardhat_elcol(
+        cls,
+        hardhat_elcol_scope_function: Any,
+        hardhat_elcol_addr: Any,
+        hardhat_elcol_key_pairs: Any,
+        setup_artblocks_contract: Any,
+    ) -> None:
+        """Start a HardHat ElCol instance."""
+        cls.key_pairs = hardhat_elcol_key_pairs
+
+
 class GanacheBaseTest(DockerBaseTest):
     """Base pytest class for Ganache."""
 
