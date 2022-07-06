@@ -218,12 +218,18 @@ class ArtBlocksContract(Contract):
         project_info = instance.functions.projectTokenInfo(project_id).call()
         script_info = instance.functions.projectScriptInfo(project_id).call()
 
+        price_per_token_in_wei = project_info[1]
+        invocations = project_info[2]
+        max_invocations = project_info[3]
+        is_active = project_info[4]
+        is_paused = script_info[5]
+
         result = {
             "project_id": project_id,
-            "price_per_token_in_wei": project_info[1],
-            "invocations": project_info[2],
-            "max_invocations": project_info[3],
-            "is_active": project_info[4] and not script_info[5],
+            "price_per_token_in_wei": price_per_token_in_wei,
+            "invocations": invocations,
+            "max_invocations": max_invocations,
+            "is_active": is_active and not is_paused,
         }
 
         return result
