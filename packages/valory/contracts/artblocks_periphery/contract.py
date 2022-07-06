@@ -263,7 +263,7 @@ class ArtBlocksPeripheryContract(Contract):
         if minter_type not in SUPPORTED_MINTER_TYPES:
             # unknown minter
             _logger.warning(
-                "Minter of type {minter_type} deployed at address {contract_address} is not supported."
+                f"Minter of type {minter_type} deployed at address {contract_address} is not supported."
             )
             return {
                 "project_id": project_id,

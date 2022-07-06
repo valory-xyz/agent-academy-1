@@ -559,7 +559,9 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
                 purchase_data = bytes.fromhex(purchase_data_str[2:])
                 tx_hash = yield from self._get_safe_hash(
-                    data=purchase_data, value=value
+                    data=purchase_data,
+                    value=value,
+                    to_address=minter,
                 )
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
@@ -587,7 +589,9 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
 
         self.set_done()
 
-    def _get_safe_hash(self, data: bytes, value: int = 0) -> Generator[None, None, str]:
+    def _get_safe_hash(
+        self, to_address: str, data: bytes, value: int = 0
+    ) -> Generator[None, None, str]:
         """Get the safe hash."""
 
         response = yield from self.get_contract_api_response(
@@ -595,7 +599,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_address=self.period_state.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
-            to_address=self.params.artblocks_minter_filter,
+            to_address=to_address,
             value=value,
             data=data,
             safe_tx_gas=10 ** 7,
