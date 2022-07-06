@@ -19,7 +19,7 @@
 
 """End2end tests base classes for this repo."""
 import logging
-import subprocess
+import subprocess  # nosec
 import threading
 import time
 
@@ -133,7 +133,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
     def _replace_default_addresses(self) -> None:
         """Update the gnosis safe contract default addresses."""
         for agent_name in self.agent_names:
-            try:
+            try:  # nosec
                 with open(
                     self.t.joinpath(agent_name).joinpath(
                         "vendor/valory/contracts/gnosis_safe/contract.py"
