@@ -7,8 +7,8 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: QmVMa9prZAYPGyeWFEvz6QQZfv9tm88smD6z3kPTWZg1G5
-  build/Minter.json: QmXnPbswZ8brsJh56n1RTcitp2qy5ASae21c7qR7rPU9Ye
-  contract.py: QmNkttVA2E8P3i7jZuuC9Me6BnTdr2Jb2zT5AF1spLBdJQ
+  build/Minter.json: QmY3RcSNdJQ7rHvyihtQv1tHFu638wA5u8ag6rTeS8MmZ8
+  contract.py: QmXG11FgUdbbopBXytJqgxmQ8kRjR8dk3rFa2p7W5oy9VZ
 fingerprint_ignore_patterns: []
 class_name: ArtBlocksPeripheryContract
 contract_interface_paths:
