@@ -223,7 +223,7 @@ class ArtBlocksContract(Contract):
             "price_per_token_in_wei": project_info[1],
             "invocations": project_info[2],
             "max_invocations": project_info[3],
-            "is_active": project_info[4] and script_info[5],
+            "is_active": project_info[4] and not script_info[5],
         }
 
         return result
