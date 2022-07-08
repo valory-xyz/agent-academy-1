@@ -26,7 +26,7 @@ import pytest
 from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
-from tests.helpers.constants import KEY_PAIRS, LOCALHOST
+from tests.helpers.constants import KEY_PAIRS, LOCALHOST, HARDHAT_ELCOL_KEY_PAIRS
 from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
 from tests.helpers.docker.elcol_net import ElColNetDockerImage
@@ -128,7 +128,7 @@ class UseGanache:
 class UseHardHatElColBaseTest:
     """Inherit from this class to use HardHat local net with the El Collectooorrr contracts deployed."""
 
-    key_pairs: List[Tuple[str, str]] = []
+    key_pairs: List[Tuple[str, str]] = HARDHAT_ELCOL_KEY_PAIRS
 
     @classmethod
     @pytest.fixture(autouse=True)
