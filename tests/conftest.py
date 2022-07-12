@@ -25,12 +25,37 @@ from typing import Any, Generator, List, Tuple
 
 import docker
 import pytest
+import web3
 from web3 import Web3
 
-from tests.helpers.constants import ARTBLOCKS_ADDRESS, GANACHE_KEY_PAIRS, KEY_PAIRS
+from tests.helpers.artblocks_utils import (
+    add_approved_minter,
+    add_mint_whitelisted,
+    create_project,
+    send_tx,
+    set_minter_for_project,
+    set_project_max_invitation,
+    toggle_contract_mintable,
+    toggle_project_is_active,
+    toggle_project_is_paused,
+    update_max_invocations,
+    update_price,
+)
+from tests.helpers.constants import (
+    ARTBLOCKS_ADDRESS,
+    ARTBLOCKS_CORE_FILE,
+    ARTBLOCKS_FILTER_ADDRESS,
+    ARTBLOCKS_MINTER_FILTER_FILE,
+    ARTBLOCKS_PERIPHERY_FILE,
+    ARTBLOCKS_SET_PRICE_MINTER,
+    GANACHE_KEY_PAIRS,
+    HARDHAT_ELCOL_KEY_PAIRS,
+    KEY_PAIRS,
+)
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.constants import TARGET_PROJECT_ID
 from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.elcol_net import ElColNetDockerImage
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
@@ -40,6 +65,11 @@ from tests.helpers.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
+)
+from tests.helpers.docker.mock_arblocks_api import (
+    DEFAULT_JSON_SERVER_ADDR,
+    DEFAULT_JSON_SERVER_PORT,
+    MockArtblocksJsonServer,
 )
 
 
@@ -167,3 +197,140 @@ def ganache_fork_engine_warmer_function(
         script_info = artblocks.caller.projectScriptInfo(TARGET_PROJECT_ID)
         artblocks.caller.projectScriptByIndex(TARGET_PROJECT_ID, script_info[1] - 1)
     artblocks.caller.projectDetails(TARGET_PROJECT_ID)
+
+
+@pytest.fixture()
+def mock_artblocks_api_addr() -> str:
+    """Get the mock artblocks api addr"""
+    return DEFAULT_JSON_SERVER_ADDR
+
+
+@pytest.fixture()
+def mock_artblocks_api_port() -> int:
+    """Get the mock artblocks api port"""
+    return DEFAULT_JSON_SERVER_PORT
+
+
+@pytest.fixture(scope="function")
+def mock_artblocks_api_function(
+    mock_artblocks_api_addr: Any,
+    mock_artblocks_api_port: Any,
+    timeout: float = 3.0,
+    max_attempts: int = 40,
+) -> Generator:
+    """Launch a mock artblocks api."""
+    client = docker.from_env()
+    logging.info(f"Launching mock artblocks api at port {mock_artblocks_api_port}")
+    image = MockArtblocksJsonServer(
+        client, mock_artblocks_api_addr, mock_artblocks_api_port
+    )
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture()
+def hardhat_elcol_addr() -> str:
+    """Get the ganache addr"""
+    return DEFAULT_HARDHAT_ADDR
+
+
+@pytest.fixture()
+def hardhat_elcol_port() -> int:
+    """Get the ganache port"""
+    return DEFAULT_HARDHAT_PORT
+
+
+@pytest.fixture()
+def hardhat_elcol_key_pairs() -> List[Tuple[str, str]]:
+    """Get the default key paris for ganache."""
+    return HARDHAT_ELCOL_KEY_PAIRS
+
+
+@pytest.fixture(scope="function")
+def hardhat_elcol_scope_function(
+    hardhat_elcol_addr: Any,
+    hardhat_elcol_port: Any,
+    mock_artblocks_api_function: Any,
+    timeout: float = 3.0,
+    max_attempts: int = 40,
+) -> Generator:
+    """Launch the ElCol Test Network. This fixture is scoped to a function which means it will destroyed at the end of the test."""
+    client = docker.from_env()
+    logging.info(f"Launching the ElCol network at port {ganache_port}")
+    image = ElColNetDockerImage(client, hardhat_elcol_addr, hardhat_elcol_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture()
+def setup_artblocks_contract(
+    hardhat_elcol_key_pairs: Any,
+    hardhat_elcol_addr: Any,
+    hardhat_elcol_port: Any,
+) -> None:
+    """Setup artblocks contracts by whitelisting minters and creating a project."""
+    default_max_invocations = 5
+    default_price_per_token_in_wei = 1
+    sender_address, private_key = hardhat_elcol_key_pairs[0]
+    instance = Web3(web3.HTTPProvider(f"{hardhat_elcol_addr}:{hardhat_elcol_port}"))
+
+    with open(ARTBLOCKS_MINTER_FILTER_FILE) as minter_filter_file:
+        minter_filter = json.load(minter_filter_file)
+        artblocks_minter_filter = instance.eth.contract(
+            address=instance.toChecksumAddress(ARTBLOCKS_FILTER_ADDRESS),
+            abi=minter_filter["abi"],
+        )
+
+    with open(ARTBLOCKS_CORE_FILE) as artblocks_file:
+        artblocks = json.load(artblocks_file)
+        artblocks_core = instance.eth.contract(
+            address=instance.toChecksumAddress(ARTBLOCKS_ADDRESS), abi=artblocks["abi"]
+        )
+
+    with open(ARTBLOCKS_PERIPHERY_FILE) as artblocks_periphery_file:
+        artblocks_periphery = json.load(artblocks_periphery_file)
+        artblocks_periphery = instance.eth.contract(
+            address=instance.toChecksumAddress(ARTBLOCKS_SET_PRICE_MINTER),
+            abi=artblocks_periphery["abi"],
+        )
+
+    raw_tx = add_mint_whitelisted(artblocks_core, instance, ARTBLOCKS_FILTER_ADDRESS)
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    project_id = artblocks_core.functions.nextProjectId().call()
+    raw_tx = create_project(
+        artblocks_core,
+        instance,
+        "test_project",
+        sender_address,
+        default_price_per_token_in_wei,
+    )
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    raw_tx = update_max_invocations(artblocks_core, project_id, default_max_invocations)
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    raw_tx = toggle_project_is_active(artblocks_core, project_id)
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    raw_tx = toggle_project_is_paused(artblocks_core, project_id)
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    raw_tx = add_approved_minter(
+        artblocks_minter_filter, instance, ARTBLOCKS_SET_PRICE_MINTER
+    )
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    raw_tx = set_minter_for_project(
+        artblocks_minter_filter, instance, project_id, ARTBLOCKS_SET_PRICE_MINTER
+    )
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    raw_tx = toggle_contract_mintable(artblocks_periphery, project_id)
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    raw_tx = update_price(
+        artblocks_periphery, project_id, default_price_per_token_in_wei
+    )
+    send_tx(instance, private_key, sender_address, raw_tx)
+
+    raw_tx = set_project_max_invitation(artblocks_periphery, project_id)
+    send_tx(instance, private_key, sender_address, raw_tx)
