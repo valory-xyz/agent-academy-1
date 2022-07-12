@@ -30,7 +30,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
     BaseSynchronizedData as BasePeriodState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )

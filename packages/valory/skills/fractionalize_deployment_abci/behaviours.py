@@ -32,8 +32,8 @@ from packages.valory.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
     BaseBehaviour as BaseState,
 )
 from packages.valory.skills.fractionalize_deployment_abci.models import Params
@@ -71,7 +71,7 @@ class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, self.context.state.period_state)
+        return cast(PeriodState, self.context.state.synchronized_data)
 
     @property
     def params(self) -> Params:

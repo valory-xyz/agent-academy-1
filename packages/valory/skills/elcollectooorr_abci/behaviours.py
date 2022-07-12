@@ -44,8 +44,8 @@ from packages.valory.contracts.multisend.contract import (
 )
 from packages.valory.contracts.token_vault.contract import TokenVaultContract
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
     BaseBehaviour as BaseState,
 )
 from packages.valory.skills.elcollectooorr_abci.decision_models import (
@@ -109,7 +109,9 @@ class ElcollectooorrABCIBaseState(BaseState, ABC):
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(
+            PeriodState, cast(SharedState, self.context.state).synchronized_data
+        )
 
     @property
     def params(self) -> Params:
