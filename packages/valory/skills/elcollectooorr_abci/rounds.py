@@ -34,7 +34,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+    BaseSynchronizedData as BasePeriodState,
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
