@@ -2,7 +2,7 @@ agent_name: elcollectooorr
 author: valory
 version: 0.1.0
 license: Apache-2.0
-description: El Collectooor decentralized.
+description: El Collectooorr decentralized.
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmZCpKMCRs4rsbLUeCShw94FXFDoc2DEQKBSgHLeesTfVL
@@ -14,8 +14,13 @@ connections:
 contracts:
 - valory/artblocks:0.1.0
 - valory/artblocks_periphery:0.1.0
+- valory/basket:0.1.0
+- valory/basket_factory:0.1.0
 - valory/gnosis_safe:0.1.0
 - valory/gnosis_safe_proxy_factory:0.1.0
+- valory/multisend:0.1.0
+- valory/token_vault:0.1.0
+- valory/token_vault_factory:0.1.0
 protocols:
 - open_aea/signing:1.0.0
 - valory/abci:0.1.0
@@ -26,6 +31,7 @@ skills:
 - valory/abstract_abci:0.1.0
 - valory/abstract_round_abci:0.1.0
 - valory/elcollectooorr_abci:0.1.0
+- valory/fractionalize_deployment_abci:0.1.0
 - valory/registration_abci:0.1.0
 - valory/safe_deployment_abci:0.1.0
 - valory/transaction_settlement_abci:0.1.0

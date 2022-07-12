@@ -18,7 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the shared state for the 'elcollectooorr_abci' application."""
-
+from abc import ABC
 from typing import Any, Dict, Optional, Type
 
 from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
@@ -30,15 +30,18 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.elcollectooorr_abci.decision_models import (
-    BaseDecisionModel,
+    EightyPercentDecisionModel,
     GibDetailsThenYesDecisionModel,
     NoDecisionModel,
     SimpleDecisionModel,
     YesDecisionModel,
 )
 from packages.valory.skills.elcollectooorr_abci.rounds import (
-    ElcollectooorrAbciApp,
+    ElCollectooorrAbciApp,
     Event,
+)
+from packages.valory.skills.fractionalize_deployment_abci.models import (
+    FractionalizeDeploymentParams,
 )
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
@@ -54,35 +57,34 @@ class SharedState(BaseSharedState):
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Initialize the state."""
-        super().__init__(*args, abci_app_cls=ElcollectooorrAbciApp, **kwargs)
+        super().__init__(*args, abci_app_cls=ElCollectooorrAbciApp, **kwargs)
 
     def setup(self) -> None:
         """Set up."""
         super().setup()
-        ElcollectooorrAbciApp.event_to_timeout[
+        ElCollectooorrAbciApp.event_to_timeout[
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        ElcollectooorrAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+        ElCollectooorrAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
             self.context.params.observation_interval + MARGIN
         )
 
 
-class ElcollectooorrParams(BaseParams):
-    """El collectooorr Specific Params Class"""
+class ElCollectooorParams(BaseParams):
+    """El Collectooorr Specific Params Class"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """
-        Initialize the El collectooorr parameters object.
+        Initialize the El Collectooorr parameters object.
 
         :param *args: param args, used only in the superclass
-        :param **kwargs: dict with the parameters needed for the El collectooorr
+        :param **kwargs: dict with the parameters needed for the El Collectooorr
         """
 
         super().__init__(*args, **kwargs)
         self.artblocks_contract = self._ensure("artblocks_contract", kwargs)
-        self.artblocks_periphery_contract = self._ensure(
-            "artblocks_periphery_contract", kwargs
-        )
+        self.artblocks_graph_url = self._ensure("artblocks_graph_url", kwargs)
+        self.artblocks_minter_filter = self._ensure("artblocks_minter_filter", kwargs)
         self.starting_project_id = self._get_starting_project_id(kwargs)
         self.max_retries = int(kwargs.pop("max_retries", 5))
         self.decision_model_type = self._get_decision_model_type(kwargs)
@@ -100,7 +102,7 @@ class ElcollectooorrParams(BaseParams):
             )
             return None
 
-    def _get_decision_model_type(self, kwargs: dict) -> Type[BaseDecisionModel]:
+    def _get_decision_model_type(self, kwargs: dict) -> Type[ABC]:
         """
         Get the decision model type to use
 
@@ -110,11 +112,12 @@ class ElcollectooorrParams(BaseParams):
 
         key = "decision_model_type"
         model_type = kwargs.pop(key, None)
-        valid_types: Dict[str, Type[BaseDecisionModel]] = {
+        valid_types: Dict[str, Type[ABC]] = {
             "yes": YesDecisionModel,
             "no": NoDecisionModel,
             "gib_details_then_yes": GibDetailsThenYesDecisionModel,
             "simple": SimpleDecisionModel,
+            "eighty_percent": EightyPercentDecisionModel,
         }
 
         if not model_type or str(model_type).lower() not in valid_types.keys():
@@ -128,7 +131,7 @@ class ElcollectooorrParams(BaseParams):
         return valid_types[model_type]
 
 
-class Params(ElcollectooorrParams, TransactionParams):
+class Params(ElCollectooorParams, TransactionParams, FractionalizeDeploymentParams):
     """Union class for ElCollectoor and Transaction Settlement ABCI"""
 
 

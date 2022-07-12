@@ -607,3 +607,68 @@ class TokenVaultFactoryContract(Contract):
         vault_address = token_vault_contract.functions.vaults(index).call()
 
         return vault_address
+
+    @classmethod
+    def mint_abi(  # pylint: disable=too-many-locals
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        name: str,
+        symbol: str,
+        token_address: str,
+        token_id: int,
+        token_supply: int,
+        list_price: int,
+        fee: int,
+    ) -> JSONLike:
+        """
+        Mint a new vault.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the token vault factory to be used
+        :param name: name of the vault
+        :param symbol: symbol of the vault
+        :param token_address: ERC721 address of the token to fractionalize
+        :param token_id: the ID of the token (ERC721)
+        :param token_supply: the initial number of fractions
+        :param list_price: initial price of the NFT
+        :param fee: curator fee on creation
+        :return: the raw transaction
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        token_vault_contract = cls.get_instance(ledger_api, contract_address)
+        data = token_vault_contract.encodeABI(
+            fn_name="mint",
+            args=[name, symbol, token_address, token_id, token_supply, list_price, fee],
+        )
+
+        return {"data": data}
+
+    @classmethod
+    def get_vault_address(
+        cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
+    ) -> Optional[JSONLike]:
+        """
+        Get the basket address and its creator from the events emitted by the "createBasket" transaction.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the address of the factory contract
+        :param tx_hash: tx hash of "createBasket"
+        :return: basket contract address and the address of the creator
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        contract = cls.get_instance(ledger_api, contract_address)
+        receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
+        logs = contract.events.Mint().processReceipt(receipt)
+
+        if len(logs) == 0:
+            _logger.error(f"No 'Mint' events were emitted in the tx={tx_hash}")
+            return None
+
+        args = logs[-1]["args"]  # in case of multiple logs, take the last
+
+        response = {
+            "vault_address": args["vault"],
+        }
+
+        return response

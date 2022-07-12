@@ -759,3 +759,32 @@ class BasketContract(Contract):
         token_id = basket.functions.tokenByIndex(index).call()
 
         return token_id
+
+    @classmethod
+    def approve_abi(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        operator_address: str,
+    ) -> JSONLike:
+        """
+        Gives permission to `operator_address` over the whole basket.
+
+        :param ledger_api: EthereumApi object
+        :param contract_address: the address of the basket to be used
+        :param operator_address: the address to set the approval status of
+        :return: the raw transaction
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        basket = cls.get_instance(ledger_api, contract_address)
+        operator_address = ledger_api.api.toChecksumAddress(operator_address)
+
+        data = basket.encodeABI(
+            fn_name="approve",
+            args=[
+                operator_address,
+                0,
+            ],
+        )
+
+        return {"data": data}

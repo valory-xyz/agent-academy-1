@@ -155,18 +155,18 @@ class BasketFactoryContract(Contract):
 
     @classmethod
     def get_basket_address(
-        cls, ledger_api: LedgerApi, factory_contract: str, tx_hash: str
+        cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
     ) -> Optional[JSONLike]:
         """
         Get the basket address and its creator from the events emitted by the "createBasket" transaction.
 
         :param ledger_api: the ledger API object
-        :param factory_contract: the address of the factory contract
+        :param contract_address: the address of the factory contract
         :param tx_hash: tx hash of "createBasket"
         :return: basket contract address and the address of the creator
         """
         ledger_api = cast(EthereumApi, ledger_api)
-        contract = cls.get_instance(ledger_api, factory_contract)
+        contract = cls.get_instance(ledger_api, contract_address)
         receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
         logs = contract.events.NewBasket().processReceipt(receipt)
 
@@ -182,3 +182,24 @@ class BasketFactoryContract(Contract):
         }
 
         return response
+
+    @classmethod
+    def create_basket_abi(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+    ) -> JSONLike:
+        """
+        Builds and returns the tx to create a basket
+
+        :param ledger_api: ledger API object.
+        :param contract_address: Address of the Basket Factory Contract
+        :return: the raw transaction
+        """
+        factory_contract = cls.get_instance(ledger_api, contract_address)
+        data = factory_contract.encodeABI(
+            fn_name="createBasket",
+            args=[],
+        )
+
+        return {"data": data}

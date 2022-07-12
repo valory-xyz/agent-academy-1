@@ -20,15 +20,14 @@
 """Tests for valory/elcollectooorr_abci skill's behaviours."""
 import json
 import logging
-import time
 from copy import copy
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Type, cast
 from unittest import mock
-from unittest.mock import ANY, patch
+from unittest.mock import patch
 
-from aea.helpers.transaction.base import SignedMessage, State
+from aea.helpers.transaction.base import RawTransaction, SignedMessage, State
 from aea.test_tools.test_skill import BaseSkillTestCase
 
 from packages.open_aea.protocols.signing import SigningMessage
@@ -39,10 +38,15 @@ from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.contracts.artblocks.contract import ArtBlocksContract
+from packages.valory.contracts.artblocks_minter_filter.contract import (
+    ArtBlocksMinterFilterContract,
+)
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.contracts.multisend.contract import MultiSendContract
+from packages.valory.contracts.token_vault.contract import TokenVaultContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -61,9 +65,14 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.elcollectooorr_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
+    FundingRoundBehaviour,
     ObservationRoundBehaviour,
-    ResetFromObservationBehaviour,
+    PayoutFractionsRoundBehaviour,
+    PostPayoutRoundBehaviour,
+    PostTransactionSettlementBehaviour,
+    ProcessPurchaseRoundBehaviour,
     TransactionRoundBehaviour,
+    TransferNFTRoundBehaviour,
 )
 from packages.valory.skills.elcollectooorr_abci.decision_models import (
     SimpleDecisionModel as DecisionModel,
@@ -74,7 +83,14 @@ from packages.valory.skills.elcollectooorr_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.elcollectooorr_abci.rounds import Event, PeriodState
+from packages.valory.skills.elcollectooorr_abci.rounds import (
+    Event,
+    PeriodState,
+    PostTransactionSettlementEvent,
+)
+from packages.valory.skills.fractionalize_deployment_abci.behaviours import (
+    DeployDecisionRoundBehaviour,
+)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )
@@ -92,7 +108,7 @@ class DummyRoundId:
         self.round_id = round_id
 
 
-class ElcollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
+class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(
@@ -416,257 +432,34 @@ class ElcollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
 
 
-class BaseRandomnessBehaviourTest(ElcollectooorrFSMBehaviourBaseCase):
-    """Test RandomnessBehaviour."""
-
-    randomness_behaviour_class: Type[BaseState]
-    next_behaviour_class: Type[BaseState]
-
-    def test_randomness_behaviour(
-        self,
-    ) -> None:
-        """Test RandomnessBehaviour."""
-
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.randomness_behaviour_class.state_id,
-            PeriodState(StateDB(0, dict())),
-        )
-        # TODO: why casting to BaseState twice?
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
-        )
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        self.mock_http_request(
-            request_kwargs=dict(
-                method="GET",
-                headers="",
-                version="",
-                body=b"",
-                url="https://drand.cloudflare.com/public/latest",
-            ),
-            response_kwargs=dict(
-                version="",
-                status_code=200,
-                status_text="",
-                headers="",
-                body=json.dumps(
-                    {
-                        "round": 1283255,
-                        "randomness": "04d4866c26e03347d2431caa82ab2d7b7bdbec8b58bca9460c96f5265d878feb",
-                    }
-                ).encode("utf-8"),
-            ),
-        )
-
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_invalid_response(
-        self,
-    ) -> None:
-        """Test invalid json response."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.randomness_behaviour_class.state_id,
-            PeriodState(StateDB(0, dict())),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
-        )
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-
-        self.mock_http_request(
-            request_kwargs=dict(
-                method="GET",
-                headers="",
-                version="",
-                body=b"",
-                url="https://drand.cloudflare.com/public/latest",
-            ),
-            response_kwargs=dict(
-                version="", status_code=200, status_text="", headers="", body=b""
-            ),
-        )
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        time.sleep(1)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-
-    def test_max_retries_reached(
-        self,
-    ) -> None:
-        """Test with max retries reached."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.randomness_behaviour_class.state_id,
-            PeriodState(StateDB(0, dict())),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
-        )
-        with mock.patch.object(
-            self.elcollectooorr_abci_behaviour.context.randomness_api,
-            "is_retries_exceeded",
-            return_value=True,
-        ):
-            self.elcollectooorr_abci_behaviour.act_wrapper()
-            state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-            assert state.state_id == self.randomness_behaviour_class.state_id
-            self._test_done_flag_set()
-
-    def test_clean_up(
-        self,
-    ) -> None:
-        """Test when `observed` value is none."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.randomness_behaviour_class.state_id,
-            PeriodState(StateDB(0, dict())),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.randomness_behaviour_class.state_id
-        )
-        self.elcollectooorr_abci_behaviour.context.randomness_api._retries_attempted = 1
-        assert self.elcollectooorr_abci_behaviour.current_state is not None
-        self.elcollectooorr_abci_behaviour.current_state.clean_up()
-        assert (
-            self.elcollectooorr_abci_behaviour.context.randomness_api._retries_attempted
-            == 0
-        )
-
-
-class BaseSelectKeeperBehaviourTest(ElcollectooorrFSMBehaviourBaseCase):
-    """Test SelectKeeperBehaviour."""
-
-    select_keeper_behaviour_class: Type[BaseState]
-    next_behaviour_class: Type[BaseState]
-
-    def test_select_keeper(
-        self,
-    ) -> None:
-        """Test select keeper agent."""
-        participants = frozenset({self.skill.skill_context.agent_address, "a_1", "a_2"})
-        self.fast_forward_to_state(
-            behaviour=self.elcollectooorr_abci_behaviour,
-            state_id=self.select_keeper_behaviour_class.state_id,
-            period_state=PeriodState(
-                StateDB(
-                    0,
-                    dict(
-                        participants=participants,
-                        most_voted_randomness="56cbde9e9bbcbdcaf92f183c678eaa5288581f06b1c9c7f884ce911776727688",
-                    ),
-                )
-            ),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.select_keeper_behaviour_class.state_id
-        )
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self._test_done_flag_set()
-        self.end_round()
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-
-class TestResetFromObservationBehaviour(ElcollectooorrFSMBehaviourBaseCase):
-    """Test ResetFromObservationBehaviour."""
-
-    behaviour_class = ResetFromObservationBehaviour
-    next_behaviour_class = ObservationRoundBehaviour
-
-    def test_pause_and_reset_behaviour(
-        self,
-    ) -> None:
-        """Test pause and reset behaviour."""
-        self.fast_forward_to_state(
-            behaviour=self.elcollectooorr_abci_behaviour,
-            state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(StateDB(0, dict())),
-        )
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-        self.elcollectooorr_abci_behaviour.context.params.observation_interval = 0.1
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        time.sleep(0.3)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-        self.end_round()
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_reset_behaviour(
-        self,
-    ) -> None:
-        """Test reset behaviour."""
-        self.fast_forward_to_state(
-            behaviour=self.elcollectooorr_abci_behaviour,
-            state_id=self.behaviour_class.state_id,
-            period_state=PeriodState(StateDB(0, dict())),
-        )
-        self.elcollectooorr_abci_behaviour.current_state.pause = False  # type: ignore
-        assert (
-            cast(
-                BaseState,
-                cast(BaseState, self.elcollectooorr_abci_behaviour.current_state),
-            ).state_id
-            == self.behaviour_class.state_id
-        )
-        self.elcollectooorr_abci_behaviour.context.params.observation_interval = 0.1
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        time.sleep(0.3)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        self.mock_a2a_transaction()
-
-        self.end_round()
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-
-class TestObservationRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
+class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for the Observation Round Behaviour"""
 
     behaviour_class = ObservationRoundBehaviour
     next_behaviour_class = DecisionRoundBehaviour
 
-    def test_contract_returns_project(self) -> None:
-        """The agent queries the contract and gets back a project"""
+    def test_new_projects_observed(self) -> None:
+        """The agent queries the contract and a project has become active."""
+        # projects 1 and 2 were previously observed
+        finished_projects: List = [1]
+        active_projects: List = []
+        inactive_projects: List = [2]
+        most_recent_project: int = 2
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict())),
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        finished_projects=finished_projects,
+                        active_projects=active_projects,
+                        inactive_projects=inactive_projects,
+                        most_recent_project=most_recent_project,
+                    ),
+                )
+            ),
         )
 
         assert (
@@ -679,26 +472,41 @@ class TestObservationRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
         with patch.object(
             self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
+            # project 2 gets finished, project 3 is observed
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
                     state=State(
                         ledger_id="ethereum",
                         body={
-                            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-                            "price_per_token_in_wei": 1,
-                            "project_id": 121,
-                            "project_name": "Incomplete Control",
-                            "artist": "Tyler Hobbs",
-                            "description": "",
-                            "website": "tylerxhobbs.com",
-                            "script": "too_long",
-                            "ipfs_hash": "",
+                            "results": [
+                                {
+                                    "project_id": 1,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 100,
+                                    "is_active": False,
+                                },
+                                {
+                                    "project_id": 2,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 100,
+                                    "is_active": False,
+                                },
+                                {
+                                    "project_id": 3,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 99,
+                                    "is_active": True,
+                                },
+                            ]
                         },
                     ),
                 ),
@@ -706,23 +514,318 @@ class TestObservationRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
 
             mock_logger.assert_any_call(
                 logging.INFO,
-                "Retrieved project with id 121.",
+                "Most recent project is 3.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 1 newly finished projects.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 1 active projects.",
             )
 
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
 
         self.end_round()
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == DetailsRoundBehaviour.state_id
 
-    def test_contract_returns_empty_project(self) -> None:
-        """The agent queries the contract and doesnt get back a project"""
+    def test_no_project_was_previously_observed(self) -> None:
+        """The agent queries the contract for the first time."""
+        # no projects were previously observed
+        finished_projects: List = []
+        active_projects: List = []
+        inactive_projects: List = []
+        most_recent_project: int = 0
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.state_id,
-            PeriodState(StateDB(0, dict())),
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        finished_projects=finished_projects,
+                        active_projects=active_projects,
+                        inactive_projects=inactive_projects,
+                        most_recent_project=most_recent_project,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            # project 2 gets finished, project 3 is observed
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={
+                            "results": [
+                                {
+                                    "project_id": 1,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 100,
+                                    "is_active": False,
+                                },
+                                {
+                                    "project_id": 2,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 100,
+                                    "is_active": False,
+                                },
+                                {
+                                    "project_id": 3,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 99,
+                                    "is_active": True,
+                                },
+                            ]
+                        },
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Most recent project is 3.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 2 newly finished projects.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 1 active projects.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+        self.end_round()
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == DetailsRoundBehaviour.state_id
+
+    def test_project_becomes_active(self) -> None:
+        """The agent queries the contract and a project has become active."""
+        # projects 1-6 were previously observed
+        finished_projects: List = [1, 2, 3]
+        active_projects: List = []
+        inactive_projects: List = [4, 5, 6]
+        most_recent_project: int = 6
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        finished_projects=finished_projects,
+                        active_projects=active_projects,
+                        inactive_projects=inactive_projects,
+                        most_recent_project=most_recent_project,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            # project 6 becomes active
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={
+                            "results": [
+                                {
+                                    "project_id": 6,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 99,
+                                    "is_active": True,
+                                }
+                            ]
+                        },
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Most recent project is 6.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 0 newly finished projects.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 1 active projects.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+        self.end_round()
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == DetailsRoundBehaviour.state_id
+
+    def test_no_new_projects(self) -> None:
+        """The agent queries the contract and nothing has changed."""
+        # projects 1-6 were previously observed
+        finished_projects: List = [1, 2, 3]
+        active_projects: List = []
+        inactive_projects: List = [4, 5, 6]
+        most_recent_project: int = 6
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        finished_projects=finished_projects,
+                        active_projects=active_projects,
+                        inactive_projects=inactive_projects,
+                        most_recent_project=most_recent_project,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            # project 6 becomes active
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={
+                            "results": [
+                                {
+                                    "project_id": 4,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 99,
+                                    "is_active": False,
+                                },
+                                {
+                                    "project_id": 5,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 99,
+                                    "is_active": False,
+                                },
+                                {
+                                    "project_id": 6,
+                                    "price_per_token_in_wei": 1,
+                                    "max_invocations": 100,
+                                    "invocations": 99,
+                                    "is_active": False,
+                                },
+                            ]
+                        },
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Most recent project is 6.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 0 newly finished projects.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "There are 0 active projects.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+        self.end_round()
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == DetailsRoundBehaviour.state_id
+
+    def test_bad_response(self) -> None:
+        """The agent queries the contract and nothing has changed."""
+        # projects 1-6 were previously observed
+        finished_projects: List = [1, 2, 3]
+        active_projects: List = []
+        inactive_projects: List = [4, 5, 6]
+        most_recent_project: int = 6
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        finished_projects=finished_projects,
+                        active_projects=active_projects,
+                        inactive_projects=inactive_projects,
+                        most_recent_project=most_recent_project,
+                    ),
+                )
+            ),
         )
 
         assert (
@@ -739,7 +842,7 @@ class TestObservationRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
                 contract_id=str(ArtBlocksContract.contract_id),
                 request_kwargs=dict(
                     performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
                 ),
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
@@ -747,213 +850,51 @@ class TestObservationRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
                 ),
             )
 
-            mock_logger.assert_any_call(logging.ERROR, ANY)
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't get the projects, the following error was encountered AEAEnforceError: "
+                "response, response.state, response.state.body must exist",
+            )
 
-            self.elcollectooorr_abci_behaviour.act_wrapper()
-            time.sleep(1.1)
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+
+        self.end_round()
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == DetailsRoundBehaviour.state_id
 
 
-class TestDetailsRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
+class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for details round behaviour"""
 
     behaviour_class = DetailsRoundBehaviour
     next_behaviour_class = DecisionRoundBehaviour
 
-    def test_next_state_is_decision(self) -> None:
-        """The agent fetches details"""
-
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "royalty_receiver": "0x00000",
-            "invocations": 1,
-            "max_invocations": 10,
-            "ipfs_hash": "",
-        }
-        test_details: List[Dict] = [{}]
-
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(
-                StateDB(
-                    0,
-                    dict(
-                        most_voted_project=json.dumps(test_project),
-                        most_voted_details=json.dumps(test_details),
-                    ),
-                )
-            ),
-        )
-
-        assert (
-            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
-        )
-
-        with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
-        ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
-
-            self.mock_contract_api_request(
-                contract_id=str(ArtBlocksContract.contract_id),
-                request_kwargs=dict(
-                    performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
-                ),
-                response_kwargs=dict(
-                    performative=ContractApiMessage.Performative.STATE,
-                    state=State(
-                        ledger_id="ethereum",
-                        body={
-                            "price_per_token_in_wei": 123,
-                            "invocations": 2,
-                            "max_invocations": 10,
-                        },
-                    ),
-                ),
-            )
-
-            mock_logger.assert_any_call(
-                logging.INFO,
-                "Gathering details on project with id=121.",
-            )
-
-            mock_logger.assert_any_call(
-                logging.INFO,
-                "Successfully gathered details on project with id=121.",
-            )
-
-            mock_logger.assert_any_call(
-                logging.INFO, "Total length of details array 2."
-            )
-
-        self.mock_a2a_transaction()
-        self.end_round(event=Event.DONE)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-    def test_calling_details_for_the_first_time(self) -> None:
-        """The details round is called for the first round, the details array should have a length of 1."""
-
-        """The agent fetches details"""
-
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "royalty_receiver": "0x00000",
-            "invocations": 1,
-            "max_invocations": 10,
-            "ipfs_hash": "",
-        }
-
-        test_details: List[Dict] = []
-
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.state_id,
-            PeriodState(
-                StateDB(
-                    0,
-                    dict(
-                        most_voted_project=json.dumps(test_project),
-                        most_voted_details=json.dumps(test_details),
-                    ),
-                ),
-            ),
-        )
-
-        assert (
-            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
-            == self.behaviour_class.state_id
-        )
-
-        with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
-        ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
-
-            self.mock_contract_api_request(
-                contract_id=str(ArtBlocksContract.contract_id),
-                request_kwargs=dict(
-                    performative=ContractApiMessage.Performative.GET_STATE,
-                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
-                ),
-                response_kwargs=dict(
-                    performative=ContractApiMessage.Performative.STATE,
-                    state=State(
-                        ledger_id="ethereum",
-                        body={
-                            "price_per_token_in_wei": 123,
-                            "invocations": 2,
-                            "max_invocations": 10,
-                        },
-                    ),
-                ),
-            )
-
-            mock_logger.assert_any_call(
-                logging.INFO,
-                "Gathering details on project with id=121.",
-            )
-
-            mock_logger.assert_any_call(
-                logging.INFO,
-                "Successfully gathered details on project with id=121.",
-            )
-
-            mock_logger.assert_any_call(
-                logging.INFO, "Total length of details array 1."
-            )
-
-        self.mock_a2a_transaction()
-        self.end_round(event=Event.DONE)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-        assert state.state_id == self.next_behaviour_class.state_id
-
-
-class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
-    """Tests for Decision Round Behaviour"""
-
-    behaviour_class = DecisionRoundBehaviour
-    decided_yes_behaviour_class = TransactionRoundBehaviour
-    decided_no_behaviour_class = ResetFromObservationBehaviour
-    gib_details_behaviour_class = DetailsRoundBehaviour
-
-    def test_decided_yes(self) -> None:
-        """The agent evaluated the project and decided for YES"""
-
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "royalty_receiver": "0x00000",
-            "invocations": 1,
-            "max_invocations": 10,
-            "ipfs_hash": "",
-        }
-        test_details = [
-            {"price_per_token_in_wei": 1, "invocations": i, "max_invocations": 10}
-            for i in range(5)
+    def test_details_happy_path(self) -> None:
+        """The agent fetches details of 3 projects."""
+        active_projects = [
+            {
+                "project_id": 1,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
+            {
+                "project_id": 2,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
+            {
+                "project_id": 3,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
         ]
 
         self.fast_forward_to_state(
@@ -963,10 +904,376 @@ class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     0,
                     dict(
-                        most_voted_project=json.dumps(test_project),
-                        most_voted_details=json.dumps(test_details),
+                        active_projects=active_projects,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+
+        http_response = {
+            "data": {
+                "projects": [
+                    {"projectId": "1"},
+                    {"projectId": "2"},
+                    {"projectId": "3"},
+                ]
+            }
+        }
+        query = '{projects(where:{curationStatus:"curated"}){projectId}}'
+
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="POST",
+                headers="",
+                version="",
+                body=json.dumps({"query": query}).encode(),
+                url="https://api.thegraph.com/subgraphs/name/artblocks/art-blocks",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(http_response).encode(),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(ArtBlocksMinterFilterContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x4aafce293b9b0fad169c78049a81e400f518e199",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    ledger_id="ethereum",
+                    body={  # type: ignore
+                        1: {  # type: ignore
+                            "minter_for_project": "0x1",
+                        },
+                        2: {  # type: ignore
+                            "minter_for_project": "0x2",
+                        },
+                        3: {  # type: ignore
+                            "minter_for_project": "0x",  # no minter assigned
+                        },
+                    },
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(ArtBlocksPeripheryContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x1",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    ledger_id="ethereum",
+                    body={  # type: ignore
+                        1: {  # type: ignore
+                            "is_mintable_via_contract": True,
+                            "price_per_token_in_wei": 1,
+                            "is_price_configured": True,
+                            "currency_symbol": "ETH",
+                            "currency_address": "0x0000000000000000000000000000000000000000",
+                        },
+                    },
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(ArtBlocksPeripheryContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x2",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    ledger_id="ethereum",
+                    body={  # type: ignore
+                        2: {  # type: ignore
+                            "is_mintable_via_contract": True,
+                            "price_per_token_in_wei": 1,
+                            "is_price_configured": True,
+                            "currency_symbol": "ETH",
+                            "currency_address": "0x0000000000000000000000000000000000000000",
+                        },
+                    },
+                ),
+            ),
+        )
+        # test passes if no exception is thrown
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_bad_response_graph(self) -> None:
+        """Bad response from the graph."""
+        active_projects = [
+            {
+                "project_id": 1,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
+            {
+                "project_id": 2,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
+            {
+                "project_id": 3,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
+        ]
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        active_projects=active_projects,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            query = '{projects(where:{curationStatus:"curated"}){projectId}}'
+            http_response = {
+                "data": {
+                    "projects": [
+                        {"projectId": "1"},
+                        {"projectId": "2"},
+                        {"projectId": "3"},
+                    ]
+                }
+            }
+
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="POST",
+                    headers="",
+                    version="",
+                    body=json.dumps({"query": query}).encode(),
+                    url="https://api.thegraph.com/subgraphs/name/artblocks/art-blocks",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=500,
+                    status_text="",
+                    headers="",
+                    body=json.dumps(http_response).encode(),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't get projects details, the following error was encountered "
+                "AEAEnforceError: Bad response from the graph api.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_bad_response_contract(self) -> None:
+        """Bad response from the contract."""
+        active_projects = [
+            {
+                "project_id": 1,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
+            {
+                "project_id": 2,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
+            {
+                "project_id": 3,
+                "price_per_token_in_wei": 1,
+                "max_invocations": 100,
+                "invocations": 99,
+                "is_active": True,
+            },
+        ]
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        active_projects=active_projects,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            http_response = {
+                "data": {
+                    "projects": [
+                        {"projectId": "1"},
+                        {"projectId": "2"},
+                        {"projectId": "3"},
+                    ]
+                }
+            }
+            query = '{projects(where:{curationStatus:"curated"}){projectId}}'
+
+            self.mock_http_request(
+                request_kwargs=dict(
+                    method="POST",
+                    headers="",
+                    version="",
+                    body=json.dumps({"query": query}).encode(),
+                    url="https://api.thegraph.com/subgraphs/name/artblocks/art-blocks",
+                ),
+                response_kwargs=dict(
+                    version="",
+                    status_code=200,
+                    status_text="",
+                    headers="",
+                    body=json.dumps(http_response).encode(),
+                ),
+            )
+
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksMinterFilterContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x4aafce293b9b0fad169c78049a81e400f518e199",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={},
                     ),
                 ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't get projects details, the following error was encountered "
+                "AEAEnforceError: Invalid response was received from 'get_multiple_projects_minter'.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
+    """Tests for Decision Round Behaviour"""
+
+    behaviour_class = DecisionRoundBehaviour
+    decided_yes_behaviour_class = TransactionRoundBehaviour
+    decided_no_behaviour_class = DeployDecisionRoundBehaviour
+    gib_details_behaviour_class = DetailsRoundBehaviour
+
+    def test_decided_yes(self) -> None:
+        """The agent evaluated the project and decides to purchase"""
+        active_projects = [
+            {
+                "project_id": 1,
+                "price": 1,
+                "minted_percentage": 0.99,
+                "is_active": True,
+                "is_curated": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+            {
+                "project_id": 2,
+                "price": 1,
+                "minted_percentage": 0.98,
+                "is_active": True,
+                "is_curated": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+            {
+                "project_id": 3,
+                "price": 1,
+                "minted_percentage": 0.97,
+                "is_active": True,
+                "is_curated": True,
+                "currency_symbol": "ETH",
+                "is_mintable_via_contract": True,
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+        ]
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
+                        active_projects=active_projects,
+                        purchased_projects=[active_projects[-1]],
+                        amount_spent=10 ** 18,
+                    ),
+                )
             ),
         )
 
@@ -980,17 +1287,39 @@ class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
-        mock_logger.assert_any_call(
-            logging.INFO,
-            "making decision on project with id 121",
-        )
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={"balance": 2 * 10 ** 18},
+                    ),
+                ),
+            )
 
-        mock_logger.assert_any_call(
-            logging.INFO,
-            "decided 1 for project with id 121",
-        )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "The safe contract balance is 2.0Ξ.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Already spent 1.0Ξ.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "The current budget is 2.0Ξ.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "2 projects fit the reqs.",
+            )
 
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.decided_yes_behaviour_class.state_id
@@ -998,21 +1327,41 @@ class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
     def test_decided_no(self) -> None:
         """The agent evaluated the project and decided for NO"""
 
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "royalty_receiver": "0x00000",
-            "invocations": 1,
-            "max_invocations": 10,
-            "ipfs_hash": "",
-        }
-        test_details: List[Dict] = [{}]
+        active_projects = [
+            {
+                "project_id": 1,
+                "price": 1,
+                "minted_percentage": 0.99,
+                "is_active": True,
+                "is_curated": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+            {
+                "project_id": 2,
+                "price": 1,
+                "minted_percentage": 0.98,
+                "is_active": True,
+                "is_curated": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+            {
+                "project_id": 3,
+                "price": 1,
+                "minted_percentage": 0.97,
+                "is_active": True,
+                "is_curated": True,
+                "currency_symbol": "ETH",
+                "is_mintable_via_contract": True,
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+        ]
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
@@ -1021,16 +1370,60 @@ class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     0,
                     dict(
-                        most_voted_project=json.dumps(test_project),
-                        most_voted_details=json.dumps(test_details),
+                        safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
+                        active_projects=active_projects,
+                        purchased_projects=active_projects,
+                        amount_spent=10 ** 18,
                     ),
-                ),
+                )
             ),
         )
 
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={"balance": 2 * 10 ** 18},
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "The safe contract balance is 2.0Ξ.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Already spent 1.0Ξ.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "The current budget is 2.0Ξ.",
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "0 projects fit the reqs.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_NO)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
-
         assert state.state_id == self.decided_no_behaviour_class.state_id
 
     def test_decided_gib_details(self) -> None:
@@ -1071,8 +1464,98 @@ class TestDecisionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
 
         assert state.state_id == self.gib_details_behaviour_class.state_id
 
+    def test_bad_response(self) -> None:
+        """The agent receives a bad response from the contract."""
+        active_projects = [
+            {
+                "project_id": 1,
+                "price": 1,
+                "minted_percentage": 0.99,
+                "is_active": True,
+                "is_curated": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+            {
+                "project_id": 2,
+                "price": 1,
+                "minted_percentage": 0.98,
+                "is_active": True,
+                "is_curated": True,
+                "is_mintable_via_contract": True,
+                "currency_symbol": "ETH",
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+            {
+                "project_id": 3,
+                "price": 1,
+                "minted_percentage": 0.97,
+                "is_active": True,
+                "is_curated": True,
+                "currency_symbol": "ETH",
+                "is_mintable_via_contract": True,
+                "minter": "0x0",
+                "is_price_configured": True,
+            },
+        ]
 
-class TestTransactionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    dict(
+                        safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
+                        active_projects=active_projects,
+                        purchased_projects=[active_projects[-1]],
+                        amount_spent=10 ** 18,
+                    ),
+                )
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        ledger_id="ethereum",
+                        body={"bad_balance": 2 * 10 ** 18},
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't make a decision, the following error was encountered "
+                "AEAEnforceError: response, response.state, response.state.body must exist.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DECIDED_YES)
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.decided_yes_behaviour_class.state_id
+
+
+class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for Transaction Round Behaviour"""
 
     behaviour_class = TransactionRoundBehaviour
@@ -1082,15 +1565,13 @@ class TestTransactionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
         """The agent gathers the necessary data to make the purchase,makes a contract requests and receives valid data"""
 
         test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "ipfs_hash": "",
+            "project_id": 3,
+            "price": 1,
+            "minted_percentage": 0.97,
+            "is_active": True,
+            "is_curated": True,
+            "is_mintable": True,
+            "minter": "0x1",
         }
 
         self.fast_forward_to_state(
@@ -1100,7 +1581,7 @@ class TestTransactionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     0,
                     {
-                        "most_voted_project": json.dumps(test_project),
+                        "project_to_purchase": test_project,
                         "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                         "most_voted_details": json.dumps(
                             [{"price_per_token_in_wei": 123}]
@@ -1121,7 +1602,7 @@ class TestTransactionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             request_kwargs=dict(
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+                contract_address="0x1",
             ),
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
@@ -1150,7 +1631,1296 @@ class TestTransactionRoundBehaviour(ElcollectooorrFSMBehaviourBaseCase):
         )
 
         self.mock_a2a_transaction()
+        self._test_done_flag_set()
         self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_invalid_data(self) -> None:
+        """The agent gathers the necessary data to make the purchase,makes a contract requests and receives valid data"""
+
+        test_project = {
+            "project_id": 3,
+            "price": 1,
+            "minted_percentage": 0.97,
+            "is_active": True,
+            "is_curated": True,
+            "is_mintable": True,
+            "minter": "0x1",
+        }
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "project_to_purchase": test_project,
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                        "most_voted_details": json.dumps(
+                            [{"price_per_token_in_wei": 123}]
+                        ),
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksPeripheryContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={
+                            "data": "0xefef39a10000000000000000000000000000000000000000000000000000000000000079"
+                        },
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={"bad_tx_hash": "0x" + "0" * 64},
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create transaction payload, the following error was encountered "
+                "AEAEnforceError: contract returned and empty body or empty tx_hash.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.ERROR)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == ObservationRoundBehaviour.state_id
+
+
+class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
+    """Tests for Funding Round Behaviour"""
+
+    behaviour_class = FundingRoundBehaviour
+    next_behaviour_class = PayoutFractionsRoundBehaviour
+
+    def test_contract_returns_valid_data(self) -> None:
+        """The agent gets the ingoing transfers."""
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+
+        self.mock_contract_api_request(
+            contract_id=str(GnosisSafeContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    body={
+                        "data": [
+                            {
+                                "sender": "0x0",
+                                "amount": 1,
+                                "blockNumber": 1,
+                            },
+                            {
+                                "sender": "0x1",
+                                "amount": 2,
+                                "blockNumber": 2,
+                            },
+                        ]
+                    },
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_invalid_data(self) -> None:
+        """The agent can't get the ingoing transfers."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={"bad_tx_hash": "0x" + "0" * 64},
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't get transfers to the safe contract, "
+                "the following error was encountered AEAEnforceError: contract returned and empty body or empty data.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
+    """Tests for Payout Fractions Round Behaviour"""
+
+    behaviour_class = PayoutFractionsRoundBehaviour
+    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    no_payouts_next_behaviour = ObservationRoundBehaviour
+    fraction_price = 10500000000000000
+
+    def _mock_available_tokens(
+        self, address: str = "0x0", balance: int = 1000, bad_response: bool = False
+    ) -> None:
+        """Mock the response of the TokenVault when calling get_balance."""
+        body = dict(balance=balance) if not bad_response else {}
+
+        self.mock_contract_api_request(
+            contract_id=str(TokenVaultContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address=address,
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    body=body,  # type: ignore
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
+
+    def _mock_multisend_tx(
+        self,
+        address: str = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761",
+        bad_response: bool = False,
+    ) -> None:
+        """Mock the response of the Multisend Address."""
+
+        body = dict(data=b"multisend_data".hex()) if not bad_response else dict()
+
+        self.mock_contract_api_request(
+            contract_id=str(MultiSendContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_RAW_TRANSACTION,
+                contract_address=address,
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.RAW_TRANSACTION,
+                raw_transaction=RawTransaction(
+                    body=body,  # type: ignore
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
+
+    def _mock_transferERC20_tx(
+        self, address: str = "0x0", bad_response: bool = False
+    ) -> None:
+        """Mock the ERC20 transfer tx."""
+        body = {"data": b"erc20_tx"} if not bad_response else {}
+
+        self.mock_contract_api_request(
+            contract_id=str(TokenVaultContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address=address,
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    body=body,  # type: ignore
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
+
+    def _mock_tx_hash(self, address: str = "0x0") -> None:
+        """Mock the response of the gnosis safe contract."""
+        self.mock_contract_api_request(
+            contract_id=str(GnosisSafeContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address=address,
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    body={"tx_hash": "0x" + "0" * 64},
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
+
+    def test_the_happy_path(self) -> None:
+        """There is an address waiting to be paid, the agent prepares a tx to pay to it."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {},  # no user has yet been paid
+                        "most_voted_funds": [
+                            {
+                                "sender": "0x0",
+                                "amount": 10 ** 18,  # 1ETH
+                                "blockNumber": 0,
+                            }
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self._mock_available_tokens()
+            self._mock_transferERC20_tx()
+            self._mock_multisend_tx()
+            self._mock_tx_hash()
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "1 user(s) is(are) getting paid their fractions.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_two_users_get_paid(self) -> None:
+        """Two users need to get paid."""
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {},  # no user has yet been paid
+                        "most_voted_funds": [
+                            {
+                                "sender": "0x0",
+                                "amount": 10 ** 18,  # 1ETH
+                                "blockNumber": 0,
+                            },
+                            {
+                                "sender": "0x1",
+                                "amount": 10 ** 18,  # 1ETH
+                                "blockNumber": 0,
+                            },
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self._mock_available_tokens()
+            self._mock_transferERC20_tx()
+            self._mock_transferERC20_tx()
+            self._mock_multisend_tx()
+            self._mock_tx_hash()
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "2 user(s) is(are) getting paid their fractions.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_no_users_get_paid(self) -> None:
+        """No users need to get paid."""
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {},  # no user has yet been paid
+                        "most_voted_funds": [
+                            {
+                                "sender": "0x0",
+                                "amount": 0,  # assume 0 ETH transfers
+                                "blockNumber": 0,
+                            },
+                            {
+                                "sender": "0x1",
+                                "amount": 0,  # assume 0 ETH transfers
+                                "blockNumber": 0,
+                            },
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self._mock_available_tokens()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_no_investments(self) -> None:
+        """No users need to get paid."""
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {},  # no user has yet been paid
+                        "most_voted_funds": [],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self._mock_available_tokens()
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.NO_PAYOUTS)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.no_payouts_next_behaviour.state_id
+
+    def test_a_user_invests_twice(self) -> None:
+        """A user has invested once before, but needs to get paid for the new investment."""
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {
+                            "0x0": 1
+                        },  # address 0x0 has been paid 1, 10 more need to be paid
+                        "most_voted_funds": [
+                            {
+                                "sender": "0x0",
+                                "amount": self.fraction_price,
+                                "blockNumber": 0,
+                            },
+                            {
+                                "sender": "0x0",
+                                "amount": 10 * self.fraction_price,
+                                "blockNumber": 10,
+                            },
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self._mock_available_tokens()
+            self._mock_transferERC20_tx()
+            self._mock_multisend_tx()
+            self._mock_tx_hash()
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "1 user(s) is(are) getting paid their fractions.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_a_user_invests_twice_consecutively(self) -> None:
+        """A user has invested twice."""
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {
+                            "0x0": 0
+                        },  # address 0x0 has been paid 1, 10 more need to be paid
+                        "most_voted_funds": [
+                            {
+                                "sender": "0x0",
+                                "amount": self.fraction_price,
+                                "blockNumber": 0,
+                            },
+                            {
+                                "sender": "0x0",
+                                "amount": 10 * self.fraction_price,
+                                "blockNumber": 10,
+                            },
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self._mock_available_tokens()
+            self._mock_transferERC20_tx()
+            self._mock_multisend_tx()
+            self._mock_tx_hash()
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "1 user(s) is(are) getting paid their fractions.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_not_enough_tokens_for_two_users(self) -> None:
+        """
+        Two users are owned 10 tokens each, there are only 10 tokens available, only one of the users should get them.
+
+        NOTE: The other user will get their share once the next vault has been created.
+        """
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {},  # no user has yet been paid
+                        "most_voted_funds": [
+                            {
+                                "sender": "0x0",
+                                "amount": 10
+                                * self.fraction_price,  # the first user has paid for 10 tokens
+                                "blockNumber": 0,
+                            },
+                            {
+                                "sender": "0x1",
+                                "amount": 10
+                                * self.fraction_price,  # the second  user has paid for 10 tokens
+                                "blockNumber": 0,
+                            },
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self._mock_available_tokens(balance=10)
+            self._mock_transferERC20_tx()
+            self._mock_multisend_tx()
+            self._mock_tx_hash()
+
+            mock_logger.assert_any_call(logging.WARNING, "No more tokens left!")
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "1 user(s) is(are) getting paid their fractions.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_not_enough_tokens_to_fully_pay_two_users(self) -> None:
+        """
+        Two users are owned 10 tokens each, there are only 19 tokens available, one will get 10, the other 9.
+
+        NOTE: The user owned 1 token will get that token once a new vault has been deployed.
+        """
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {},  # no user has yet been paid
+                        "most_voted_funds": [
+                            {
+                                "sender": "0x0",
+                                "amount": 10
+                                * self.fraction_price,  # the first user has paid for 10 tokens
+                                "blockNumber": 0,
+                            },
+                            {
+                                "sender": "0x1",
+                                "amount": 10
+                                * self.fraction_price,  # the second  user has paid for 10 tokens
+                                "blockNumber": 0,
+                            },
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self._mock_available_tokens(balance=19)
+            self._mock_transferERC20_tx()
+            self._mock_transferERC20_tx()
+            self._mock_multisend_tx()
+            self._mock_tx_hash()
+
+            mock_logger.assert_any_call(
+                logging.WARNING,
+                "Not enough funds to payout all the owned tokens, they will be paid when the next vault is created!",
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "2 user(s) is(are) getting paid their fractions.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_bad_contract_response(self) -> None:
+        """A contract returns a bad response."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {},  # no user has yet been paid
+                        "most_voted_funds": [
+                            {
+                                "sender": "0x0",
+                                "amount": 10
+                                * self.fraction_price,  # the first user has paid for 10 tokens
+                                "blockNumber": 0,
+                            },
+                            {
+                                "sender": "0x1",
+                                "amount": 10
+                                * self.fraction_price,  # the second  user has paid for 10 tokens
+                                "blockNumber": 0,
+                            },
+                        ],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self._mock_available_tokens(bad_response=True)
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create PayoutFractions payload, the following error was encountered "
+                "AEAEnforceError: Could not retrieve the token balance of the safe contract.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.NO_PAYOUTS)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.no_payouts_next_behaviour.state_id
+
+
+class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
+    """Tests for Payout Fractions Round Behaviour"""
+
+    behaviour_class = PostPayoutRoundBehaviour
+    next_behaviour_class = ObservationRoundBehaviour
+
+    def test_the_happy_path(self) -> None:
+        """The users that got paid get logged."""
+        users_being_paid = {
+            "0x0": 1,
+            "0x1": 1,
+        }
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "vault_addresses": ["0x0"],
+                        "paid_users": {},  # no user has yet been paid
+                        "users_being_paid": users_being_paid,
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"The following users were paid: {users_being_paid}",
+            )
+
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+
+class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
+    """Tests for Payout Fractions Round Behaviour"""
+
+    behaviour_class = ProcessPurchaseRoundBehaviour
+    next_behaviour_class = TransferNFTRoundBehaviour
+    failed_next_behaviour = ObservationRoundBehaviour
+
+    def test_the_happy_path(self) -> None:
+        """A token has been purchased, the agent extracts the data from the tx hash."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "final_tx_hash": "0x0",
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(ledger_id="ethereum", body=dict(token_id=1)),
+                ),
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "Purchased token id=1.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_bad_response(self) -> None:
+        """The contract returns a bad response."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "final_tx_hash": "0x0",
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(ledger_id="ethereum", body=dict(bad_token_id=1)),
+                ),
+            )
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create PurchasedNFTPayload payload, "
+                "the following error was encountered AEAEnforceError: Couldn't get token_id from the purchase tx hash.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.ERROR)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.failed_next_behaviour.state_id
+
+
+class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
+    """Tests for Payout Fractions Round Behaviour"""
+
+    behaviour_class = TransferNFTRoundBehaviour
+    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    no_transfer = DeployDecisionRoundBehaviour
+
+    def test_the_happy_path(self) -> None:
+        """A token has been purchased, the agent transfers it to the safe contract."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "basket_addresses": ["0x1"],
+                        "purchased_nft": 1,
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        self.elcollectooorr_abci_behaviour.act_wrapper()
+
+        self.mock_contract_api_request(
+            contract_id=str(ArtBlocksContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(ledger_id="ethereum", body=dict(data=b"123".hex())),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(GnosisSafeContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x0",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    body={"tx_hash": "0x" + "0" * 64},
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_bad_response(self) -> None:
+        """The contract returns a bad response."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "basket_addresses": ["0x1"],
+                        "purchased_nft": 1,
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(ArtBlocksContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(ledger_id="ethereum", body=dict(data=b"123".hex())),
+                ),
+            )
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x0",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={"bad_tx_hash": "0x" + "0" * 64},
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create TransferNFT payload, "
+                "the following error was encountered AEAEnforceError: contract returned and empty body or empty tx_hash.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.NO_TRANSFER)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.no_transfer.state_id
+
+    def test_the_token_id_is_none(self) -> None:
+        """The token_id is none."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "safe_contract_address": "0x0",
+                        "basket_addresses": ["0x1"],
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create TransferNFT payload, "
+                "the following error was encountered AEAEnforceError: No token to be transferred.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.NO_TRANSFER)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.no_transfer.state_id
+
+
+class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase):
+    """Tests for PostTransactionSettlemenBehaviour"""
+
+    behaviour_class = PostTransactionSettlementBehaviour
+    next_behaviour_class = ProcessPurchaseRoundBehaviour
+    error_next_behaviour_class = RandomnessTransactionSubmissionBehaviour
+
+    def test_the_happy_path(self) -> None:
+        """A tx with value 1ETH was settled."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "final_tx_hash": "0x0",
+                        "tx_submitter": "elcollectooorr_transaction_collection",
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x0000000000000000000000000000000000000000",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body=dict(amount_spent=10 ** 18),
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "The TX submitted by elcollectooorr_transaction_collection was settled.",
+            )
+
+            mock_logger.assert_any_call(logging.INFO, "The settled tx cost: 1.0Ξ.")
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.next_behaviour_class.state_id
+
+    def test_contract_returns_bad_response(self) -> None:
+        """The contract returns a bad response."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "final_tx_hash": "0x0",
+                        "tx_submitter": "elcollectooorr_transaction_collection",
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x0000000000000000000000000000000000000000",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body=dict(bad_amount_spent=10 ** 18),
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't create the PostTransactionSettlement payload, the following error was encountered "
+                "AEAEnforceError: response, response.state, response.state.body must exist.",
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.ERROR)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
+        assert state.state_id == self.error_next_behaviour_class.state_id
+
+    def test_the_the_tx_submitter_is_missing(self) -> None:
+        """A token with value 1ETH was settled, but the tx_submitter is missing."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.state_id,
+            PeriodState(
+                StateDB(
+                    0,
+                    {
+                        "final_tx_hash": "0x0",
+                    },
+                ),
+            ),
+        )
+
+        assert (
+            cast(BaseState, self.elcollectooorr_abci_behaviour.current_state).state_id
+            == self.behaviour_class.state_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x0000000000000000000000000000000000000000",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body=dict(amount_spent=10 ** 18),
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "A TX was settled, but the `tx_submitter` is unavailable!",
+            )
+
+            mock_logger.assert_any_call(logging.INFO, "The settled tx cost: 1.0Ξ.")
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_state)
         assert state.state_id == self.next_behaviour_class.state_id

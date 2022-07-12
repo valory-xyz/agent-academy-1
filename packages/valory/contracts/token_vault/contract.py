@@ -36,7 +36,6 @@ from packages.valory.contracts.token_vault_factory.contract import (
 PUBLIC_ID = PublicId.from_str("valory/token_vault:0.1.0")
 TOKEN_VAULT_DEPLOYED_CODE = "0x6080604052600436106100225760003560e01c8063d7dfa0dd1461007557610029565b3661002957005b60007f000000000000000000000000d8058efe0198ae9dd7d563e1b4938dcbc86a1f81905060405136600082376000803683855af43d806000843e8160008114610071578184f35b8184fd5b34801561008157600080fd5b5061008a6100a0565b60405161009791906100d3565b60405180910390f35b7f000000000000000000000000d8058efe0198ae9dd7d563e1b4938dcbc86a1f8181565b6100cd816100ee565b82525050565b60006020820190506100e860008301846100c4565b92915050565b60006100f982610100565b9050919050565b600073ffffffffffffffffffffffffffffffffffffffff8216905091905056fea2646970667358221220dc1b8611c989c28d353f1703711deb09faf9e2c5a24cfef6bacf2bad3a3de59064736f6c63430008040033"  # nosec
 
-
 _logger = logging.getLogger(
     f"aea.packages.{PUBLIC_ID.author}.contracts.{PUBLIC_ID.name}.contract"
 )
@@ -353,6 +352,7 @@ class TokenVaultContract(Contract):
         """
 
         instance = cls.get_instance(ledger_api, contract_address)
+        receiver_address = ledger_api.api.toChecksumAddress(receiver_address)
         data = instance.encodeABI(fn_name="transfer", args=[receiver_address, amount])
 
         return {"data": data}
@@ -406,7 +406,7 @@ class TokenVaultContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         address: str,
-    ) -> Optional[int]:
+    ) -> JSONLike:
         """
         Get the curator of the contract.
 
@@ -420,4 +420,24 @@ class TokenVaultContract(Contract):
         token_vault_contract = cls.get_instance(ledger_api, contract_address)
         balance = token_vault_contract.functions.balanceOf(address).call()
 
-        return balance
+        return {"balance": balance}
+
+    @classmethod
+    def get_auction_state(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+    ) -> JSONLike:
+        """
+        Get the curator of the contract.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the token vault to be used
+        :return: the curator's address
+        """
+
+        ledger_api = cast(EthereumApi, ledger_api)
+        token_vault_contract = cls.get_instance(ledger_api, contract_address)
+        state = token_vault_contract.functions.auctionState().call()
+
+        return {"state": state}

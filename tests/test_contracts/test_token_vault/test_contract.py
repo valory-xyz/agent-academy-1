@@ -287,7 +287,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
             self.ledger_api,
             str(self.contract_address),
             self.deployer_crypto.address,
-        )
+        )["balance"]
 
         expected_value = contract.functions.balanceOf(
             self.deployer_crypto.address

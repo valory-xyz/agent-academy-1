@@ -30,6 +30,79 @@ from aea.exceptions import enforce
 _default_logger = logging.getLogger(__name__)
 
 
+class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
+    """Decision model that purchases only 80% minted projects."""
+
+    @staticmethod
+    def decide(
+        active_projects: List[dict],
+        purchased_projects: List[dict],
+        budget: int,
+    ) -> List[Dict]:
+        """
+        Method to decide on what projects to purchase.
+
+        :param active_projects: projects that are currently active.
+        :param purchased_projects: projects that have been purchased.
+        :param budget: the available budget in wei.
+        :return: an ordered list of projects, based on "fitness" to purchase.
+        """
+        purchased_curated = [p for p in purchased_projects if p["is_curated"]]
+        purchased_non_curated = [p for p in purchased_projects if not p["is_curated"]]
+        purchased_project_ids = {p["project_id"] for p in purchased_projects}
+        # only purchase non-curated if there are more curated than non-curated
+        can_purchase_non_curated = len(purchased_curated) > len(purchased_non_curated)
+        potential_projects = []
+
+        for project in active_projects:
+            if not project["is_mintable_via_contract"]:
+                _default_logger.info(
+                    f"Project #{project['project_id']} cannot be purchased via contracts, "
+                    f"and purchasing via EOAs is disabled."
+                )
+                continue
+
+            if project["currency_symbol"] != "ETH":
+                _default_logger.info(
+                    f"Project #{project['project_id']} cannot be purchased with ETH."
+                )
+                continue
+
+            if not project["is_price_configured"]:
+                _default_logger.info(
+                    f"Project #{project['project_id']} doesnt have a price configured."
+                )
+                continue
+
+            if project["project_id"] in purchased_project_ids:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is already purchased."
+                )
+                continue
+
+            if project["price"] > budget:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is too expensive."
+                )
+                continue
+
+            if not project["is_curated"] and not can_purchase_non_curated:
+                _default_logger.info(
+                    f"Project #{project['project_id']} is non-curated, but we need to purchase a curated project."
+                )
+                continue
+
+            _default_logger.info(
+                f"Project #{project['project_id']} is a project we can purchase."
+            )
+
+            potential_projects.append(project)
+
+        potential_projects.sort(key=lambda p: p["minted_percentage"], reverse=True)
+
+        return potential_projects
+
+
 class BaseDecisionModel(ABC):
     """Framework for any decision models."""
 

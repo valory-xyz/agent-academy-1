@@ -1,0 +1,120 @@
+name: fractionalize_deployment_abci
+author: valory
+version: 0.1.0
+type: skill
+description: ABCI application for demonstation.
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: QmUF1mDkyn9kgNuY36fUzL7k1FeaxY1V2f2kHy1WDr3F55
+  __init__.py: QmRmnEjrscn996giB78mrGNCHqcYJYxfcMH3gtdaEoPQYu
+  behaviours.py: QmNw2vmavf4ApDdPUL5oGJoZGrcyq3PAvi7m4pbFhjLr4b
+  dialogues.py: QmTo7Z7iayhvXV7kWU1zYQ57ox6wAzBCBTp8tYGS284gHq
+  handlers.py: QmUg4PNq7MHKkLucHt95toAE3uipLpTnNksSWh7TUZ88MQ
+  models.py: QmSYiy59TkuXfMy8sHNRrkq4EExYZ2E3zcDu4XfBA3EJft
+  payloads.py: QmXsB3h2wqPLW8tptJyJtGqvoE59QDiEBWtPHdA7GzJBGa
+  rounds.py: QmYbEk55NiL3zdgcwXVczPLKkKvCFQVQERpuGSVKcHaG8L
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0
+- valory/http_client:0.1.0
+- valory/ledger:0.1.0
+contracts:
+- valory/artblocks:0.1.0
+- valory/artblocks_periphery:0.1.0
+protocols:
+- open_aea/signing:1.0.0
+- valory/abci:0.1.0
+- valory/contract_api:1.0.0
+- valory/http:1.0.0
+- valory/ledger_api:1.0.0
+skills:
+- valory/abstract_round_abci:0.1.0
+- valory/registration_abci:0.1.0
+- valory/safe_deployment_abci:0.1.0
+- valory/transaction_settlement_abci:0.1.0
+behaviours:
+  main:
+    args: {}
+    class_name: FractionalizeDeploymentRoundBehaviour
+handlers:
+  abci:
+    args: {}
+    class_name: FractionalizeDeploymentABCIHandler
+  contract_api:
+    args: {}
+    class_name: ContractApiHandler
+  http:
+    args: {}
+    class_name: HttpHandler
+  ledger_api:
+    args: {}
+    class_name: LedgerApiHandler
+  signing:
+    args: {}
+    class_name: SigningHandler
+models:
+  abci_dialogues:
+    args: {}
+    class_name: AbciDialogues
+  benchmark_tool:
+    args:
+      log_dir: /logs
+    class_name: BenchmarkTool
+  contract_api_dialogues:
+    args: {}
+    class_name: ContractApiDialogues
+  http_dialogues:
+    args: {}
+    class_name: HttpDialogues
+  ledger_api_dialogues:
+    args: {}
+    class_name: LedgerApiDialogues
+  params:
+    args:
+      basket_factory_address: '0xde771104C0C44123d22D39bB716339cD0c3333a1'
+      cleanup_history_depth: 1
+      consensus:
+        max_participants: 1
+      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      keeper_timeout: 30.0
+      max_healthcheck: 120
+      max_retries: 5
+      observation_interval: 10
+      period_setup: {}
+      reset_tendermint_after: 2
+      retry_attempts: 400
+      retry_timeout: 3
+      round_timeout_seconds: 30.0
+      service_id: frationalize_deployment_1
+      settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
+      sleep_time: 1
+      starting_project_id: null
+      tendermint_check_sleep_delay: 3
+      tendermint_com_url: http://localhost:8080
+      tendermint_max_retries: 5
+      tendermint_url: http://localhost:26657
+      token_vault_factory_address: '0x85aa7f78bdb2de8f3e0c0010d99ad5853ffcfc63'
+    class_name: Params
+  randomness_api:
+    args:
+      api_id: cloudflare
+      headers: []
+      method: GET
+      parameters: []
+      response_key: null
+      response_type: dict
+      retries: 5
+      url: https://drand.cloudflare.com/public/latest
+    class_name: RandomnessApi
+  requests:
+    args: {}
+    class_name: Requests
+  signing_dialogues:
+    args: {}
+    class_name: SigningDialogues
+  state:
+    args: {}
+    class_name: SharedState
+dependencies: {}
+is_abstract: true

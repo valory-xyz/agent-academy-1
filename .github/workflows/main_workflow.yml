@@ -239,7 +239,11 @@ jobs:
           # build hardhat node in third_party/safe-contracts
           cd third_party/safe-contracts &&\
             sudo chown -R $(whoami) .husky &&\
-            yarn
+            yarn &&\
+            cd -
+          
+          # build the hardhat node in third_party/contracts-elcol
+          cd third_party/contracts-elcol && yarn           
 
       - name: e2e tests
         run: |

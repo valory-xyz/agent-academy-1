@@ -20,6 +20,7 @@
 """Test the base.py module of the skill."""
 import json
 import logging  # noqa: F401
+from copy import deepcopy
 from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
@@ -32,17 +33,28 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
+    FundingPayload,
     ObservationPayload,
+    PayoutFractionsPayload,
+    PostTxPayload,
+    PurchasedNFTPayload,
     TransactionPayload,
+    TransferNFTPayload,
 )
 from packages.valory.skills.elcollectooorr_abci.rounds import (
     DecisionRound,
     DetailsRound,
     Event,
+    FundingRound,
     ObservationRound,
+    PayoutFractionsRound,
     PeriodState,
-    ResetFromObservationRound,
+    PostPayoutRound,
+    PostTransactionSettlementEvent,
+    PostTransactionSettlementRound,
+    ProcessPurchaseRound,
     TransactionRound,
+    TransferNFTRound,
     rotate_list,
 )
 from packages.valory.skills.simple_abci.payloads import (
@@ -130,16 +142,25 @@ class TestObservationRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        test_project_details = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "omitted due to its length",
-            "ipfs_hash": "",
+        active_projects = [
+            {
+                "project_id": 121,
+            },
+            {
+                "project_id": 122,
+            },
+            {
+                "project_id": 123,
+            },
+        ]
+        inactive_projects = [1, 2, 3]
+        finished_projects = [4, 5, 6]
+
+        payload_data = {
+            "active_projects": active_projects,
+            "inactive_projects": inactive_projects,
+            "newly_finished_projects": finished_projects,
+            "most_recent_project": 123,
         }
 
         test_round = ObservationRound(
@@ -148,7 +169,7 @@ class TestObservationRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             ObservationPayload(
-                sender=participant, project_details=json.dumps(test_project_details)
+                sender=participant, project_details=json.dumps(payload_data)
             )
             for participant in self.participants
         ]
@@ -171,7 +192,9 @@ class TestObservationRound(BaseRoundTestClass):
         actual_next_state = self.period_state.update(
             participant_to_project=MappingProxyType(test_round.collection),
             most_voted_project=test_round.most_voted_payload,
-            last_processed_project_id=121,
+            most_recent_project=123,
+            inactive_projects=inactive_projects,
+            active_projects=active_projects,
         )
 
         res = test_round.end_block()
@@ -199,6 +222,83 @@ class TestObservationRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
+class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
+    """Tests for ObservationRound, no active projects case."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        active_projects = []  # type: ignore
+        inactive_projects = [1, 2, 3]
+        finished_projects = [4, 5, 6]
+
+        payload_data = {
+            "active_projects": active_projects,
+            "inactive_projects": inactive_projects,
+            "newly_finished_projects": finished_projects,
+            "most_recent_project": 123,
+        }
+
+        test_round = ObservationRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            ObservationPayload(
+                sender=participant, project_details=json.dumps(payload_data)
+            )
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = self.period_state.update(
+            participant_to_project=MappingProxyType(test_round.collection),
+            most_voted_project=test_round.most_voted_payload,
+            most_recent_project=123,
+            inactive_projects=inactive_projects,
+            active_projects=active_projects,
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+
+        # a new period has started
+        # make sure the correct project is chosen
+        assert (
+            cast(PeriodState, state).most_voted_project
+            == cast(PeriodState, actual_next_state).most_voted_project
+        )
+
+        # make sure all the votes are as expected
+        assert all(
+            [
+                cast(PeriodState, state).participant_to_project[participant]
+                == actual_vote
+                for (participant, actual_vote) in cast(
+                    PeriodState, actual_next_state
+                ).participant_to_project.items()
+            ]
+        )
+
+        assert event == Event.NO_ACTIVE_PROJECTS
+
+
 class TestPositiveDecisionRound(BaseRoundTestClass):
     """Tests for DecisionRound, when the decision is positive."""
 
@@ -206,14 +306,14 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        test_decision = 1
+        payload_data = {"project_id": 123}
 
         test_round = DecisionRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
-            DecisionPayload(sender=participant, decision=test_decision)
+            DecisionPayload(sender=participant, decision=json.dumps(payload_data))
             for participant in self.participants
         ]
 
@@ -269,14 +369,17 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        test_decision = 0
 
         test_round = DecisionRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
+        project_to_purchase: Dict = {}  # {} represents a NO decision for now
+
         first_payload, *payloads = [
-            DecisionPayload(sender=participant, decision=test_decision)
+            DecisionPayload(
+                sender=participant, decision=json.dumps(project_to_purchase)
+            )
             for participant in self.participants
         ]
 
@@ -395,7 +498,7 @@ class TestDetailsRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        test_details = json.dumps([{"data": "more"}])
+        test_details = json.dumps({"active_projects": [{"data": "more"}]})
 
         test_round = DetailsRound(
             state=self.period_state, consensus_params=self.consensus_params
@@ -423,7 +526,7 @@ class TestDetailsRound(BaseRoundTestClass):
 
         actual_next_state = self.period_state.update(
             participant_to_details=MappingProxyType(test_round.collection),
-            most_voted_details=test_round.most_voted_payload,
+            active_projects=test_round.most_voted_payload,
         )
 
         res = test_round.end_block()
@@ -432,10 +535,9 @@ class TestDetailsRound(BaseRoundTestClass):
 
         # a new period has started
         # make sure the correct project is chosen
-        assert (
-            cast(PeriodState, state).most_voted_details
-            == cast(PeriodState, actual_next_state).most_voted_details
-        )
+        assert cast(PeriodState, state).db.get_strict("active_projects") == cast(
+            PeriodState, actual_next_state
+        ).db.get("active_projects")
 
         # make sure all the votes are as expected
         assert all(
@@ -451,50 +553,343 @@ class TestDetailsRound(BaseRoundTestClass):
         assert event == Event.DONE
 
 
-class TestResetFromObservationRound(BaseRoundTestClass):
-    """Tests for ResetFromObservationRound."""
+class TestFundingDecisionRound(BaseRoundTestClass):
+    """Tests for FundingRound."""
 
     def test_run(
         self,
     ) -> None:
         """Run tests."""
+        test_funds = {"0x0": 10 ** 18}
 
-        test_round = ResetFromObservationRound(
+        test_round = FundingRound(
             state=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
-            ResetPayload(sender=participant, period_count=1)
+            FundingPayload(sender=participant, address_to_funds=json.dumps(test_funds))
             for participant in self.participants
         ]
 
+        # only one participant has voted
+        # no event should be returned
         test_round.process_payload(first_payload)
         assert test_round.collection[first_payload.sender] == first_payload
         assert test_round.end_block() is None
 
+        # enough members have voted
+        # but no majority is reached
         self._test_no_majority_event(test_round)
 
+        # all members voted in the same way
+        # Event DONE should be returned
         for payload in payloads:
             test_round.process_payload(payload)
 
         actual_next_state = self.period_state.update(
-            period_count=test_round.most_voted_payload,
-            participant_to_randomness=None,
-            most_voted_randomness=None,
-            participant_to_selection=None,
-            most_voted_keeper_address=None,
+            participant_to_funds=MappingProxyType(test_round.collection),
+            most_voted_funds=test_round.most_voted_payload,
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
 
+        # a new period has started
+        # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).period_count
-            == cast(PeriodState, actual_next_state).period_count
+            cast(PeriodState, state).most_voted_funds
+            == cast(PeriodState, actual_next_state).most_voted_funds
+        )
+
+        # make sure all the votes are as expected
+        assert all(
+            [
+                cast(PeriodState, state).participant_to_funds[participant]
+                == actual_vote
+                for (participant, actual_vote) in cast(
+                    PeriodState, actual_next_state
+                ).participant_to_funds.items()
+            ]
         )
 
         assert event == Event.DONE
+
+
+class TestProcessPurchaseRound(BaseRoundTestClass):
+    """Tests for ProcessPurchaseRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_project = 123
+        test_nft = 10000
+        purchased_projects = [120, 121, 122]
+
+        initial_state = deepcopy(
+            self.period_state.update(
+                project_to_purchase=test_project,
+                purchased_projects=purchased_projects,
+            )
+        )
+
+        test_round = ProcessPurchaseRound(
+            state=initial_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            PurchasedNFTPayload(sender=participant, purchased_nft=test_nft)
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_purchased_projects = purchased_projects.copy()
+        actual_purchased_projects.append(test_nft)
+        actual_next_state = initial_state.update(
+            purchased_nft=test_nft,
+            purchased_projects=actual_purchased_projects,
+        )
+
+        res = test_round.end_block()
+
+        assert res is not None
+
+        state, event = res
+
+        assert cast(PeriodState, state).db.get_strict("purchased_nft") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("purchased_nft")
+        assert cast(PeriodState, state).db.get_strict("purchased_projects") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("purchased_projects")
+
+        assert event == Event.DONE
+
+
+class TestTransferNFTRound(BaseRoundTestClass):
+    """Tests for TransferNFTRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        initial_state = deepcopy(
+            self.period_state.update(
+                purchased_nft=123,
+            )
+        )
+
+        test_round = TransferNFTRound(
+            state=initial_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            TransferNFTPayload(sender=participant, transfer_data="0x123")
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = initial_state.update(
+            tx_submitter=TransferNFTRound.round_id,
+        )
+
+        res = test_round.end_block()
+
+        assert res is not None
+
+        state, event = res
+
+        assert cast(PeriodState, state).db.get_strict("tx_submitter") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("tx_submitter")
+
+        assert event == Event.DONE
+
+
+class TestPayoutFractionsRound(BaseRoundTestClass):
+    """Tests for PayoutFractionsRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        initial_state = deepcopy(self.period_state)
+
+        test_round = PayoutFractionsRound(
+            state=initial_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            PayoutFractionsPayload(
+                sender=participant,
+                payout_fractions=json.dumps({"encoded": "0x0", "raw": {"0x0": 123}}),
+            )
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = initial_state.update(
+            most_voted_tx_hash="0x0",
+            users_being_paid={"0x0": 123},
+            tx_submitter=PayoutFractionsRound.round_id,
+        )
+
+        res = test_round.end_block()
+
+        assert res is not None
+
+        state, event = res
+
+        assert cast(PeriodState, state).db.get_strict("most_voted_tx_hash") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("most_voted_tx_hash")
+        assert cast(PeriodState, state).db.get_strict("users_being_paid") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("users_being_paid")
+        assert cast(PeriodState, state).db.get_strict("tx_submitter") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("tx_submitter")
+
+        assert event == Event.DONE
+
+
+class TestPostPayoutRound(BaseRoundTestClass):
+    """Tests for PostPayoutRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+
+        initial_state = deepcopy(
+            self.period_state.update(
+                paid_users={"0x1": 1},
+                users_being_paid={"0x1": 2, "0x2": 1},
+            )
+        )
+        test_round = PostPayoutRound(
+            state=initial_state, consensus_params=self.consensus_params
+        )
+
+        # NOTE: No payload for this round.
+
+        actual_next_state = initial_state.update(
+            users_being_paid={},
+            paid_users={"0x1": 3, "0x2": 1},
+        )
+
+        res = test_round.end_block()
+
+        assert res is not None
+
+        state, event = res
+
+        assert cast(PeriodState, state).db.get_strict("users_being_paid") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("users_being_paid")
+        assert cast(PeriodState, state).db.get_strict("paid_users") == cast(
+            PeriodState, actual_next_state
+        ).db.get_strict("paid_users")
+
+        assert event == Event.DONE
+
+
+class TestPostTransactionSettlementRound(BaseRoundTestClass):
+    """Tests for PostTransactionSettlementRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_payload_data = {"amount_spent": 123}
+
+        self.period_state.update(tx_submitter=TransactionRound.round_id)
+        test_round = PostTransactionSettlementRound(
+            state=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            PostTxPayload(
+                sender=participant, post_tx_data=json.dumps(test_payload_data)
+            )
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = self.period_state.update(
+            amount_spent=123,
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+
+        # a new period has started
+        # make sure the correct project is chosen
+        assert cast(PeriodState, state).db.get("actual_next_state") == cast(
+            PeriodState, actual_next_state
+        ).db.get("actual_next_state")
+
+        assert event == PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE
 
 
 def test_rotate_list_method() -> None:

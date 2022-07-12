@@ -26,9 +26,10 @@ import pytest
 from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
-from tests.helpers.constants import KEY_PAIRS, LOCALHOST
+from tests.helpers.constants import HARDHAT_ELCOL_KEY_PAIRS, KEY_PAIRS, LOCALHOST
 from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
+from tests.helpers.docker.elcol_net import ElColNetDockerImage
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
@@ -123,6 +124,25 @@ class UseGanache:
         )
 
 
+@pytest.mark.integration
+class UseHardHatElColBaseTest:
+    """Inherit from this class to use HardHat local net with the El Collectooorrr contracts deployed."""
+
+    key_pairs: List[Tuple[str, str]] = HARDHAT_ELCOL_KEY_PAIRS
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_hardhat_elcol(
+        cls,
+        hardhat_elcol_scope_function: Any,
+        hardhat_elcol_addr: Any,
+        hardhat_elcol_key_pairs: Any,
+        setup_artblocks_contract: Any,
+    ) -> None:
+        """Start a HardHat ElCol instance."""
+        cls.key_pairs = hardhat_elcol_key_pairs
+
+
 class GanacheBaseTest(DockerBaseTest):
     """Base pytest class for Ganache."""
 
@@ -207,3 +227,13 @@ class HardHatAMMBaseTest(HardHatBaseTest):
         """Build the image."""
         client = docker.from_env()
         return AMMNetDockerImage(client, cls.addr, cls.port)
+
+
+class HardHatElColBaseTest(HardHatBaseTest):
+    """Base pytest class for HardHat with Gnosis Factory, Fractionalize and Artblocks contracts deployed."""
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return ElColNetDockerImage(client, cls.addr, cls.port)

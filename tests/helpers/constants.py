@@ -16,7 +16,6 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
 """Constants for tests."""
 import inspect
 import os
@@ -26,19 +25,38 @@ from typing import List, Tuple
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
 ROOT_DIR = Path(CUR_PATH, "..", "..").resolve().absolute()
+TEST_DATA_DIR = ROOT_DIR / "tests" / "data"
+CONTRACTS_PACKAGES_DIR = ROOT_DIR / "packages" / "valory" / "contracts"
 THIRD_PARTY = ROOT_DIR / "third_party"
 DEFAULT_ASYNC_TIMEOUT = 5.0
 DEFAULT_REQUESTS_TIMEOUT = 5.0
 MAX_RETRIES = 30
 LOCALHOST = "localhost"
 HTTP_LOCALHOST = f"http://{LOCALHOST}"
-ARTBLOCKS_ADDRESS = "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
-ARTBLOCKS_PERIPHERY_ADDRESS = "0x58727f5Fc3705C30C9aDC2bcCC787AB2BA24c441"
-TARGET_PROJECT_ID = (
-    56  # id of project that we want to test the behaviour of the El Collectooor
+SAFE_CONTRACT_ADDRESS = "0x32Cf1f3a98aeAF57b88b3740875D19912A522c1A"
+SAFE_FACTORY_ADDRESS = "0xD3aA556287Afe63102e5797BFDDd2A1E8DbB3eA5"
+SAFE_CALLBACK_HANDLER = "0x5Cca2cF3f8a0e5a5aF6A1E9A54A0c98510D92081"
+DEPLOYED_SAFE_CONTRACT = "0xfe8E74C5453fE73A1c927A4B95251DFF66D46Fac"  # this is the contract that get deployed once the test is run
+ARTBLOCKS_CORE_FILE = CONTRACTS_PACKAGES_DIR / "artblocks" / "build" / "artblocks.json"
+ARTBLOCKS_PERIPHERY_FILE = (
+    CONTRACTS_PACKAGES_DIR / "artblocks_periphery" / "build" / "Minter.json"
 )
-DECISION_MODEL_TYPE = "yes"
-
+ARTBLOCKS_MINTER_FILTER_FILE = (
+    CONTRACTS_PACKAGES_DIR / "artblocks_minter_filter" / "build" / "MinterFilter.json"
+)
+ARTBLOCKS_ADDRESS = "0xE0F8cEe346A702CCA192a6Ec807ff89B4c6bC70E"
+ARTBLOCKS_FILTER_ADDRESS = "0x3A78BF1783a0187c1C8000e41C2a008897D0a35f"
+ARTBLOCKS_SET_PRICE_MINTER = "0xfe46A8F577d3367848bdd127173B7d5F14a6088C"
+BASKET_FACTORY_ADDRESS = "0x9623B3C78e77Ea8c1A544cB73108B04787f96b08"
+TOKEN_VAULT_FACTORY_ADDRESS = "0x2C03ca9fb5a7b5B26996c00F7c419C5E9C706196"  # nosec
+SETTINGS_ADRESS = "0xb2443146EC9F5a1a5Fd5c1C9C0fe5f5cC459A31A"
+MULTISEND_ADDRESS = "0x9e2C43153aa0007E6172af3733021A227480f008"
+MOCK_ARTBLOCKS_API_PORT = 3000
+ELCOL_NET_HOST = f"{HTTP_LOCALHOST}:8545"
+ELCOL_NET_CHAIN_ID = 31337
+TARGET_PROJECT_ID = (
+    56  # id of project that we want to test the behaviour of the El Collectooorr
+)
 # default hardhat key pairs (public key, private key)
 KEY_PAIRS: List[Tuple[str, str]] = [
     (
@@ -144,5 +162,25 @@ GANACHE_KEY_PAIRS: List[Tuple[str, str]] = [
     (
         "0xd03ea8624C8C5987235048901fB614fDcA89b117",
         "0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743",
+    ),
+]
+
+# hardhat elcol key pairs (public, private)
+HARDHAT_ELCOL_KEY_PAIRS: List[Tuple[str, str]] = [
+    (
+        "0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0",
+        "0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1",
+    ),
+    (
+        "0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1",
+        "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d",
+    ),
+    (
+        "0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b",
+        "0x6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c",
+    ),
+    (
+        "0xE11BA2b4D45Eaed5996Cd0823791E0C93114882d",
+        "0x646f1ce2fdad0e6deeeb5c7e8e5543bdde65e86029e2fd9fc169899c440a7913",
     ),
 ]

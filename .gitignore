@@ -8,3 +8,6 @@ coverage.xml
 htmlcov
 *.egg-info
 generate_abciapp_spec.py
+/third_party/contracts-elcol/artifacts/
+/third_party/contracts-elcol/cache/
+/third_party/contracts-elcol/third_party/fractionalize-vaults/OpenZeppelin/

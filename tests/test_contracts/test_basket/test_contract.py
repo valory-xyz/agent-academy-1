@@ -100,7 +100,7 @@ class TestBasket(BaseGanacheContractWithDependencyTest):
 
         basket_info = basket_factory_contract.get_basket_address(
             ledger_api=self.ledger_api,
-            factory_contract=basket_factory_address,
+            contract_address=basket_factory_address,
             tx_hash=self.create_basket_tx_hash,
         )
 

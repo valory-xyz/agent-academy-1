@@ -263,7 +263,6 @@ class GnosisSafeContract(Contract):
         Get the hash of the raw Safe transaction.
 
         Adapted from https://github.com/gnosis/gnosis-py/blob/69f1ee3263086403f6017effa0841c6a2fbba6d6/gnosis/safe/safe_tx.py#L125
-
         Note, because safe_nonce is included in the tx_hash the agents implicitly agree on the order of txs if they agree on a tx_hash.
 
         :param ledger_api: the ledger API object
@@ -593,12 +592,12 @@ class GnosisSafeContract(Contract):
         contract_address: str,
         tx: TxData,
     ) -> JSONLike:
-        """Check the revert reason of a transaction.
+        """
+        Check the revert reason of a transaction.
 
         :param ledger_api: the ledger API object.
         :param contract_address: the contract address
         :param tx: the transaction for which we want to get the revert reason.
-
         :return: the revert reason message.
         """
         ledger_api = cast(EthereumApi, ledger_api)
@@ -636,3 +635,83 @@ class GnosisSafeContract(Contract):
         safe_contract = cls.get_instance(ledger_api, contract_address)
         safe_nonce = safe_contract.functions.nonce().call(block_identifier="latest")
         return dict(safe_nonce=safe_nonce)
+
+    @classmethod
+    def get_ingoing_transfers(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        from_block: Optional[str] = None,
+        to_block: Optional[str] = "latest",
+    ) -> JSONLike:
+        """
+        A list of transfers into the contract.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address,
+        :param from_block: from which block to start tje search
+        :param to_block: at which block to end the search
+        :return: list of transfers
+        """
+        safe_contract = cls.get_instance(ledger_api, contract_address)
+
+        if from_block is None:
+            logging.info(
+                "'from_block' not provided, checking for transfers to the safe contract in the last 50 blocks."
+            )
+            current_block = ledger_api.api.eth.get_block("latest")["number"]
+            from_block = hex(max(0, current_block - 50))  # check in the last ~10 min
+
+        safe_filter = safe_contract.events.SafeReceived.createFilter(
+            fromBlock=from_block, toBlock=to_block
+        )
+        all_entries = safe_filter.get_all_entries()
+
+        return {
+            "data": list(
+                map(
+                    lambda entry: {
+                        "sender": entry["args"]["sender"],
+                        "amount": int(entry["args"]["value"]),
+                        "blockNumber": entry["blockNumber"],
+                    },
+                    all_entries,
+                )
+            )
+        }
+
+    @classmethod
+    def get_balance(cls, ledger_api: EthereumApi, contract_address: str) -> JSONLike:
+        """
+        Retrieve the safe's balance
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address
+        :return: the safe balance (in wei)
+        """
+        return dict(balance=ledger_api.get_balance(address=contract_address))
+
+    @classmethod
+    def get_amount_spent(  # pylint: disable=unused-argument
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        tx_hash: str,
+    ) -> JSONLike:
+        """
+        Get the amount of ether spent in a tx.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address (not used)
+        :param tx_hash: the settled tx hash
+        :return: the safe balance (in wei)
+        """
+        tx_receipt = ledger_api.get_transaction_receipt(tx_hash)
+        tx = ledger_api.get_transaction(tx_hash)
+
+        tx_value = int(tx["value"])
+        gas_price = int(tx["gasPrice"])
+        gas_used = int(tx_receipt["gasUsed"])
+        total_spent = tx_value + (gas_price * gas_used)
+
+        return dict(amount_spent=total_spent)
