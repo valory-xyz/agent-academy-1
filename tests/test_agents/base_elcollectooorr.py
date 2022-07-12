@@ -162,6 +162,10 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
                     "return dict(verified=verified)",
                     "return dict(verified=True)",
                 )
+                .replace(
+                    "\"gas\": configured_gas,",
+                    "",
+                )
             )
 
             with open(
