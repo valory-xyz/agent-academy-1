@@ -26,7 +26,7 @@ import pytest
 from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
-from tests.helpers.constants import KEY_PAIRS, LOCALHOST
+from tests.helpers.constants import HARDHAT_ELCOL_KEY_PAIRS, KEY_PAIRS, LOCALHOST
 from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
 from tests.helpers.docker.elcol_net import ElColNetDockerImage
@@ -122,6 +122,25 @@ class UseGanache:
                 for key, _ in ganache_configuration.get("accounts_balances", [])
             ],
         )
+
+
+@pytest.mark.integration
+class UseHardHatElColBaseTest:
+    """Inherit from this class to use HardHat local net with the El Collectooorrr contracts deployed."""
+
+    key_pairs: List[Tuple[str, str]] = HARDHAT_ELCOL_KEY_PAIRS
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_hardhat_elcol(
+        cls,
+        hardhat_elcol_scope_function: Any,
+        hardhat_elcol_addr: Any,
+        hardhat_elcol_key_pairs: Any,
+        setup_artblocks_contract: Any,
+    ) -> None:
+        """Start a HardHat ElCol instance."""
+        cls.key_pairs = hardhat_elcol_key_pairs
 
 
 class GanacheBaseTest(DockerBaseTest):

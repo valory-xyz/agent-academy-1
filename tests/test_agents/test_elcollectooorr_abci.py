@@ -19,7 +19,7 @@
 
 """Integration tests for the valory/price_estimation_abci skill."""
 
-from tests.fixture_helpers import UseGanacheFork
+from tests.fixture_helpers import UseHardHatElColBaseTest
 from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
 from tests.test_agents.base_elcollectooorr import BaseTestElCollectooorrEnd2End
 
@@ -44,111 +44,73 @@ SAFE_CHECK_STRINGS = (
 
 BASE_ELCOLLECTOOORR_CHECK_STRINGS = (
     "Entered in the 'observation' round for period 0",
-    f"Retrieved project with id {TARGET_PROJECT_ID}",
-    "'observation' round is done",
+    "Most recent project is 3.",
+    "There are 2 newly finished projects.",
+    "There are 1 active projects.",
+    "'observation' round is done with event: Event.DONE",
     "Entered in the 'details' round for period 0",
-    f"Successfully gathered details on project with id={TARGET_PROJECT_ID}.",
-    "Total length of details array 1.",
-    "'details' round is done",
-    "Entered in the 'decision' round",
-    "'decision' round is done",
-)
-
-DECIDED_YES_CHECK_STRINGS = (
-    "decided 1 for project with id 56",
+    "'details' round is done with event: Event.DONE",
+    "Entered in the 'decision' round for period 0",
+    "The safe contract balance is 1.0Ξ.",
+    "The current budget is 1.0Ξ.",
+    "1 projects fit the reqs.",
     "'decision' round is done with event: Event.DECIDED_YES",
 )
 
-DECIDED_NO_CHECK_STRINGS = (
-    "decided 0 for project with id 56",
-    "'decision' round is done with event: Event.DECIDED_NO",
+POST_TX_SETTLEMENT_STRINGS = (
+    "Entered in the 'post_transaction_settlement_round' round for period 0",
+    "The TX submitted by elcollectooorr_transaction_collection was settled.",
+    "'post_transaction_settlement_round' round is done with event: PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE",
+    "'post_transaction_settlement_round' round is done with event: PostTransactionSettlementEvent.TRANSFER_NFT_DONE",
+    "'post_transaction_settlement_round' round is done with event: PostTransactionSettlementEvent.BASKET_DONE",
+    "'post_transaction_settlement_round' round is done with event: PostTransactionSettlementEvent.VAULT_DONE",
 )
 
-DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS = (
-    "decided -1 for project with id 56",
-    "'decision' round is done with event: Event.GIB_DETAILS",
-    "decided 1 for project with id 56",
-    "'decision' round is done with event: Event.DECIDED_YES",
+FRACTIONALIZE_STRINGS = (
+    "Entered in the 'deploy_decision_round' round for period 0",
+    "Deploy new basket and vault? True.",
+    "Deploy new basket and vault? False.",
+    "Entered in the 'deploy_basket_round' round for period 0",
+    "'deploy_basket_round' round is done with event: Event.DONE",
+    "Entered in the 'post_deploy_basket_round' round for period 0",
+    "New basket address=0x",
+    "'post_deploy_basket_round' round is done with event: Event.DONE",
+    "Entered in the 'permission_factory_round' round for period 0",
+    "'permission_factory_round' round is done with event: Event.DONE",
+    "Deployed new TokenVault at: 0x",
+    "'post_deploy_vault_round' round is done with event: Event.DONE",
+    "Entered in the 'funding_round' round for period 0",
+    "'funding_round' round is done with event: Event.DONE",
+    "1 user(s) is(are) getting paid their fractions.",
+    "The following users were paid: {'0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0': 95}",
+    "'payout_fractions_round' round is done with event: Event.DONE",
 )
 
-TRANSACTION_CHECK_STRING = (
-    "Entered in the 'transaction_collection' round for period 0",
-    "'transaction_collection' round is done",
-    "Entered in the 'randomness_transaction_submission' round for period 0",
-    "'randomness_transaction_submission' round is done",
-    "Entered in the 'select_keeper_transaction_submission_a' round for period 0",
-    "'select_keeper_transaction_submission_a' round is done",
-    "Entered in the 'collect_signature' round for period 0",
-    "Signature:",
-    "'collect_signature' round is done",
-    "Entered in the 'finalization' round for period 0",
-    "'finalization' round is done",
-    "Entered in the 'validate_transaction' round for period 0",
-    "'validate_transaction' round is done",
-    "Period end",
-)
-
-FINISH_AND_RESET_CHECK_STRINGS = (
-    "Period end",
-    "Entered in the 'reset_and_pause' round for period 0",
-    "'reset_and_pause' round is done",
-    "Period end",
+PURCHASE_TOKEN_STRING = (
+    "Entered in the 'process_purchase_round' round for period 0",
+    "Purchased token id=3000000.",
+    "'process_purchase_round' round is done with event: Event.DONE",
+    "Entered in the 'transfer_nft_round' round for period 0",
+    "'transfer_nft_round' round is done with event: Event.DONE",
 )
 
 
-class TestDecidedForYes(
+class TestHappyPath(
     BaseTestElCollectooorrEnd2End,
-    UseGanacheFork,
+    UseHardHatElColBaseTest,
 ):
     """Test the El Collectooorr that decides for yes on the target project, and goes through the whole flow."""
 
-    NB_AGENTS = 1
+    NB_AGENTS = 4
     agent_package = "valory/elcollectooorr:0.1.0"
     skill_package = "valory/elcollectooorr_abci:0.1.0"
-    DECISION_MODEL_TYPE = "yes"
-    wait_to_finish = 120
-    check_strings = (
+    wait_to_finish = 300  # 5 min to complete
+    strict_check_strings = (
         REGISTRATION_CHECK_STRINGS
+        + SAFE_CHECK_STRINGS
         + BASE_ELCOLLECTOOORR_CHECK_STRINGS
-        + DECIDED_YES_CHECK_STRINGS
-        + TRANSACTION_CHECK_STRING
-        + FINISH_AND_RESET_CHECK_STRINGS
+        + POST_TX_SETTLEMENT_STRINGS
+        + FRACTIONALIZE_STRINGS
+        + PURCHASE_TOKEN_STRING
     )
-
-
-class TestDecidedForNo(
-    BaseTestElCollectooorrEnd2End,
-    UseGanacheFork,
-):
-    """Test the El Collectooorr that decides for no on the target project."""
-
-    NB_AGENTS = 1
-    agent_package = "valory/elcollectooorr:0.1.0"
-    skill_package = "valory/elcollectooorr_abci:0.1.0"
-    wait_to_finish = 120
-    DECISION_MODEL_TYPE = "no"
-    check_strings = (
-        REGISTRATION_CHECK_STRINGS
-        + BASE_ELCOLLECTOOORR_CHECK_STRINGS
-        + DECIDED_NO_CHECK_STRINGS
-    )
-
-
-class TestDecidedForGibDetailsThenYes(
-    BaseTestElCollectooorrEnd2End,
-    UseGanacheFork,
-):
-    """Test the El Collectooorr that decides for no on the target project."""
-
-    NB_AGENTS = 1
-    agent_package = "valory/elcollectooorr:0.1.0"
-    skill_package = "valory/elcollectooorr_abci:0.1.0"
-    wait_to_finish = 120
-    DECISION_MODEL_TYPE = "gib_details_then_yes"
-    check_strings = (
-        REGISTRATION_CHECK_STRINGS
-        + BASE_ELCOLLECTOOORR_CHECK_STRINGS
-        + DECIDED_GIB_DETAILS_THEN_YES_CHECK_STRINGS
-        + TRANSACTION_CHECK_STRING
-        + FINISH_AND_RESET_CHECK_STRINGS
-    )
+    use_benchmarks = True
