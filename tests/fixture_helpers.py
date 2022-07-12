@@ -26,7 +26,7 @@ import pytest
 from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
-from tests.helpers.constants import KEY_PAIRS, LOCALHOST, HARDHAT_ELCOL_KEY_PAIRS
+from tests.helpers.constants import HARDHAT_ELCOL_KEY_PAIRS, KEY_PAIRS, LOCALHOST
 from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
 from tests.helpers.docker.elcol_net import ElColNetDockerImage
