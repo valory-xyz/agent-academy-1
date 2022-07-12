@@ -166,7 +166,7 @@ class FractionalizeDeploymentABCIAbstractRound(
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, self._state)
+        return cast(PeriodState, self.synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
         """
