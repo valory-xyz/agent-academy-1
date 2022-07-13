@@ -24,10 +24,10 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
 
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     ConsensusParams,
-    StateDB,
 )
 from packages.valory.skills.elcollectooorr_abci.rounds import PeriodState
 from packages.valory.skills.fractionalize_deployment_abci.payloads import (
@@ -112,7 +112,9 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = PeriodState(
-            StateDB(initial_period=0, initial_data=dict(participants=cls.participants))
+            StateDB(
+                setup_data=StateDB.data_to_lists(dict(participants=cls.participants))
+            )
         )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
@@ -137,7 +139,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         payload_data = True
 
         test_round = DeployDecisionRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -206,7 +208,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         payload_data = False
 
         test_round = DeployDecisionRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -271,7 +273,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         payload_data = "0x0"
 
         test_round = DeployBasketTxRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -338,7 +340,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         payload_data = "0x0"
 
         test_round = DeployVaultTxRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -405,7 +407,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
         payload_data = [0x0, 0x1, 0x2]
 
         test_round = BasketAddressRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -473,7 +475,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
         payload_data = 0x0
 
         test_round = PermissionVaultFactoryRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -542,7 +544,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
         payload_data = [0x0, 0x1, 0x2]
 
         test_round = VaultAddressRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [

@@ -32,9 +32,9 @@ from packages.valory.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
 )
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour as BaseState,
 )
 from packages.valory.skills.fractionalize_deployment_abci.models import Params
 from packages.valory.skills.fractionalize_deployment_abci.payloads import (
@@ -71,7 +71,7 @@ class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, self.context.state.period_state)
+        return cast(PeriodState, self.context.state.synchronized_data)
 
     @property
     def params(self) -> Params:
@@ -82,7 +82,7 @@ class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
 class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour for deciding whether a new basket & vault should be deployed"""
 
-    state_id = "deploy_decision_round_behaviour"
+    behaviour_id = "deploy_decision_round_behaviour"
     matching_round = DeployDecisionRound
 
     def async_act(self) -> Generator:
@@ -189,7 +189,7 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
-    state_id = "deploy_basket_transaction_collection"
+    behaviour_id = "deploy_basket_transaction_collection"
     matching_round = DeployBasketTxRound
 
     def async_act(self) -> Generator:
@@ -278,7 +278,7 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
-    state_id = "deploy_vault_transaction_collection"
+    behaviour_id = "deploy_vault_transaction_collection"
     matching_round = DeployVaultTxRound
 
     def async_act(self) -> Generator:
@@ -379,7 +379,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour of basket addresses round"""
 
-    state_id = "basket_address_round_behaviour"
+    behaviour_id = "basket_address_round_behaviour"
     matching_round = BasketAddressRound
 
     def async_act(self) -> Generator:
@@ -438,7 +438,7 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
-    state_id = "permission_vault_factory"
+    behaviour_id = "permission_vault_factory"
     matching_round = PermissionVaultFactoryRound
 
     def async_act(self) -> Generator:
@@ -539,7 +539,7 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
 class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour of vault addresses round"""
 
-    state_id = "vault_address_round_behaviour"
+    behaviour_id = "vault_address_round_behaviour"
     matching_round = VaultAddressRound
 
     def async_act(self) -> Generator:
@@ -599,7 +599,7 @@ class FinishedTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Degenerate behaviour for a degenerate round"""
 
     matching_round = FinishedDeployVaultTxRound
-    state_id = "finished_deploy_vault_tx"
+    behaviour_id = "finished_deploy_vault_tx"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
@@ -614,7 +614,7 @@ class FinishedDeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState)
     """Degenerate behaviour for a degenerate round"""
 
     matching_round = FinishedDeployBasketTxRound
-    state_id = "finished_deploy_basket_tx_behaviour"
+    behaviour_id = "finished_deploy_basket_tx_behaviour"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
@@ -626,9 +626,9 @@ class FinishedDeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState)
 class DeployVaultRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Vault Deployment abci app."""
 
-    initial_state_cls = DeployTokenVaultTxRoundBehaviour
+    initial_behaviour_cls = DeployTokenVaultTxRoundBehaviour
     abci_app_cls = DeployVaultAbciApp
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviours: Set[Type[BaseState]] = {
         DeployTokenVaultTxRoundBehaviour,
     }
 
@@ -641,9 +641,9 @@ class DeployVaultRoundBehaviour(AbstractRoundBehaviour):
 class DeployBasketRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Basket Deployment abci app."""
 
-    initial_state_cls = DeployDecisionRoundBehaviour
+    initial_behaviour_cls = DeployDecisionRoundBehaviour
     abci_app_cls = DeployBasketAbciApp
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviours: Set[Type[BaseState]] = {
         DeployDecisionRoundBehaviour,
         DeployBasketTxRoundBehaviour,
     }
@@ -657,9 +657,9 @@ class DeployBasketRoundBehaviour(AbstractRoundBehaviour):
 class PostBasketDeploymentRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Basket Deployment abci app."""
 
-    initial_state_cls = BasketAddressesRoundBehaviour
+    initial_behaviour_cls = BasketAddressesRoundBehaviour
     abci_app_cls = PostBasketDeploymentAbciApp
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviours: Set[Type[BaseState]] = {
         BasketAddressesRoundBehaviour,
         PermissionVaultFactoryRoundBehaviour,
     }
@@ -673,9 +673,9 @@ class PostBasketDeploymentRoundBehaviour(AbstractRoundBehaviour):
 class PostVaultDeploymentRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Vault Deployment abci app."""
 
-    initial_state_cls = VaultAddressesRoundBehaviour
+    initial_behaviour_cls = VaultAddressesRoundBehaviour
     abci_app_cls = PostVaultDeploymentAbciApp
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviours: Set[Type[BaseState]] = {
         VaultAddressesRoundBehaviour,
     }
 

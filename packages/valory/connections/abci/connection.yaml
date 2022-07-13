@@ -25,6 +25,7 @@ fingerprint:
   scripts/genproto.py: QmSzpEGwxavAFpi2baaFX3UhxgVkfe2AuAWghtWwj5cfKa
   tendermint/__init__.py: Qmdb8Dfjbme2z6SBpDmnZw5kNt9aFZD2yVyCN6M6hX5PHC
   tendermint/abci/types_pb2.py: Qmb1YoGv34WhNM38M6nzHLajAra5NK18Pg4JQy42inQ4Ne
+  tendermint/abci/types_pb2_grpc.py: QmeEPqkfBFD4vfTzxgZAmbfaKh7pSiSQi5XRotj8wi7YRi
   tendermint/crypto/keys_pb2.py: Qma7KXYmK66s5PZso9d7NosNv4Mm6yikrg3hzcWNYGs513
   tendermint/crypto/proof_pb2.py: QmUPgricNi5rQHFZ6zEz7jPWVc5P7gnkWiuPFSUHyvzbQG
   tendermint/types/params_pb2.py: QmPQZ1k51YHJAeuLbDYo2vpQToqso9Pdkz4dAm1yhKHe4B
@@ -49,6 +50,7 @@ config:
     rpc_laddr: tcp://127.0.0.1:26657
     home: null
     consensus_create_empty_blocks: true
+  use_grpc: false
   use_tendermint: true
 excluded_protocols: []
 restricted_to_protocols: []
