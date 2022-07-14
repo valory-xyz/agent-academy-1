@@ -251,7 +251,7 @@ def hardhat_elcol_scope_function(
     hardhat_elcol_port: Any,
     mock_artblocks_api_function: Any,
     timeout: float = 3.0,
-    max_attempts: int = 40,
+    max_attempts: int = 200,
 ) -> Generator:
     """Launch the ElCol Test Network. This fixture is scoped to a function which means it will destroyed at the end of the test."""
     client = docker.from_env()
