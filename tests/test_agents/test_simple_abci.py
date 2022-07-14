@@ -35,7 +35,7 @@ EXPECTED_ROUND_LOG_COUNT = {
 # strict check log messages of the happy path
 STRICT_CHECK_STRINGS = ("Period end",)
 
-@pytest.mark.skip("Temporarily skipped.")
+
 class TestSimpleABCISingleAgent(
     BaseTestEnd2EndNormalExecution,
 ):
@@ -50,7 +50,6 @@ class TestSimpleABCISingleAgent(
     use_benchmarks = True
 
 
-@pytest.mark.skip("Temporarily skipped.")
 class TestSimpleABCITwoAgents(
     BaseTestEnd2EndNormalExecution,
 ):
@@ -64,7 +63,6 @@ class TestSimpleABCITwoAgents(
     strict_check_strings = STRICT_CHECK_STRINGS
 
 
-@pytest.mark.skip("Temporarily skipped.")
 class TestSimpleABCIFourAgents(
     BaseTestEnd2EndNormalExecution,
 ):
