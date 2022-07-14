@@ -34,7 +34,11 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-    BasePeriodState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseSynchronizedData as BasePeriodState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
 )
@@ -275,7 +279,7 @@ class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, self._state)
+        return cast(PeriodState, self.synchronized_data)
 
     def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
         """

@@ -44,9 +44,9 @@ from packages.valory.contracts.multisend.contract import (
 )
 from packages.valory.contracts.token_vault.contract import TokenVaultContract
 from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
-    AbstractRoundBehaviour,
-    BaseState,
+    BaseBehaviour as BaseState,
 )
 from packages.valory.skills.elcollectooorr_abci.decision_models import (
     EightyPercentDecisionModel,
@@ -109,7 +109,9 @@ class ElcollectooorrABCIBaseState(BaseState, ABC):
     @property
     def period_state(self) -> PeriodState:
         """Return the period state."""
-        return cast(PeriodState, cast(SharedState, self.context.state).period_state)
+        return cast(
+            PeriodState, cast(SharedState, self.context.state).synchronized_data
+        )
 
     @property
     def params(self) -> Params:
@@ -120,7 +122,7 @@ class ElcollectooorrABCIBaseState(BaseState, ABC):
 class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Observation round behaviour"""
 
-    state_id = "observation"
+    behaviour_id = "observation"
     matching_round = ObservationRound
 
     def async_act(self) -> Generator:
@@ -260,7 +262,7 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
 class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Details Round behaviour"""
 
-    state_id = "details"
+    behaviour_id = "details"
     matching_round = DetailsRound
 
     def async_act(self) -> Generator:
@@ -434,7 +436,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
 class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Decision Round behaviour"""
 
-    state_id = "decision"
+    behaviour_id = "decision"
     matching_round = DecisionRound
 
     def async_act(self) -> Generator:
@@ -535,7 +537,7 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
 class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Transaction Round behaviour"""
 
-    state_id = "transaction_collection"
+    behaviour_id = "transaction_collection"
     matching_round = TransactionRound
 
     def async_act(self) -> Generator:
@@ -642,13 +644,13 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
 class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
     """Checks the balance of the safe contract."""
 
-    state_id = "funding_behaviour"
+    behaviour_id = "funding_behaviour"
     matching_round = FundingRound
 
     def async_act(self) -> Generator:
         """Get the available funds and store them to state."""
 
-        with self.context.benchmark_tool.measure(self.state_id).local():
+        with self.context.benchmark_tool.measure(self.behaviour_id).local():
             in_transfers = []
             try:
                 in_transfers = yield from self._get_available_funds()
@@ -658,7 +660,7 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
                     f"the following error was encountered {type(e).__name__}: {e}."
                 )
 
-        with self.context.benchmark_tool.measure(self.state_id).consensus():
+        with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             payload = FundingPayload(
                 self.context.agent_address,
                 address_to_funds=json.dumps(in_transfers),
@@ -695,7 +697,7 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
 class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
-    state_id = "payout_fractions"
+    behaviour_id = "payout_fractions"
     matching_round = PayoutFractionsRound
 
     def async_act(self) -> Generator:
@@ -911,7 +913,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
 class PostPayoutRoundBehaviour(ElcollectooorrABCIBaseState):
     """Trivial behaviour for post payout"""
 
-    state_id = "post_fraction_payout_behaviour"
+    behaviour_id = "post_fraction_payout_behaviour"
     matching_round = PostPayoutRound
 
     def async_act(self) -> Generator:
@@ -927,9 +929,9 @@ class PostPayoutRoundBehaviour(ElcollectooorrABCIBaseState):
 class PostFractionsPayoutRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Post Payout abci app."""
 
-    initial_state_cls = PostPayoutRoundBehaviour
+    initial_behaviour_cls = PostPayoutRoundBehaviour
     abci_app_cls = PostFractionPayoutAbciApp
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseState]] = {  # type: ignore
         PostPayoutRoundBehaviour,  # type: ignore
     }
 
@@ -937,7 +939,7 @@ class PostFractionsPayoutRoundBehaviour(AbstractRoundBehaviour):
 class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
     """Process the purchase of an NFT"""
 
-    state_id = "process_purchase"
+    behaviour_id = "process_purchase"
     matching_round = ProcessPurchaseRound
 
     def async_act(self) -> Generator:
@@ -993,7 +995,7 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
 class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Transaction Round behaviour"""
 
-    state_id = "transfer_nft"
+    behaviour_id = "transfer_nft"
     matching_round = TransferNFTRound
 
     def async_act(self) -> Generator:
@@ -1089,9 +1091,9 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
 class TransferNFTAbciBehaviour(AbstractRoundBehaviour):
     """Behaviour class for the Transfer NFT Behaviour."""
 
-    initial_state_cls = ProcessPurchaseRoundBehaviour
+    initial_behaviour_cls = ProcessPurchaseRoundBehaviour
     abci_app_cls = TransferNFTAbciApp
-    behaviour_states: Set[Type[BaseState]] = {
+    behaviours: Set[Type[BaseState]] = {
         ProcessPurchaseRoundBehaviour,
         TransferNFTRoundBehaviour,
     }
@@ -1101,7 +1103,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
     """Behaviour for Post TX Settlement Round."""
 
     matching_round = PostTransactionSettlementRound
-    state_id = "post_tx_settlement_state"
+    behaviour_id = "post_tx_settlement_state"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
@@ -1174,9 +1176,9 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
 class TransactionSettlementMultiplexerFullBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Tx Settlement Multiplexer abci app."""
 
-    initial_state_cls = PostTransactionSettlementBehaviour
+    initial_behaviour_cls = PostTransactionSettlementBehaviour
     abci_app_cls = TransactionSettlementAbciMultiplexer  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseState]] = {  # type: ignore
         PostTransactionSettlementBehaviour,  # type: ignore
     }
 
@@ -1184,9 +1186,9 @@ class TransactionSettlementMultiplexerFullBehaviour(AbstractRoundBehaviour):
 class ElCollectooorrRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooorr abci app."""
 
-    initial_state_cls = ObservationRoundBehaviour
+    initial_behaviour_cls = ObservationRoundBehaviour
     abci_app_cls = ElcollectooorrBaseAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseState]] = {  # type: ignore
         ObservationRoundBehaviour,  # type: ignore
         DetailsRoundBehaviour,  # type: ignore
         DecisionRoundBehaviour,  # type: ignore
@@ -1197,9 +1199,9 @@ class ElCollectooorrRoundBehaviour(AbstractRoundBehaviour):
 class BankRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the Bank ABCI app."""
 
-    initial_state_cls = FundingRoundBehaviour
+    initial_behaviour_cls = FundingRoundBehaviour
     abci_app_cls = BankAbciApp
-    behaviour_states: Set[Type[BaseState]] = {  # type: ignore
+    behaviours: Set[Type[BaseState]] = {  # type: ignore
         FundingRoundBehaviour,  # type: ignore
         PayoutFractionsRoundBehaviour,  # type: ignore
     }
@@ -1208,21 +1210,21 @@ class BankRoundBehaviour(AbstractRoundBehaviour):
 class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooorr abci app."""
 
-    initial_state_cls = RegistrationStartupBehaviour
+    initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = ElCollectooorrAbciApp  # type: ignore
-    behaviour_states: Set[Type[BaseState]] = {
-        *AgentRegistrationRoundBehaviour.behaviour_states,
-        *SafeDeploymentRoundBehaviour.behaviour_states,
-        *TransactionSettlementRoundBehaviour.behaviour_states,
-        *ElCollectooorrRoundBehaviour.behaviour_states,
-        *DeployVaultRoundBehaviour.behaviour_states,
-        *DeployBasketRoundBehaviour.behaviour_states,
-        *PostBasketDeploymentRoundBehaviour.behaviour_states,
-        *PostVaultDeploymentRoundBehaviour.behaviour_states,
-        *TransactionSettlementMultiplexerFullBehaviour.behaviour_states,
-        *BankRoundBehaviour.behaviour_states,
-        *PostFractionsPayoutRoundBehaviour.behaviour_states,
-        *TransferNFTAbciBehaviour.behaviour_states,
+    behaviours: Set[Type[BaseState]] = {
+        *AgentRegistrationRoundBehaviour.behaviours,
+        *SafeDeploymentRoundBehaviour.behaviours,
+        *TransactionSettlementRoundBehaviour.behaviours,
+        *ElCollectooorrRoundBehaviour.behaviours,
+        *DeployVaultRoundBehaviour.behaviours,
+        *DeployBasketRoundBehaviour.behaviours,
+        *PostBasketDeploymentRoundBehaviour.behaviours,
+        *PostVaultDeploymentRoundBehaviour.behaviours,
+        *TransactionSettlementMultiplexerFullBehaviour.behaviours,
+        *BankRoundBehaviour.behaviours,
+        *PostFractionsPayoutRoundBehaviour.behaviours,
+        *TransferNFTAbciBehaviour.behaviours,
     }
 
     def setup(self) -> None:

@@ -14,7 +14,7 @@ Valory's Agent Academy 1 - participant repo
 ## System requirements
 
 - Python `>=3.7`
-- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.11`
+- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
 - [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==0.6.0`
 
 Alternatively, you can fetch this docker image with the relevant requirments satisfied:

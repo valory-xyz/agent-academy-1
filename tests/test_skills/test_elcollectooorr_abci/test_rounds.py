@@ -25,10 +25,10 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
 
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
 from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     ConsensusParams,
-    StateDB,
 )
 from packages.valory.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
@@ -122,7 +122,9 @@ class BaseRoundTestClass:
 
         cls.participants = get_participants()
         cls.period_state = PeriodState(
-            StateDB(initial_period=0, initial_data=dict(participants=cls.participants))
+            StateDB(
+                setup_data=StateDB.data_to_lists(dict(participants=cls.participants))
+            )
         )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
@@ -164,7 +166,7 @@ class TestObservationRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -241,7 +243,7 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -309,7 +311,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         payload_data = {"project_id": 123}
 
         test_round = DecisionRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -371,7 +373,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = DecisionRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         project_to_purchase: Dict = {}  # {} represents a NO decision for now
@@ -438,7 +440,7 @@ class TestTransactionRound(BaseRoundTestClass):
         test_purchase_data = "test_data"
 
         test_round = TransactionRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -501,7 +503,7 @@ class TestDetailsRound(BaseRoundTestClass):
         test_details = json.dumps({"active_projects": [{"data": "more"}]})
 
         test_round = DetailsRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -563,7 +565,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         test_funds = {"0x0": 10 ** 18}
 
         test_round = FundingRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -635,7 +637,7 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
         )
 
         test_round = ProcessPurchaseRound(
-            state=initial_state, consensus_params=self.consensus_params
+            synchronized_data=initial_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -696,7 +698,7 @@ class TestTransferNFTRound(BaseRoundTestClass):
         )
 
         test_round = TransferNFTRound(
-            state=initial_state, consensus_params=self.consensus_params
+            synchronized_data=initial_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -747,7 +749,7 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
         initial_state = deepcopy(self.period_state)
 
         test_round = PayoutFractionsRound(
-            state=initial_state, consensus_params=self.consensus_params
+            synchronized_data=initial_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -813,7 +815,7 @@ class TestPostPayoutRound(BaseRoundTestClass):
             )
         )
         test_round = PostPayoutRound(
-            state=initial_state, consensus_params=self.consensus_params
+            synchronized_data=initial_state, consensus_params=self.consensus_params
         )
 
         # NOTE: No payload for this round.
@@ -850,7 +852,7 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
 
         self.period_state.update(tx_submitter=TransactionRound.round_id)
         test_round = PostTransactionSettlementRound(
-            state=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -885,9 +887,9 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
 
         # a new period has started
         # make sure the correct project is chosen
-        assert cast(PeriodState, state).db.get("actual_next_state") == cast(
+        assert cast(PeriodState, state).db.get("amount_spent") == cast(
             PeriodState, actual_next_state
-        ).db.get("actual_next_state")
+        ).db.get("amount_spent")
 
         assert event == PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE
 
@@ -903,7 +905,7 @@ def test_period_state() -> None:  # pylint:too-many-locals
     """Test PeriodState."""
 
     participants = get_participants()
-    period_count = 10
+    period_count = 0
     period_setup_params = {}  # type: ignore
     participant_to_randomness = {
         participant: RandomnessPayload(
@@ -920,15 +922,16 @@ def test_period_state() -> None:  # pylint:too-many-locals
 
     period_state = PeriodState(
         StateDB(
-            initial_period=period_count,
-            initial_data=dict(
-                participants=participants,
-                period_count=period_count,
-                period_setup_params=period_setup_params,
-                participant_to_randomness=participant_to_randomness,
-                most_voted_randomness=most_voted_randomness,
-                participant_to_selection=participant_to_selection,
-                most_voted_keeper_address=most_voted_keeper_address,
+            setup_data=StateDB.data_to_lists(
+                dict(
+                    participants=participants,
+                    period_count=period_count,
+                    period_setup_params=period_setup_params,
+                    participant_to_randomness=participant_to_randomness,
+                    most_voted_randomness=most_voted_randomness,
+                    participant_to_selection=participant_to_selection,
+                    most_voted_keeper_address=most_voted_keeper_address,
+                )
             ),
         )
     )
