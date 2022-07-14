@@ -75,7 +75,7 @@ class TestSimpleABCIFourAgents(
     round_check_strings_to_n_periods = EXPECTED_ROUND_LOG_COUNT
     strict_check_strings = STRICT_CHECK_STRINGS
 
-
+@pytest.mark.skip("Need to backport GPRC")
 @pytest.mark.e2e
 class TestSimpleABCISingleAgentGrpc(
     BaseTestEnd2EndNormalExecution,
@@ -91,6 +91,7 @@ class TestSimpleABCISingleAgentGrpc(
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
 
+@pytest.mark.skip("Need to backport GPRC")
 @pytest.mark.e2e
 class TestSimpleABCITwoAgentsGrpc(
     BaseTestEnd2EndNormalExecution,
@@ -106,6 +107,7 @@ class TestSimpleABCITwoAgentsGrpc(
     strict_check_strings = STRICT_CHECK_STRINGS + ("Starting gRPC server",)
 
 
+@pytest.mark.skip("Need to backport GPRC")
 @pytest.mark.e2e
 class TestSimpleABCIFourAgentsGrpc(
     BaseTestEnd2EndNormalExecution,
