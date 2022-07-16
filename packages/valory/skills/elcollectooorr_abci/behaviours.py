@@ -651,9 +651,10 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
         """Get the available funds and store them to state."""
 
         with self.context.benchmark_tool.measure(self.behaviour_id).local():
-            in_transfers = []
+            available_funds = []
             try:
-                in_transfers = yield from self._get_available_funds()
+                in_transfers = yield from self._get_in_transfers()
+                available_funds = self._get_available_funds(in_transfers)
             except AEAEnforceError as e:
                 self.context.logger.error(
                     f"Couldn't get transfers to the safe contract, "
@@ -663,16 +664,16 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
         with self.context.benchmark_tool.measure(self.behaviour_id).consensus():
             payload = FundingPayload(
                 self.context.agent_address,
-                address_to_funds=json.dumps(in_transfers),
+                address_to_funds=json.dumps(available_funds),
             )
             yield from self.send_a2a_transaction(payload)
             yield from self.wait_until_round_end()
 
         self.set_done()
 
-    def _get_available_funds(
+    def _get_in_transfers(
         self, from_block: Optional[int] = None, to_block: Union[str, int] = "latest"
-    ) -> Generator:
+    ) -> Generator[None, None, List[Dict]]:
         """Returns all the transfers to the gnosis safe."""
 
         response = yield from self.get_contract_api_response(
@@ -691,7 +692,33 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
             "contract returned and empty body or empty data",
         )
 
-        return response.state.body["data"]
+        return cast(List[Dict], response.state.body["data"])
+
+    def _get_available_funds(self, in_transfers: List[Dict]) -> List[Dict]:
+        """Get funds that are available for use."""
+        self.context.logger.info(
+            f"Investor whitelisting is active? {self.params.enforce_investor_whitelisting}"
+        )
+
+        if self.params.enforce_investor_whitelisting:
+            filtered_transfers = list(
+                filter(
+                    lambda transfer: transfer["sender"]
+                    in self.params.whitelisted_investor_addresses,
+                    in_transfers,
+                )
+            )
+
+            self.context.logger.info(
+                f"{len(filtered_transfers)} transfers from whitelisted investors."
+            )
+            self.context.logger.info(
+                f"{len(in_transfers) - len(filtered_transfers)} transfers from non-whitelisted investors."
+            )
+
+            return filtered_transfers
+
+        return in_transfers
 
 
 class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
