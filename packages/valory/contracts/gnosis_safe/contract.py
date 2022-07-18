@@ -716,3 +716,34 @@ class GnosisSafeContract(Contract):
         total_spent = tx_value + (gas_price * gas_used)
 
         return dict(amount_spent=total_spent)
+
+    @classmethod
+    def get_safe_txs(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        from_block: int,
+    ) -> JSONLike:
+        """
+        Get all the safe tx hashes.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address (not used)
+        :param from_block: from which block to get the txs
+        :return: the safe txs
+        """
+
+        ledger_api = cast(EthereumApi, ledger_api)
+        factory_contract = cls.get_instance(ledger_api, contract_address)
+        entries = factory_contract.events.SafeMultiSigTransaction.createFilter(
+            fromBlock=from_block,
+        ).get_all_entries()
+
+        return dict(
+            baskets=list(
+                map(
+                    lambda entry: entry.transactionHash.hex(),
+                    entries,
+                )
+            )
+        )
