@@ -433,7 +433,7 @@ class TokenVaultContract(Contract):
 
         :param ledger_api: LedgerApi object
         :param contract_address: the address of the token vault to be used
-        :return: the curator's address
+        :return: the auction state
         """
 
         ledger_api = cast(EthereumApi, ledger_api)
@@ -441,3 +441,37 @@ class TokenVaultContract(Contract):
         state = token_vault_contract.functions.auctionState().call()
 
         return {"state": state}
+
+    @classmethod
+    def get_all_erc20_transfers(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        from_address: str,
+    ) -> JSONLike:
+        """
+        Get all ERC20 transfers from a given address.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the token vault to be used
+        :param from_address: the address transferring the tokens.
+        :return: the ERC20 transfers
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        factory_contract = cls.get_instance(ledger_api, contract_address)
+        entries = factory_contract.events.Transfer.createFilter(
+            fromBlock="earliest",
+            argument_filters={"from": from_address},
+        ).get_all_entries()
+
+        return dict(
+            baskets=list(
+                map(
+                    lambda entry: dict(
+                        to=entry.args["to"],
+                        value=entry.args["value"],
+                    ),
+                    entries,
+                )
+            )
+        )
