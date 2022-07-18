@@ -672,3 +672,34 @@ class TokenVaultFactoryContract(Contract):
         }
 
         return response
+
+    @classmethod
+    def get_deployed_vaults(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        token_address: str,
+    ) -> JSONLike:
+        """
+        Get created vaults from the deployer_address.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the token vault to be used
+        :param token_address: the address of the nft tied to the vault.
+        :return: the curator's address
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        factory_contract = cls.get_instance(ledger_api, contract_address)
+        entries = factory_contract.events.Mint.createFilter(
+            fromBlock="earliest",
+            argument_filters=dict(token=token_address),
+        ).get_all_entries()
+
+        return dict(
+            baskets=list(
+                map(
+                    lambda entry: entry.args["token"],
+                    entries,
+                )
+            )
+        )

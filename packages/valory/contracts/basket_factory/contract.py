@@ -203,3 +203,36 @@ class BasketFactoryContract(Contract):
         )
 
         return {"data": data}
+
+    @classmethod
+    def get_deployed_baskets(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        deployer_address: str,
+    ) -> JSONLike:
+        """
+        Get all deployed baskets from the deployer_address.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the token vault to be used
+        :param deployer_address: the address of the deployer/creator
+        :return: the curator's address
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        factory_contract = cls.get_instance(ledger_api, contract_address)
+        entries = factory_contract.events.NewBasket.createFilter(
+            fromBlock="earliest", argument_filters=dict(_creator=deployer_address)
+        ).get_all_entries()
+
+        return dict(
+            baskets=list(
+                map(
+                    lambda entry: dict(
+                        basket_address=entry.args["_address"],
+                        block_number=entry["blockNumber"],
+                    ),
+                    entries,
+                )
+            )
+        )
