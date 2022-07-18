@@ -67,6 +67,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import (
 from packages.valory.skills.elcollectooorr_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
+    ElcollectooorrABCIBaseState,
     FundingRoundBehaviour,
     ObservationRoundBehaviour,
     PayoutFractionsRoundBehaviour,
@@ -1794,35 +1795,51 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             == self.behaviour_class.behaviour_id
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-
-        self.mock_contract_api_request(
-            contract_id=str(GnosisSafeContract.contract_id),
-            request_kwargs=dict(
-                performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
-            ),
-            response_kwargs=dict(
-                performative=ContractApiMessage.Performative.STATE,
-                state=State(
-                    body={
-                        "data": [
-                            {
-                                "sender": "0x0",
-                                "amount": 1,
-                                "blockNumber": 1,
-                            },
-                            {
-                                "sender": "0x1",
-                                "amount": 2,
-                                "blockNumber": 2,
-                            },
-                        ]
-                    },
-                    ledger_id="ethereum",
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                 ),
-            ),
-        )
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
+                        body={
+                            "data": [
+                                {
+                                    "sender": "0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0",
+                                    "amount": 1,
+                                    "blockNumber": 1,
+                                },
+                                {
+                                    "sender": "0x1",
+                                    "amount": 2,
+                                    "blockNumber": 2,
+                                },
+                            ]
+                        },
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            elcol_state = cast(
+                ElcollectooorrABCIBaseState,
+                self.elcollectooorr_abci_behaviour.current_behaviour,
+            )
+            if elcol_state.params.enforce_investor_whitelisting:
+                mock_logger.assert_any_call(
+                    logging.INFO,
+                    "1 transfers from whitelisted investors.",
+                )
+                mock_logger.assert_any_call(
+                    logging.INFO,
+                    "1 transfers from non-whitelisted investors.",
+                )
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
