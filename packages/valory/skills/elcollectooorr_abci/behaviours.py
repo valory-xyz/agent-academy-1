@@ -34,6 +34,7 @@ from packages.valory.contracts.artblocks_minter_filter.contract import (
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
+from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 from packages.valory.contracts.gnosis_safe.contract import (
     GnosisSafeContract,
     SafeOperation,
@@ -43,6 +44,9 @@ from packages.valory.contracts.multisend.contract import (
     MultiSendOperation,
 )
 from packages.valory.contracts.token_vault.contract import TokenVaultContract
+from packages.valory.contracts.token_vault_factory.contract import (
+    TokenVaultFactoryContract,
+)
 from packages.valory.protocols.contract_api import ContractApiMessage
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
@@ -60,6 +64,7 @@ from packages.valory.skills.elcollectooorr_abci.payloads import (
     PayoutFractionsPayload,
     PostTxPayload,
     PurchasedNFTPayload,
+    ResyncPayload,
     TransactionPayload,
     TransferNFTPayload,
 )
@@ -77,6 +82,7 @@ from packages.valory.skills.elcollectooorr_abci.rounds import (
     PostPayoutRound,
     PostTransactionSettlementRound,
     ProcessPurchaseRound,
+    ResyncRound,
     TransactionRound,
     TransactionSettlementAbciMultiplexer,
     TransferNFTAbciApp,
@@ -117,6 +123,214 @@ class ElcollectooorrABCIBaseState(BaseState, ABC):
     def params(self) -> Params:
         """Return the params."""
         return cast(Params, self.context.params)
+
+
+class ResyncRoundBehaviour(
+    ElcollectooorrABCIBaseState
+):  # pylint: disable=too-many-locals
+    """Behaviour for the resyncing round."""
+
+    behaviour_id = "resync"
+    matching_round = ResyncRound
+
+    def async_act(self) -> Generator:
+        """The resyncing act."""
+        with self.context.benchmark_tool.measure(
+            self,
+        ).local():
+            payload_data = {}
+            try:
+                safe_txs = yield from self._get_safe_txs()
+                block_nums = [tx["block_number"] for tx in safe_txs]
+                earliest_tx, latest_tx = (
+                    min(block_nums),
+                    max(block_nums),
+                )  # these will help in filtering events
+
+                all_mints = yield from self._get_all_mints(
+                    from_block=earliest_tx, to_block=latest_tx
+                )
+                purchased_projects = [mint["project_id"] for mint in all_mints]
+
+                baskets = yield from self._get_all_baskets(
+                    from_block=earliest_tx, to_block=latest_tx
+                )
+                basket_addresses: List[str] = []
+                vault_addresses: List[str] = []
+                for basket in baskets:
+                    basket_address = basket["basket_address"]
+                    block_num = basket["block_number"]
+                    basket_addresses.append(basket_address)
+
+                    vault = yield from self._get_vault(
+                        basket_address,
+                        from_block=block_num,
+                        to_block=(
+                            block_num + 50
+                        ),  # we give a 50 block window for the vault to be deployed after the basket
+                    )
+                    vault_addresses.extend(vault)
+
+                all_payouts = []
+                for vault_address in vault_addresses:
+                    payouts = yield from self._get_payouts(
+                        vault_address, from_block=earliest_tx, to_block=latest_tx
+                    )
+                    all_payouts.extend(payouts)
+
+                address_to_fractions = self._address_to_fractions(all_payouts)
+                payload_data = {
+                    "basket_addresses": basket_addresses,
+                    "vault_addresses": vault_addresses,
+                    "purchased_projects": purchased_projects,
+                    "most_recent_project": max(purchased_projects),
+                    "paid_users": address_to_fractions,
+                }
+            except AEAEnforceError as e:
+                self.context.logger.error(
+                    f"Couldn't resync, the following error was encountered {type(e).__name__}: {e}"
+                )
+
+            with self.context.benchmark_tool.measure(
+                self,
+            ).consensus():
+                payload = ResyncPayload(
+                    self.context.agent_address,
+                    json.dumps(payload_data),
+                )
+
+                yield from self.send_a2a_transaction(payload)
+                yield from self.wait_until_round_end()
+
+    @staticmethod
+    def _address_to_fractions(all_payouts: List[Dict]) -> Dict[str, int]:
+        """Organize payouts by the receiving address."""
+        addr_to_fractions: Dict[str, int] = {}
+
+        for payout in all_payouts:
+            address, value = payout["to"], payout["value"]
+            if address not in addr_to_fractions.keys():
+                addr_to_fractions[address] = 0
+
+            addr_to_fractions[address] = addr_to_fractions[address] + value
+
+        return addr_to_fractions
+
+    def _get_safe_txs(
+        self,
+    ) -> Generator[None, None, List[Dict]]:
+        """Get the all MultiSig txs made by the safe."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.period_state.safe_contract_address,
+            contract_id=str(GnosisSafeContract.contract_id),
+            contract_callable="get_safe_txs",
+        )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None
+            and "txs" in response.state.body.keys(),
+            "response, response.state, response.state.body must exist",
+        )
+
+        return cast(List[Dict], response.state.body["txs"])
+
+    def _get_payouts(
+        self, vault_address: str, from_block: Optional[int], to_block: Optional[int]
+    ) -> Generator[None, None, List]:
+        """Get all fractions payouts for all investors."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=vault_address,
+            from_address=self.period_state.safe_contract_address,
+            contract_id=str(TokenVaultContract.contract_id),
+            contract_callable="get_all_erc20_transfers",
+            from_block=from_block,
+            to_block=to_block,
+        )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None
+            and "payouts" in response.state.body.keys(),
+            "response, response.state, response.state.body must exist",
+        )
+
+        return cast(List[Dict], response.state.body["payouts"])
+
+    def _get_all_baskets(
+        self, from_block: Optional[int], to_block: Optional[int]
+    ) -> Generator[None, None, List[Dict]]:
+        """Get all deployed baskets."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.params.basket_factory_address,
+            contract_id=str(BasketFactoryContract.contract_id),
+            contract_callable="get_deployed_baskets",
+            from_block=from_block,
+            to_block=to_block,
+        )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None
+            and "baskets" in response.state.body.keys(),
+            "response, response.state, response.state.body must exist",
+        )
+
+        return cast(List[Dict], response.state.body["baskets"])
+
+    def _get_vault(
+        self, basket_address: str, from_block: Optional[int], to_block: Optional[int]
+    ) -> Generator[None, None, List[str]]:
+        """Get deployed vault with the basket."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.params.token_vault_factory_address,
+            token_address=basket_address,
+            contract_id=str(TokenVaultFactoryContract.contract_id),
+            contract_callable="get_deployed_vaults",
+            from_block=from_block,
+            to_block=to_block,
+        )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None
+            and "vaults" in response.state.body.keys(),
+            "response, response.state, response.state.body must exist",
+        )
+
+        return cast(List[str], response.state.body["vaults"])
+
+    def _get_all_mints(
+        self, from_block: Optional[int], to_block: Optional[int]
+    ) -> Generator[None, None, List[Dict]]:
+        """Get all purchased projects and tokens by the agent."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_address=self.params.artblocks_contract,
+            minted_to_address=self.period_state.safe_contract_address,
+            contract_id=str(ArtBlocksContract.contract_id),
+            contract_callable="get_mints",
+            from_block=from_block,
+            to_block=to_block,
+        )
+
+        enforce(
+            response is not None
+            and response.state is not None
+            and response.state.body is not None
+            and "mints" in response.state.body.keys(),
+            "response, response.state, response.state.body must exist",
+        )
+
+        return cast(List[Dict], response.state.body["mints"])
 
 
 class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):

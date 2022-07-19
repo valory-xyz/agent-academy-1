@@ -8,15 +8,15 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: QmPEgsayZSdPvrbq8PmSFMQuWgz5FQPMLz2aDfbESm4GZg
   __init__.py: QmNMqQffcN9uuYASGYzkk6P2jJALUuVrQpMpYGvtyKyMYY
-  behaviours.py: QmRVnFqThURFqmmUk66UT29JSkDp76rEJmPuZ2HhpZmSZE
+  behaviours.py: QmbMe9ZMovciJNtYGoYMuKqNJPTXBDoNdY1YSVU6TQS2hz
   decision_models.py: QmbXorndh2AED16av97MsUuptG2VotEGQXezp5UGXz9pYt
   dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
   fsm_composition_specification.yaml: QmTF7WsdvqPR6oCfZWv6DDUoSNP3P3XnNdeWyLvDdEUy2G
   fsm_specification.yaml: QmQCdJU74WL5ioMAjpiwDjmymbEqxJoad8C7DdSAeJkHQy
   handlers.py: Qmech5i8inUuNwSxmB3nGfm7LiF4NDuKcxK33k92r9FXHY
   models.py: QmNZLK7LMvTGGpFiDRghEr5spWLv8vSqryfivcBTRmSt1S
-  payloads.py: QmZ8CLn1nBDC7potZTrhdxg8KpFBJnG87GHAdbcHYoj5L6
-  rounds.py: QmcuQG6SdANnVci2B5yLgD3iLQpVegzjPHZZREHGpPePDm
+  payloads.py: QmdNyvrC6FCPBFijEojd1qK324zP6u7soXDWwUjXUMmMHC
+  rounds.py: Qmct5C4KtyyTej6kfTiu2AN9ZGK38QGV1uCAMJEXYhUCQb
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0
@@ -88,7 +88,6 @@ models:
         max_participants: 1
       decision_model_type: 'yes'
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
-      enforce_investor_whitelisting: true
       finalize_timeout: 60.0
       history_check_timeout: 1205
       keeper_allowed_retries: 3
@@ -113,8 +112,6 @@ models:
       token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
-      whitelisted_investor_addresses:
-      - '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
     class_name: Params
   randomness_api:
     args:
