@@ -701,7 +701,7 @@ class TokenVaultFactoryContract(Contract):
         ).get_all_entries()
 
         return dict(
-            baskets=list(
+            vaults=list(
                 map(
                     lambda entry: entry.args["token"],
                     entries,
