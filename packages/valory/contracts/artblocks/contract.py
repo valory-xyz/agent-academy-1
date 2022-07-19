@@ -303,3 +303,36 @@ class ArtBlocksContract(Contract):
         )
 
         return {"data": data}
+
+    @classmethod
+    def get_mints(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        minted_to_address: str,
+    ) -> JSONLike:
+        """
+        Get all deployed minted tokens from the minted_to_address.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the artblocks contract
+        :param minted_to_address: the address that the tokens have been minted to
+        :return: the minted tokens & projects
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        artblocks_contract = cls.get_instance(ledger_api, contract_address)
+        entries = artblocks_contract.events.Mint.createFilter(
+            fromBlock="earliest", argument_filters=dict(_to=minted_to_address)
+        ).get_all_entries()
+
+        return dict(
+            mints=list(
+                map(
+                    lambda entry: dict(
+                        token_id=entry.args["_tokenId"],
+                        project_id=entry.args["_projectId"],
+                    ),
+                    entries,
+                )
+            )
+        )
