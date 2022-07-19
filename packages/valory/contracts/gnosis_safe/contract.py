@@ -745,7 +745,10 @@ class GnosisSafeContract(Contract):
         return dict(
             txs=list(
                 map(
-                    lambda entry: entry.transactionHash.hex(),
+                    lambda entry: dict(
+                        tx_hash=entry.transactionHash.hex(),
+                        block_number=entry.blockNumber
+                    ),
                     entries,
                 )
             )
