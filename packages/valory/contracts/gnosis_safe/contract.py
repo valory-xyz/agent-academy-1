@@ -35,7 +35,7 @@ from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
 from requests import HTTPError
 from web3.exceptions import SolidityError, TransactionNotFound
-from web3.types import Nonce, TxData, TxParams, Wei
+from web3.types import BlockIdentifier, Nonce, TxData, TxParams, Wei
 
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
@@ -722,25 +722,28 @@ class GnosisSafeContract(Contract):
         cls,
         ledger_api: EthereumApi,
         contract_address: str,
-        from_block: int,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
     ) -> JSONLike:
         """
         Get all the safe tx hashes.
 
         :param ledger_api: the ledger API object
         :param contract_address: the contract address (not used)
-        :param from_block: from which block to get the txs
-        :return: the safe txs
+        :param from_block: from which block to search for events
+        :param to_block: to which block to search for events
+         :return: the safe txs
         """
 
         ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, contract_address)
         entries = factory_contract.events.SafeMultiSigTransaction.createFilter(
             fromBlock=from_block,
+            toBlock=to_block,
         ).get_all_entries()
 
         return dict(
-            baskets=list(
+            txs=list(
                 map(
                     lambda entry: entry.transactionHash.hex(),
                     entries,

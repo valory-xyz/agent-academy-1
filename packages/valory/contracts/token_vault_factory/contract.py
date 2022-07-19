@@ -26,7 +26,7 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from web3.types import Nonce, TxParams, Wei
+from web3.types import BlockIdentifier, Nonce, TxParams, Wei
 
 
 PUBLIC_ID = PublicId.from_str("valory/token_vault_factory:0.1.0")
@@ -679,6 +679,8 @@ class TokenVaultFactoryContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         token_address: str,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
     ) -> JSONLike:
         """
         Get created vaults from the deployer_address.
@@ -686,12 +688,15 @@ class TokenVaultFactoryContract(Contract):
         :param ledger_api: LedgerApi object
         :param contract_address: the address of the token vault to be used
         :param token_address: the address of the nft tied to the vault.
+        :param from_block: from which block to search for events
+        :param to_block: to which block to search for events
         :return: the curator's address
         """
         ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, contract_address)
         entries = factory_contract.events.Mint.createFilter(
-            fromBlock="earliest",
+            fromBlock=from_block,
+            toBlock=to_block,
             argument_filters=dict(token=token_address),
         ).get_all_entries()
 

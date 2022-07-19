@@ -9,7 +9,7 @@ fingerprint:
   README.md: QmRsKJTtGbqYzKQNADqnHvkABkXJoQ8HKUo8RstPSDgL1o
   __init__.py: QmPpQFS7rtv7AeERadhkY3m3ixMS9i5JdYfXE6iGUcUuUK
   build/ERC721VaultFactory.json: QmXCsN6HBgQEQdS83arK3KrGPqGqck4zaawA5AGX8rzEAQ
-  contract.py: QmVbKX7uHerNR2trj82X93nExinyqfLvBiPvbWaYpucDMi
+  contract.py: QmNV2hNUFRoqDJ7MDtHPzM65VAM2xZKzwwdYV44kqADDUS
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: TokenVaultFactoryContract
