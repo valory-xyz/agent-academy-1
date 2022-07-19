@@ -52,6 +52,7 @@ from packages.valory.skills.elcollectooorr_abci.payloads import (
     PostTxPayload,
     PurchasedNFTPayload,
     ResetPayload,
+    ResyncPayload,
     TransactionPayload,
     TransactionType,
     TransferNFTPayload,
@@ -288,6 +289,32 @@ class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC
         :return: a new period state and a NO_MAJORITY event
         """
         return self.period_state, Event.NO_MAJORITY
+
+
+class ResyncRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
+    """This class represents the round used to sync the agent upon reset."""
+
+    allowed_tx_type = ResyncPayload.transaction_type
+    round_id = "resync"
+    payload_attribute = "resync_data"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            # notice that we are not resetting the last_processed_id
+            payload = json.loads(self.most_voted_payload)
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                period_count=self.most_voted_payload,
+                **payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
 
 
 class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
