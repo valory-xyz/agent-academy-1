@@ -136,7 +136,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         """Run tests."""
         self.period_state.update(amount_spent=10 ** 18)
 
-        payload_data = True
+        payload_data = "deploy_full"
 
         test_round = DeployDecisionRound(
             synchronized_data=self.period_state, consensus_params=self.consensus_params
@@ -205,7 +205,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         """Run tests."""
         self.period_state.update(amount_spent=10 ** 18)
 
-        payload_data = False
+        payload_data = "dont_deploy"
 
         test_round = DeployDecisionRound(
             synchronized_data=self.period_state, consensus_params=self.consensus_params
@@ -261,6 +261,73 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         )
 
         assert event == Event.DECIDED_NO
+
+
+class TestSkipDeployDecisionRound(BaseRoundTestClass):
+    """Tests for DeployDecisionRound when there is no vault deployment."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        self.period_state.update(amount_spent=10 ** 18)
+
+        payload_data = "deploy_skip_basket"
+
+        test_round = DeployDecisionRound(
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            DeployDecisionPayload(sender=participant, deploy_decision=payload_data)
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_deploy_decision=MappingProxyType(test_round.collection),
+                most_voted_deploy_decision=payload_data,
+                amount_spent=10 ** 18,
+            ),
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        state = cast(PeriodState, state)
+
+        assert state.db.get("most_voted_deploy_decision") == actual_next_state.db.get(
+            "most_voted_deploy_decision"
+        )
+
+        # make sure all the votes are as expected
+        assert all(
+            [
+                cast(Dict, state.db.get("participant_to_deploy_decision"))[participant]
+                == actual_vote
+                for (participant, actual_vote) in cast(
+                    Dict, actual_next_state.db.get("participant_to_deploy_decision")
+                ).items()
+            ]
+        )
+
+        assert event == Event.DECIDED_SKIP
 
 
 class TestDeployBasketTxRound(BaseRoundTestClass):
@@ -531,7 +598,76 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
             ]
         )
 
-        assert event == Event.DONE
+        assert event == Event.DECIDED_YES
+
+
+class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
+    """Tests for PermissionVaultFactoryRound when no permissioning is needed."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        payload_data = "no_permissioning"
+
+        test_round = PermissionVaultFactoryRound(
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            PermissionVaultFactoryPayload(
+                sender=participant, permission_factory=str(payload_data)
+            )
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = cast(
+            PeriodState,
+            self.period_state.update(
+                participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
+                most_voted_tx_hash=payload_data,
+                tx_submitter=PermissionVaultFactoryRound.round_id,
+            ),
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+        state = cast(PeriodState, state)
+
+        # a new period has started
+        # make sure the correct project is chosen
+        assert state.db.get("most_voted_tx_hash") == actual_next_state.db.get(
+            "most_voted_tx_hash"
+        )
+
+        # make sure all the votes are as expected
+        assert all(
+            [
+                cast(Dict, state.db.get("participant_to_voted_tx_hash"))[participant]
+                == actual_vote
+                for (participant, actual_vote) in cast(
+                    Dict, actual_next_state.db.get("participant_to_voted_tx_hash")
+                ).items()
+            ]
+        )
+
+        assert event == Event.DECIDED_NO
 
 
 class TestVaultAddressRound(BaseRoundTestClass):

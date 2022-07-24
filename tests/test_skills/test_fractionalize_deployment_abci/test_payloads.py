@@ -32,11 +32,13 @@ from packages.valory.skills.fractionalize_deployment_abci.payloads import (
 
 def test_deploy_decision_payload() -> None:
     """Test `DeployDecisionPayload`"""
-    payload = DeployDecisionPayload(sender="sender", deploy_decision=True, id_="id")
+    payload = DeployDecisionPayload(
+        sender="sender", deploy_decision="deploy_full", id_="id"
+    )
 
     assert payload.deploy_decision is not None
     assert payload.id_ == "id"
-    assert payload.data == dict(deploy_decision=True)
+    assert payload.data == dict(deploy_decision="deploy_full")
 
     assert str(payload.transaction_type) == str(TransactionType.DEPLOY_DECISION)
     assert payload.transaction_type == TransactionType.DEPLOY_DECISION
