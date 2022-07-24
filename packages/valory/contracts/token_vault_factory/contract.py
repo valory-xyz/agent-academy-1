@@ -703,7 +703,7 @@ class TokenVaultFactoryContract(Contract):
         return dict(
             vaults=list(
                 map(
-                    lambda entry: entry.args["token"],
+                    lambda entry: entry.args["vault"],
                     entries,
                 )
             )
