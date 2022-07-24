@@ -465,7 +465,7 @@ class TokenVaultContract(Contract):
         factory_contract = cls.get_instance(ledger_api, contract_address)
         entries = factory_contract.events.Transfer.createFilter(
             fromBlock=from_block,
-            to_block=to_block,
+            toBlock=to_block,
             argument_filters={"from": from_address},
         ).get_all_entries()
 
