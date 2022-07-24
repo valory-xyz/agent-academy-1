@@ -82,6 +82,7 @@ from packages.valory.skills.elcollectooorr_abci.rounds import (
     PostPayoutRound,
     PostTransactionSettlementRound,
     ProcessPurchaseRound,
+    ResyncAbciApp,
     ResyncRound,
     TransactionRound,
     TransactionSettlementAbciMultiplexer,
@@ -127,7 +128,7 @@ class ElcollectooorrABCIBaseState(BaseState, ABC):
 
 class ResyncRoundBehaviour(
     ElcollectooorrABCIBaseState
-):  # pylint: disable=too-many-locals
+):  # pylint: disable=too-many-locals, too-many-statements
     """Behaviour for the resyncing round."""
 
     behaviour_id = "resync"
@@ -146,17 +147,36 @@ class ResyncRoundBehaviour(
                     min(block_nums),
                     max(block_nums),
                 )  # these will help in filtering events
+                self.context.logger.info(f"found safe txs: {safe_txs}")
+                self.context.logger.info(
+                    f"earliest tx block num: {earliest_tx}; latest tx block num: {latest_tx}"
+                )
 
                 all_mints = yield from self._get_all_mints(
                     from_block=earliest_tx, to_block=latest_tx
                 )
-                purchased_projects = [mint["project_id"] for mint in all_mints]
+                curated_projects = yield from self._get_curated_projects()
+                purchased_project_ids = [mint["project_id"] for mint in all_mints]
+                purchased_projects = [
+                    dict(
+                        project_id=project_id,
+                        is_curated=(project_id in curated_projects),
+                    )
+                    for project_id in purchased_project_ids
+                ]
+                self.context.logger.info(
+                    f"already purchased projects: {purchased_project_ids}"
+                )
 
                 baskets = yield from self._get_all_baskets(
                     from_block=earliest_tx, to_block=latest_tx
                 )
                 basket_addresses: List[str] = []
                 vault_addresses: List[str] = []
+                latest_basket: str
+                latest_vault: str
+                # defines the block in which the most recent basket was deployed to
+                max_block_num = 0
                 for basket in baskets:
                     basket_address = basket["basket_address"]
                     block_num = basket["block_number"]
@@ -169,7 +189,31 @@ class ResyncRoundBehaviour(
                             block_num + 50
                         ),  # we give a 50 block window for the vault to be deployed after the basket
                     )
-                    vault_addresses.extend(vault)
+                    vault_addresses += vault
+
+                    if len(vault) == 0:
+                        self.context.logger.warning(
+                            f"basket {basket_address} is not associated with any vault."
+                        )
+                    elif len(vault) > 1:
+                        self.context.logger.warning(
+                            f"basket {basket_address} is associated with {len(vault)} vaults"
+                        )
+
+                    if block_num > max_block_num:
+                        max_block_num = block_num
+                        latest_basket = basket_address
+                        # we take the first in case the basket-to-vault relation is 1:n.
+                        # NOTE: we expect it to be 1:1, under certain conditions it can be 1:0.
+                        # example: the service is down just after a basket is deployed but before
+                        # a vault is deployed.
+                        if len(vault) > 0:
+                            latest_vault = vault[0]
+
+                self.context.logger.info(f"all deployed baskets: {basket_addresses}")
+                self.context.logger.info(f"latest deployed basket: {latest_basket}")
+                self.context.logger.info(f"all deployed vaults: {vault_addresses}")
+                self.context.logger.info(f"latest deployed vault: {latest_vault}")
 
                 all_payouts = []
                 for vault_address in vault_addresses:
@@ -178,12 +222,27 @@ class ResyncRoundBehaviour(
                     )
                     all_payouts.extend(payouts)
 
+                txs_since_last_basket = [
+                    tx["tx_hash"]
+                    for tx in safe_txs
+                    if tx["block_number"] >= max_block_num
+                ]
+                amount_spent = yield from self._get_amount_spent(txs_since_last_basket)
                 address_to_fractions = self._address_to_fractions(all_payouts)
+                self.context.logger.info(
+                    f"txs since the deployment of the last basket: {txs_since_last_basket}"
+                )
+                self.context.logger.info(
+                    f"amount spent since last basket was deployed: {amount_spent / 10 ** 18}Ξ"
+                )
+                self.context.logger.info(
+                    f"address to fraction amount already paid out: {address_to_fractions}"
+                )
                 payload_data = {
-                    "basket_addresses": basket_addresses,
-                    "vault_addresses": vault_addresses,
+                    "amount_spent": amount_spent,
+                    "basket_addresses": [latest_basket] if latest_basket else [],
+                    "vault_addresses": [latest_vault] if latest_vault else [],
                     "purchased_projects": purchased_projects,
-                    "most_recent_project": max(purchased_projects),
                     "paid_users": address_to_fractions,
                 }
             except AEAEnforceError as e:
@@ -202,6 +261,8 @@ class ResyncRoundBehaviour(
                 yield from self.send_a2a_transaction(payload)
                 yield from self.wait_until_round_end()
 
+        self.set_done()
+
     @staticmethod
     def _address_to_fractions(all_payouts: List[Dict]) -> Dict[str, int]:
         """Organize payouts by the receiving address."""
@@ -216,13 +277,41 @@ class ResyncRoundBehaviour(
 
         return addr_to_fractions
 
+    def _get_curated_projects(self) -> Generator[None, None, List[int]]:
+        """Get a list of curated projects."""
+        query = '{projects(where:{curationStatus:"curated"}){projectId}}'
+        response = yield from self.get_http_response(
+            method="POST",
+            url=self.params.artblocks_graph_url,
+            content=json.dumps({"query": query}).encode(),
+        )
+
+        enforce(
+            response is not None
+            and response.status_code == 200
+            and response.body is not None,
+            "Bad response from the graph api.",
+        )
+
+        response_body = json.loads(response.body)
+
+        enforce(
+            "data" in response_body.keys() and "projects" in response_body["data"],
+            "Bad response from the graph api.",
+        )
+
+        curated_projects = response_body["data"]["projects"]
+        curated_project_ids = [int(p["projectId"]) for p in curated_projects]
+
+        return curated_project_ids
+
     def _get_safe_txs(
         self,
     ) -> Generator[None, None, List[Dict]]:
         """Get the all MultiSig txs made by the safe."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.period_state.db.get_strict("safe_contract_address"),
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_safe_txs",
         )
@@ -244,7 +333,7 @@ class ResyncRoundBehaviour(
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=vault_address,
-            from_address=self.period_state.safe_contract_address,
+            from_address=self.period_state.db.get_strict("safe_contract_address"),
             contract_id=str(TokenVaultContract.contract_id),
             contract_callable="get_all_erc20_transfers",
             from_block=from_block,
@@ -270,6 +359,7 @@ class ResyncRoundBehaviour(
             contract_address=self.params.basket_factory_address,
             contract_id=str(BasketFactoryContract.contract_id),
             contract_callable="get_deployed_baskets",
+            deployer_address=self.period_state.db.get_strict("safe_contract_address"),
             from_block=from_block,
             to_block=to_block,
         )
@@ -315,7 +405,7 @@ class ResyncRoundBehaviour(
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.params.artblocks_contract,
-            minted_to_address=self.period_state.safe_contract_address,
+            minted_to_address=self.period_state.db.get_strict("safe_contract_address"),
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="get_mints",
             from_block=from_block,
@@ -331,6 +421,35 @@ class ResyncRoundBehaviour(
         )
 
         return cast(List[Dict], response.state.body["mints"])
+
+    def _get_amount_spent(
+        self,
+        txs: List[str],
+    ) -> Generator[None, None, int]:
+        """Get the amount of wei spent in the provided txs."""
+        total_amount_spent = 0
+        for tx in txs:
+            response = yield from self.get_contract_api_response(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x0000000000000000000000000000000000000000",  # not needed
+                contract_id=str(GnosisSafeContract.contract_id),
+                contract_callable="get_amount_spent",
+                tx_hash=tx,
+            )
+
+            enforce(
+                response is not None
+                and response.state is not None
+                and response.state.body is not None
+                and "amount_spent" in response.state.body.keys()
+                and response.state.body["amount_spent"] is not None,
+                "response, response.state, response.state.body must exist",
+            )
+
+            tx_cost = cast(int, response.state.body["amount_spent"])
+            total_amount_spent += tx_cost
+
+        return total_amount_spent
 
 
 class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
@@ -732,7 +851,7 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
     def _get_safe_balance(self) -> Generator[None, None, int]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.period_state.db.get_strict("safe_contract_address"),
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_balance",
         )
@@ -812,7 +931,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.period_state.db.get_strict("safe_contract_address"),
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=to_address,
@@ -1281,7 +1400,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
     def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.safe_contract_address,
+            contract_address=self.period_state.db.get_strict("safe_contract_address"),
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=self.params.artblocks_contract,
@@ -1448,6 +1567,16 @@ class BankRoundBehaviour(AbstractRoundBehaviour):
     }
 
 
+class ResyncAbciBehaviour(AbstractRoundBehaviour):
+    """This behaviour manages the consensus stages for the Bank ABCI app."""
+
+    initial_behaviour_cls = ResyncRoundBehaviour
+    abci_app_cls = ResyncAbciApp
+    behaviours: Set[Type[BaseState]] = {  # type: ignore
+        ResyncRoundBehaviour,  # type: ignore
+    }
+
+
 class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
     """This behaviour manages the consensus stages for the El Collectooorr abci app."""
 
@@ -1466,6 +1595,7 @@ class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
         *BankRoundBehaviour.behaviours,
         *PostFractionsPayoutRoundBehaviour.behaviours,
         *TransferNFTAbciBehaviour.behaviours,
+        *ResyncAbciBehaviour.behaviours,
     }
 
     def setup(self) -> None:
