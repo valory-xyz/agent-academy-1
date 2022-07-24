@@ -38,6 +38,7 @@ from packages.valory.skills.elcollectooorr_abci.payloads import (
     PayoutFractionsPayload,
     PostTxPayload,
     PurchasedNFTPayload,
+    ResyncPayload,
     TransactionPayload,
     TransferNFTPayload,
 )
@@ -53,6 +54,7 @@ from packages.valory.skills.elcollectooorr_abci.rounds import (
     PostTransactionSettlementEvent,
     PostTransactionSettlementRound,
     ProcessPurchaseRound,
+    ResyncRound,
     TransactionRound,
     TransferNFTRound,
     rotate_list,
@@ -892,6 +894,78 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
         ).db.get("amount_spent")
 
         assert event == PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE
+
+
+class TestResyncRound(BaseRoundTestClass):
+    """Tests for ResyncRound."""
+
+    def test_run(
+        self,
+    ) -> None:
+        """Run tests."""
+        test_payload_data = {
+            "amount_spent": 1,
+            "basket_addresses": ["0x0"],
+            "vault_addresses": ["0x1"],
+            "purchased_projects": [0],
+            "paid_users": {"0x2": 1},
+        }
+
+        test_round = ResyncRound(
+            synchronized_data=self.period_state, consensus_params=self.consensus_params
+        )
+
+        first_payload, *payloads = [
+            ResyncPayload(sender=participant, resync_data=json.dumps(test_payload_data))
+            for participant in self.participants
+        ]
+
+        # only one participant has voted
+        # no event should be returned
+        test_round.process_payload(first_payload)
+        assert test_round.collection[first_payload.sender] == first_payload
+        assert test_round.end_block() is None
+
+        # enough members have voted
+        # but no majority is reached
+        self._test_no_majority_event(test_round)
+
+        # all members voted in the same way
+        # Event DONE should be returned
+        for payload in payloads:
+            test_round.process_payload(payload)
+
+        actual_next_state = self.period_state.update(
+            amount_spent=1,
+            basket_addresses=["0x0"],
+            vault_addresses=["0x1"],
+            purchased_projects=[0],
+            paid_users={"0x2": 1},
+        )
+
+        res = test_round.end_block()
+        assert res is not None
+        state, event = res
+
+        # a new period has started
+        # make sure the correct project is chosen
+        assert cast(PeriodState, state).db.get("amount_spent") == cast(
+            PeriodState, actual_next_state
+        ).db.get("amount_spent")
+        assert cast(PeriodState, state).db.get("basket_addresses") == cast(
+            PeriodState, actual_next_state
+        ).db.get("basket_addresses")
+        assert cast(PeriodState, state).db.get("vault_addresses") == cast(
+            PeriodState, actual_next_state
+        ).db.get("vault_addresses")
+        assert cast(PeriodState, state).db.get("purchased_projects") == cast(
+            PeriodState, actual_next_state
+        ).db.get("purchased_projects")
+        assert cast(PeriodState, state).db.get("paid_users") == cast(
+            PeriodState, actual_next_state
+        ).db.get("paid_users")
+
+        assert event == Event.DONE
 
 
 def test_rotate_list_method() -> None:
