@@ -44,9 +44,11 @@ from packages.valory.contracts.artblocks_minter_filter.contract import (
 from packages.valory.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
+from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.multisend.contract import MultiSendContract
 from packages.valory.contracts.token_vault.contract import TokenVaultContract
+from packages.valory.contracts.token_vault_factory.contract import TokenVaultFactoryContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -75,7 +77,7 @@ from packages.valory.skills.elcollectooorr_abci.behaviours import (
     PostTransactionSettlementBehaviour,
     ProcessPurchaseRoundBehaviour,
     TransactionRoundBehaviour,
-    TransferNFTRoundBehaviour,
+    TransferNFTRoundBehaviour, ResyncRoundBehaviour,
 )
 from packages.valory.skills.elcollectooorr_abci.decision_models import (
     SimpleDecisionModel as DecisionModel,
@@ -169,17 +171,17 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         cls._skill.skill_context.state.setup()
         cls._skill.skill_context.state.round_sequence.end_sync()
         assert (
-            cast(
-                BaseState, cls.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == cls.elcollectooorr_abci_behaviour.initial_behaviour_cls.behaviour_id
+                cast(
+                    BaseState, cls.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == cls.elcollectooorr_abci_behaviour.initial_behaviour_cls.behaviour_id
         )
 
     def fast_forward_to_state(
-        self,
-        behaviour: AbstractRoundBehaviour,
-        state_id: str,
-        period_state: BasePeriodState,
+            self,
+            behaviour: AbstractRoundBehaviour,
+            state_id: str,
+            period_state: BasePeriodState,
     ) -> None:
         """Fast forward the FSM to a state."""
         next_state = {s.behaviour_id: s for s in behaviour.behaviours}[state_id]
@@ -202,7 +204,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         )
 
     def mock_ledger_api_request(
-        self, request_kwargs: Dict, response_kwargs: Dict
+            self, request_kwargs: Dict, response_kwargs: Dict
     ) -> None:
         """
         Mock http request.
@@ -240,7 +242,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         self.elcollectooorr_abci_behaviour.act_wrapper()
 
     def mock_contract_api_request(
-        self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
+            self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
     ) -> None:
         """
         Mock http request.
@@ -344,7 +346,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         self.elcollectooorr_abci_behaviour.act_wrapper()
 
     def mock_a2a_transaction(
-        self,
+            self,
     ) -> None:
         """Performs mock a2a transaction."""
 
@@ -422,7 +424,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         )
         assert not current_state.is_done()
         with mock.patch.object(
-            self.elcollectooorr_abci_behaviour.context.state, "_round_sequence"
+                self.elcollectooorr_abci_behaviour.context.state, "_round_sequence"
         ) as mock_period:
             mock_period.last_round_id = cast(
                 AbstractRound, current_state.matching_round
@@ -468,16 +470,16 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             # project 2 gets finished, project 3 is observed
             self.mock_contract_api_request(
@@ -566,16 +568,16 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             # project 2 gets finished, project 3 is observed
             self.mock_contract_api_request(
@@ -664,16 +666,16 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             # project 6 becomes active
             self.mock_contract_api_request(
@@ -748,16 +750,16 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             # project 6 becomes active
             self.mock_contract_api_request(
@@ -846,16 +848,16 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -931,10 +933,10 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -1086,14 +1088,14 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
             query = '{projects(where:{curationStatus:"curated"}){projectId}}'
@@ -1177,14 +1179,14 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
             http_response = {
@@ -1307,14 +1309,14 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -1412,14 +1414,14 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -1555,14 +1557,14 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -1631,10 +1633,10 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -1710,13 +1712,13 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -1789,14 +1791,14 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
             self.mock_contract_api_request(
@@ -1866,13 +1868,13 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -1914,7 +1916,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     fraction_price = 10500000000000000
 
     def _mock_available_tokens(
-        self, address: str = "0x0", balance: int = 1000, bad_response: bool = False
+            self, address: str = "0x0", balance: int = 1000, bad_response: bool = False
     ) -> None:
         """Mock the response of the TokenVault when calling get_balance."""
         body = dict(balance=balance) if not bad_response else {}
@@ -1935,9 +1937,9 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
     def _mock_multisend_tx(
-        self,
-        address: str = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761",
-        bad_response: bool = False,
+            self,
+            address: str = "0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761",
+            bad_response: bool = False,
     ) -> None:
         """Mock the response of the Multisend Address."""
 
@@ -1959,7 +1961,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
     def _mock_transferERC20_tx(
-        self, address: str = "0x0", bad_response: bool = False
+            self, address: str = "0x0", bad_response: bool = False
     ) -> None:
         """Mock the ERC20 transfer tx."""
         body = {"data": b"erc20_tx"} if not bad_response else {}
@@ -2023,14 +2025,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2082,14 +2084,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2142,10 +2144,10 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -2178,10 +2180,10 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -2227,14 +2229,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2288,14 +2290,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2337,13 +2339,13 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                                 {
                                     "sender": "0x0",
                                     "amount": 10
-                                    * self.fraction_price,  # the first user has paid for 10 tokens
+                                              * self.fraction_price,  # the first user has paid for 10 tokens
                                     "blockNumber": 0,
                                 },
                                 {
                                     "sender": "0x1",
                                     "amount": 10
-                                    * self.fraction_price,  # the second  user has paid for 10 tokens
+                                              * self.fraction_price,  # the second  user has paid for 10 tokens
                                     "blockNumber": 0,
                                 },
                             ],
@@ -2354,14 +2356,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2405,13 +2407,13 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                                 {
                                     "sender": "0x0",
                                     "amount": 10
-                                    * self.fraction_price,  # the first user has paid for 10 tokens
+                                              * self.fraction_price,  # the first user has paid for 10 tokens
                                     "blockNumber": 0,
                                 },
                                 {
                                     "sender": "0x1",
                                     "amount": 10
-                                    * self.fraction_price,  # the second  user has paid for 10 tokens
+                                              * self.fraction_price,  # the second  user has paid for 10 tokens
                                     "blockNumber": 0,
                                 },
                             ],
@@ -2422,14 +2424,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2473,13 +2475,13 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                                 {
                                     "sender": "0x0",
                                     "amount": 10
-                                    * self.fraction_price,  # the first user has paid for 10 tokens
+                                              * self.fraction_price,  # the first user has paid for 10 tokens
                                     "blockNumber": 0,
                                 },
                                 {
                                     "sender": "0x1",
                                     "amount": 10
-                                    * self.fraction_price,  # the second  user has paid for 10 tokens
+                                              * self.fraction_price,  # the second  user has paid for 10 tokens
                                     "blockNumber": 0,
                                 },
                             ],
@@ -2490,14 +2492,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2546,14 +2548,14 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
             mock_logger.assert_any_call(
@@ -2593,14 +2595,14 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2645,14 +2647,14 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2708,10 +2710,10 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -2770,14 +2772,14 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2839,14 +2841,14 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
             mock_logger.assert_any_call(
@@ -2889,14 +2891,14 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -2948,14 +2950,14 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -3005,14 +3007,14 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         )
 
         assert (
-            cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == self.behaviour_class.behaviour_id
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
         ) as mock_logger:
             self.elcollectooorr_abci_behaviour.act_wrapper()
 
@@ -3046,6 +3048,524 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
 
+class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
+    """Tests for TestResyncRoundBehaviour"""
+
+    behaviour_class = ResyncRoundBehaviour
+    next_behaviour_class = DeployDecisionRoundBehaviour
+
+    def _mock_safe_tx(self, txs: List[Dict]):
+        """Mocks the response of 'get_safe_txs'"""
+        self.mock_contract_api_request(
+            contract_id=str(GnosisSafeContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x0",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(ledger_id="ethereum", body=dict(txs=txs)),
+            ),
+        )
+
+    def _mock_all_mints(self, mints: List[Dict]):
+        """Mocks the response of 'get_mints'"""
+        self.mock_contract_api_request(
+            contract_id=str(ArtBlocksContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(ledger_id="ethereum", body=dict(mints=mints)),
+            ),
+        )
+
+    def _mock_amount_spent(self, amount_spent: int):
+        """Mocks the response of 'get_amount_spent'"""
+        self.mock_contract_api_request(
+            contract_id=str(GnosisSafeContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x0000000000000000000000000000000000000000",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(ledger_id="ethereum", body=dict(amount_spent=amount_spent)),
+            ),
+        )
+
+    def _mock_deployed_baskets(self, baskets: List[Dict]):
+        """Mocks the response of 'get_deployed_baskets'"""
+        self.mock_contract_api_request(
+            contract_id=str(BasketFactoryContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(ledger_id="ethereum", body=dict(baskets=baskets)),
+            ),
+        )
+
+    def _mock_deployed_vaults(self, vaults: List[str]):
+        """Mocks the response of 'get_deployed_vaults'"""
+        self.mock_contract_api_request(
+            contract_id=str(TokenVaultFactoryContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(ledger_id="ethereum", body=dict(vaults=vaults)),
+            ),
+        )
+
+    def _mock_get_payouts(self, vault_address: str, address_to_fractions: List[Dict]):
+        """Mocks the response of 'get_all_erc20_transfers'"""
+        self.mock_contract_api_request(
+            contract_id=str(TokenVaultContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address=vault_address,
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(ledger_id="ethereum", body=dict(payouts=address_to_fractions)),
+            ),
+        )
+
+    def _mock_curated_projects(self, projects: List[int]):
+        """Mocks the response of the artblocks api."""
+
+        http_response = {
+            "data": {
+                "projects": [
+                    {"projectId": str(project)} for project in projects
+                ]
+            }
+        }
+        query = '{projects(where:{curationStatus:"curated"}){projectId}}'
+
+        self.mock_http_request(
+            request_kwargs=dict(
+                method="POST",
+                headers="",
+                version="",
+                body=json.dumps({"query": query}).encode(),
+                url="https://api.thegraph.com/subgraphs/name/artblocks/art-blocks",
+            ),
+            response_kwargs=dict(
+                version="",
+                status_code=200,
+                status_text="",
+                headers="",
+                body=json.dumps(http_response).encode(),
+            ),
+        )
+
+    def test_the_happy_path(self) -> None:
+        """The service was restarted with no vaults deployed."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.behaviour_id,
+            PeriodState(
+                StateDB(
+                    setup_data=StateDB.data_to_lists(
+                        {
+                            "safe_contract_address": "0x0",
+                        },
+                    )
+                ),
+            ),
+        )
+
+        assert (
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
+        )
+
+        with patch.object(
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            txs = [
+                dict(tx_hash="0x0", block_number=0),
+                dict(tx_hash="0x0", block_number=1),
+                dict(tx_hash="0x0", block_number=2),
+            ]
+            self._mock_safe_tx(txs=txs)
+
+            mints = [
+                dict(token_id=0, project_id=0),
+                dict(token_id=1, project_id=1),
+                dict(token_id=2, project_id=2),
+            ]
+            self._mock_all_mints(mints)
+            self._mock_curated_projects([0, 1, 2])
+
+            baskets = [
+                dict(basket_address="0x0", block_number=0),
+                dict(basket_address="0x1", block_number=1),
+                dict(basket_address="0x2", block_number=2),
+            ]
+            self._mock_deployed_baskets(baskets)
+
+            for basket in baskets:
+                self._mock_deployed_vaults([basket["basket_address"]])
+
+            vaults = ["0x0", "0x1", "0x2"]
+            for vault in vaults:
+                self._mock_get_payouts(vault, [dict(value=1, to=vault)])
+
+            self._mock_amount_spent(10)
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"found safe txs: {txs}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "earliest tx block num: 0; latest tx block num: 2"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"already purchased projects: {[0, 1, 2]}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"all deployed baskets: {['0x0', '0x1', '0x2']}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "latest deployed basket: 0x2"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"all deployed vaults: {['0x0', '0x1', '0x2']}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "latest deployed vault: 0x2"
+            )
+
+            address_to_fractions = {
+                "0x0": 1,
+                "0x1": 1,
+                "0x2": 1,
+            }
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"address to fraction amount already paid out: {address_to_fractions}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"amount spent since last basket was deployed: {10 / 10 ** 18}Ξ"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"txs since the deployment of the last basket: {['0x0']}"
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+
+    def test_bad_response(self) -> None:
+        """The service was restarted with no vaults deployed."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.behaviour_id,
+            PeriodState(
+                StateDB(
+                    setup_data=StateDB.data_to_lists(
+                        {
+                            "safe_contract_address": "0x0",
+                        },
+                    )
+                ),
+            ),
+        )
+
+        assert (
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
+        )
+
+        with patch.object(
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.mock_contract_api_request(
+                contract_id=str(GnosisSafeContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x0",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(ledger_id="ethereum", body=dict(bad_res=[])),
+                ),
+            )
+            mock_logger.assert_any_call(
+                logging.ERROR,
+                "Couldn't resync, the following error was encountered AEAEnforceError: "
+                "response, response.state, response.state.body must exist"
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+
+    def test_more_than_1_vault_per_basket(self) -> None:
+        """More than 1 vault is present per basket."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.behaviour_id,
+            PeriodState(
+                StateDB(
+                    setup_data=StateDB.data_to_lists(
+                        {
+                            "safe_contract_address": "0x0",
+                        },
+                    )
+                ),
+            ),
+        )
+
+        assert (
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
+        )
+
+        with patch.object(
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            txs = [
+                dict(tx_hash="0x0", block_number=0),
+                dict(tx_hash="0x0", block_number=1),
+                dict(tx_hash="0x0", block_number=2),
+            ]
+            self._mock_safe_tx(txs=txs)
+
+            mints = [
+                dict(token_id=0, project_id=0),
+                dict(token_id=1, project_id=1),
+                dict(token_id=2, project_id=2),
+            ]
+            self._mock_all_mints(mints)
+            self._mock_curated_projects([0, 1, 2])
+
+            baskets = [
+                dict(basket_address="0x0", block_number=0),
+                dict(basket_address="0x1", block_number=1),
+                dict(basket_address="0x2", block_number=2),
+            ]
+            self._mock_deployed_baskets(baskets)
+
+            for basket in baskets:
+                self._mock_deployed_vaults([basket["basket_address"], basket["basket_address"]])
+
+            vaults = ["0x0", "0x1", "0x2"]
+            for vault in vaults:
+                self._mock_get_payouts(vault, [dict(value=1, to=vault)])
+                self._mock_get_payouts(vault, [dict(value=1, to=vault)])
+
+            self._mock_amount_spent(10)
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"found safe txs: {txs}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "earliest tx block num: 0; latest tx block num: 2"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"already purchased projects: {[0, 1, 2]}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"all deployed baskets: {['0x0', '0x1', '0x2']}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "latest deployed basket: 0x2"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"all deployed vaults: {['0x0', '0x0', '0x1', '0x1', '0x2', '0x2']}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "latest deployed vault: 0x2"
+            )
+
+            address_to_fractions = {
+                "0x0": 2,
+                "0x1": 2,
+                "0x2": 2,
+            }
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"address to fraction amount already paid out: {address_to_fractions}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"amount spent since last basket was deployed: {10 / 10 ** 18}Ξ"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"txs since the deployment of the last basket: {['0x0']}"
+            )
+            mock_logger.assert_any_call(
+                logging.WARN,
+                "basket 0x0 is associated with 2 vaults"
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+
+    def test_basket_without_vault(self) -> None:
+        """A basket doesn't have a vault associated with it."""
+
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.behaviour_id,
+            PeriodState(
+                StateDB(
+                    setup_data=StateDB.data_to_lists(
+                        {
+                            "safe_contract_address": "0x0",
+                        },
+                    )
+                ),
+            ),
+        )
+
+        assert (
+                cast(
+                    BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                ).behaviour_id
+                == self.behaviour_class.behaviour_id
+        )
+
+        with patch.object(
+                self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            txs = [
+                dict(tx_hash="0x0", block_number=0),
+                dict(tx_hash="0x0", block_number=1),
+                dict(tx_hash="0x0", block_number=2),
+            ]
+            self._mock_safe_tx(txs=txs)
+
+            mints = [
+                dict(token_id=0, project_id=0),
+                dict(token_id=1, project_id=1),
+                dict(token_id=2, project_id=2),
+            ]
+            self._mock_all_mints(mints)
+            self._mock_curated_projects([0, 1, 2])
+
+            baskets = [
+                dict(basket_address="0x0", block_number=0),
+                dict(basket_address="0x1", block_number=1),
+                dict(basket_address="0x2", block_number=2),
+            ]
+            self._mock_deployed_baskets(baskets)
+
+            for basket in baskets[:-1]:
+                self._mock_deployed_vaults([basket["basket_address"]])
+            self._mock_deployed_vaults([])
+
+            vaults = ["0x0", "0x1"]
+            for vault in vaults:
+                self._mock_get_payouts(vault, [dict(value=1, to=vault)])
+
+            self._mock_amount_spent(10)
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"found safe txs: {txs}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "earliest tx block num: 0; latest tx block num: 2"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"already purchased projects: {[0, 1, 2]}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"all deployed baskets: {['0x0', '0x1', '0x2']}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "latest deployed basket: 0x2"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"all deployed vaults: {['0x0', '0x1']}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "latest deployed vault: 0x1"
+            )
+
+            address_to_fractions = {
+                "0x0": 1,
+                "0x1": 1,
+            }
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"address to fraction amount already paid out: {address_to_fractions}"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"amount spent since last basket was deployed: {10 / 10 ** 18}Ξ"
+            )
+            mock_logger.assert_any_call(
+                logging.INFO,
+                f"txs since the deployment of the last basket: {['0x0']}"
+            )
+            mock_logger.assert_any_call(
+                logging.WARN,
+                f"basket 0x2 is not associated with any vault."
+            )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DONE)
+
+        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+
+
+
 class TestDecisionModel:
     """Tests for the Decision Model"""
 
@@ -3073,7 +3593,7 @@ class TestDecisionModel:
         assert static_score == 1
 
     def test_static_should_return_0_when_empty_desc_and_no_royalty_receiver(
-        self,
+            self,
     ) -> None:
         """Static should return 1 when there is no royalty receiver, and empty desc"""
 
@@ -3086,7 +3606,7 @@ class TestDecisionModel:
         assert static_score == 0
 
     def test_static_should_return_1_when_nonempty_desc_and_no_royalty_receiver(
-        self,
+            self,
     ) -> None:
         """Static should return 1 when there is no royalty receiver and the description is not empty."""
 
@@ -3103,7 +3623,7 @@ class TestDecisionModel:
 
     # TODO: add tests for dynamic part
     def test_dynamic_should_return_1_when_cheap_often_minted_NFT_is_observed(
-        self,
+            self,
     ) -> None:
         """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
 
@@ -3121,7 +3641,7 @@ class TestDecisionModel:
         assert model.dynamic(project_hist) == 1
 
     def test_dynamic_should_return_0_when_NFT_rarely_minted_after_some_time(
-        self,
+            self,
     ) -> None:
         """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
@@ -3148,7 +3668,7 @@ class TestDecisionModel:
         assert model.dynamic(project_dict_example) == -1
 
     def test_dynamic_should_return_negative_1_when_too_expensive_minted_NFT_is_observed(
-        self,
+            self,
     ) -> None:
         """Dynamic should return 1 when there is a well-bought project with a low price and it is expected that it is completely sold soon."""
         model = DecisionModel()
