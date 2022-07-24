@@ -125,7 +125,7 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                         # the state is not Inactive, the reserve has been met
                         deploy_decision = DeployDecisionRound.DECIDE_DEPLOY_FULL
 
-                    if not deploy_decision:
+                    if deploy_decision == DeployDecisionRound.DECIDE_DONT_DEPLOY:
                         tokens_left = yield from self._get_num_tokens_left(latest_vault)
                         if tokens_left == 0:
                             # if no tokens are left, the vault has sold out, deploy a new one
