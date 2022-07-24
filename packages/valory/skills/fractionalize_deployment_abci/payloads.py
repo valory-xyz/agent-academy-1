@@ -44,18 +44,18 @@ class DeployDecisionPayload(BaseTxPayload):
 
     transaction_type = TransactionType.DEPLOY_DECISION
 
-    def __init__(self, sender: str, deploy_decision: bool, **kwargs: Any) -> None:
+    def __init__(self, sender: str, deploy_decision: str, **kwargs: Any) -> None:
         """Initialize a 'rest' transaction payload.
 
         :param sender: the sender (Ethereum) address
-        :param deploy_decision: the necessary info to create a tx for
+        :param deploy_decision: the decision
         :param kwargs: the keyword arguments
         """
         super().__init__(sender, **kwargs)
         self._deploy_decision = deploy_decision
 
     @property
-    def deploy_decision(self) -> bool:
+    def deploy_decision(self) -> str:
         """Get the decision."""
         return self._deploy_decision
 
