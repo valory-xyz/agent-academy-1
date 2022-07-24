@@ -65,7 +65,9 @@ from packages.valory.skills.fractionalize_deployment_abci.rounds import (
     FinishedDeployBasketTxRound,
     FinishedDeployVaultTxRound,
     FinishedPostBasketRound,
+    FinishedPostBasketWithoutPermissionRound,
     FinishedPostVaultRound,
+    FinishedWithBasketDeploymentSkippedRound,
     FinishedWithoutDeploymentRound,
     PermissionVaultFactoryRound,
     PostBasketDeploymentAbciApp,
@@ -289,32 +291,6 @@ class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC
         :return: a new period state and a NO_MAJORITY event
         """
         return self.period_state, Event.NO_MAJORITY
-
-
-class ResyncRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
-    """This class represents the round used to sync the agent upon reset."""
-
-    allowed_tx_type = ResyncPayload.transaction_type
-    round_id = "resync"
-    payload_attribute = "resync_data"
-    period_state_class = PeriodState
-
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
-        """Process the end of the block."""
-        if self.threshold_reached:
-            # notice that we are not resetting the last_processed_id
-            payload = json.loads(self.most_voted_payload)
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
-                period_count=self.most_voted_payload,
-                **payload,
-            )
-            return state, Event.DONE
-        if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
-        ):
-            return self._return_no_majority_event()
-        return None
 
 
 class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
@@ -963,17 +939,77 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
     }
 
 
+class ResyncRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
+    """This class represents the round used to sync the agent upon reset."""
+
+    allowed_tx_type = ResyncPayload.transaction_type
+    round_id = "resync"
+    payload_attribute = "resync_data"
+    period_state_class = PeriodState
+
+    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+        """Process the end of the block."""
+        if self.threshold_reached:
+            # notice that we are not resetting the last_processed_id
+            if self.most_voted_payload == "{}":
+                return self.period_state, Event.ERROR
+
+            payload = json.loads(self.most_voted_payload)
+
+            state = self.period_state.update(
+                period_state_class=self.period_state_class,
+                period_count=self.most_voted_payload,
+                **payload,
+            )
+            return state, Event.DONE
+        if not self.is_majority_possible(
+            self.collection, self.period_state.nb_participants
+        ):
+            return self._return_no_majority_event()
+        return None
+
+
+class FinishedResyncRound(DegenerateRound):
+    """A degen round for finished resyncing."""
+
+    round_id = "finished_resync"
+
+
+class ResyncAbciApp(AbciApp[Event]):
+    """ABCI to handle resyncing"""
+
+    initial_round_cls: Type[AbstractRound] = ResyncRound
+    transition_function: AbciAppTransitionFunction = {
+        ResyncRound: {
+            Event.DONE: FinishedResyncRound,
+            Event.ERROR: ResyncRound,
+            Event.ROUND_TIMEOUT: ResyncRound,
+        },
+        FinishedResyncRound: {},
+    }
+    final_states: Set[AppState] = {
+        FinishedResyncRound,
+    }
+    event_to_timeout: Dict[Event, float] = {
+        Event.ROUND_TIMEOUT: 30.0,
+        Event.RESET_TIMEOUT: 30.0,
+    }
+
+
 el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
     FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
     FinishedElCollectooorrWithoutPurchase: DeployBasketAbciApp.initial_round_cls,
-    FinishedRegistrationFFWRound: DeployBasketAbciApp.initial_round_cls,
+    FinishedRegistrationFFWRound: ResyncAbciApp.initial_round_cls,
+    FinishedResyncRound: DeployBasketAbciApp.initial_round_cls,
     FinishedTransactionSubmissionRound: PostTransactionSettlementRound,
     FinishedDeployVaultTxRound: TransactionSubmissionAbciApp.initial_round_cls,
     FinishedDeployBasketTxRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedWithBasketDeploymentSkippedRound: PostBasketDeploymentAbciApp.initial_round_cls,
     FinishedBasketTxRound: PostBasketDeploymentAbciApp.initial_round_cls,
     FinishedPostBasketRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedPostBasketWithoutPermissionRound: DeployVaultAbciApp.initial_round_cls,
     FinishedBasketPermissionTxRound: DeployVaultAbciApp.initial_round_cls,
     FinishedElcollectooorrTxRound: TransferNFTAbciApp.initial_round_cls,
     FinishedVaultTxRound: PostVaultDeploymentAbciApp.initial_round_cls,
@@ -1005,6 +1041,7 @@ ElCollectooorrAbciApp = chain(
         TransferNFTAbciApp,
         BankAbciApp,
         PostFractionPayoutAbciApp,
+        ResyncAbciApp,
     ),
     el_collectooorr_app_transition_mapping,
 )
