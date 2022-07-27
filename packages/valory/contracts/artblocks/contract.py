@@ -30,6 +30,7 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea.exceptions import enforce
 from aea_ledger_ethereum import EthereumApi
+from web3.types import BlockIdentifier
 
 
 _logger = logging.getLogger("aea.packages.valory.contracts.artblocks.contract")
@@ -303,3 +304,42 @@ class ArtBlocksContract(Contract):
         )
 
         return {"data": data}
+
+    @classmethod
+    def get_mints(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        minted_to_address: str,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
+    ) -> JSONLike:
+        """
+        Get all deployed minted tokens from the minted_to_address.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the artblocks contract
+        :param minted_to_address: the address that the tokens have been minted to
+        :param from_block: from which block to search for events
+        :param to_block: to which block to search for events
+        :return: the minted tokens & projects
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        artblocks_contract = cls.get_instance(ledger_api, contract_address)
+        entries = artblocks_contract.events.Mint.createFilter(
+            fromBlock=from_block,
+            toBlock=to_block,
+            argument_filters=dict(_to=minted_to_address),
+        ).get_all_entries()
+
+        return dict(
+            mints=list(
+                map(
+                    lambda entry: dict(
+                        token_id=entry.args["_tokenId"],
+                        project_id=entry.args["_projectId"],
+                    ),
+                    entries,
+                )
+            )
+        )

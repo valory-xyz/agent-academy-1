@@ -35,7 +35,7 @@ from packaging.version import Version
 from py_eth_sig_utils.eip712 import encode_typed_data
 from requests import HTTPError
 from web3.exceptions import SolidityError, TransactionNotFound
-from web3.types import Nonce, TxData, TxParams, Wei
+from web3.types import BlockIdentifier, Nonce, TxData, TxParams, Wei
 
 from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
     GnosisSafeProxyFactoryContract,
@@ -716,3 +716,40 @@ class GnosisSafeContract(Contract):
         total_spent = tx_value + (gas_price * gas_used)
 
         return dict(amount_spent=total_spent)
+
+    @classmethod
+    def get_safe_txs(
+        cls,
+        ledger_api: EthereumApi,
+        contract_address: str,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
+    ) -> JSONLike:
+        """
+        Get all the safe tx hashes.
+
+        :param ledger_api: the ledger API object
+        :param contract_address: the contract address (not used)
+        :param from_block: from which block to search for events
+        :param to_block: to which block to search for events
+         :return: the safe txs
+        """
+
+        ledger_api = cast(EthereumApi, ledger_api)
+        factory_contract = cls.get_instance(ledger_api, contract_address)
+        entries = factory_contract.events.SafeMultiSigTransaction.createFilter(
+            fromBlock=from_block,
+            toBlock=to_block,
+        ).get_all_entries()
+
+        return dict(
+            txs=list(
+                map(
+                    lambda entry: dict(
+                        tx_hash=entry.transactionHash.hex(),
+                        block_number=entry.blockNumber,
+                    ),
+                    entries,
+                )
+            )
+        )

@@ -653,7 +653,7 @@ class BasketContract(Contract):
         ledger_api: LedgerApi,
         contract_address: str,
         token_id: int,
-    ) -> Optional[str]:
+    ) -> JSONLike:
         """
         Returns the account approved for `tokenId` token.
 
@@ -666,7 +666,7 @@ class BasketContract(Contract):
         basket = cls.get_instance(ledger_api, contract_address)
         operator = basket.functions.getApproved(token_id).call()
 
-        return operator
+        return dict(operator=operator)
 
     @classmethod
     def is_approved_for_all(

@@ -58,6 +58,7 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     DECIDED_YES = "decided_yes"
     DECIDED_NO = "decided_no"
+    DECIDED_SKIP = "decided_skip"
     GIB_DETAILS = "gib_details"
     ERROR = "error"
 
@@ -186,6 +187,9 @@ class DeployDecisionRound(
     round_id = "deploy_decision_round"
     payload_attribute = "deploy_decision"
     period_state_class = PeriodState
+    DECIDE_DEPLOY_FULL = "deploy_full"
+    DECIDE_SKIP_BASKET = "deploy_skip_basket"
+    DECIDE_DONT_DEPLOY = "dont_deploy"
 
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
@@ -196,8 +200,10 @@ class DeployDecisionRound(
                 most_voted_deploy_decision=self.most_voted_payload,
             )
 
-            if self.most_voted_payload:
+            if self.most_voted_payload == self.DECIDE_DEPLOY_FULL:
                 return state.update(amount_spent=0), Event.DECIDED_YES
+            if self.most_voted_payload == self.DECIDE_SKIP_BASKET:
+                return state, Event.DECIDED_SKIP
 
             return state, Event.DECIDED_NO
 
@@ -212,6 +218,12 @@ class FinishedWithoutDeploymentRound(DegenerateRound):
     """Degenerate round when no deployment should be made"""
 
     round_id = "finished_without_deployment"
+
+
+class FinishedWithBasketDeploymentSkippedRound(DegenerateRound):
+    """Degenerate round when a basket shouldn't be deployed."""
+
+    round_id = "finished_without_basket_deployment"
 
 
 class DeployBasketTxRound(
@@ -330,11 +342,15 @@ class PermissionVaultFactoryRound(
     payload_attribute = "permission_factory"
     period_state_class = PeriodState
 
+    SKIP_PERMISSION = "no_permissioning"
+
     def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "":
                 return self.period_state, Event.ERROR
+            if self.most_voted_payload == self.SKIP_PERMISSION:
+                return self.period_state, Event.DECIDED_NO
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
@@ -343,7 +359,7 @@ class PermissionVaultFactoryRound(
                 tx_submitter=self.round_id,
             )
 
-            return state, Event.DONE
+            return state, Event.DECIDED_YES
         if not self.is_majority_possible(
             self.collection, self.period_state.nb_participants
         ):
@@ -355,6 +371,12 @@ class FinishedPostBasketRound(DegenerateRound):
     """This class represents the last round of the PostBasketDeploymentAbci"""
 
     round_id = "finished_post_basket_deployment_round"
+
+
+class FinishedPostBasketWithoutPermissionRound(DegenerateRound):
+    """This class represents the last round of the PostBasketDeploymentAbci"""
+
+    round_id = "finished_post_basket_deployment_without_permission_round"
 
 
 class VaultAddressRound(
@@ -401,6 +423,7 @@ class DeployBasketAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         DeployDecisionRound: {
             Event.DECIDED_YES: DeployBasketTxRound,
+            Event.DECIDED_SKIP: FinishedWithBasketDeploymentSkippedRound,
             Event.DECIDED_NO: FinishedWithoutDeploymentRound,
         },
         DeployBasketTxRound: {
@@ -409,10 +432,12 @@ class DeployBasketAbciApp(AbciApp[Event]):
         },
         FinishedDeployBasketTxRound: {},
         FinishedWithoutDeploymentRound: {},
+        FinishedWithBasketDeploymentSkippedRound: {},
     }
     final_states: Set[AppState] = {
         FinishedDeployBasketTxRound,
         FinishedWithoutDeploymentRound,
+        FinishedWithBasketDeploymentSkippedRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
@@ -430,13 +455,16 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
             Event.ERROR: BasketAddressRound,
         },
         PermissionVaultFactoryRound: {
-            Event.DONE: FinishedPostBasketRound,
+            Event.DECIDED_YES: FinishedPostBasketRound,
+            Event.DECIDED_NO: FinishedPostBasketWithoutPermissionRound,
             Event.ERROR: PermissionVaultFactoryRound,
         },
         FinishedPostBasketRound: {},
+        FinishedPostBasketWithoutPermissionRound: {},
     }
     final_states: Set[AppState] = {
         FinishedPostBasketRound,
+        FinishedPostBasketWithoutPermissionRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,

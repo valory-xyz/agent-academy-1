@@ -26,7 +26,7 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
-from web3.types import Nonce, TxParams, Wei
+from web3.types import BlockIdentifier, Nonce, TxParams, Wei
 
 from packages.valory.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
@@ -433,7 +433,7 @@ class TokenVaultContract(Contract):
 
         :param ledger_api: LedgerApi object
         :param contract_address: the address of the token vault to be used
-        :return: the curator's address
+        :return: the auction state
         """
 
         ledger_api = cast(EthereumApi, ledger_api)
@@ -441,3 +441,42 @@ class TokenVaultContract(Contract):
         state = token_vault_contract.functions.auctionState().call()
 
         return {"state": state}
+
+    @classmethod
+    def get_all_erc20_transfers(
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        from_address: str,
+        from_block: BlockIdentifier = "earliest",
+        to_block: BlockIdentifier = "latest",
+    ) -> JSONLike:
+        """
+        Get all ERC20 transfers from a given address.
+
+        :param ledger_api: LedgerApi object
+        :param contract_address: the address of the token vault to be used
+        :param from_address: the address transferring the tokens.
+        :param from_block: from which block to search for events
+        :param to_block: to which block to search for events
+        :return: the ERC20 transfers
+        """
+        ledger_api = cast(EthereumApi, ledger_api)
+        factory_contract = cls.get_instance(ledger_api, contract_address)
+        entries = factory_contract.events.Transfer.createFilter(
+            fromBlock=from_block,
+            toBlock=to_block,
+            argument_filters={"from": from_address},
+        ).get_all_entries()
+
+        return dict(
+            payouts=list(
+                map(
+                    lambda entry: dict(
+                        to=entry.args["to"],
+                        value=entry.args["value"],
+                    ),
+                    entries,
+                )
+            )
+        )

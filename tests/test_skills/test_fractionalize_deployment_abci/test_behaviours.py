@@ -460,7 +460,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             self.fractionalize_deployment_abci_behaviour.act_wrapper()
 
             mock_logger.assert_any_call(
-                logging.INFO, "Deploy new basket and vault? True."
+                logging.INFO, "Deploy new basket and vault? deploy_full."
             )
         self.mock_a2a_transaction()
         self.end_round(event=Event.DECIDED_YES)
@@ -503,7 +503,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             self.fractionalize_deployment_abci_behaviour.act_wrapper()
 
             mock_logger.assert_any_call(
-                logging.INFO, "Deploy new basket and vault? True."
+                logging.INFO, "Deploy new basket and vault? deploy_full."
             )
         self.mock_a2a_transaction()
         self.end_round(event=Event.DECIDED_YES)
@@ -562,7 +562,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             )
 
             mock_logger.assert_any_call(
-                logging.INFO, "Deploy new basket and vault? True."
+                logging.INFO, "Deploy new basket and vault? deploy_full."
             )
         self.mock_a2a_transaction()
         self.end_round(event=Event.DECIDED_YES)
@@ -637,7 +637,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             )
 
             mock_logger.assert_any_call(
-                logging.INFO, "Deploy new basket and vault? True."
+                logging.INFO, "Deploy new basket and vault? deploy_full."
             )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -713,7 +713,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             )
 
             mock_logger.assert_any_call(
-                logging.INFO, "Deploy new basket and vault? False."
+                logging.INFO, "Deploy new basket and vault? dont_deploy."
             )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -793,7 +793,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 "response.state.body must exist.",
             )
             mock_logger.assert_any_call(
-                logging.INFO, "Deploy new basket and vault? False."
+                logging.INFO, "Deploy new basket and vault? dont_deploy."
             )
         self.mock_a2a_transaction()
         self._test_done_flag_set()
@@ -1128,6 +1128,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                         {
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": ["0x0"],
+                            "vault_addresses": ["0x0"],
                             "final_tx_hash": "0x0",
                         },
                     ),
@@ -1190,6 +1191,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                         {
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": ["0x0"],
+                            "vault_addresses": ["0x0"],
                             "final_tx_hash": "0x0",
                         },
                     ),
@@ -1388,7 +1390,8 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
     """Tests for PermissionVaultFactoryRoundBehaviour"""
 
     behaviour_class = PermissionVaultFactoryRoundBehaviour
-    next_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    next_yes_behaviour_class = RandomnessTransactionSubmissionBehaviour
+    next_no_behaviour_class = DeployTokenVaultTxRoundBehaviour
 
     def test_contract_returns_valid_data(self) -> None:
         """The agent compiles a permission vault factory tx."""
@@ -1429,6 +1432,21 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
             response_kwargs=dict(
                 performative=ContractApiMessage.Performative.STATE,
                 state=State(
+                    body={"operator": "0x0000000000000000000000000000000000000000"},
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
+
+        self.mock_contract_api_request(
+            contract_id=str(BasketContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
                     body={
                         "data": "0xefef39a10000000000000000000000000000000000000000000000000000000000000079"
                     },
@@ -1454,12 +1472,66 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round(event=Event.DONE)
+        self.end_round(event=Event.DECIDED_YES)
 
         state = cast(
             BaseState, self.fractionalize_deployment_abci_behaviour.current_behaviour
         )
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_yes_behaviour_class.behaviour_id
+
+    def test_contract_returns_valid_data_already_permissioned(self) -> None:
+        """The agent compiles a permission vault factory tx."""
+
+        self.fast_forward_to_state(
+            self.fractionalize_deployment_abci_behaviour,
+            self.behaviour_class.behaviour_id,
+            PeriodState(
+                StateDB(
+                    setup_data=StateDB.data_to_lists(
+                        {
+                            "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
+                            "basket_addresses": [
+                                "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
+                            ],
+                        },
+                    ),
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState,
+                self.fractionalize_deployment_abci_behaviour.current_behaviour,
+            ).behaviour_id
+            == self.behaviour_class.behaviour_id
+        )
+
+        self.fractionalize_deployment_abci_behaviour.act_wrapper()
+
+        self.mock_contract_api_request(
+            contract_id=str(BasketContract.contract_id),
+            request_kwargs=dict(
+                performative=ContractApiMessage.Performative.GET_STATE,
+                contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+            ),
+            response_kwargs=dict(
+                performative=ContractApiMessage.Performative.STATE,
+                state=State(
+                    body={"operator": "0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63"},
+                    ledger_id="ethereum",
+                ),
+            ),
+        )
+
+        self.mock_a2a_transaction()
+        self._test_done_flag_set()
+        self.end_round(event=Event.DECIDED_NO)
+
+        state = cast(
+            BaseState, self.fractionalize_deployment_abci_behaviour.current_behaviour
+        )
+        assert state.behaviour_id == self.next_no_behaviour_class.behaviour_id
 
     def test_contract_returns_invalid_data(self) -> None:
         """The fails to compile a permission vault factory tx."""
@@ -1502,6 +1574,21 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
                     state=State(
+                        body={"operator": "0x1CD623a86751d4C4f20c96000FEC763941f098A3"},
+                        ledger_id="ethereum",
+                    ),
+                ),
+            )
+
+            self.mock_contract_api_request(
+                contract_id=str(BasketContract.contract_id),
+                request_kwargs=dict(
+                    performative=ContractApiMessage.Performative.GET_STATE,
+                    contract_address="0x1CD623a86751d4C4f20c96000FEC763941f098A2",
+                ),
+                response_kwargs=dict(
+                    performative=ContractApiMessage.Performative.STATE,
+                    state=State(
                         body={
                             "data": "0xefef39a10000000000000000000000000000000000000000000000000000000000000079"
                         },
@@ -1533,9 +1620,9 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
-        self.end_round(event=Event.DONE)
+        self.end_round(event=Event.ERROR)
 
         state = cast(
             BaseState, self.fractionalize_deployment_abci_behaviour.current_behaviour
         )
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.behaviour_class.behaviour_id

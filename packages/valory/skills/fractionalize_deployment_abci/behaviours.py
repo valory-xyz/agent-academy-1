@@ -90,11 +90,14 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         with self.context.benchmark_tool.measure(
             self,
         ).local():
-            should_deploy = False
+            deploy_decision = DeployDecisionRound.DECIDE_DONT_DEPLOY
 
             try:
                 vault_addresses = cast(
                     List[str], self.period_state.db.get("vault_addresses", [])
+                )
+                basket_addresses = cast(
+                    List[str], self.period_state.db.get("basket_addresses", [])
                 )
                 amount_spent = self.period_state.db.get("amount_spent", 0)
                 budget = self.params.budget_per_vault - (
@@ -103,10 +106,16 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 
                 if len(vault_addresses) == 0:
                     # no vaults are deployed, so a new one needs to get deployed
-                    should_deploy = True
+                    if len(basket_addresses) > 0:
+                        # a basket is already deployed
+                        # we need to deploy the vault
+                        # this can happen on resync (restarting the service)
+                        deploy_decision = DeployDecisionRound.DECIDE_SKIP_BASKET
+                    else:
+                        deploy_decision = DeployDecisionRound.DECIDE_DEPLOY_FULL
 
                 elif amount_spent >= budget:
-                    should_deploy = True
+                    deploy_decision = DeployDecisionRound.DECIDE_DEPLOY_FULL
 
                 else:
                     latest_vault = vault_addresses[-1]
@@ -114,13 +123,13 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 
                     if status != 0:
                         # the state is not Inactive, the reserve has been met
-                        should_deploy = True
+                        deploy_decision = DeployDecisionRound.DECIDE_DEPLOY_FULL
 
-                    if not should_deploy:
+                    if deploy_decision == DeployDecisionRound.DECIDE_DONT_DEPLOY:
                         tokens_left = yield from self._get_num_tokens_left(latest_vault)
-                        should_deploy = (
-                            tokens_left == 0
-                        )  # if no tokens are left, the vault has sold out, deploy a new one
+                        if tokens_left == 0:
+                            # if no tokens are left, the vault has sold out, deploy a new one
+                            deploy_decision = DeployDecisionRound.DECIDE_DEPLOY_FULL
 
             except AEAEnforceError as e:
                 self.context.logger.error(
@@ -130,11 +139,11 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         with self.context.benchmark_tool.measure(
             self,
         ).consensus():
-            self.context.logger.info(f"Deploy new basket and vault? {should_deploy}.")
+            self.context.logger.info(f"Deploy new basket and vault? {deploy_decision}.")
 
             payload = DeployDecisionPayload(
                 self.context.agent_address,
-                should_deploy,
+                deploy_decision,
             )
 
             yield from self.send_a2a_transaction(payload)
@@ -393,9 +402,16 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 basket_addresses = cast(
                     List[str], self.period_state.db.get("basket_addresses", [])
                 )
-                new_basket = yield from self._get_basket()
-                basket_addresses.append(new_basket)
-                self.context.logger.info(f"New basket address={new_basket}")
+                vault_addresses = cast(
+                    List[str], self.period_state.db.get("vault_addresses", [])
+                )
+                if len(basket_addresses) == len(vault_addresses):
+                    # this check is necessary if for some reason we have successfully deployed a basket,
+                    # but we fail before deploying the vault
+                    new_basket = yield from self._get_basket()
+                    basket_addresses.append(new_basket)
+                    self.context.logger.info(f"New basket address={new_basket}")
+
             except AEAEnforceError as e:
                 self.context.logger.error(
                     f"Couldn't create BasketAddressRound payload, {type(e).__name__}: {e}."
@@ -453,17 +469,23 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
                 latest_basket = cast(
                     List[str], self.period_state.db.get_strict("basket_addresses")
                 )[-1]
-                basket_data_str = yield from self._get_permission_tx()
-                basket_data = bytes.fromhex(basket_data_str[2:])
-                tx_hash = yield from self._get_safe_hash(basket_data)
 
-                payload_data = hash_payload_to_hex(
-                    safe_tx_hash=tx_hash,
-                    ether_value=0,
-                    safe_tx_gas=10 ** 7,
-                    to_address=latest_basket,
-                    data=basket_data,
-                )
+                is_permissioned = yield from self._is_basket_permissioned(latest_basket)
+                if not is_permissioned:
+                    # we only permission if necessary
+                    basket_data_str = yield from self._get_permission_tx(latest_basket)
+                    basket_data = bytes.fromhex(basket_data_str[2:])
+                    tx_hash = yield from self._get_safe_hash(basket_data, latest_basket)
+
+                    payload_data = hash_payload_to_hex(
+                        safe_tx_hash=tx_hash,
+                        ether_value=0,
+                        safe_tx_gas=10 ** 7,
+                        to_address=latest_basket,
+                        data=basket_data,
+                    )
+                else:
+                    payload_data = PermissionVaultFactoryRound.SKIP_PERMISSION
 
             except AEAEnforceError as e:
                 self.context.logger.error(
@@ -483,17 +505,15 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
 
         self.set_done()
 
-    def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
-        latest_basket = cast(
-            List[str], self.period_state.db.get_strict("basket_addresses")
-        )[-1]
-
+    def _get_safe_hash(
+        self, data: bytes, basket_address: str
+    ) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
             contract_address=self.period_state.db.get("safe_contract_address"),
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
-            to_address=latest_basket,
+            to_address=basket_address,
             value=0,
             data=data,
             safe_tx_gas=10 ** 7,
@@ -510,16 +530,12 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
 
         return tx_hash
 
-    def _get_permission_tx(self) -> Generator[None, None, str]:
-        latest_basket = cast(List[str], self.period_state.db.get("basket_addresses"))[
-            -1
-        ]
-
+    def _get_permission_tx(self, basket_address: str) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_id=str(BasketContract.contract_id),
             contract_callable="approve_abi",
-            contract_address=latest_basket,
+            contract_address=basket_address,
             operator_address=self.params.token_vault_factory_address,
         )
 
@@ -534,6 +550,30 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
         data = cast(str, response.state.body["data"])
 
         return data
+
+    def _is_basket_permissioned(
+        self, basket_address: str
+    ) -> Generator[None, None, bool]:
+        """Check whether the vault is already permissioned."""
+        response = yield from self.get_contract_api_response(
+            performative=ContractApiMessage.Performative.GET_STATE,
+            contract_id=str(BasketContract.contract_id),
+            contract_callable="get_approved_account",
+            contract_address=basket_address,
+            token_id=0,
+        )
+
+        # response body also has project details
+        enforce(
+            response.state.body is not None
+            and "operator" in response.state.body.keys()
+            and response.state.body["operator"] is not None,
+            "contract returned and empty body or empty data",
+        )
+
+        operator = cast(str, response.state.body["operator"])
+
+        return operator == self.params.token_vault_factory_address
 
 
 class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):

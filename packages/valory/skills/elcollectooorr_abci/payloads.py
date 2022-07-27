@@ -31,6 +31,7 @@ class TransactionType(Enum):
     RANDOMNESS = "randomness"
     SELECT_KEEPER = "select_keeper"
     RESET = "reset"
+    RESYNC = "resync"
     OBSERVATION = "observation"
     DETAILS = "details"
     DECISION = "decision"
@@ -123,6 +124,32 @@ class PaidFractionsPayload(BaseTxPayload):
     def data(self) -> Dict:
         """Get the data."""
         return dict(paid_fractions=self.paid_fractions)
+
+
+class ResyncPayload(BaseTxPayload):
+    """Represent a resync transaction."""
+
+    transaction_type = TransactionType.RESYNC
+
+    def __init__(self, sender: str, resync_data: str, **kwargs: Any) -> None:
+        """Initialize an 'rest' transaction payload.
+
+        :param sender: the sender (Ethereum) address
+        :param resync_data: the re-synced data
+        :param kwargs: the keyword arguments
+        """
+        super().__init__(sender, **kwargs)
+        self._resync_data = resync_data
+
+    @property
+    def resync_data(self) -> str:
+        """Get project details"""
+        return self._resync_data
+
+    @property
+    def data(self) -> Dict:
+        """Get the data."""
+        return dict(resync_data=self.resync_data)
 
 
 class ResetPayload(BaseTxPayload):

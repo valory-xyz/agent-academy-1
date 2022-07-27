@@ -68,15 +68,15 @@ POST_TX_SETTLEMENT_STRINGS = (
 
 FRACTIONALIZE_STRINGS = (
     "Entered in the 'deploy_decision_round' round for period 0",
-    "Deploy new basket and vault? True.",
-    "Deploy new basket and vault? False.",
+    "Deploy new basket and vault? deploy_full.",
+    "Deploy new basket and vault? dont_deploy.",
     "Entered in the 'deploy_basket_round' round for period 0",
     "'deploy_basket_round' round is done with event: Event.DONE",
     "Entered in the 'post_deploy_basket_round' round for period 0",
     "New basket address=0x",
     "'post_deploy_basket_round' round is done with event: Event.DONE",
     "Entered in the 'permission_factory_round' round for period 0",
-    "'permission_factory_round' round is done with event: Event.DONE",
+    "'permission_factory_round' round is done with event: Event.DECIDED_YES",
     "Deployed new TokenVault at: 0x",
     "'post_deploy_vault_round' round is done with event: Event.DONE",
     "Entered in the 'funding_round' round for period 0",
