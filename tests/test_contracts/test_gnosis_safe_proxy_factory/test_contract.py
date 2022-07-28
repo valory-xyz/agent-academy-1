@@ -29,7 +29,6 @@ from packages.valory.contracts.gnosis_safe_proxy_factory.contract import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.docker.base import skip_docker_tests
 from tests.test_contracts.base import BaseGanacheContractTest
 
 
@@ -38,7 +37,6 @@ DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
 DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 
 
-@skip_docker_tests
 class TestGnosisSafeProxyFactory(BaseGanacheContractTest):
     """Test deployment of the proxy to Ganache."""
 

@@ -6,39 +6,39 @@ description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmPEgsayZSdPvrbq8PmSFMQuWgz5FQPMLz2aDfbESm4GZg
-  __init__.py: QmNMqQffcN9uuYASGYzkk6P2jJALUuVrQpMpYGvtyKyMYY
-  behaviours.py: QmUgzdirhYjjWrPPeWvPc8Um71UmgEchBJNuBufDvvoRts
-  decision_models.py: QmbXorndh2AED16av97MsUuptG2VotEGQXezp5UGXz9pYt
-  dialogues.py: QmfDThV4WCRzK88XDpW2hKDYCuEH4RxoHCoAkWpkBRGRPv
-  fsm_composition_specification.yaml: QmTF7WsdvqPR6oCfZWv6DDUoSNP3P3XnNdeWyLvDdEUy2G
-  fsm_specification.yaml: QmQCdJU74WL5ioMAjpiwDjmymbEqxJoad8C7DdSAeJkHQy
-  handlers.py: Qmech5i8inUuNwSxmB3nGfm7LiF4NDuKcxK33k92r9FXHY
-  models.py: QmNZLK7LMvTGGpFiDRghEr5spWLv8vSqryfivcBTRmSt1S
-  payloads.py: QmdNyvrC6FCPBFijEojd1qK324zP6u7soXDWwUjXUMmMHC
-  rounds.py: QmREsF4sdVVJtyuDssPjA1mWCNBXhZ9v9pf2HzKrr8wGAW
+  README.md: bafybeiankss7mun4gw6jgbuogefmziyuvhtnjtyks3l3tmizs3llc65gtm
+  __init__.py: bafybeiaajww3obn2rusmxvaojo35qkei6vmedy5bvuo2qekkwrx6mcezcu
+  behaviours.py: bafybeic6lrcc6ean4ujzuokedftrlab5oxn3vt5nrvwy5o76u3cbwrjcya
+  decision_models.py: bafybeigeaovb2qmjn5o6tke6zdxuu5xaiuvozfbruxclusgop7krrxycuu
+  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
+  fsm_composition_specification.yaml: bafybeici35bidski7f5ixckatkxxcemudjzbtphckewrrgbxagpmj5snge
+  fsm_specification.yaml: bafybeia3vermnvjyl37nga2gfx32a7quiyikmpqqknjnalcqujk5nlbvky
+  handlers.py: bafybeihr233wcw5uu4cnvc3oey2cp7dzrvm33diufl4pczx6raznkckjq4
+  models.py: bafybeiadh676dh7v4cj7h3s2zooojjiifc4sz6pfbc7a4wt7r2epvwlwnu
+  payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
+  rounds.py: bafybeiblc67xtcbnslo7fb7shc3vhvgwexriahl6gqeueusiyyyvjfqxam
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0
-- valory/http_client:0.1.0
-- valory/ledger:0.1.0
-- valory/p2p_libp2p_client:0.1.0
+- valory/abci:0.1.0:bafybeihnuyj3g7j7hlgpix7655nm32r5k7pfbca76oe5kgwy3yv5sgcmjq
+- valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
+- valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
+- valory/p2p_libp2p_client:0.1.0:bafybeiaaclnoqbvtseqst2zeepus7x2q6qnterl2iraivw6nwuxgryzxma
 contracts:
-- valory/artblocks:0.1.0
-- valory/artblocks_minter_filter:0.1.0
-- valory/artblocks_periphery:0.1.0
+- valory/artblocks:0.1.0:bafybeihhpmaq5nvbzbxgr6iejsku62jyshju7zzdermb57xb7szjv22ncq
+- valory/artblocks_minter_filter:0.1.0:bafybeidw3ncyqwaturl7pvjlid4hyqhacu775uyjjn5codaijqft37uv2e
+- valory/artblocks_periphery:0.1.0:bafybeihxwrhqvnqb2mmvihzbt2jpjehka7vm3acaax34hmce6dsso5ezya
 protocols:
-- open_aea/signing:1.0.0
-- valory/abci:0.1.0
-- valory/contract_api:1.0.0
-- valory/http:1.0.0
-- valory/ledger_api:1.0.0
+- open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a
+- valory/abci:0.1.0:bafybeicbj36urbjkn6y7hrhm57dspyuuvpcnxhr3r6y2cwxammpom633g4
+- valory/contract_api:1.0.0:bafybeie5gbzc4v4n6p6ea66kmc5ejwvbjzhd7vhcjg7mikbyx47lypcd5m
+- valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
+- valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0
-- valory/fractionalize_deployment_abci:0.1.0
-- valory/registration_abci:0.1.0
-- valory/safe_deployment_abci:0.1.0
-- valory/transaction_settlement_abci:0.1.0
+- valory/abstract_round_abci:0.1.0:bafybeicgphi24eaepc4fia7rta7mynb2vscahvqa47c3gjsos3k4xulclq
+- valory/fractionalize_deployment_abci:0.1.0:bafybeifoqwjtsw7ohphtn5cyylbziors77krp4utxduh3kxbpl2j437fie
+- valory/registration_abci:0.1.0:bafybeicru4x3tdja66i4remlayyoubkjfvbkrc47etvp4kpgqwlrmrnv24
+- valory/safe_deployment_abci:0.1.0:bafybeigip6fg2ub5ikjn6zhl46lziytbhxqwke7uva7iriymwapk7md3la
+- valory/transaction_settlement_abci:0.1.0:bafybeib3yiewksrfenqqlmcesoykedpy26skonponptjojk3o2epb7o3lq
 behaviours:
   main:
     args: {}
