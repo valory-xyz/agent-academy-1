@@ -25,8 +25,6 @@ cp -r ../open-autonomy/packages/valory/skills/transaction_settlement_abci packag
 cp -r ../open-autonomy/scripts/__init__.py scripts/
 cp -r ../open-autonomy/scripts/check_copyright.py scripts/
 cp -r ../open-autonomy/scripts/check_packages.py scripts/
-cp -r ../open-autonomy/scripts/generate_abciapp_spec.py scripts/
-cp -r ../open-autonomy/scripts/generate_ipfs_hashes.py scripts/
 #manual > cp -r ../open-autonomy/tests/helpers/docker tests/helpers
 cp -r ../open-autonomy/tests/helpers/__init__.py tests/helpers
 cp -r ../open-autonomy/tests/helpers/async_utils.py tests/helpers
