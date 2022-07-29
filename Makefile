@@ -52,7 +52,7 @@ pylint:
 
 .PHONY: hashes
 hashes:
-	python scripts/generate_ipfs_hashes.py
+	autonomy hash all
 
 .PHONY: static
 static:
@@ -135,8 +135,6 @@ copyright:
 
 .PHONY: check_abci_specs
 check_abci_specs:
-	cp scripts/generate_abciapp_spec.py generate_abciapp_spec.py
-	python generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
-	python generate_abciapp_spec.py -c packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp > packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
-	rm generate_abciapp_spec.py
+	autonomy analyse abci generate-app-specs packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
+	autonomy analyse abci generate-app-specs packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
 	echo "Successfully validated abcis!"

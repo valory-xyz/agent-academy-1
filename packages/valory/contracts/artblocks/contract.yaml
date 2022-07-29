@@ -6,9 +6,9 @@ description: The artblocks contract interface.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmUGuRJKvAhEH4d5DNwXiSRiKxDz4H6Xz1X7agVXVLMQZb
-  build/artblocks.json: QmUhpSFK66Pwh71vTJo21v4hY53mRZVcMWGgmV66Pqs2mm
-  contract.py: QmeP5TUf1Dj8k9BSieBxpihqyUKVsVfXVyJCPyaK4FwDD6
+  __init__.py: bafybeicygbxgjj6fdq5h42qhtvljmncsgftnrwjppcvgssi63uphkaaa5y
+  build/artblocks.json: bafybeic6sjiqbak6zfzc3hvgroz4bcvg2featpfrgzqrmhumv2lrbcanta
+  contract.py: bafybeiholirijtvsmj4nudi42kblhkx4kzel6lk6iag3e7uo2dbbhyaptu
 fingerprint_ignore_patterns: []
 class_name: ArtBlocksContract
 contract_interface_paths:

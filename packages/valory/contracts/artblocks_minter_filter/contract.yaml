@@ -6,9 +6,9 @@ description: The artblocks minter filter.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmUwe3xjpBXuvQtwWQLsKU3Ju4qRvAsqj2aYUUJPTLnhwo
-  build/MinterFilter.json: QmdAw9UYjw5iT1NK1FaR7PyNdcnW3DkbSVMXKqMLxRixmC
-  contract.py: QmWRpvFiKzuSSm6pEjb9KzSu2aCT7jwVSpFn9saJ9Ht33c
+  __init__.py: bafybeidcds2mzfgbztqb4c7lf2trcetekbxugfrphpoj2fr3rnavymzgqi
+  build/MinterFilter.json: bafybeig4mikolpont2oewabrjw5i5e4rq2m2qqv3iph5mtg52aan6bkqy4
+  contract.py: bafybeidygdyxz5xd5qvxxii4orqitxuehfs6mottyg42ladmxenh7ywjs4
 fingerprint_ignore_patterns: []
 class_name: ArtBlocksMinterFilterContract
 contract_interface_paths:

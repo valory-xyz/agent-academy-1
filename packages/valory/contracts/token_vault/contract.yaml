@@ -6,13 +6,13 @@ description: Fractional Token Vault contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: Qme8wotyeEGfWmapjicTZSjAARhukPrgzccjVx77fbFy34
-  __init__.py: QmPpQFS7rtv7AeERadhkY3m3ixMS9i5JdYfXE6iGUcUuUK
-  build/TokenVault.json: QmfEMhE6yr6sssHKzs7soyX8gzNirDX5Vwok4KscvdhBkg
-  contract.py: Qmb4g4m1UPA9wPitPZ1UsJVGVBijxCcmjEdBudVTuWZqqD
+  README.md: bafybeihkxnnr72tylr2wk3gwsj2ugqcv64vwwac3njhyz4g7vuq6ttod44
+  __init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
+  build/TokenVault.json: bafybeih27h2cvvfhymipkfgma7poctswwrbzwunfsf2y26pbnti566pxvu
+  contract.py: bafybeif5cav2cju63luswgp6z4mtnsie4p3jyyjblc5ftyhxofm7lu6spq
 fingerprint_ignore_patterns: []
 contracts:
-- valory/token_vault_factory:0.1.0
+- valory/token_vault_factory:0.1.0:bafybeibw4re67a6rhcttd2odvgbqfgq2wncqmm343rpqhef2zrfy62rsie
 class_name: TokenVaultContract
 contract_interface_paths:
   ethereum: build/TokenVault.json

@@ -6,13 +6,13 @@ description: Fractional Basket contract
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: QmVPDnDfTm8VQUDq3jZxq9yVu1HZFo2sSuZuk7cJuTyuhC
-  __init__.py: QmPpQFS7rtv7AeERadhkY3m3ixMS9i5JdYfXE6iGUcUuUK
-  build/Basket.json: QmVGNazBZF4vE2amUYjyHA1pcEedcmcccSCw77kAs1xHrP
-  contract.py: QmcnbBfs6Ate7zcMa8bZmNsNc1RudLqN9hTCixnEMHTyGk
+  README.md: bafybeidivjoq36doknaw7u7dyyis57nigzkkd5g2x66ejh3a4757cnjtbm
+  __init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
+  build/Basket.json: bafybeidg5favibiv4jzggfgmtme6lkheg4smgdwkj76xvkrqpsnsswftba
+  contract.py: bafybeigwvc5yrc2zcl5ikqlwgjx5mkp7yej7ic5ulpmdb62v2h7jsujtye
 fingerprint_ignore_patterns: []
 contracts:
-- valory/basket_factory:0.1.0
+- valory/basket_factory:0.1.0:bafybeif7kf53okf3772cgasu2sh5z6jrwyv6wj7zordj2x2wgnnn3fwo3y
 class_name: BasketContract
 contract_interface_paths:
   ethereum: build/Basket.json

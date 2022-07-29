@@ -6,9 +6,9 @@ description: The artblocks minter contract interface.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: QmVMa9prZAYPGyeWFEvz6QQZfv9tm88smD6z3kPTWZg1G5
-  build/Minter.json: QmY3RcSNdJQ7rHvyihtQv1tHFu638wA5u8ag6rTeS8MmZ8
-  contract.py: QmXG11FgUdbbopBXytJqgxmQ8kRjR8dk3rFa2p7W5oy9VZ
+  __init__.py: bafybeidihy6loi6z7h3s5lxldw7btpo263pljzrfwohk2kooji2van7jei
+  build/Minter.json: bafybeieqfmxzi2jdpuy6ayqpi7cs3yvb3z4lypyafxv5qunzsx5f2utl44
+  contract.py: bafybeieera5alimzgqvz6uhgasj7xc3p57wyvgg27e6yw2svl3oh4pgy7a
 fingerprint_ignore_patterns: []
 class_name: ArtBlocksPeripheryContract
 contract_interface_paths:
