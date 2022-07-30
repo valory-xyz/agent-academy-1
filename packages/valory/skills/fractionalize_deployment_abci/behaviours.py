@@ -64,7 +64,9 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
 
-from tests.helpers.constants import WEI_TO_ETH as ONE_ETH
+
+ONE_ETH = 10 ** 18
+SAFE_GAS = 10 ** 7
 
 
 class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
@@ -219,7 +221,7 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
                     ether_value=0,
-                    safe_tx_gas=10 ** 7,
+                    safe_tx_gas=SAFE_GAS,
                     to_address=self.params.basket_factory_address,
                     data=basket_data,
                 )
@@ -251,7 +253,7 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             to_address=self.params.basket_factory_address,
             value=0,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
         )
 
         enforce(
@@ -308,7 +310,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
                     ether_value=0,
-                    safe_tx_gas=10 ** 7,
+                    safe_tx_gas=SAFE_GAS,
                     to_address=self.params.token_vault_factory_address,
                     data=mint_data,
                 )
@@ -340,7 +342,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             to_address=self.params.token_vault_factory_address,
             value=0,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
         )
 
         enforce(
@@ -482,7 +484,7 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
                     payload_data = hash_payload_to_hex(
                         safe_tx_hash=tx_hash,
                         ether_value=0,
-                        safe_tx_gas=10 ** 7,
+                        safe_tx_gas=SAFE_GAS,
                         to_address=latest_basket,
                         data=basket_data,
                     )
@@ -518,7 +520,7 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
             to_address=basket_address,
             value=0,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
         )
 
         enforce(

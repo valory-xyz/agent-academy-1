@@ -111,6 +111,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 
 
 WEI_TO_ETH = 10 ** 18
+SAFE_GAS = 10 ** 7
 
 
 class ElcollectooorrABCIBaseState(BaseState, ABC):
@@ -906,7 +907,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
                     ether_value=value,
-                    safe_tx_gas=10 ** 7,
+                    safe_tx_gas=SAFE_GAS,
                     to_address=minter,
                     data=purchase_data,
                 )
@@ -942,7 +943,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
             to_address=to_address,
             value=value,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
         )
 
         enforce(
@@ -1083,7 +1084,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
                     multisend_data_obj["encoded"] = hash_payload_to_hex(
                         safe_tx_hash=tx_hash,
                         ether_value=0,
-                        safe_tx_gas=10 ** 7,
+                        safe_tx_gas=SAFE_GAS,
                         operation=SafeOperation.DELEGATE_CALL.value,
                         to_address=self.params.multisend_address,
                         data=multisend_data,
@@ -1118,7 +1119,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
             to_address=self.params.multisend_address,
             value=0,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
             operation=SafeOperation.DELEGATE_CALL.value,
         )
 
@@ -1378,7 +1379,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
                     ether_value=0,
-                    safe_tx_gas=10 ** 7,
+                    safe_tx_gas=SAFE_GAS,
                     to_address=self.params.artblocks_contract,
                     data=transfer_data,
                 )
@@ -1411,7 +1412,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
             to_address=self.params.artblocks_contract,
             value=0,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
         )
         enforce(
             response.state.body is not None
