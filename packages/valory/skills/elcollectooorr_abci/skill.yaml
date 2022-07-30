@@ -8,13 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiankss7mun4gw6jgbuogefmziyuvhtnjtyks3l3tmizs3llc65gtm
   __init__.py: bafybeiaajww3obn2rusmxvaojo35qkei6vmedy5bvuo2qekkwrx6mcezcu
-  behaviours.py: bafybeibyqccoldivuyqfqlyzga4ei7yykleplxf76vexcs5grg6vp6yiyq
-  decision_models.py: bafybeigeaovb2qmjn5o6tke6zdxuu5xaiuvozfbruxclusgop7krrxycuu
+  behaviours.py: bafybeicoofu26ffxtzavuo4rr462bmpx67j7lb4rjcpymel7t5tmazg66i
+  decision_models.py: bafybeifzkhhcihcguh64os3jda3wbdvs2jbywc2zw3ir7lbhps2rgw5cpu
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
   fsm_composition_specification.yaml: bafybeici35bidski7f5ixckatkxxcemudjzbtphckewrrgbxagpmj5snge
   fsm_specification.yaml: bafybeia3vermnvjyl37nga2gfx32a7quiyikmpqqknjnalcqujk5nlbvky
   handlers.py: bafybeihr233wcw5uu4cnvc3oey2cp7dzrvm33diufl4pczx6raznkckjq4
-  models.py: bafybeiadh676dh7v4cj7h3s2zooojjiifc4sz6pfbc7a4wt7r2epvwlwnu
+  models.py: bafybeibkyazgdj7q7r2s7vvzhmqf4x2w5zocz76lcyo2xiautf322r7baq
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
   rounds.py: bafybeiblc67xtcbnslo7fb7shc3vhvgwexriahl6gqeueusiyyyvjfqxam
 fingerprint_ignore_patterns: []
@@ -86,6 +86,7 @@ models:
       cleanup_history_depth: 1
       consensus:
         max_participants: 1
+      decision_model_threshold: 0.0
       decision_model_type: 'yes'
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       enforce_investor_whitelisting: true
@@ -94,6 +95,7 @@ models:
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
       max_healthcheck: 120
+      max_purchase_per_project: 1
       max_retries: 5
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 10

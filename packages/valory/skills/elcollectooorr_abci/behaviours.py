@@ -847,7 +847,11 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
         """Get the fittest project to purchase."""
 
         projects = EightyPercentDecisionModel.decide(
-            active_projects, purchased_projects, budget
+            active_projects,
+            purchased_projects,
+            budget,
+            self.params.max_purchase_per_project,
+            self.params.decision_model_threshold,
         )
         self.context.logger.info(f"{len(projects)} projects fit the reqs.")
 

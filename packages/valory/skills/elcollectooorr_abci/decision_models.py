@@ -38,6 +38,8 @@ class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
         active_projects: List[dict],
         purchased_projects: List[dict],
         budget: int,
+        max_purchase_per_project: int,
+        decision_threshold: float,
     ) -> List[Dict]:
         """
         Method to decide on what projects to purchase.
@@ -45,16 +47,26 @@ class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
         :param active_projects: projects that are currently active.
         :param purchased_projects: projects that have been purchased.
         :param budget: the available budget in wei.
+        :param max_purchase_per_project: defines the maximum times a project can be purchased.
+        :param decision_threshold: defines the minimum minted percentage a project needs to have to be considered.
         :return: an ordered list of projects, based on "fitness" to purchase.
         """
         purchased_curated = [p for p in purchased_projects if p["is_curated"]]
         purchased_non_curated = [p for p in purchased_projects if not p["is_curated"]]
-        purchased_project_ids = {p["project_id"] for p in purchased_projects}
+        purchased_project_ids = [p["project_id"] for p in purchased_projects]
         # only purchase non-curated if there are more curated than non-curated
         can_purchase_non_curated = len(purchased_curated) > len(purchased_non_curated)
         potential_projects = []
 
         for project in active_projects:
+            if project["minted_percentage"] < decision_threshold:
+                _default_logger.info(
+                    f"Project #{project['project_id']} doesnt meet the minting threshold, "
+                    f"we require {decision_threshold} "
+                    f"but project #{project['project_id']} is at {project['minted_percentage']}"
+                )
+                continue
+
             if not project["is_mintable_via_contract"]:
                 _default_logger.info(
                     f"Project #{project['project_id']} cannot be purchased via contracts, "
@@ -74,7 +86,10 @@ class EightyPercentDecisionModel(ABC):  # pylint: disable=too-few-public-methods
                 )
                 continue
 
-            if project["project_id"] in purchased_project_ids:
+            if (
+                purchased_project_ids.count(project["project_id"])
+                >= max_purchase_per_project
+            ):
                 _default_logger.info(
                     f"Project #{project['project_id']} is already purchased."
                 )
