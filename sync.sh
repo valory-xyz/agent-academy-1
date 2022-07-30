@@ -9,6 +9,7 @@ cp -r ../open-autonomy/packages/valory/contracts/__init__.py packages/valory/con
 cp -r ../open-autonomy/packages/valory/contracts/gnosis_safe packages/valory/contracts
 cp -r ../open-autonomy/packages/valory/contracts/gnosis_safe_proxy_factory packages/valory/contracts
 cp -r ../open-autonomy/packages/valory/contracts/multisend packages/valory/contracts
+cp -r ../open-autonomy/packages/valory/contracts/service_registry packages/valory/contracts
 cp -r ../open-autonomy/packages/valory/protocols/__init__.py packages/valory/protocols
 cp -r ../open-autonomy/packages/valory/protocols/abci packages/valory/protocols
 cp -r ../open-autonomy/packages/valory/protocols/contract_api packages/valory/protocols
