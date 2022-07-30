@@ -53,6 +53,8 @@ from packages.valory.skills.simple_abci.payloads import (
     SelectKeeperPayload,
 )
 
+from tests.helpers.constants import WEI_TO_ETH
+
 
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
@@ -134,7 +136,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        self.period_state.update(amount_spent=10 ** 18)
+        self.period_state.update(amount_spent=WEI_TO_ETH)
 
         payload_data = "deploy_full"
 
@@ -203,7 +205,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        self.period_state.update(amount_spent=10 ** 18)
+        self.period_state.update(amount_spent=WEI_TO_ETH)
 
         payload_data = "dont_deploy"
 
@@ -236,7 +238,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
             self.period_state.update(
                 participant_to_deploy_decision=MappingProxyType(test_round.collection),
                 most_voted_deploy_decision=payload_data,
-                amount_spent=10 ** 18,
+                amount_spent=WEI_TO_ETH,
             ),
         )
 
@@ -270,7 +272,7 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        self.period_state.update(amount_spent=10 ** 18)
+        self.period_state.update(amount_spent=WEI_TO_ETH)
 
         payload_data = "deploy_skip_basket"
 
@@ -303,7 +305,7 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
             self.period_state.update(
                 participant_to_deploy_decision=MappingProxyType(test_round.collection),
                 most_voted_deploy_decision=payload_data,
-                amount_spent=10 ** 18,
+                amount_spent=WEI_TO_ETH,
             ),
         )
 
