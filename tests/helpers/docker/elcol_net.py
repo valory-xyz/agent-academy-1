@@ -65,6 +65,10 @@ class ElColNetDockerImage(DockerImage):
         self.addr = addr
         self.port = port
 
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Instantiate the image in many containers, parametrized."""
+        raise NotImplementedError()
+
     @property
     def tag(self) -> str:
         """Get the tag."""

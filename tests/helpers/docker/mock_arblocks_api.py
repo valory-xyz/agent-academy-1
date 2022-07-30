@@ -21,6 +21,7 @@
 import logging
 import time
 from pathlib import Path
+from typing import List
 
 import docker
 import requests
@@ -51,6 +52,10 @@ class MockArtblocksJsonServer(DockerImage):
         self.addr = addr
         self.port = port
         self.json_data = json_data
+
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Instantiate the image in many containers, parametrized."""
+        raise NotImplementedError()
 
     @property
     def tag(self) -> str:
