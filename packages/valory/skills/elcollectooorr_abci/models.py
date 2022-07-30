@@ -70,7 +70,7 @@ class SharedState(BaseSharedState):
         )
 
 
-class ElCollectooorParams(BaseParams):
+class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attributes
     """El Collectooorr Specific Params Class"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -92,6 +92,12 @@ class ElCollectooorParams(BaseParams):
             "whitelisted_investor_addresses", kwargs
         )
         self.starting_project_id = self._get_starting_project_id(kwargs)
+        self.max_purchase_per_project = int(
+            self._ensure("max_purchase_per_project", kwargs)
+        )
+        self.decision_model_threshold = float(
+            self._ensure("decision_model_threshold", kwargs)
+        )
         self.max_retries = int(kwargs.pop("max_retries", 5))
         self.decision_model_type = self._get_decision_model_type(kwargs)
 
