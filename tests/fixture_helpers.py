@@ -26,10 +26,11 @@ import pytest
 from eth_account import Account
 
 from tests.conftest import GANACHE_CONFIGURATION
-from tests.helpers.constants import KEY_PAIRS, LOCALHOST
+from tests.helpers.constants import HARDHAT_ELCOL_KEY_PAIRS, KEY_PAIRS, LOCALHOST
 from tests.helpers.docker.acn_node import ACNNodeDockerImage, DEFAULT_ACN_CONFIG
 from tests.helpers.docker.amm_net import AMMNetDockerImage
 from tests.helpers.docker.base import DockerBaseTest, DockerImage
+from tests.helpers.docker.elcol_net import ElColNetDockerImage
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
@@ -172,6 +173,44 @@ class UseACNNode:
         cls.configuration = acn_config or cls.configuration
 
 
+@pytest.mark.integration
+class UseGanacheFork:
+    """Inherit from this class to use HardHat local net with Gnosis-Safe deployed."""
+
+    key_pairs: List[Tuple[str, str]] = []
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_ganache_fork(
+        cls,
+        ganache_fork_engine_warmer_function: Any,
+        ganache_fork_scope_function: Any,
+        ganache_port: Any,
+        ganache_key_pairs: Any,
+    ) -> None:
+        """Start a Ganache Fork instance."""
+        cls.key_pairs = ganache_key_pairs
+
+
+@pytest.mark.integration
+class UseHardHatElColBaseTest:
+    """Inherit from this class to use HardHat local net with the El Collectooorrr contracts deployed."""
+
+    key_pairs: List[Tuple[str, str]] = HARDHAT_ELCOL_KEY_PAIRS
+
+    @classmethod
+    @pytest.fixture(autouse=True)
+    def _start_hardhat_elcol(
+        cls,
+        hardhat_elcol_scope_function: Any,
+        hardhat_elcol_addr: Any,
+        hardhat_elcol_key_pairs: Any,
+        setup_artblocks_contract: Any,
+    ) -> None:
+        """Start a HardHat ElCol instance."""
+        cls.key_pairs = hardhat_elcol_key_pairs
+
+
 class ACNNodeBaseTest(DockerBaseTest):
     """Base pytest class for Ganache."""
 
@@ -281,3 +320,13 @@ class HardHatAMMBaseTest(HardHatBaseTest):
         """Build the image."""
         client = docker.from_env()
         return AMMNetDockerImage(client, cls.addr, cls.port)
+
+
+class HardHatElColBaseTest(HardHatBaseTest):
+    """Base pytest class for HardHat with Gnosis Factory, Fractionalize and Artblocks contracts deployed."""
+
+    @classmethod
+    def _build_image(cls) -> DockerImage:
+        """Build the image."""
+        client = docker.from_env()
+        return ElColNetDockerImage(client, cls.addr, cls.port)
