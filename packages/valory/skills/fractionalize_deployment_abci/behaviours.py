@@ -64,6 +64,8 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,
 )
 
+from tests.helpers.constants import WEI_TO_ETH as ONE_ETH
+
 
 class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
     """Base state behaviour for the Fractionalize Deployment abci skill."""
@@ -101,7 +103,7 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 )
                 amount_spent = self.period_state.db.get("amount_spent", 0)
                 budget = self.params.budget_per_vault - (
-                    0.15 * (10 ** 18)
+                    0.15 * ONE_ETH
                 )  # we leave a 0.15ETH margin
 
                 if len(vault_addresses) == 0:

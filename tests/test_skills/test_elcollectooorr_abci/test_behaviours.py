@@ -104,6 +104,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 )
 
 from tests.conftest import ROOT_DIR
+from tests.helpers.constants import WEI_TO_ETH
 
 
 class DummyRoundId:
@@ -1304,7 +1305,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                             safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
                             active_projects=active_projects,
                             purchased_projects=[active_projects[-1]],
-                            amount_spent=10 ** 18,
+                            amount_spent=WEI_TO_ETH,
                         )
                     ),
                 )
@@ -1332,7 +1333,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                     performative=ContractApiMessage.Performative.STATE,
                     state=State(
                         ledger_id="ethereum",
-                        body={"balance": 2 * 10 ** 18},
+                        body={"balance": 2 * WEI_TO_ETH},
                     ),
                 ),
             )
@@ -1409,7 +1410,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                             safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
                             active_projects=active_projects,
                             purchased_projects=active_projects,
-                            amount_spent=10 ** 18,
+                            amount_spent=WEI_TO_ETH,
                         )
                     ),
                 )
@@ -1437,7 +1438,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                     performative=ContractApiMessage.Performative.STATE,
                     state=State(
                         ledger_id="ethereum",
-                        body={"balance": 2 * 10 ** 18},
+                        body={"balance": 2 * WEI_TO_ETH},
                     ),
                 ),
             )
@@ -1552,7 +1553,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                             safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
                             active_projects=active_projects,
                             purchased_projects=[active_projects[-1]],
-                            amount_spent=10 ** 18,
+                            amount_spent=WEI_TO_ETH,
                         )
                     ),
                 )
@@ -1580,7 +1581,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                     performative=ContractApiMessage.Performative.STATE,
                     state=State(
                         ledger_id="ethereum",
-                        body={"bad_balance": 2 * 10 ** 18},
+                        body={"bad_balance": 2 * WEI_TO_ETH},
                     ),
                 ),
             )
@@ -2017,7 +2018,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                             "most_voted_funds": [
                                 {
                                     "sender": "0x0",
-                                    "amount": 10 ** 18,  # 1ETH
+                                    "amount": WEI_TO_ETH,  # 1ETH
                                     "blockNumber": 0,
                                 }
                             ],
@@ -2071,12 +2072,12 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                             "most_voted_funds": [
                                 {
                                     "sender": "0x0",
-                                    "amount": 10 ** 18,  # 1ETH
+                                    "amount": WEI_TO_ETH,  # 1ETH
                                     "blockNumber": 0,
                                 },
                                 {
                                     "sender": "0x1",
-                                    "amount": 10 ** 18,  # 1ETH
+                                    "amount": WEI_TO_ETH,  # 1ETH
                                     "blockNumber": 0,
                                 },
                             ],
@@ -2914,7 +2915,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
                     state=State(
-                        body=dict(amount_spent=10 ** 18),
+                        body=dict(amount_spent=WEI_TO_ETH),
                         ledger_id="ethereum",
                     ),
                 ),
@@ -2973,7 +2974,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
                     state=State(
-                        body=dict(bad_amount_spent=10 ** 18),
+                        body=dict(bad_amount_spent=WEI_TO_ETH),
                         ledger_id="ethereum",
                     ),
                 ),
@@ -3030,7 +3031,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
                 response_kwargs=dict(
                     performative=ContractApiMessage.Performative.STATE,
                     state=State(
-                        body=dict(amount_spent=10 ** 18),
+                        body=dict(amount_spent=WEI_TO_ETH),
                         ledger_id="ethereum",
                     ),
                 ),
@@ -3255,7 +3256,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             )
             mock_logger.assert_any_call(
                 logging.INFO,
-                f"amount spent since last basket was deployed: {10 / 10 ** 18}Ξ",
+                f"amount spent since last basket was deployed: {10 / WEI_TO_ETH}Ξ",
             )
             mock_logger.assert_any_call(
                 logging.INFO, f"txs since the deployment of the last basket: {['0x0']}"
@@ -3409,7 +3410,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             )
             mock_logger.assert_any_call(
                 logging.INFO,
-                f"amount spent since last basket was deployed: {10 / 10 ** 18}Ξ",
+                f"amount spent since last basket was deployed: {10 / WEI_TO_ETH}Ξ",
             )
             mock_logger.assert_any_call(
                 logging.INFO, f"txs since the deployment of the last basket: {['0x0']}"
@@ -3510,7 +3511,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             )
             mock_logger.assert_any_call(
                 logging.INFO,
-                f"amount spent since last basket was deployed: {10 / 10 ** 18}Ξ",
+                f"amount spent since last basket was deployed: {10 / WEI_TO_ETH}Ξ",
             )
             mock_logger.assert_any_call(
                 logging.INFO, f"txs since the deployment of the last basket: {['0x0']}"

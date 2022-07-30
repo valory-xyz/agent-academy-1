@@ -61,7 +61,10 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour as BaseState,
 )
-from packages.valory.skills.elcollectooorr_abci.behaviours import FundingRoundBehaviour
+from packages.valory.skills.elcollectooorr_abci.behaviours import (
+    FundingRoundBehaviour,
+    WEI_TO_ETH,
+)
 from packages.valory.skills.elcollectooorr_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
@@ -472,7 +475,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
 
     def test_over_the_budget(self) -> None:
         """We are over the budget for the current vault, we need to deploy a new one."""
-        amount_spent: int = int(10.4 * (10 ** 18))
+        amount_spent: int = int(10.4 * WEI_TO_ETH)
 
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,

@@ -110,6 +110,9 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 
 
+WEI_TO_ETH = 10 ** 18
+
+
 class ElcollectooorrABCIBaseState(BaseState, ABC):
     """Base state behaviour for the El Collectooorr abci skill."""
 
@@ -233,7 +236,7 @@ class ResyncRoundBehaviour(
                     f"txs since the deployment of the last basket: {txs_since_last_basket}"
                 )
                 self.context.logger.info(
-                    f"amount spent since last basket was deployed: {amount_spent / 10 ** 18}Ξ"
+                    f"amount spent since last basket was deployed: {amount_spent / WEI_TO_ETH}Ξ"
                 )
                 self.context.logger.info(
                     f"address to fraction amount already paid out: {address_to_fractions}"
@@ -795,11 +798,13 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
                 self.context.logger.info(
-                    f"The safe contract balance is {safe_balance / 10 ** 18}Ξ."
+                    f"The safe contract balance is {safe_balance / WEI_TO_ETH}Ξ."
                 )
-                self.context.logger.info(f"Already spent {already_spent / 10 ** 18}Ξ.")
                 self.context.logger.info(
-                    f"The current budget is {current_budget / 10 ** 18}Ξ."
+                    f"Already spent {already_spent / WEI_TO_ETH}Ξ."
+                )
+                self.context.logger.info(
+                    f"The current budget is {current_budget / WEI_TO_ETH}Ξ."
                 )
 
                 project_to_purchase = self._get_project_to_purchase(
@@ -1487,7 +1492,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
                 amount_spent = yield from self._get_amount_spent()
                 payload_data["amount_spent"] = amount_spent
                 self.context.logger.info(
-                    f"The settled tx cost: {amount_spent / 10 ** 18}Ξ."
+                    f"The settled tx cost: {amount_spent / WEI_TO_ETH}Ξ."
                 )
 
             except AEAEnforceError as e:

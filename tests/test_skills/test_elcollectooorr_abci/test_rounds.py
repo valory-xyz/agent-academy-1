@@ -65,6 +65,8 @@ from packages.valory.skills.simple_abci.payloads import (
     SelectKeeperPayload,
 )
 
+from tests.helpers.constants import WEI_TO_ETH
+
 
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
@@ -564,7 +566,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        test_funds = {"0x0": 10 ** 18}
+        test_funds = {"0x0": WEI_TO_ETH}
 
         test_round = FundingRound(
             synchronized_data=self.period_state, consensus_params=self.consensus_params
