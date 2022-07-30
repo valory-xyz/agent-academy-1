@@ -12,9 +12,11 @@ cp -r ../open-autonomy/packages/valory/contracts/multisend packages/valory/contr
 cp -r ../open-autonomy/packages/valory/contracts/service_registry packages/valory/contracts
 cp -r ../open-autonomy/packages/valory/protocols/__init__.py packages/valory/protocols
 cp -r ../open-autonomy/packages/valory/protocols/abci packages/valory/protocols
+cp -r ../open-autonomy/packages/valory/protocols/acn packages/valory/protocols
 cp -r ../open-autonomy/packages/valory/protocols/contract_api packages/valory/protocols
 cp -r ../open-autonomy/packages/valory/protocols/http packages/valory/protocols
 cp -r ../open-autonomy/packages/valory/protocols/ledger_api packages/valory/protocols
+cp -r ../open-autonomy/packages/valory/protocols/tendermint packages/valory/protocols
 cp -r ../open-autonomy/packages/valory/skills/__init__.py packages/valory/skills
 cp -r ../open-autonomy/packages/valory/skills/abstract_abci packages/valory/skills
 cp -r ../open-autonomy/packages/valory/skills/abstract_round_abci packages/valory/skills
