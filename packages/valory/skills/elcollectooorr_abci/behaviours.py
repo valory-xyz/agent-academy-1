@@ -112,6 +112,8 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 
 WEI_TO_ETH = 10 ** 18
 SAFE_GAS = 10 ** 7
+INEXISTENT_CONTRACT = "0x"
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
 
 class ElcollectooorrABCIBaseState(BaseState, ABC):
@@ -435,7 +437,7 @@ class ResyncRoundBehaviour(
         for tx in txs:
             response = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x0000000000000000000000000000000000000000",  # not needed
+                contract_address=ZERO_ADDRESS,  # not needed
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_amount_spent",
                 tx_hash=tx,
@@ -653,7 +655,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
             minter_to_projects[minter].append(project_id)
 
         for minter, projects_in_minter in minter_to_projects.items():
-            if minter == "0x":
+            if minter == INEXISTENT_CONTRACT:
                 continue
 
             project_details = yield from self._project_details(
@@ -1519,7 +1521,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
         """Get the amount of ether spent in the last settled tx."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address="0x0000000000000000000000000000000000000000",  # not needed
+            contract_address=ZERO_ADDRESS,  # not needed
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_amount_spent",
             tx_hash=self.period_state.db.get("final_tx_hash"),
