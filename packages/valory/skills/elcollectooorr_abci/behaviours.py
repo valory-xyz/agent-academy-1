@@ -110,6 +110,12 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 )
 
 
+WEI_TO_ETH = 10 ** 18
+SAFE_GAS = 10 ** 7
+INEXISTENT_CONTRACT = "0x"
+ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+
+
 class ElcollectooorrABCIBaseState(BaseState, ABC):
     """Base state behaviour for the El Collectooorr abci skill."""
 
@@ -233,7 +239,7 @@ class ResyncRoundBehaviour(
                     f"txs since the deployment of the last basket: {txs_since_last_basket}"
                 )
                 self.context.logger.info(
-                    f"amount spent since last basket was deployed: {amount_spent / 10 ** 18}Ξ"
+                    f"amount spent since last basket was deployed: {amount_spent / WEI_TO_ETH}Ξ"
                 )
                 self.context.logger.info(
                     f"address to fraction amount already paid out: {address_to_fractions}"
@@ -431,7 +437,7 @@ class ResyncRoundBehaviour(
         for tx in txs:
             response = yield from self.get_contract_api_response(
                 performative=ContractApiMessage.Performative.GET_STATE,
-                contract_address="0x0000000000000000000000000000000000000000",  # not needed
+                contract_address=ZERO_ADDRESS,  # not needed
                 contract_id=str(GnosisSafeContract.contract_id),
                 contract_callable="get_amount_spent",
                 tx_hash=tx,
@@ -649,7 +655,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
             minter_to_projects[minter].append(project_id)
 
         for minter, projects_in_minter in minter_to_projects.items():
-            if minter == "0x":
+            if minter == INEXISTENT_CONTRACT:
                 continue
 
             project_details = yield from self._project_details(
@@ -795,11 +801,13 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
                 self.context.logger.info(
-                    f"The safe contract balance is {safe_balance / 10 ** 18}Ξ."
+                    f"The safe contract balance is {safe_balance / WEI_TO_ETH}Ξ."
                 )
-                self.context.logger.info(f"Already spent {already_spent / 10 ** 18}Ξ.")
                 self.context.logger.info(
-                    f"The current budget is {current_budget / 10 ** 18}Ξ."
+                    f"Already spent {already_spent / WEI_TO_ETH}Ξ."
+                )
+                self.context.logger.info(
+                    f"The current budget is {current_budget / WEI_TO_ETH}Ξ."
                 )
 
                 project_to_purchase = self._get_project_to_purchase(
@@ -905,7 +913,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
                     ether_value=value,
-                    safe_tx_gas=10 ** 7,
+                    safe_tx_gas=SAFE_GAS,
                     to_address=minter,
                     data=purchase_data,
                 )
@@ -941,7 +949,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
             to_address=to_address,
             value=value,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
         )
 
         enforce(
@@ -1082,7 +1090,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
                     multisend_data_obj["encoded"] = hash_payload_to_hex(
                         safe_tx_hash=tx_hash,
                         ether_value=0,
-                        safe_tx_gas=10 ** 7,
+                        safe_tx_gas=SAFE_GAS,
                         operation=SafeOperation.DELEGATE_CALL.value,
                         to_address=self.params.multisend_address,
                         data=multisend_data,
@@ -1117,7 +1125,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
             to_address=self.params.multisend_address,
             value=0,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
             operation=SafeOperation.DELEGATE_CALL.value,
         )
 
@@ -1377,7 +1385,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
                 payload_data = hash_payload_to_hex(
                     safe_tx_hash=tx_hash,
                     ether_value=0,
-                    safe_tx_gas=10 ** 7,
+                    safe_tx_gas=SAFE_GAS,
                     to_address=self.params.artblocks_contract,
                     data=transfer_data,
                 )
@@ -1410,7 +1418,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
             to_address=self.params.artblocks_contract,
             value=0,
             data=data,
-            safe_tx_gas=10 ** 7,
+            safe_tx_gas=SAFE_GAS,
         )
         enforce(
             response.state.body is not None
@@ -1491,7 +1499,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
                 amount_spent = yield from self._get_amount_spent()
                 payload_data["amount_spent"] = amount_spent
                 self.context.logger.info(
-                    f"The settled tx cost: {amount_spent / 10 ** 18}Ξ."
+                    f"The settled tx cost: {amount_spent / WEI_TO_ETH}Ξ."
                 )
 
             except AEAEnforceError as e:
@@ -1517,7 +1525,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
         """Get the amount of ether spent in the last settled tx."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address="0x0000000000000000000000000000000000000000",  # not needed
+            contract_address=ZERO_ADDRESS,  # not needed
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_amount_spent",
             tx_hash=self.period_state.db.get("final_tx_hash"),

@@ -19,7 +19,6 @@
 
 """This module contains the data classes for the Fractionalize Deployment ABCI application."""
 import json
-import struct
 from abc import ABC
 from enum import Enum
 from types import MappingProxyType
@@ -61,16 +60,6 @@ class Event(Enum):
     DECIDED_SKIP = "decided_skip"
     GIB_DETAILS = "gib_details"
     ERROR = "error"
-
-
-def encode_float(value: float) -> bytes:
-    """Encode a float value."""
-    return struct.pack("d", value)
-
-
-def rotate_list(my_list: list, positions: int) -> List[str]:
-    """Rotate a list n positions."""
-    return my_list[positions:] + my_list[:positions]
 
 
 class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes

@@ -62,6 +62,9 @@ from tests.helpers.tendermint_utils import TendermintNodeInfo
 from tests.test_agents.base import BaseTestEnd2End
 
 
+ONE_ETH = 10 ** 18
+
+
 class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
     """
     Extended base class for conducting E2E tests with the El Collectooorr.
@@ -220,7 +223,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
                         {
                             "to": target_address,
                             "from": sender_address,
-                            "value": Wei(10 ** 18),
+                            "value": Wei(ONE_ETH),
                             "chainId": self.ELCOL_NET_CHAIN_ID,
                             "gasPrice": instance.eth.gas_price,
                             "nonce": instance.eth.getTransactionCount(
