@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -16,5 +17,4 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
-"""Docker images for testing purposes."""
+"""This module contains fuzzy tests for the ABCI Connection"""

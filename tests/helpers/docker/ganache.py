@@ -88,6 +88,10 @@ class GanacheDockerImage(DockerImage):
         )
         return container
 
+    def create_many(self, nb_containers: int) -> List[Container]:
+        """Instantiate the image in many containers, parametrized."""
+        raise NotImplementedError()
+
     def wait(self, max_attempts: int = 15, sleep_rate: float = 1.0) -> bool:
         """Wait until the image is up."""
         request = dict(jsonrpc=2.0, method="web3_clientVersion", params=[], id=1)
@@ -102,21 +106,3 @@ class GanacheDockerImage(DockerImage):
                 )
                 time.sleep(sleep_rate)
         return False
-
-
-class GanacheForkDockerImage(GanacheDockerImage):
-    """Extends GanacheDockerImage to enable forking"""
-
-    NETWORK: str = "ropsten"
-    BLOCK_NUMBER: int = 11290000
-
-    def _build_command(self) -> List[str]:
-        """Build command."""
-
-        cmd = [
-            "--wallet.deterministic=true",
-            f"--fork.network={self.NETWORK}",
-            f"--fork.blockNumber={self.BLOCK_NUMBER}",
-        ]
-
-        return cmd

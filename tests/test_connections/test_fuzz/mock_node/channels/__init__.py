@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
@@ -16,5 +17,4 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
-"""Docker images for testing purposes."""
+"""This module imlpements the channels for the ABCI <-> Tendermint (Mock) Node communication"""
