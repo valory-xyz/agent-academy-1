@@ -5,6 +5,7 @@ cp -r ../open-autonomy/packages/valory/connections/__init__.py packages/valory/c
 cp -r ../open-autonomy/packages/valory/connections/abci packages/valory/connections
 cp -r ../open-autonomy/packages/valory/connections/http_client packages/valory/connections
 cp -r ../open-autonomy/packages/valory/connections/ledger packages/valory/connections
+cp -r ../open-autonomy/packages/valory/connections/p2p_libp2p_client packages/valory/connections
 cp -r ../open-autonomy/packages/valory/contracts/__init__.py packages/valory/contracts
 cp -r ../open-autonomy/packages/valory/contracts/gnosis_safe packages/valory/contracts
 cp -r ../open-autonomy/packages/valory/contracts/gnosis_safe_proxy_factory packages/valory/contracts

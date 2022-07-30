@@ -11,7 +11,7 @@ connections:
 - valory/abci:0.1.0:bafybeif4zoyfxtgd3rzptffcehgstgwmuluubyqfuih2dmzmmkgcao6ygm
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 - valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
-- valory/p2p_libp2p_client:0.1.0:bafybeiad3uwfabrqtdhuob7mwg2miih25emao2dvqausaqigilk3fyhmum
+- valory/p2p_libp2p_client:0.1.0:bafybeihw7zmzu4k3s56wnzhs6f3onxdqfewp46dhnnv6lgnzfneuvo5bcm
 contracts: []
 protocols:
 - open_aea/signing:1.0.0:bafybeieirkuq6azgis33bmukr5u2gx4chp5kswiw3wd5hbjsaukgwzmp5a

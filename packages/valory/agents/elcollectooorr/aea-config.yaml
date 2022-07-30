@@ -10,7 +10,7 @@ connections:
 - valory/abci:0.1.0:bafybeif4zoyfxtgd3rzptffcehgstgwmuluubyqfuih2dmzmmkgcao6ygm
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
 - valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
-- valory/p2p_libp2p_client:0.1.0:bafybeiad3uwfabrqtdhuob7mwg2miih25emao2dvqausaqigilk3fyhmum
+- valory/p2p_libp2p_client:0.1.0:bafybeihw7zmzu4k3s56wnzhs6f3onxdqfewp46dhnnv6lgnzfneuvo5bcm
 contracts:
 - valory/artblocks:0.1.0:bafybeihhpmaq5nvbzbxgr6iejsku62jyshju7zzdermb57xb7szjv22ncq
 - valory/artblocks_periphery:0.1.0:bafybeihxwrhqvnqb2mmvihzbt2jpjehka7vm3acaax34hmce6dsso5ezya
@@ -30,7 +30,7 @@ protocols:
 skills:
 - valory/abstract_abci:0.1.0:bafybeigt4xaisqivu4vnc7qeykm2tgh4tuohlw7pcuhsboqcy6emkpanli
 - valory/abstract_round_abci:0.1.0:bafybeibcc3qwglruksv3s22ntmbbrcbr3ybyfiltot3l7y5nzxgkfmlwam
-- valory/elcollectooorr_abci:0.1.0:bafybeicycpddwub4vr74aatvyf7fbesgybbkk3jknfzj6o6dbsvtvqkbri
+- valory/elcollectooorr_abci:0.1.0:bafybeicpcmlggjllmpjvtoylrnpw7qctvfahnfbozujwpo3r7ui3ciqdim
 - valory/fractionalize_deployment_abci:0.1.0:bafybeierwa5tuszbdrxsf4bdy4pd7taavgnijjq7pn634jdvfzrpi52nlu
 - valory/registration_abci:0.1.0:bafybeidhuyyp2bprgwcp5cpgo6vzbf7dcl3q2enfza46l33vcwvzz2tmli
 - valory/safe_deployment_abci:0.1.0:bafybeibqxka3ih66jhgs2e4ormd4txeh2q7jk32hzieqbfimbdmoujtugq
