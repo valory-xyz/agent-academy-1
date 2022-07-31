@@ -21,7 +21,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Generator, List, Tuple
+from typing import Any, Generator, List, Tuple, cast
 
 import docker
 import pytest
@@ -54,7 +54,7 @@ from tests.helpers.constants import (
 )
 from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
 from tests.helpers.constants import TARGET_PROJECT_ID
-from tests.helpers.docker.base import launch_image
+from tests.helpers.docker.base import launch_image, launch_many_containers
 from tests.helpers.docker.elcol_net import ElColNetDockerImage
 from tests.helpers.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
@@ -71,12 +71,21 @@ from tests.helpers.docker.mock_arblocks_api import (
     DEFAULT_JSON_SERVER_PORT,
     MockArtblocksJsonServer,
 )
+from tests.helpers.docker.tendermint import (
+    DEFAULT_ABCI_HOST,
+    DEFAULT_ABCI_PORT,
+    DEFAULT_TENDERMINT_PORT,
+    FlaskTendermintDockerImage,
+    TendermintDockerImage,
+)
 
 
 def get_key(key_path: Path) -> str:
     """Returns key value from file.""" ""
     return key_path.read_bytes().strip().decode()
 
+
+ANY_ADDRESS = "0.0.0.0"  # nosec
 
 ROOT_DIR = _ROOT_DIR
 
@@ -243,6 +252,48 @@ def hardhat_elcol_port() -> int:
 def hardhat_elcol_key_pairs() -> List[Tuple[str, str]]:
     """Get the default key paris for ganache."""
     return HARDHAT_ELCOL_KEY_PAIRS
+
+
+@pytest.fixture(scope="session")
+def tendermint_port() -> int:
+    """Get the Tendermint port"""
+    return DEFAULT_TENDERMINT_PORT
+
+
+@pytest.fixture(scope="class")
+def tendermint(
+    tendermint_port: Any,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator:
+    """Launch the Ganache image."""
+    client = docker.from_env()
+    logging.info(f"Launching Tendermint at port {tendermint_port}")
+    image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
+
+
+@pytest.fixture
+def flask_tendermint(
+    tendermint_port: Any,
+    nb_nodes: int,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator[FlaskTendermintDockerImage, None, None]:
+    """Launch the Flask server with Tendermint container."""
+    client = docker.from_env()
+    logging.info(
+        f"Launching Tendermint nodes at ports {[tendermint_port + i * 10 for i in range(nb_nodes)]}"
+    )
+    image = FlaskTendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from cast(
+        Generator[FlaskTendermintDockerImage, None, None],
+        launch_many_containers(image, nb_nodes, timeout, max_attempts),
+    )
 
 
 @pytest.fixture(scope="function")

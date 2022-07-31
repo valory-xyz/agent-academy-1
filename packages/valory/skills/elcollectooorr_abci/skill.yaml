@@ -19,10 +19,10 @@ fingerprint:
   rounds.py: bafybeiblc67xtcbnslo7fb7shc3vhvgwexriahl6gqeueusiyyyvjfqxam
 fingerprint_ignore_patterns: []
 connections:
-- valory/abci:0.1.0:bafybeihnuyj3g7j7hlgpix7655nm32r5k7pfbca76oe5kgwy3yv5sgcmjq
+- valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
 - valory/http_client:0.1.0:bafybeibh3iu7kojc4d5eiigqh6kx2vdmu2q7vhcvvq2rz6suegsscyd66y
-- valory/ledger:0.1.0:bafybeibcj2bbnesgy4xvy4sabbt47hlefmys2kvpexb2dlaxv7e5nzh4ze
-- valory/p2p_libp2p_client:0.1.0:bafybeiaaclnoqbvtseqst2zeepus7x2q6qnterl2iraivw6nwuxgryzxma
+- valory/ledger:0.1.0:bafybeifxxshi4u3xyyllip5e3yafawywcwpvqxgnybchi5kj74zm4b4n2e
+- valory/p2p_libp2p_client:0.1.0:bafybeihw7zmzu4k3s56wnzhs6f3onxdqfewp46dhnnv6lgnzfneuvo5bcm
 contracts:
 - valory/artblocks:0.1.0:bafybeihhpmaq5nvbzbxgr6iejsku62jyshju7zzdermb57xb7szjv22ncq
 - valory/artblocks_minter_filter:0.1.0:bafybeidw3ncyqwaturl7pvjlid4hyqhacu775uyjjn5codaijqft37uv2e
@@ -34,11 +34,11 @@ protocols:
 - valory/http:1.0.0:bafybeifhmibx3l7f3xdwxhweczizadxs6p3oludvapvwdeu4o5f3oahqme
 - valory/ledger_api:1.0.0:bafybeifaozy766hngsqc5a5kpebseusq4cc3woh4ayycdoa7r3mjkvhzr4
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicgphi24eaepc4fia7rta7mynb2vscahvqa47c3gjsos3k4xulclq
-- valory/fractionalize_deployment_abci:0.1.0:bafybeigv5cjmiof3xnfbktiwmy6tjachslvviariec6vb6ep7c4jxz6b5a
-- valory/registration_abci:0.1.0:bafybeicru4x3tdja66i4remlayyoubkjfvbkrc47etvp4kpgqwlrmrnv24
-- valory/safe_deployment_abci:0.1.0:bafybeigip6fg2ub5ikjn6zhl46lziytbhxqwke7uva7iriymwapk7md3la
-- valory/transaction_settlement_abci:0.1.0:bafybeib3yiewksrfenqqlmcesoykedpy26skonponptjojk3o2epb7o3lq
+- valory/abstract_round_abci:0.1.0:bafybeihz4pkaqwufq2szqr3ji3kjsbjodsg5yultbit3xdcfjdwi4ebgoa
+- valory/fractionalize_deployment_abci:0.1.0:bafybeibobw3xgo4tnpvc6xniecqc2ojqls2v6raoxvlempomgwbc37veiy
+- valory/registration_abci:0.1.0:bafybeiamr2gckrgxujl6xskhtjg46fmdwsklq5fnqvndnwsiyld6sy5z4y
+- valory/safe_deployment_abci:0.1.0:bafybeiaqnl5az4fdkv7yyjg6s4rouhpldkgpplmohqdt34wwawfkj5jeva
+- valory/transaction_settlement_abci:0.1.0:bafybeic6khhxyes6kdigczfuxqhr6tcujuj2ukwhlgb3pt3kr4cpmnygaq
 behaviours:
   main:
     args: {}
@@ -99,12 +99,14 @@ models:
       max_retries: 5
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 10
+      on_chain_service_id: null
       period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
       service_id: el_collectooorr_1
+      service_registry_address: null
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       sleep_time: 1
       starting_project_id: 301

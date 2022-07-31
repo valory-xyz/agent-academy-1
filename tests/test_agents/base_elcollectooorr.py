@@ -18,7 +18,6 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests base classes for this repo."""
-import logging
 import subprocess  # nosec
 import threading
 import time
@@ -58,7 +57,6 @@ from tests.helpers.constants import SETTINGS_ADRESS as _DEFAULT_SETTINGS_ADDRESS
 from tests.helpers.constants import (
     TOKEN_VAULT_FACTORY_ADDRESS as _DEFAULT_TOKEN_VAULT_FACTORY_ADDRESS,
 )
-from tests.helpers.tendermint_utils import TendermintNodeInfo
 from tests.test_agents.base import BaseTestEnd2End
 
 
@@ -73,112 +71,106 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
     """
 
     cli_log_options = ["-v", "INFO"]  # no need for debug
-    ARTBLOCKS_ADDRESS = _DEFAULT_ARTBLOCKS_ADDRESS
-    ARTBLOCKS_FILTER_ADDRESS = _DEFAULT_ARTBLOCKS_FILTER_ADDRESS
+    skill_package = "valory/elcollectooorr_abci:0.1.0"
     SAFE_CONTRACT_ADDRESS = _DEFAULT_SAFE_CONTRACT_ADDRESS
     SAFE_CALLBACK_HANDLER = _DEFAULT_SAFE_CALLBACK_HANDLER
     SAFE_FACTORY_ADDRESS = _DEFAULT_SAFE_FACTORY_ADDRESS
-    BASKET_FACTORY_ADDRESS = _DEFAULT_BASKET_FACTORY_ADDRESS
-    TOKEN_VAULT_FACTORY_ADDRESS = _DEFAULT_TOKEN_VAULT_FACTORY_ADDRESS
-    SETTINGS_ADRESS = _DEFAULT_SETTINGS_ADDRESS
-    MULTISEND_ADDRESS = _DEFAULT_MULTISEND_ADDRESS
     MOCK_ARTBLOCKS_API_PORT = _DEFAULT_MOCK_ARTBLOCKS_API_PORT
     HTTP_LOCALHOST = _DEFAULT_HTTP_LOCALHOST
     HARDHAT_ELCOL_KEY_PAIRS = _DEFAULT_HARDHAT_ELCOL_KEY_PAIRS
     ELCOL_NET_HOST = _DEFAULT_ELCOL_NET_HOST
     ELCOL_NET_CHAIN_ID = _DEFAULT_ELCOL_NET_CHAIN_ID
+    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    extra_configs = [
+        {
+            "dotted_path": f"{__args_prefix}.artblocks_contract",
+            "value": _DEFAULT_ARTBLOCKS_ADDRESS,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.artblocks_minter_filter",
+            "value": _DEFAULT_ARTBLOCKS_FILTER_ADDRESS,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.basket_factory_address",
+            "value": _DEFAULT_BASKET_FACTORY_ADDRESS,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.token_vault_factory_address",
+            "value": _DEFAULT_TOKEN_VAULT_FACTORY_ADDRESS,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.settings_address",
+            "value": _DEFAULT_SETTINGS_ADDRESS,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.multisend_address",
+            "value": _DEFAULT_MULTISEND_ADDRESS,
+        },
+    ]
 
-    def test_run(self) -> None:
-        """Run the ABCI skill."""
-        for agent_id in range(self.NB_AGENTS):
-            self._launch_agent_i(agent_id)
-
-        logging.info("Waiting Tendermint nodes to be up")
+    def test_run(self, nb_nodes: int) -> None:
+        """Run the test."""
+        self.prepare_and_launch(nb_nodes)
         self.health_check(
-            self.tendermint_net_builder,
             max_retries=self.HEALTH_CHECK_MAX_RETRIES,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
         thread = threading.Thread(target=self._deposit_to_safe_contract)
         thread.start()
-        self._check_aea_messages()
+        self.check_aea_messages()
+        self.terminate_processes()
 
-    def _BaseTestEnd2End__set_configs(self, node: TendermintNodeInfo) -> None:
-        """Set the current agent's config overrides."""
-        super()._BaseTestEnd2End__set_configs(node)  # type: ignore
+    def _BaseTestEnd2End__prepare_agent_i(self, i: int, nb_agents: int) -> None:
+        """Prepare the i-th agent."""
+        super()._BaseTestEnd2End__prepare_agent_i(i, nb_agents)  # type: ignore
+        self._replace_default_addresses(i)
 
-        self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_contract",
-            self.ARTBLOCKS_ADDRESS,
-        )
-        self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.artblocks_minter_filter",
-            self.ARTBLOCKS_FILTER_ADDRESS,
-        )
-        self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.basket_factory_address",
-            self.BASKET_FACTORY_ADDRESS,
-        )
-        self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.token_vault_factory_address",
-            self.TOKEN_VAULT_FACTORY_ADDRESS,
-        )
-        self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.settings_address",
-            self.SETTINGS_ADRESS,
-        )
-        self.set_config(
-            f"vendor.valory.skills.{PublicId.from_str(self.skill_package).name}.models.params.args.multisend_address",
-            self.MULTISEND_ADDRESS,
-        )
-        self._replace_default_addresses()
-
-    def _replace_default_addresses(self) -> None:
+    def _replace_default_addresses(self, i: int) -> None:
         """Update the gnosis safe contract default addresses."""
-        for agent_name in self.agent_names:
-            try:  # nosec
-                with open(
-                    self.t.joinpath(agent_name).joinpath(
-                        "vendor/valory/contracts/gnosis_safe/contract.py"
-                    ),
-                    "r",
-                ) as f:
-                    org = f.read()
-            except Exception:
-                # happens when the agent is not yet fetched
-                continue
-
-            dst = (
-                org.replace(
-                    'SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"',
-                    f'SAFE_CONTRACT = "{self.SAFE_CONTRACT_ADDRESS}"',
-                )
-                .replace(
-                    'DEFAULT_CALLBACK_HANDLER = "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"',
-                    f'DEFAULT_CALLBACK_HANDLER = "{self.SAFE_CALLBACK_HANDLER}"',
-                )
-                .replace(
-                    'PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"',
-                    f'PROXY_FACTORY_CONTRACT = "{self.SAFE_FACTORY_ADDRESS}"',
-                )
-                .replace(
-                    "return dict(verified=verified)",
-                    "return dict(verified=True)",
-                )
-                .replace(
-                    '"gas": configured_gas,',
-                    "",
-                )
-            )
-
+        agent_name = self._get_agent_name(i)
+        try:  # nosec
             with open(
                 self.t.joinpath(agent_name).joinpath(
                     "vendor/valory/contracts/gnosis_safe/contract.py"
                 ),
-                "w",
+                "r",
             ) as f:
-                f.write(dst)
-                f.flush()
+                org = f.read()
+        except Exception:
+            # happens when the agent is not yet fetched
+            return
+
+        dst = (
+            org.replace(
+                'SAFE_CONTRACT = "0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552"',
+                f'SAFE_CONTRACT = "{self.SAFE_CONTRACT_ADDRESS}"',
+            )
+            .replace(
+                'DEFAULT_CALLBACK_HANDLER = "0xf48f2B2d2a534e402487b3ee7C18c33Aec0Fe5e4"',
+                f'DEFAULT_CALLBACK_HANDLER = "{self.SAFE_CALLBACK_HANDLER}"',
+            )
+            .replace(
+                'PROXY_FACTORY_CONTRACT = "0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2"',
+                f'PROXY_FACTORY_CONTRACT = "{self.SAFE_FACTORY_ADDRESS}"',
+            )
+            .replace(
+                "return dict(verified=verified)",
+                "return dict(verified=True)",
+            )
+            .replace(
+                '"gas": configured_gas,',
+                "",
+            )
+        )
+
+        with open(
+            self.t.joinpath(agent_name).joinpath(
+                "vendor/valory/contracts/gnosis_safe/contract.py"
+            ),
+            "w",
+        ) as f:
+            f.write(dst)
+            f.flush()
 
     @classmethod
     def run_install(cls) -> Result:

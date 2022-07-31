@@ -25,6 +25,7 @@ Alternatively, you can fetch this docker image with the relevant requirments sat
 - Build the Hardhat projects:
 
       cd third_party/safe-contracts && yarn install
+      cd ../contracts-elcol && yarn install
       cd ../..
 
 ## Simple ABCI example

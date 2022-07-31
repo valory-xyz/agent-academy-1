@@ -26,8 +26,8 @@ from aea.test_tools.test_cases import AEATestCaseMany
 from hypothesis import given
 from hypothesis.strategies import binary, booleans, integers, lists, text, tuples
 
-from tests.test_connections.fuzzy_tests.mock_node.channels.base import BaseChannel
-from tests.test_connections.fuzzy_tests.mock_node.node import MockNode
+from tests.test_connections.test_fuzz.mock_node.channels.base import BaseChannel
+from tests.test_connections.test_fuzz.mock_node.node import MockNode
 
 
 class BaseFuzzyTests(AEATestCaseMany):
@@ -66,10 +66,15 @@ class BaseFuzzyTests(AEATestCaseMany):
         cls.set_agent_context(cls.agent_name)
         cls.generate_private_key("ethereum", "ethereum_private_key.txt")
         cls.add_private_key("ethereum", "ethereum_private_key.txt")
-        cls.set_config("vendor.valory.connections.abci.config.use_grpc", cls.USE_GRPC)
+        # issue certificates for libp2p proof of representation
+        cls.generate_private_key("cosmos", "cosmos_private_key.txt")
+        cls.add_private_key("cosmos", "cosmos_private_key.txt")
+        cls.run_cli_command("issue-certificates", cwd=cls._get_cwd())
 
         # we are mocking a tendermint node
         cls.set_config("vendor.valory.connections.abci.config.use_tendermint", False)
+
+        cls.set_config("vendor.valory.connections.abci.config.use_grpc", cls.USE_GRPC)
 
         cls.run_install()
         cls.agent_process = cls.run_agent()

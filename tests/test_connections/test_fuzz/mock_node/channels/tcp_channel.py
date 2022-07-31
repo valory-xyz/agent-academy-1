@@ -33,7 +33,7 @@ from packages.valory.connections.abci.connection import (
     _TendermintABCISerializer,
 )
 
-from tests.test_connections.fuzzy_tests.mock_node.channels.base import BaseChannel
+from tests.test_connections.test_fuzz.mock_node.channels.base import BaseChannel
 
 
 _default_logger = logging.getLogger(__name__)
@@ -82,9 +82,7 @@ class TcpChannel(BaseChannel):
 
         # set up asyncio connection
         future = asyncio.run_coroutine_threadsafe(
-            asyncio.open_connection(
-                self.host, self.port, loop=self.loop, family=socket.AF_INET
-            ),
+            asyncio.open_connection(self.host, self.port, family=socket.AF_INET),
             self.loop,
         )
         self.reader, self.writer = future.result()

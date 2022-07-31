@@ -20,8 +20,8 @@
 
 """To test abci connection message sizes."""
 
-from tests.test_connections.fuzzy_tests.mock_node.channels.tcp_channel import TcpChannel
-from tests.test_connections.fuzzy_tests.mock_node.node import MockNode
+from tests.test_connections.test_fuzz.mock_node.channels.tcp_channel import TcpChannel
+from tests.test_connections.test_fuzz.mock_node.node import MockNode
 
 
 if __name__ == "__main__":
