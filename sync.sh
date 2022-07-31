@@ -38,10 +38,6 @@ cp -r ../open-autonomy/tests/helpers/contracts.py tests/helpers
 cp -r ../open-autonomy/tests/helpers/tendermint_utils.py tests/helpers
 cp -r ../open-autonomy/tests/test_agents/__init__.py tests/test_agents
 cp -r ../open-autonomy/tests/test_agents/base.py tests/test_agents
-cp -r ../open-autonomy/tests/test_agents/test_simple_abci.py tests/test_agents
-cp -r ../open-autonomy/tests/test_connections/test_fuzz tests/test_connections
-cp -r ../open-autonomy/tests/test_contracts/test_gnosis_safe tests/test_contracts
-cp -r ../open-autonomy/tests/test_contracts/test_gnosis_safe_proxy_factory tests/test_contracts
 cp -r ../open-autonomy/tests/test_contracts/base.py tests/test_contracts
 cp -r ../open-autonomy/tests/test_skills/__init__.py tests/test_skills
-cp -r ../open-autonomy/tests/test_skills/test_simple_abci tests/test_skills
+cp -r ../open-autonomy/tests/test_skills/base.py tests/test_skills
