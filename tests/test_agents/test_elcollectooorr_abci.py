@@ -19,6 +19,8 @@
 
 """Integration tests for the valory/price_estimation_abci skill."""
 
+import pytest
+
 from tests.fixture_helpers import UseHardHatElColBaseTest
 from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
 from tests.test_agents.base_elcollectooorr import BaseTestElCollectooorrEnd2End
@@ -95,13 +97,13 @@ PURCHASE_TOKEN_STRING = (
 )
 
 
+@pytest.mark.parametrize("nb_nodes", (4,))
 class TestHappyPath(
     BaseTestElCollectooorrEnd2End,
     UseHardHatElColBaseTest,
 ):
     """Test the El Collectooorr that decides for yes on the target project, and goes through the whole flow."""
 
-    NB_AGENTS = 4
     agent_package = "valory/elcollectooorr:0.1.0"
     skill_package = "valory/elcollectooorr_abci:0.1.0"
     wait_to_finish = 300  # 5 min to complete

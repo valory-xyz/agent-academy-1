@@ -71,7 +71,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
     """
 
     cli_log_options = ["-v", "INFO"]  # no need for debug
-    skill_package = "valory/elcollectooorr:0.1.0"
+    skill_package = "valory/elcollectooorr_abci:0.1.0"
     SAFE_CONTRACT_ADDRESS = _DEFAULT_SAFE_CONTRACT_ADDRESS
     SAFE_CALLBACK_HANDLER = _DEFAULT_SAFE_CALLBACK_HANDLER
     SAFE_FACTORY_ADDRESS = _DEFAULT_SAFE_FACTORY_ADDRESS
