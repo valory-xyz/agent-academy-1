@@ -122,7 +122,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
 
     def _BaseTestEnd2End__prepare_agent_i(self, i: int, nb_agents: int) -> None:
         """Prepare the i-th agent."""
-        super()._BaseTestEnd2End__prepare_agent_i(i, nb_agents)
+        super()._BaseTestEnd2End__prepare_agent_i(i, nb_agents)  # type: ignore
         self._replace_default_addresses(i)
 
     def _replace_default_addresses(self, i: int) -> None:
