@@ -34,11 +34,11 @@ protocols:
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 - valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeihtibqe2wosdvoz4inpbent4vprsklgiicegjxsledpoo2cny6u5u
-- valory/fractionalize_deployment_abci:0.1.0:bafybeicr5msamyk726jbaxo7fhj5llmdsjqqovjcymdpjovkphq4na3kyq
-- valory/registration_abci:0.1.0:bafybeihozc5voti5dtpdnufyejkrqwpzrm5lrbms7bo4fghr4uwvw2vasa
-- valory/safe_deployment_abci:0.1.0:bafybeieo6wtkcrse7xahfkezau3sxonxgg2uvko2vnq36t2o5hznbf5v6q
-- valory/transaction_settlement_abci:0.1.0:bafybeig336d5st5svdr73kxbx3jz2uqpfherizi4zmo5tnu3vt5utrugn4
+- valory/abstract_round_abci:0.1.0:bafybeievrok3xa3foeay3d3xoscunhbgnqiu6jyse6yck4td76dxsbvsiu
+- valory/fractionalize_deployment_abci:0.1.0:bafybeifxittdtrrlzevodlyfixfdj3zcnsvu62tym4nrgf62ehdsyuo3m4
+- valory/registration_abci:0.1.0:bafybeia3g5vjngmccglc7yx2mx6l4hh76fhe7ot2plqrd36lllekrsznae
+- valory/safe_deployment_abci:0.1.0:bafybeiahpjlxxcyelayvmpgd4fqz4j7hja7wdnwjmdnij32455izjmkawy
+- valory/transaction_settlement_abci:0.1.0:bafybeiavtszkfhm7fly7ro447rfioitzlj5gtniubumlvz32zw2ahynnpa
 behaviours:
   main:
     args: {}
