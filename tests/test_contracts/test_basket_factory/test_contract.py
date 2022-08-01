@@ -24,11 +24,11 @@ from typing import Any, Dict
 
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
+from autonomy.test_tools.base_test_classes.contracts import BaseGanacheContractTest
 
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 
 from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
-from tests.test_contracts.base import BaseGanacheContractTest
 
 
 DEFAULT_GAS = 10000000

@@ -24,6 +24,7 @@ import time
 
 import web3
 from aea.configurations.base import PublicId
+from autonomy.test_tools.base_test_classes.agents import BaseTestEnd2End
 from click.testing import Result
 from web3.types import Wei
 
@@ -57,7 +58,6 @@ from tests.helpers.constants import SETTINGS_ADRESS as _DEFAULT_SETTINGS_ADDRESS
 from tests.helpers.constants import (
     TOKEN_VAULT_FACTORY_ADDRESS as _DEFAULT_TOKEN_VAULT_FACTORY_ADDRESS,
 )
-from tests.test_agents.base import BaseTestEnd2End
 
 
 ONE_ETH = 10 ** 18

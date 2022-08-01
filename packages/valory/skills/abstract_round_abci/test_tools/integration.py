@@ -41,12 +41,11 @@ from aea.multiplexer import Multiplexer
 from aea.protocols.base import Address, Message
 from aea.skills.base import Handler
 from aea_ledger_ethereum import EthereumApi
+from autonomy.test_tools.fixture_helpers import HardHatAMMBaseTest
+from autonomy.test_tools.helpers.contracts import get_register_contract
 from web3 import HTTPProvider, Web3
 from web3.providers import BaseProvider
 from web3.types import Nonce, Wei
-
-from autonomy.test_tools.fixture_helpers import HardHatAMMBaseTest
-from autonomy.test_tools.helpers.contracts import get_register_contract
 
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.protocols.contract_api import ContractApiMessage

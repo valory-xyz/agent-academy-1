@@ -24,6 +24,9 @@ from typing import Any, Dict, cast
 
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
+from autonomy.test_tools.base_test_classes.contracts import (
+    BaseGanacheContractWithDependencyTest,
+)
 
 from packages.valory.contracts.basket.contract import BasketContract
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
@@ -32,7 +35,6 @@ from packages.valory.contracts.token_vault_factory.contract import (
 )
 
 from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
-from tests.test_contracts.base import BaseGanacheContractWithDependencyTest
 
 
 DEFAULT_GAS = 1000000000

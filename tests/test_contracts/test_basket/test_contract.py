@@ -22,11 +22,14 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
 
+from autonomy.test_tools.base_test_classes.contracts import (
+    BaseGanacheContractWithDependencyTest,
+)
+
 from packages.valory.contracts.basket.contract import BasketContract
 from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 
 from tests.conftest import ROOT_DIR
-from tests.test_contracts.base import BaseGanacheContractWithDependencyTest
 
 
 DEFAULT_GAS = 10000000
