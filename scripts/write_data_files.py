@@ -20,12 +20,11 @@
 
 """This is a temporary script to write the missing data files on the autonomy framework installation"""
 
-from pathlib import Path
+from autonomy.data import DATA_DIR
 
 
-INSTALLATION_PATH = Path(
-    ".tox/py3.10/lib/python3.10/site-packages/autonomy/test_tools/data/"
-)
+INSTALLATION_PATH = DATA_DIR.parent / "test_tools" / "data"
+
 FILES = (
     (
         "encrypted_keys.json",
@@ -74,6 +73,7 @@ FILES = (
 def main() -> None:
     """Main function."""
 
+    print(f"Installation path: {INSTALLATION_PATH}")
     for file, data in FILES:
         with open(INSTALLATION_PATH / file, "w+", newline="", encoding="utf-8") as fp:
             fp.write(data)
