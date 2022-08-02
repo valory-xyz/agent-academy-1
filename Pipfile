@@ -4,9 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea-ledger-ethereum = "==1.14.0"
-open-aea-ledger-cosmos = "==1.14.0"
-open-aea-cli-ipfs = "==1.14.0"
+open-aea-ledger-ethereum = "==1.15.0"
+open-aea-ledger-cosmos = "==1.15.0"
+open-aea-cli-ipfs = "==1.15.0"
 tox = "==3.24.4"
 
 [dev-packages]
@@ -17,7 +17,6 @@ bandit = "==1.7.0"
 black = "==21.6b0"
 certifi = "==2021.10.8"
 darglint = "==1.8.0"
-docker = "==5.0.2"
 flake8 = "==3.9.2"
 flake8-bugbear = "==21.9.1"
 flake8-docstrings = "==1.6.0"
@@ -56,7 +55,7 @@ vulture = "==2.3"
 python_version = "3.10"
 
 [packages.open-autonomy]
-version = "==0.1.5"
+version = "==0.1.6"
 extras = [ "all",]
 
 [dev-packages.mkdocs-mermaid-plugin]
