@@ -75,7 +75,7 @@ def main() -> None:
     """Main function."""
 
     for file, data in FILES:
-        with open(INSTALLATION_PATH / file, "w+", newline="") as fp:
+        with open(INSTALLATION_PATH / file, "w+", newline="", encoding="utf-8") as fp:
             fp.write(data)
 
 
