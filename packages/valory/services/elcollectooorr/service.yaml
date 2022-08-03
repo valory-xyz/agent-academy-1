@@ -1,0 +1,12 @@
+name: elcollectooorr
+author: valory
+version: 0.1.0
+description: A set of agents implementing the El Collectooorr
+aea_version: '>=1.0.0, <2.0.0'
+license: Apache-2.0
+fingerprint:
+  README.md: bafybeifqnvekc6s44wsczofdhofiozxekstjau2bk5yqfqvjuv4wzoopku
+fingerprint_ignore_patterns: []
+agent: valory/elcollectooorr:0.1.0:bafybeie27aduvcmcetm4hoaigj6cs4o3nroksdzepvyejj3fhihzwequuy
+network: ethereum
+number_of_agents: 1
