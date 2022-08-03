@@ -956,7 +956,7 @@ def test_period_state() -> None:  # pylint:too-many-locals
     }
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
+        participant: SelectKeeperPayload(sender=participant, keepers="keeper")
         for participant in participants
     }
     most_voted_keeper_address = "keeper"
