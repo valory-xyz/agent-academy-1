@@ -42,7 +42,7 @@ class TestBasketFactory(BaseGanacheContractTest):
     """Test deployment of the proxy to Ganache."""
 
     contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "basket_factory"
+        ROOT_DIR, "packages", "elcollectooorr", "contracts", "basket_factory"
     )
     contract: BasketFactoryContract
 

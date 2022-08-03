@@ -42,7 +42,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
     """Test deployment of Token Settings to Ganache."""
 
     contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "token_settings"
+        ROOT_DIR, "packages", "elcollectooorr", "contracts", "token_settings"
     )
     contract: TokenSettingsContract
 

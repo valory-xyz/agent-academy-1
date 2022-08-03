@@ -49,28 +49,28 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
     """Test deployment of Token Vault to Ganache."""
 
     contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "token_vault"
+        ROOT_DIR, "packages", "elcollectooorr", "contracts", "token_vault"
     )
     contract: TokenVaultContract
 
     dependencies = [
         (
             "token_settings",
-            Path(ROOT_DIR, "packages", "valory", "contracts", "token_settings"),
+            Path(ROOT_DIR, "packages", "elcollectooorr", "contracts", "token_settings"),
             dict(
                 gas=DEFAULT_GAS,
             ),
         ),
         (
             "basket_factory",
-            Path(ROOT_DIR, "packages", "valory", "contracts", "basket_factory"),
+            Path(ROOT_DIR, "packages", "elcollectooorr", "contracts", "basket_factory"),
             dict(
                 gas=DEFAULT_GAS,
             ),
         ),
         (
             "basket",
-            Path(ROOT_DIR, "packages", "valory", "contracts", "basket"),
+            Path(ROOT_DIR, "packages", "elcollectooorr", "contracts", "basket"),
             dict(
                 gas=DEFAULT_GAS,
                 is_basket=True,
@@ -78,7 +78,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         ),
         (
             "token_vault_factory",
-            Path(ROOT_DIR, "packages", "valory", "contracts", "token_vault_factory"),
+            Path(ROOT_DIR, "packages", "elcollectooorr", "contracts", "token_vault_factory"),
             dict(gas=DEFAULT_GAS, deps={"_settings": "token_settings"}),
         ),
     ]
