@@ -59,9 +59,8 @@ from packages.valory.skills.elcollectooorr_abci.rounds import (
     TransferNFTRound,
     rotate_list,
 )
-from packages.valory.skills.simple_abci.payloads import (
+from packages.valory.skills.transaction_settlement_abci.payloads import (
     RandomnessPayload,
-    ResetPayload,
     SelectKeeperPayload,
 )
 
@@ -75,40 +74,6 @@ RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676
 def get_participants() -> FrozenSet[str]:
     """Participants"""
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
-
-
-def get_participant_to_randomness(
-    participants: FrozenSet[str], round_id: int
-) -> Dict[str, RandomnessPayload]:
-    """participant_to_randomness"""
-    return {
-        participant: RandomnessPayload(
-            sender=participant,
-            round_id=round_id,
-            randomness=RANDOMNESS,
-        )
-        for participant in participants
-    }
-
-
-def get_participant_to_selection(
-    participants: FrozenSet[str],
-) -> Dict[str, SelectKeeperPayload]:
-    """participant_to_selection"""
-    return {
-        participant: SelectKeeperPayload(sender=participant, keeper="keeper")
-        for participant in participants
-    }
-
-
-def get_participant_to_period_count(
-    participants: FrozenSet[str], period_count: int
-) -> Dict[str, ResetPayload]:
-    """participant_to_selection"""
-    return {
-        participant: ResetPayload(sender=participant, period_count=period_count)
-        for participant in participants
-    }
 
 
 class BaseRoundTestClass:
