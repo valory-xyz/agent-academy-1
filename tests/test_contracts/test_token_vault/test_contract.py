@@ -78,7 +78,13 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         ),
         (
             "token_vault_factory",
-            Path(ROOT_DIR, "packages", "elcollectooorr", "contracts", "token_vault_factory"),
+            Path(
+                ROOT_DIR,
+                "packages",
+                "elcollectooorr",
+                "contracts",
+                "token_vault_factory",
+            ),
             dict(gas=DEFAULT_GAS, deps={"_settings": "token_settings"}),
         ),
     ]
