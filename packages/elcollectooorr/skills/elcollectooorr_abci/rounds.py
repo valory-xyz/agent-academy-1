@@ -25,23 +25,6 @@ from enum import Enum
 from types import MappingProxyType
 from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
 
-from packages.valory.skills.abstract_round_abci.abci_app_chain import (
-    AbciAppTransitionMapping,
-    chain,
-)
-from packages.valory.skills.abstract_round_abci.base import (
-    AbciApp,
-    AbciAppTransitionFunction,
-    AbstractRound,
-    AppState,
-)
-from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData as BasePeriodState,
-)
-from packages.valory.skills.abstract_round_abci.base import (
-    CollectSameUntilThresholdRound,
-    DegenerateRound,
-)
 from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
@@ -72,6 +55,23 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import 
     PermissionVaultFactoryRound,
     PostBasketDeploymentAbciApp,
     PostVaultDeploymentAbciApp,
+)
+from packages.valory.skills.abstract_round_abci.abci_app_chain import (
+    AbciAppTransitionMapping,
+    chain,
+)
+from packages.valory.skills.abstract_round_abci.base import (
+    AbciApp,
+    AbciAppTransitionFunction,
+    AbstractRound,
+    AppState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseSynchronizedData as BasePeriodState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
+    CollectSameUntilThresholdRound,
+    DegenerateRound,
 )
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,

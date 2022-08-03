@@ -24,6 +24,15 @@ from enum import Enum
 from types import MappingProxyType
 from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
 
+from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads import (
+    BasketAddressesPayload,
+    DeployBasketPayload,
+    DeployDecisionPayload,
+    DeployVaultPayload,
+    PermissionVaultFactoryPayload,
+    TransactionType,
+    VaultAddressesPayload,
+)
 from packages.valory.skills.abstract_round_abci.base import (
     AbciApp,
     AbciAppTransitionFunction,
@@ -36,15 +45,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.base import (
     CollectSameUntilThresholdRound,
     DegenerateRound,
-)
-from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads import (
-    BasketAddressesPayload,
-    DeployBasketPayload,
-    DeployDecisionPayload,
-    DeployVaultPayload,
-    PermissionVaultFactoryPayload,
-    TransactionType,
-    VaultAddressesPayload,
 )
 
 

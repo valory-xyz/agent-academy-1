@@ -1,0 +1,20 @@
+name: basket
+author: elcollectooorr
+version: 0.1.0
+type: contract
+description: Fractional Basket contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: bafybeidivjoq36doknaw7u7dyyis57nigzkkd5g2x66ejh3a4757cnjtbm
+  __init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
+  build/Basket.json: bafybeidg5favibiv4jzggfgmtme6lkheg4smgdwkj76xvkrqpsnsswftba
+  contract.py: bafybeievs5yhvkrqo7idvpf7lxty3odtqqslsfn4gsrabgzuum3csmyu7q
+fingerprint_ignore_patterns: []
+contracts:
+- elcollectooorr/basket_factory:0.1.0:bafybeihg43xlt66kwnwvymfwmml7d4zdh4j4m3wfnlakvz35q33wlam3ny
+class_name: BasketContract
+contract_interface_paths:
+  ethereum: build/Basket.json
+dependencies:
+  py-eth-sig-utils: {}

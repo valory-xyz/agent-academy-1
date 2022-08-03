@@ -29,7 +29,9 @@ from autonomy.test_tools.base_test_classes.contracts import (
 )
 
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
-from packages.elcollectooorr.contracts.basket_factory.contract import BasketFactoryContract
+from packages.elcollectooorr.contracts.basket_factory.contract import (
+    BasketFactoryContract,
+)
 from packages.elcollectooorr.contracts.token_vault.contract import TokenVaultContract
 from packages.elcollectooorr.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,

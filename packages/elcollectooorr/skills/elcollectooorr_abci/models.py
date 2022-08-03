@@ -21,14 +21,6 @@
 from abc import ABC
 from typing import Any, Dict, Optional, Type
 
-from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
-from packages.valory.skills.abstract_round_abci.models import (
-    BenchmarkTool as BaseBenchmarkTool,
-)
-from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
-from packages.valory.skills.abstract_round_abci.models import (
-    SharedState as BaseSharedState,
-)
 from packages.elcollectooorr.skills.elcollectooorr_abci.decision_models import (
     EightyPercentDecisionModel,
     GibDetailsThenYesDecisionModel,
@@ -42,6 +34,14 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
 )
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.models import (
     FractionalizeDeploymentParams,
+)
+from packages.valory.skills.abstract_round_abci.models import ApiSpecs, BaseParams
+from packages.valory.skills.abstract_round_abci.models import (
+    BenchmarkTool as BaseBenchmarkTool,
+)
+from packages.valory.skills.abstract_round_abci.models import Requests as BaseRequests
+from packages.valory.skills.abstract_round_abci.models import (
+    SharedState as BaseSharedState,
 )
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 

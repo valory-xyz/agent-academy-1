@@ -25,16 +25,12 @@ from typing import Generator, List, Set, Type, cast
 from aea.exceptions import AEAEnforceError, enforce
 
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
-from packages.elcollectooorr.contracts.basket_factory.contract import BasketFactoryContract
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.elcollectooorr.contracts.basket_factory.contract import (
+    BasketFactoryContract,
+)
 from packages.elcollectooorr.contracts.token_vault.contract import TokenVaultContract
 from packages.elcollectooorr.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
-)
-from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    BaseBehaviour as BaseState,
 )
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.models import Params
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads import (
@@ -59,6 +55,12 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import 
     PostBasketDeploymentAbciApp,
     PostVaultDeploymentAbciApp,
     VaultAddressRound,
+)
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    BaseBehaviour as BaseState,
 )
 from packages.valory.skills.transaction_settlement_abci.payload_tools import (
     hash_payload_to_hex,

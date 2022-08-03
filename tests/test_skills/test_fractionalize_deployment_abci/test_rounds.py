@@ -24,11 +24,6 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
 
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    ConsensusParams,
-)
 from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import PeriodState
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads import (
     BasketAddressesPayload,
@@ -46,6 +41,11 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import 
     Event,
     PermissionVaultFactoryRound,
     VaultAddressRound,
+)
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
+from packages.valory.skills.abstract_round_abci.base import (
+    AbstractRound,
+    ConsensusParams,
 )
 
 from tests.helpers.constants import WEI_TO_ETH

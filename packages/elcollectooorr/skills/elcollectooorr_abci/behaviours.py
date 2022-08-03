@@ -34,28 +34,20 @@ from packages.elcollectooorr.contracts.artblocks_minter_filter.contract import (
 from packages.elcollectooorr.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
-from packages.elcollectooorr.contracts.basket_factory.contract import BasketFactoryContract
-from packages.valory.contracts.gnosis_safe.contract import (
-    GnosisSafeContract,
-    SafeOperation,
-)
-from packages.valory.contracts.multisend.contract import (
-    MultiSendContract,
-    MultiSendOperation,
+from packages.elcollectooorr.contracts.basket_factory.contract import (
+    BasketFactoryContract,
 )
 from packages.elcollectooorr.contracts.token_vault.contract import TokenVaultContract
 from packages.elcollectooorr.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
 )
-from packages.valory.protocols.contract_api import ContractApiMessage
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    BaseBehaviour as BaseState,
-)
 from packages.elcollectooorr.skills.elcollectooorr_abci.decision_models import (
     EightyPercentDecisionModel,
 )
-from packages.elcollectooorr.skills.elcollectooorr_abci.models import Params, SharedState
+from packages.elcollectooorr.skills.elcollectooorr_abci.models import (
+    Params,
+    SharedState,
+)
 from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
@@ -94,6 +86,19 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours imp
     DeployVaultRoundBehaviour,
     PostBasketDeploymentRoundBehaviour,
     PostVaultDeploymentRoundBehaviour,
+)
+from packages.valory.contracts.gnosis_safe.contract import (
+    GnosisSafeContract,
+    SafeOperation,
+)
+from packages.valory.contracts.multisend.contract import (
+    MultiSendContract,
+    MultiSendOperation,
+)
+from packages.valory.protocols.contract_api import ContractApiMessage
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    BaseBehaviour as BaseState,
 )
 from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,

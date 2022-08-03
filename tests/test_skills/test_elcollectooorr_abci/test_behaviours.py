@@ -30,13 +30,6 @@ from unittest.mock import patch
 from aea.helpers.transaction.base import RawTransaction, SignedMessage, State
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.open_aea.protocols.signing import SigningMessage
-from packages.valory.connections.http_client.connection import (
-    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
-)
-from packages.valory.connections.ledger.base import (
-    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
-)
 from packages.elcollectooorr.contracts.artblocks.contract import ArtBlocksContract
 from packages.elcollectooorr.contracts.artblocks_minter_filter.contract import (
     ArtBlocksMinterFilterContract,
@@ -44,29 +37,12 @@ from packages.elcollectooorr.contracts.artblocks_minter_filter.contract import (
 from packages.elcollectooorr.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
-from packages.elcollectooorr.contracts.basket_factory.contract import BasketFactoryContract
-from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.contracts.multisend.contract import MultiSendContract
+from packages.elcollectooorr.contracts.basket_factory.contract import (
+    BasketFactoryContract,
+)
 from packages.elcollectooorr.contracts.token_vault.contract import TokenVaultContract
 from packages.elcollectooorr.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
-)
-from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.protocols.http import HttpMessage
-from packages.valory.protocols.ledger_api.message import LedgerApiMessage
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
-from packages.valory.skills.abstract_round_abci.base import AbstractRound
-from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData as BasePeriodState,
-)
-from packages.valory.skills.abstract_round_abci.base import (
-    BaseTxPayload,
-    OK_CODE,
-    _MetaPayload,
-)
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
-from packages.valory.skills.abstract_round_abci.behaviours import (
-    BaseBehaviour as BaseState,
 )
 from packages.elcollectooorr.skills.elcollectooorr_abci.behaviours import (
     DecisionRoundBehaviour,
@@ -98,6 +74,32 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
 )
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours import (
     DeployDecisionRoundBehaviour,
+)
+from packages.open_aea.protocols.signing import SigningMessage
+from packages.valory.connections.http_client.connection import (
+    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
+)
+from packages.valory.connections.ledger.base import (
+    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+)
+from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
+from packages.valory.contracts.multisend.contract import MultiSendContract
+from packages.valory.protocols.contract_api.message import ContractApiMessage
+from packages.valory.protocols.http import HttpMessage
+from packages.valory.protocols.ledger_api.message import LedgerApiMessage
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
+from packages.valory.skills.abstract_round_abci.base import AbstractRound
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseSynchronizedData as BasePeriodState,
+)
+from packages.valory.skills.abstract_round_abci.base import (
+    BaseTxPayload,
+    OK_CODE,
+    _MetaPayload,
+)
+from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
+from packages.valory.skills.abstract_round_abci.behaviours import (
+    BaseBehaviour as BaseState,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
