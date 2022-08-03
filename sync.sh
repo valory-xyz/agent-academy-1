@@ -1,5 +1,4 @@
 cp -r ../open-autonomy/packages/open_aea/protocols packages/open_aea
-cp -r ../open-autonomy/packages/valory/agents/simple_abci packages/valory/agents
 cp -r ../open-autonomy/packages/valory/agents/__init__.py packages/valory/agents
 cp -r ../open-autonomy/packages/valory/connections/__init__.py packages/valory/connections
 cp -r ../open-autonomy/packages/valory/connections/abci packages/valory/connections
@@ -24,7 +23,6 @@ cp -r ../open-autonomy/packages/valory/skills/abstract_round_abci packages/valor
 cp -r ../open-autonomy/packages/valory/skills/registration_abci packages/valory/skills
 cp -r ../open-autonomy/packages/valory/skills/reset_pause_abci packages/valory/skills
 cp -r ../open-autonomy/packages/valory/skills/safe_deployment_abci packages/valory/skills
-cp -r ../open-autonomy/packages/valory/skills/simple_abci packages/valory/skills
 cp -r ../open-autonomy/packages/valory/skills/transaction_settlement_abci packages/valory/skills
 cp -r ../open-autonomy/scripts/__init__.py scripts/
 cp -r ../open-autonomy/scripts/check_copyright.py scripts/
