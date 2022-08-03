@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the elcollectoorr packages authored by Valory AG."""
+"""This module contains the elcollectooorr packages authored by Valory AG."""
