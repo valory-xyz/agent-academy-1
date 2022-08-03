@@ -26,7 +26,9 @@ from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from autonomy.test_tools.base_test_classes.contracts import BaseGanacheContractTest
 
-from packages.valory.contracts.token_settings.contract import TokenSettingsContract
+from packages.elcollectooorr.contracts.token_settings.contract import (
+    TokenSettingsContract,
+)
 
 from tests.conftest import ETHEREUM_KEY_PATH_2, ROOT_DIR
 
@@ -40,7 +42,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
     """Test deployment of Token Settings to Ganache."""
 
     contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "token_settings"
+        ROOT_DIR, "packages", "elcollectooorr", "contracts", "token_settings"
     )
     contract: TokenSettingsContract
 

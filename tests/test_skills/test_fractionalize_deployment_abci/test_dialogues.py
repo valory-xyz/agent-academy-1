@@ -19,7 +19,7 @@
 
 """Test the dialogues.py module of the skill."""
 
-import packages.valory.skills.fractionalize_deployment_abci.dialogues  # noqa
+import packages.elcollectooorr.skills.fractionalize_deployment_abci.dialogues  # noqa
 
 
 def test_import() -> None:

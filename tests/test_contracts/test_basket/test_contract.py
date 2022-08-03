@@ -26,8 +26,10 @@ from autonomy.test_tools.base_test_classes.contracts import (
     BaseGanacheContractWithDependencyTest,
 )
 
-from packages.valory.contracts.basket.contract import BasketContract
-from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
+from packages.elcollectooorr.contracts.basket.contract import BasketContract
+from packages.elcollectooorr.contracts.basket_factory.contract import (
+    BasketFactoryContract,
+)
 
 from tests.conftest import ROOT_DIR
 
@@ -40,12 +42,14 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 class TestBasket(BaseGanacheContractWithDependencyTest):
     """Test deployment of the proxy to Ganache."""
 
-    contract_directory = Path(ROOT_DIR, "packages", "valory", "contracts", "basket")
+    contract_directory = Path(
+        ROOT_DIR, "packages", "elcollectooorr", "contracts", "basket"
+    )
     contract: BasketContract
     dependencies = [
         (
             "basket_factory",
-            Path(ROOT_DIR, "packages", "valory", "contracts", "basket_factory"),
+            Path(ROOT_DIR, "packages", "elcollectooorr", "contracts", "basket_factory"),
             dict(
                 gas=DEFAULT_GAS,
             ),

@@ -71,7 +71,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
     """
 
     cli_log_options = ["-v", "INFO"]  # no need for debug
-    skill_package = "valory/elcollectooorr_abci:0.1.0"
+    skill_package = "elcollectooorr/elcollectooorr_abci:0.1.0"
     SAFE_CONTRACT_ADDRESS = _DEFAULT_SAFE_CONTRACT_ADDRESS
     SAFE_CALLBACK_HANDLER = _DEFAULT_SAFE_CALLBACK_HANDLER
     SAFE_FACTORY_ADDRESS = _DEFAULT_SAFE_FACTORY_ADDRESS
@@ -80,7 +80,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
     HARDHAT_ELCOL_KEY_PAIRS = _DEFAULT_HARDHAT_ELCOL_KEY_PAIRS
     ELCOL_NET_HOST = _DEFAULT_ELCOL_NET_HOST
     ELCOL_NET_CHAIN_ID = _DEFAULT_ELCOL_NET_CHAIN_ID
-    __args_prefix = f"vendor.valory.skills.{PublicId.from_str(skill_package).name}.models.params.args"
+    __args_prefix = f"vendor.elcollectooorr.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
             "dotted_path": f"{__args_prefix}.artblocks_contract",

@@ -104,8 +104,8 @@ class TestHappyPath(
 ):
     """Test the El Collectooorr that decides for yes on the target project, and goes through the whole flow."""
 
-    agent_package = "valory/elcollectooorr:0.1.0"
-    skill_package = "valory/elcollectooorr_abci:0.1.0"
+    agent_package = "elcollectooorr/elcollectooorr:0.1.0"
+    skill_package = "elcollectooorr/elcollectooorr_abci:0.1.0"
     wait_to_finish = 300  # 5 min to complete
     strict_check_strings = (
         REGISTRATION_CHECK_STRINGS

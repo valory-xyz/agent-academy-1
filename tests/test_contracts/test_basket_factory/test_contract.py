@@ -26,7 +26,9 @@ from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from autonomy.test_tools.base_test_classes.contracts import BaseGanacheContractTest
 
-from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
+from packages.elcollectooorr.contracts.basket_factory.contract import (
+    BasketFactoryContract,
+)
 
 from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
 
@@ -40,7 +42,7 @@ class TestBasketFactory(BaseGanacheContractTest):
     """Test deployment of the proxy to Ganache."""
 
     contract_directory = Path(
-        ROOT_DIR, "packages", "valory", "contracts", "basket_factory"
+        ROOT_DIR, "packages", "elcollectooorr", "contracts", "basket_factory"
     )
     contract: BasketFactoryContract
 

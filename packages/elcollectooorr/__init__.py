@@ -17,10 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Test the dialogues.py module of the skill."""
-
-import packages.elcollectooorr.skills.elcollectooorr_abci.dialogues  # noqa
-
-
-def test_import() -> None:
-    """Test that the 'dialogues.py' Python module can be imported."""
+"""This module contains the elcollectooorr packages authored by Valory AG."""

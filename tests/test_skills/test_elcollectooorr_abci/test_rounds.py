@@ -25,12 +25,7 @@ from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
 
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    ConsensusParams,
-)
-from packages.valory.skills.elcollectooorr_abci.payloads import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     FundingPayload,
@@ -42,7 +37,7 @@ from packages.valory.skills.elcollectooorr_abci.payloads import (
     TransactionPayload,
     TransferNFTPayload,
 )
-from packages.valory.skills.elcollectooorr_abci.rounds import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     DecisionRound,
     DetailsRound,
     Event,
@@ -58,6 +53,11 @@ from packages.valory.skills.elcollectooorr_abci.rounds import (
     TransactionRound,
     TransferNFTRound,
     rotate_list,
+)
+from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
+from packages.valory.skills.abstract_round_abci.base import (
+    AbstractRound,
+    ConsensusParams,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     RandomnessPayload,

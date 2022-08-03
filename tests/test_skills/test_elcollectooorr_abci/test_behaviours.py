@@ -30,6 +30,51 @@ from unittest.mock import patch
 from aea.helpers.transaction.base import RawTransaction, SignedMessage, State
 from aea.test_tools.test_skill import BaseSkillTestCase
 
+from packages.elcollectooorr.contracts.artblocks.contract import ArtBlocksContract
+from packages.elcollectooorr.contracts.artblocks_minter_filter.contract import (
+    ArtBlocksMinterFilterContract,
+)
+from packages.elcollectooorr.contracts.artblocks_periphery.contract import (
+    ArtBlocksPeripheryContract,
+)
+from packages.elcollectooorr.contracts.basket_factory.contract import (
+    BasketFactoryContract,
+)
+from packages.elcollectooorr.contracts.token_vault.contract import TokenVaultContract
+from packages.elcollectooorr.contracts.token_vault_factory.contract import (
+    TokenVaultFactoryContract,
+)
+from packages.elcollectooorr.skills.elcollectooorr_abci.behaviours import (
+    DecisionRoundBehaviour,
+    DetailsRoundBehaviour,
+    ElcollectooorrABCIBaseState,
+    FundingRoundBehaviour,
+    ObservationRoundBehaviour,
+    PayoutFractionsRoundBehaviour,
+    PostPayoutRoundBehaviour,
+    PostTransactionSettlementBehaviour,
+    ProcessPurchaseRoundBehaviour,
+    ResyncRoundBehaviour,
+    TransactionRoundBehaviour,
+    TransferNFTRoundBehaviour,
+)
+from packages.elcollectooorr.skills.elcollectooorr_abci.decision_models import (
+    SimpleDecisionModel as DecisionModel,
+)
+from packages.elcollectooorr.skills.elcollectooorr_abci.handlers import (
+    ContractApiHandler,
+    HttpHandler,
+    LedgerApiHandler,
+    SigningHandler,
+)
+from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
+    Event,
+    PeriodState,
+    PostTransactionSettlementEvent,
+)
+from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours import (
+    DeployDecisionRoundBehaviour,
+)
 from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
@@ -37,20 +82,8 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.contracts.artblocks.contract import ArtBlocksContract
-from packages.valory.contracts.artblocks_minter_filter.contract import (
-    ArtBlocksMinterFilterContract,
-)
-from packages.valory.contracts.artblocks_periphery.contract import (
-    ArtBlocksPeripheryContract,
-)
-from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.multisend.contract import MultiSendContract
-from packages.valory.contracts.token_vault.contract import TokenVaultContract
-from packages.valory.contracts.token_vault_factory.contract import (
-    TokenVaultFactoryContract,
-)
 from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
@@ -67,37 +100,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour as BaseState,
-)
-from packages.valory.skills.elcollectooorr_abci.behaviours import (
-    DecisionRoundBehaviour,
-    DetailsRoundBehaviour,
-    ElcollectooorrABCIBaseState,
-    FundingRoundBehaviour,
-    ObservationRoundBehaviour,
-    PayoutFractionsRoundBehaviour,
-    PostPayoutRoundBehaviour,
-    PostTransactionSettlementBehaviour,
-    ProcessPurchaseRoundBehaviour,
-    ResyncRoundBehaviour,
-    TransactionRoundBehaviour,
-    TransferNFTRoundBehaviour,
-)
-from packages.valory.skills.elcollectooorr_abci.decision_models import (
-    SimpleDecisionModel as DecisionModel,
-)
-from packages.valory.skills.elcollectooorr_abci.handlers import (
-    ContractApiHandler,
-    HttpHandler,
-    LedgerApiHandler,
-    SigningHandler,
-)
-from packages.valory.skills.elcollectooorr_abci.rounds import (
-    Event,
-    PeriodState,
-    PostTransactionSettlementEvent,
-)
-from packages.valory.skills.fractionalize_deployment_abci.behaviours import (
-    DeployDecisionRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
@@ -121,7 +123,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "elcollectooorr_abci"
+        ROOT_DIR, "packages", "elcollectooorr", "skills", "elcollectooorr_abci"
     )
 
     elcollectooorr_abci_behaviour: AbstractRoundBehaviour
