@@ -8,12 +8,12 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeicxwrytguk3vkvcavvcoltgrajw3a4lv5vjkaq7ixo6xbpbtmjsaq
   __init__.py: bafybeibtaml5nrd3rfn4b5n7z5tpfifno64pyfjnmaatwajhz7kbg3yaey
-  behaviours.py: bafybeiabkhdcaosed2g7smoa5yvxxl5pbxdq344xn2nynhgylua5wdomje
+  behaviours.py: bafybeicuov374xlzlhyqu3e27rjebpijkck23jrxeck2vobh7qllhpvbky
   dialogues.py: bafybeicrchr3af6s6s4m7lqhamo5tqacwly6jnm3ymdxtxqfhemu2gw6sq
   handlers.py: bafybeic6d3w35brxfuldxaxx2y3kkgfxyhqbhytdgu3czk3c3rrruhsbcm
   models.py: bafybeib6q2edaaspgprivesnupyepw5375hrlddl4qt7bxs5ig774epspm
   payloads.py: bafybeiaiu3eu6tflsntmmzfigwx2yzibqkxluoyhuexa47upszhsjid4by
-  rounds.py: bafybeiblxpeh6ckunaslum4urv5xvyfh4sudbem2tups7jju26f6lid7iq
+  rounds.py: bafybeigidkxdy7ts6yorenwl355u7ehcj3lfurr42fw5rgzstr4xp6q5ze
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
