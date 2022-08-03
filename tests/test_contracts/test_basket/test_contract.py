@@ -26,8 +26,8 @@ from autonomy.test_tools.base_test_classes.contracts import (
     BaseGanacheContractWithDependencyTest,
 )
 
-from packages.valory.contracts.basket.contract import BasketContract
-from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
+from packages.elcollectooorr.contracts.basket.contract import BasketContract
+from packages.elcollectooorr.contracts.basket_factory.contract import BasketFactoryContract
 
 from tests.conftest import ROOT_DIR
 

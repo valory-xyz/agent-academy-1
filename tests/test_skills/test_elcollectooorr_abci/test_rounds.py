@@ -30,7 +30,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbstractRound,
     ConsensusParams,
 )
-from packages.valory.skills.elcollectooorr_abci.payloads import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
     DetailsPayload,
     FundingPayload,
@@ -42,7 +42,7 @@ from packages.valory.skills.elcollectooorr_abci.payloads import (
     TransactionPayload,
     TransferNFTPayload,
 )
-from packages.valory.skills.elcollectooorr_abci.rounds import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     DecisionRound,
     DetailsRound,
     Event,

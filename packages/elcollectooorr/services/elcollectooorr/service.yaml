@@ -1,0 +1,12 @@
+name: elcollectooorr
+author: elcollectooorr
+version: 0.1.0
+description: A set of agents implementing the El Collectooorr
+aea_version: '>=1.0.0, <2.0.0'
+license: Apache-2.0
+fingerprint:
+  README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
+fingerprint_ignore_patterns: []
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeibz66oihsikxcq5owtqbpyccdvxu5uz6iktrpznhcwaiciqi6m7vu
+network: ethereum
+number_of_agents: 1

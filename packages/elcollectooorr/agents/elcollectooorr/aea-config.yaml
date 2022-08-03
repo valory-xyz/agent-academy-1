@@ -1,0 +1,90 @@
+agent_name: elcollectooorr
+author: elcollectooorr
+version: 0.1.0
+license: Apache-2.0
+description: El Collectooorr decentralized.
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint: {}
+fingerprint_ignore_patterns: []
+connections:
+- valory/abci:0.1.0:bafybeibfdzfevrtiywolqeepk6yfzyvl4bbu6mghhnebkptcbhsh5fxkbu
+- valory/http_client:0.1.0:bafybeicmoolrrjnt5qn7jbwon7a3b5noe6hkj7kbjj57xtfosoygkckhuy
+- valory/ledger:0.1.0:bafybeibskbi7lft2htvogxrwzbix6kj2ri373ppde6bkmuabmq3z32lkxi
+- valory/p2p_libp2p_client:0.1.0:bafybeigvayl4ykzqf6o6bw2irv7am3qvczjoeu7yjhzn27ajiwvcio3lxm
+contracts:
+- elcollectooorr/artblocks:0.1.0:bafybeibdgvtwjxi7rhjaubexpzw2od3zeahl7pfxbmvmyx4grat3vpzmmi
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeicbkgpwb372na2j3khveekvdw4h34ohvpufixvuh2f4x6hdj7z52e
+- elcollectooorr/basket:0.1.0:bafybeienp7mdseqpsoezgm77ijru7kjht6b4fuhmsckructzbsei7xl6m4
+- elcollectooorr/basket_factory:0.1.0:bafybeihg43xlt66kwnwvymfwmml7d4zdh4j4m3wfnlakvz35q33wlam3ny
+- elcollectooorr/token_vault:0.1.0:bafybeifysc2r7t5h32kvck4nkeyjccyqaq7ubjizlm2zashpag4p7lyvw4
+- elcollectooorr/token_vault_factory:0.1.0:bafybeia37ppv5ogxtndcbt33ztbmer4zw7jhamlk64oqwziqdj6dnqoori
+- valory/gnosis_safe:0.1.0:bafybeiexiper376ji5h4wm5erzospvyikqmvw7pi5tpgrwanj5okznemqu
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeiej772sh3uuju2zsd62fz73ofg7p7ixaju6e3ahnzlbktcxoeoggy
+- valory/multisend:0.1.0:bafybeidvuabdn32lpsh3z7wb5fonotimysfsntueeb53dgil5jmiezrasq
+protocols:
+- open_aea/signing:1.0.0:bafybeid6f5ceool4evgaxdegs5pkjoivqjk3mo3ehctalswngb5m5c32wm
+- valory/abci:0.1.0:bafybeianfguceeckwhelenmythqmbtqswll6vcaz5wwsdr7hin7ov3rvje
+- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
+- valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
+skills:
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeibolbotgfmb4qq6v6cnhodl57ymjlyuomx3shsnto35uf4ifjck5e
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeig4vi42m3fy5pin3424vrquxceko46whyl3lgmwibwdethudwsh4e
+- valory/abstract_abci:0.1.0:bafybeih62tn62c33bcffjrlxvvokvorli2ow4v6myij352bl3im5dhvloa
+- valory/abstract_round_abci:0.1.0:bafybeihcarapqbgd7czlfyygkdjvb3zxhfkxvud7hd5owajkcwqsxa63gy
+- valory/registration_abci:0.1.0:bafybeib54vcjymnqejppq6xnjvwvrcrs6ugq64prsgjo65qs6qvdn6u42a
+- valory/safe_deployment_abci:0.1.0:bafybeidjara6duo3cylvq4doewhqsvsjbpesva42nkxrlyqjolkbiaomte
+- valory/transaction_settlement_abci:0.1.0:bafybeich2q5fktbar6wd7d2zirw7teiqxgktayl4ie42adlnbgpvccxdhq
+default_ledger: ethereum
+required_ledgers:
+- ethereum
+default_routing: {}
+connection_private_key_paths: {}
+private_key_paths: {}
+logging_config:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    standard:
+      format: '[%(asctime)s] [%(levelname)s] %(message)s'
+  handlers:
+    logfile:
+      class: logging.FileHandler
+      formatter: standard
+      filename: ${LOG_FILE:str:log.txt}
+      level: INFO
+    console:
+      class: logging.StreamHandler
+      formatter: standard
+      stream: ext://sys.stdout
+  loggers:
+    aea:
+      handlers:
+      - logfile
+      - console
+      propagate: false
+dependencies:
+  open-aea-ledger-ethereum: {}
+default_connection: null
+---
+public_id: valory/abci:0.1.0
+type: connection
+config:
+  target_skill_id: elcollectooorr/elcollectooorr_abci:0.1.0
+  use_tendermint: true
+---
+public_id: valory/p2p_libp2p_client:0.1.0
+type: connection
+config:
+  nodes:
+  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
+    public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+cert_requests:
+- identifier: acn
+  ledger_id: ethereum
+  message_format: '{public_key}'
+  not_after: '2022-01-01'
+  not_before: '2021-01-01'
+  public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+  save_path: .certs/acn_cosmos_9005.txt
+is_abstract: true

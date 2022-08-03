@@ -37,11 +37,11 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.contracts.basket.contract import BasketContract
-from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
+from packages.elcollectooorr.contracts.basket.contract import BasketContract
+from packages.elcollectooorr.contracts.basket_factory.contract import BasketFactoryContract
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
-from packages.valory.contracts.token_vault.contract import TokenVaultContract
-from packages.valory.contracts.token_vault_factory.contract import (
+from packages.elcollectooorr.contracts.token_vault.contract import TokenVaultContract
+from packages.elcollectooorr.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -61,18 +61,18 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour as BaseState,
 )
-from packages.valory.skills.elcollectooorr_abci.behaviours import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.behaviours import (
     FundingRoundBehaviour,
     WEI_TO_ETH,
 )
-from packages.valory.skills.elcollectooorr_abci.handlers import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.elcollectooorr_abci.rounds import PeriodState
-from packages.valory.skills.fractionalize_deployment_abci.behaviours import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import PeriodState
+from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours import (
     BasketAddressesRoundBehaviour,
     DeployBasketTxRoundBehaviour,
     DeployDecisionRoundBehaviour,
@@ -80,7 +80,7 @@ from packages.valory.skills.fractionalize_deployment_abci.behaviours import (
     PermissionVaultFactoryRoundBehaviour,
     VaultAddressesRoundBehaviour,
 )
-from packages.valory.skills.fractionalize_deployment_abci.rounds import Event
+from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import Event
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )
@@ -102,7 +102,7 @@ class FractionalizeFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing Fractionalize FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "elcollectooorr_abci"
+        ROOT_DIR, "packages", "elcollectooorr", "skills", "elcollectooorr_abci"
     )
 
     fractionalize_deployment_abci_behaviour: AbstractRoundBehaviour

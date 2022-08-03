@@ -37,18 +37,18 @@ from packages.valory.connections.http_client.connection import (
 from packages.valory.connections.ledger.base import (
     CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
-from packages.valory.contracts.artblocks.contract import ArtBlocksContract
-from packages.valory.contracts.artblocks_minter_filter.contract import (
+from packages.elcollectooorr.contracts.artblocks.contract import ArtBlocksContract
+from packages.elcollectooorr.contracts.artblocks_minter_filter.contract import (
     ArtBlocksMinterFilterContract,
 )
-from packages.valory.contracts.artblocks_periphery.contract import (
+from packages.elcollectooorr.contracts.artblocks_periphery.contract import (
     ArtBlocksPeripheryContract,
 )
-from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
+from packages.elcollectooorr.contracts.basket_factory.contract import BasketFactoryContract
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.multisend.contract import MultiSendContract
-from packages.valory.contracts.token_vault.contract import TokenVaultContract
-from packages.valory.contracts.token_vault_factory.contract import (
+from packages.elcollectooorr.contracts.token_vault.contract import TokenVaultContract
+from packages.elcollectooorr.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
 )
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -68,7 +68,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour as BaseState,
 )
-from packages.valory.skills.elcollectooorr_abci.behaviours import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.behaviours import (
     DecisionRoundBehaviour,
     DetailsRoundBehaviour,
     ElcollectooorrABCIBaseState,
@@ -82,21 +82,21 @@ from packages.valory.skills.elcollectooorr_abci.behaviours import (
     TransactionRoundBehaviour,
     TransferNFTRoundBehaviour,
 )
-from packages.valory.skills.elcollectooorr_abci.decision_models import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.decision_models import (
     SimpleDecisionModel as DecisionModel,
 )
-from packages.valory.skills.elcollectooorr_abci.handlers import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.handlers import (
     ContractApiHandler,
     HttpHandler,
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.valory.skills.elcollectooorr_abci.rounds import (
+from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     Event,
     PeriodState,
     PostTransactionSettlementEvent,
 )
-from packages.valory.skills.fractionalize_deployment_abci.behaviours import (
+from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours import (
     DeployDecisionRoundBehaviour,
 )
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
@@ -121,7 +121,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(
-        ROOT_DIR, "packages", "valory", "skills", "elcollectooorr_abci"
+        ROOT_DIR, "packages", "elcollectooorr", "skills", "elcollectooorr_abci"
     )
 
     elcollectooorr_abci_behaviour: AbstractRoundBehaviour

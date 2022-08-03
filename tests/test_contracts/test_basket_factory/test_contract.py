@@ -26,7 +26,7 @@ from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from autonomy.test_tools.base_test_classes.contracts import BaseGanacheContractTest
 
-from packages.valory.contracts.basket_factory.contract import BasketFactoryContract
+from packages.elcollectooorr.contracts.basket_factory.contract import BasketFactoryContract
 
 from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
 

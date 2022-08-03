@@ -19,7 +19,7 @@
 
 """Test the payloads.py module of the skill."""
 
-from packages.valory.skills.fractionalize_deployment_abci.payloads import (
+from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads import (
     BasketAddressesPayload,
     DeployBasketPayload,
     DeployDecisionPayload,

@@ -1,0 +1,19 @@
+name: token_vault_factory
+author: elcollectooorr
+version: 0.1.0
+type: contract
+description: Fractional ERC721 Token Vault Factory contract
+license: Apache-2.0
+aea_version: '>=1.0.0, <2.0.0'
+fingerprint:
+  README.md: bafybeibunypsax2ynyhetktuwehvn6ast7tn4ga7t4z7uwe2jmysx6foki
+  __init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
+  build/ERC721VaultFactory.json: bafybeiedxlmem43q36q4kcymefbs2luxhylb5xg7ebc7bx7yqjvwulffju
+  contract.py: bafybeicugyws4xybiab3o7qngx7ed45a44eqq5wjzbkvbzikb5qtjs5sta
+fingerprint_ignore_patterns: []
+contracts: []
+class_name: TokenVaultFactoryContract
+contract_interface_paths:
+  ethereum: build/ERC721VaultFactory.json
+dependencies:
+  py-eth-sig-utils: {}
