@@ -19,12 +19,14 @@
 # ------------------------------------------------------------------------------
 
 """This is a temporary script to patch the autonomy framework"""
-
+import argparse
+import sys
 from pathlib import Path
 
 import autonomy
-from autonomy.cli.hash import generate_all
+from autonomy.cli.hash import check_hashes, load_configuration, update_hashes
 from autonomy.data import DATA_DIR
+
 
 CONFIG_PATH = DATA_DIR.parent / "configurations" / "schemas" / "service_schema.json"
 
@@ -93,11 +95,12 @@ CONFIG_FILE = """
 """
 
 ETHEREUM = {
-    "LEDGER_ADDRESS": f"https://mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
+    "LEDGER_ADDRESS": "https://mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8",
     "LEDGER_CHAIN_ID": 1,
 }
 
-def main() -> None:
+
+def main(check: bool = False) -> None:
     """Main function."""
     print(f"Config path: {CONFIG_PATH}")
     with open(CONFIG_PATH, "w+", newline="", encoding="utf-8") as fp:
@@ -105,7 +108,22 @@ def main() -> None:
 
     autonomy.deploy.constants.NETWORKS["docker-compose"]["ethereum"] = ETHEREUM
     autonomy.deploy.constants.NETWORKS["kubernetes"]["ethereum"] = ETHEREUM
-    generate_all()
+    packages_dir = Path("packages/").absolute()
+    no_wrap = False
+    vendor = None
+    if check:  # pragma: nocover
+        return_code = check_hashes(
+            packages_dir, no_wrap, vendor=vendor, config_loader=load_configuration
+        )
+    else:
+        return_code = update_hashes(
+            packages_dir, no_wrap, vendor=vendor, config_loader=load_configuration
+        )
+    sys.exit(return_code)
+
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--check", action="store_true")
+    args = parser.parse_args()
+    main(check=args.check)
