@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeibmlkq7qxlnuk4uavoqhp2qvgvqzc2lt6l6owk2twvmntj2wqser4
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeicjpnjcxki4vfhkqh4itiabghzod7w7zdiccdgjg6rwc7snnrgyva
 network: polygon
 number_of_agents: 1
 ---
@@ -17,10 +17,19 @@ models:
   params:
     args:
       setup:
-        safe_contract_address:
-        - '0xe64C856427C770DEa53E41a0f73C67eE37a16aB4'
+        safe_contract_address: []
       consensus:
         max_participants: 1
       decision_model_threshold: 0.0
       whitelisted_investor_addresses:
       - '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
+---
+public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: https://mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
+      chain_id: 1
+      poa_chain: true
+      default_gas_price_strategy: eip1559
