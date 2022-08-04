@@ -42,17 +42,22 @@ Enter virtual environment:
 pipenv shell
 ```
 
-To run the build:
+First, ensure the service and its dependencies are pushed:
+```
+autonomy push-all
+```
 
+To run the build:
 ``` bash
 ./wrap.py deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeiey7m6pqxlpsw2id34w2v3u7n45bzxttf37hg4udc7o22t6y3mp34 keys.json --force --local
-
 ```
 
 (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
 
+Then run the service:
 ``` bash
-
+cd abci_build
+docker-compose up --force-recreate
 ```
 
 ## Running a fork of ethereum
