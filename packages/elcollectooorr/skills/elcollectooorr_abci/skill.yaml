@@ -106,7 +106,7 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 120.0
       service_id: el_collectooorr_1
-      service_registry_address: null
+      service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       setup:
         safe_contract_address: []

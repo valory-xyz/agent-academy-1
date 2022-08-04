@@ -28,7 +28,7 @@ protocols:
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 - valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeicn5kkjkia3sxqnfi7pg2mefnjxttv32xelr2musmr4ofilvqa6gi
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeigmtwicitgxplpimrp5adeufrwgqi2wm3uewjlyxydjuetn654sny
 - elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibpjqwglrjscmjnckt3pnvhx6ra2aiskgvrzftehnrxean5au45se
 - valory/abstract_abci:0.1.0:bafybeih62tn62c33bcffjrlxvvokvorli2ow4v6myij352bl3im5dhvloa
 - valory/abstract_round_abci:0.1.0:bafybeihcarapqbgd7czlfyygkdjvb3zxhfkxvud7hd5owajkcwqsxa63gy
@@ -124,7 +124,6 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 120.0
       service_id: el_collectooorr_1
-      service_registry_address: null
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       sleep_time: 1
       starting_project_id: 301
