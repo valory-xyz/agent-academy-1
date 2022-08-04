@@ -23,13 +23,4 @@ models:
       decision_model_threshold: 0.0
       whitelisted_investor_addresses:
       - '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
----
-public_id: valory/ledger:0.1.0
-type: connection
-config:
-  ledger_apis:
-    ethereum:
-      address: https://mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
-      chain_id: 1
-      poa_chain: true
-      default_gas_price_strategy: eip1559
+
