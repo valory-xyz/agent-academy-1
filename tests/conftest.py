@@ -23,11 +23,11 @@ import logging
 from pathlib import Path
 from typing import Any, Generator, List, Tuple, cast
 
-import autonomy
 import docker
 import pytest
 import web3
 from autonomy.data import DATA_DIR
+from autonomy.deploy.constants import NETWORKS
 from autonomy.test_tools.docker.base import launch_image, launch_many_containers
 from autonomy.test_tools.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
@@ -157,8 +157,8 @@ ETHEREUM = {
 with open(CONFIG_PATH, "w+", newline="", encoding="utf-8") as fp:
     fp.write(CONFIG_FILE)
 
-autonomy.deploy.constants.NETWORKS["docker-compose"]["ethereum"] = ETHEREUM  # type: ignore
-autonomy.deploy.constants.NETWORKS["kubernetes"]["ethereum"] = ETHEREUM  # type: ignore
+NETWORKS["docker-compose"]["ethereum"] = ETHEREUM  # type: ignore
+NETWORKS["kubernetes"]["ethereum"] = ETHEREUM  # type: ignore
 
 
 def get_key(key_path: Path) -> str:
