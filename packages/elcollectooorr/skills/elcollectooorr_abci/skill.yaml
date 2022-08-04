@@ -108,8 +108,6 @@ models:
       service_id: el_collectooorr_1
       service_registry_address: null
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
-      setup:
-        safe_contract_address: []
       sleep_time: 1
       starting_project_id: 301
       tendermint_check_sleep_delay: 3

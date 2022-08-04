@@ -28,7 +28,7 @@ protocols:
 - valory/http:1.0.0:bafybeienmids6f5pcey2bnywmiup2faawqgmdhhz65qfciuhkntugztvpi
 - valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeicn5kkjkia3sxqnfi7pg2mefnjxttv32xelr2musmr4ofilvqa6gi
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeidegwooa3ppulhildmrnus7p3ee2spsb7inm5bnydlbmg3dkrsgsa
 - elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibpjqwglrjscmjnckt3pnvhx6ra2aiskgvrzftehnrxean5au45se
 - valory/abstract_abci:0.1.0:bafybeih62tn62c33bcffjrlxvvokvorli2ow4v6myij352bl3im5dhvloa
 - valory/abstract_round_abci:0.1.0:bafybeihcarapqbgd7czlfyygkdjvb3zxhfkxvud7hd5owajkcwqsxa63gy
@@ -88,51 +88,3 @@ cert_requests:
   public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
   save_path: .certs/acn_cosmos_9005.txt
 is_abstract: true
----
-public_id: elcollectooorr/elcollectooorr_abci:0.1.0
-type: skill
-models:
-  params:
-    args:
-      artblocks_contract: '0xa7d8d9ef8D8Ce8992Df33D8b8CF4Aebabd5bD270'
-      artblocks_graph_url: https://api.thegraph.com/subgraphs/name/artblocks/art-blocks
-      artblocks_minter_filter: '0x4aafce293b9b0fad169c78049a81e400f518e199'
-      basket_factory_address: '0xde771104C0C44123d22D39bB716339cD0c3333a1'
-      budget_per_vault: 10500000000000000000
-      cleanup_history_depth: 1
-      consensus:
-        max_participants: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_CONSENSUS_MAX_PARTICIPANTS:int:1}
-      decision_model_threshold: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_DECISION_MODEL_THRESHOLD:float:0.0}
-      setup:
-        safe_contract_address: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:[]}
-      decision_model_type: 'yes'
-      drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
-      enforce_investor_whitelisting: true
-      finalize_timeout: 60.0
-      history_check_timeout: 1205
-      keeper_allowed_retries: 3
-      keeper_timeout: 30.0
-      max_healthcheck: 120
-      max_purchase_per_project: 1
-      max_retries: 5
-      multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
-      observation_interval: 10
-      on_chain_service_id: null
-      period_setup: {}
-      reset_tendermint_after: 2
-      retry_attempts: 400
-      retry_timeout: 3
-      round_timeout_seconds: 120.0
-      service_id: el_collectooorr_1
-      service_registry_address: null
-      settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
-      sleep_time: 1
-      starting_project_id: 301
-      tendermint_check_sleep_delay: 3
-      tendermint_com_url: http://localhost:8080
-      tendermint_max_retries: 5
-      tendermint_url: http://localhost:26657
-      token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
-      validate_timeout: 1205
-      wei_to_fraction: 10500000000000000
-      whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:['0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0']}
