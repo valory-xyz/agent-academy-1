@@ -154,16 +154,11 @@ ETHEREUM = {
 }
 
 
-def patch() -> None:
-    """Patch the library."""
-    with open(CONFIG_PATH, "w+", newline="", encoding="utf-8") as fp:
-        fp.write(CONFIG_FILE)
+with open(CONFIG_PATH, "w+", newline="", encoding="utf-8") as fp:
+    fp.write(CONFIG_FILE)
 
-    autonomy.deploy.constants.NETWORKS["docker-compose"]["ethereum"] = ETHEREUM  # type: ignore
-    autonomy.deploy.constants.NETWORKS["kubernetes"]["ethereum"] = ETHEREUM  # type: ignore
-
-
-patch()
+autonomy.deploy.constants.NETWORKS["docker-compose"]["ethereum"] = ETHEREUM  # type: ignore
+autonomy.deploy.constants.NETWORKS["kubernetes"]["ethereum"] = ETHEREUM  # type: ignore
 
 
 def get_key(key_path: Path) -> str:
