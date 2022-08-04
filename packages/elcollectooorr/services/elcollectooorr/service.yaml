@@ -7,14 +7,15 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeia4mx46wcbwkhswaxrf5rzmnfmvyr7wiwfwqwsohoggc7ufxwn36y
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeidrcfokmk4e6uowd3b6g33q2ikfeyr5h2metd5sizout4il4rlide
 network: ethereum
 number_of_agents: 1
 ---
 setup_args:
   args: &id001
     setup:
-      safe_contract_address: []
+      safe_contract_address:
+      - '0xe64C856427C770DEa53E41a0f73C67eE37a16aB4'
     consensus:
       max_participants: 1
     decision_model_threshold: 0.0
