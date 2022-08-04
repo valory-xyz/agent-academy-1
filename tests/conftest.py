@@ -159,8 +159,8 @@ def patch() -> None:
     with open(CONFIG_PATH, "w+", newline="", encoding="utf-8") as fp:
         fp.write(CONFIG_FILE)
 
-    autonomy.deploy.constants.NETWORKS["docker-compose"]["ethereum"] = ETHEREUM
-    autonomy.deploy.constants.NETWORKS["kubernetes"]["ethereum"] = ETHEREUM
+    autonomy.deploy.constants.NETWORKS["docker-compose"]["ethereum"] = ETHEREUM  # type: ignore
+    autonomy.deploy.constants.NETWORKS["kubernetes"]["ethereum"] = ETHEREUM  # type: ignore
 
 
 patch()
