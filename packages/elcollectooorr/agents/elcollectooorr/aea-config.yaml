@@ -118,7 +118,6 @@ models:
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 10
       on_chain_service_id: null
-      period_setup: {}
       reset_tendermint_after: 2
       retry_attempts: 400
       retry_timeout: 3
@@ -135,4 +134,4 @@ models:
       token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
-      whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
+      whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:["0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"]}
