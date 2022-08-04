@@ -28,7 +28,7 @@ Alternatively, you can fetch this docker image with the relevant requirments sat
       cd ../contracts-elcol && yarn install
       cd ../..
 
-## Simple ABCI example
+## Running El Collectooorr as a service
 
 Create a virtual environment with all development dependencies:
 
@@ -42,16 +42,17 @@ Enter virtual environment:
 pipenv shell
 ```
 
-To run the test:
+To run the build:
 
 ``` bash
-pytest tests/test_agents/test_simple_abci.py::TestSimpleABCISingleAgent
+./wrap.py deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeiey7m6pqxlpsw2id34w2v3u7n45bzxttf37hg4udc7o22t6y3mp34 keys.json --force --local
+
 ```
 
-or
+(On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
 
 ``` bash
-pytest tests/test_agents/test_simple_abci.py::TestSimpleABCITwoAgents
+
 ```
 
 ## Running a fork of ethereum
@@ -112,31 +113,6 @@ By default, the Ropsten container will be available on port `8545`, and MainNet 
 You can control what keys to use by setting MAINNET_KEY and ROPSTEN_KEY respectively. 
 The docker ports (mappings) can be set using `ROPSTEN_DOCKER_PORT` and `MAINNET_DOCKER_PORT`.
 `BLOCK_NUMBER` can be used to change the starting block number.
-
-## Fuzzy Tests for ABCI Connection
-
-To run the fuzzy tests with TCP as the communication channel, run:
-
-```bash
-make tcp-fuzzy-tests
-```
-
-For gRPC run:
-
-```bash
-make grpc-fuzzy-tests
-```
-
-To run both, use:
-```bash
-make fuzzy-tests
-```
-
-## Building the contracts on hardhat
-- Build the Hardhat projects:
-
-      cd third_party/safe-contracts && yarn install
-      cd ../..
 
 ## Useful commands:
 
