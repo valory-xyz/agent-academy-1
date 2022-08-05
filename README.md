@@ -28,7 +28,7 @@ Alternatively, you can fetch this docker image with the relevant requirments sat
       cd ../contracts-elcol && yarn install
       cd ../..
 
-## Simple ABCI example
+## Running El Collectooorr as a service
 
 Create a virtual environment with all development dependencies:
 
@@ -42,16 +42,32 @@ Enter virtual environment:
 pipenv shell
 ```
 
-To run the test:
-
-``` bash
-pytest tests/test_agents/test_simple_abci.py::TestSimpleABCISingleAgent
+First, ensure the service and its dependencies are pushed:
+```
+autonomy push-all
 ```
 
-or
-
+To run the build:
 ``` bash
-pytest tests/test_agents/test_simple_abci.py::TestSimpleABCITwoAgents
+./wrap.py deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeievsxqqih7wnrksuyrotjfvm7vgfsttej5a2fsah5576f7kna7ddu keys.json --force --local
+```
+
+(On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
+
+Then substitue the safe address taken from onchain. In `abci_build/docker-compose.yaml`, replace
+```
+      - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=[]
+```
+with
+```
+      - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=["0xe64C856427C770DEa53E41a0f73C67eE37a16aB4"]
+```
+where `0xe64C856427C770DEa53E41a0f73C67eE37a16aB4` should match the correct address from the on-chain service deployment.
+
+Then run the service:
+``` bash
+cd abci_build
+docker-compose up --force-recreate
 ```
 
 ## Running a fork of ethereum
@@ -112,31 +128,6 @@ By default, the Ropsten container will be available on port `8545`, and MainNet 
 You can control what keys to use by setting MAINNET_KEY and ROPSTEN_KEY respectively. 
 The docker ports (mappings) can be set using `ROPSTEN_DOCKER_PORT` and `MAINNET_DOCKER_PORT`.
 `BLOCK_NUMBER` can be used to change the starting block number.
-
-## Fuzzy Tests for ABCI Connection
-
-To run the fuzzy tests with TCP as the communication channel, run:
-
-```bash
-make tcp-fuzzy-tests
-```
-
-For gRPC run:
-
-```bash
-make grpc-fuzzy-tests
-```
-
-To run both, use:
-```bash
-make fuzzy-tests
-```
-
-## Building the contracts on hardhat
-- Build the Hardhat projects:
-
-      cd third_party/safe-contracts && yarn install
-      cd ../..
 
 ## Useful commands:
 
