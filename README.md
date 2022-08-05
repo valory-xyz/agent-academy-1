@@ -49,7 +49,7 @@ autonomy push-all
 
 To run the build:
 ``` bash
-./wrap.py deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeiao7svlniohnjgxhfzyz6blqcbdho4glcatk3qshdo2ixvxpzvlgq keys.json --force --local
+./wrap.py deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeiffnnxofl4idhevsirz4xojzj6pc22bmjl7rl5ohihf3f7wu775su keys.json --force --local
 ```
 
 (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
