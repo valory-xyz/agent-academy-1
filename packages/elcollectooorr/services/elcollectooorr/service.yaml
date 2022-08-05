@@ -17,8 +17,7 @@ models:
   params:
     args:
       setup:
-        safe_contract_address:
-        - '0xe64C856427C770DEa53E41a0f73C67eE37a16aB4'
+        safe_contract_address: []
       consensus:
         max_participants: 1
       decision_model_threshold: 0.0
