@@ -49,10 +49,20 @@ autonomy push-all
 
 To run the build:
 ``` bash
-./wrap.py deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeiao7svlniohnjgxhfzyz6blqcbdho4glcatk3qshdo2ixvxpzvlgq keys.json --force --local
+./wrap.py deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeievsxqqih7wnrksuyrotjfvm7vgfsttej5a2fsah5576f7kna7ddu keys.json --force --local
 ```
 
 (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
+
+Then substitue the safe address taken from onchain. In `abci_build/docker-compose.yaml`, replace
+```
+      - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=[]
+```
+with
+```
+      - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=["0xe64C856427C770DEa53E41a0f73C67eE37a16aB4"]
+```
+where `0xe64C856427C770DEa53E41a0f73C67eE37a16aB4` should match the correct address from the on-chain service deployment.
 
 Then run the service:
 ``` bash
