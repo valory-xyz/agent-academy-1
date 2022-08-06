@@ -79,6 +79,11 @@ from packages.valory.skills.registration_abci.rounds import (
     FinishedRegistrationRound,
     RegistrationRound,
 )
+from packages.valory.skills.reset_pause_abci.rounds import (
+    FinishedResetAndPauseErrorRound,
+    FinishedResetAndPauseRound,
+    ResetPauseABCIApp,
+)
 from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
     SafeDeploymentAbciApp,
@@ -349,6 +354,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
             )
             active_projects = most_voted_payload["active_projects"]
             inactive_projects = most_voted_payload["inactive_projects"]
+            purchased_projects = self.period_state.db.get("purchased_projects", [])
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
@@ -357,6 +363,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
                 active_projects=active_projects,
                 inactive_projects=inactive_projects,
                 most_recent_project=most_recent_project,
+                purchased_projects=purchased_projects,
             )
 
             if len(active_projects) > 0:
@@ -521,6 +528,13 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = [
+        "finished_projects",
+        "active_projects",
+        "inactive_projects",
+        "most_recent_project",
+        "active_projects",
+    ]
 
 
 class ProcessPurchaseRound(
@@ -641,6 +655,7 @@ class TransferNFTAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = ["purchased_projects"]
 
 
 class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
@@ -683,6 +698,9 @@ class PayoutFractionsRound(
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "{}":
+                if self.period_state.db.get("paid_users", None) is None:
+                    # initialize the paid users list
+                    return self.period_state.update(paid_users={}), Event.NO_PAYOUTS
                 return self.period_state, Event.NO_PAYOUTS
 
             payload = json.loads(self.most_voted_payload)
@@ -744,6 +762,7 @@ class BankAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = ["most_voted_funds"]
 
 
 class PostPayoutRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
@@ -806,6 +825,7 @@ class PostFractionPayoutAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = ["paid_users"]
 
 
 class PostTransactionSettlementRound(
@@ -937,6 +957,7 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = ["amount_spent"]
 
 
 class ResyncRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
@@ -1000,7 +1021,7 @@ el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
     FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
-    FinishedElCollectooorrWithoutPurchase: DeployBasketAbciApp.initial_round_cls,
+    FinishedElCollectooorrWithoutPurchase: ResetPauseABCIApp.initial_round_cls,
     FinishedRegistrationFFWRound: ResyncAbciApp.initial_round_cls,
     FinishedResyncRound: DeployBasketAbciApp.initial_round_cls,
     FinishedTransactionSubmissionRound: PostTransactionSettlementRound,
@@ -1014,17 +1035,19 @@ el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedElcollectooorrTxRound: TransferNFTAbciApp.initial_round_cls,
     FinishedVaultTxRound: PostVaultDeploymentAbciApp.initial_round_cls,
     FinishedPostVaultRound: BankAbciApp.initial_round_cls,
+    FinishedResetAndPauseRound: DeployBasketAbciApp.initial_round_cls,
     FinishedBankWithoutPayoutsRounds: ElcollectooorrBaseAbciApp.initial_round_cls,
     FinishedPayoutTxRound: PostFractionPayoutAbciApp.initial_round_cls,
     FinishedPostPayoutRound: ElcollectooorrBaseAbciApp.initial_round_cls,
     FinishedBankWithPayoutsRounds: TransactionSubmissionAbciApp.initial_round_cls,
     FailedRound: RegistrationRound,
     FinishedWithoutDeploymentRound: BankAbciApp.initial_round_cls,
-    FinishedWithoutTransferRound: DeployBasketAbciApp.initial_round_cls,
+    FinishedWithoutTransferRound: ResetPauseABCIApp.initial_round_cls,
     FinishedWithTransferRound: TransactionSubmissionAbciApp.initial_round_cls,
-    FinishedTransferNftTxRound: DeployBasketAbciApp.initial_round_cls,
+    FinishedTransferNftTxRound: ResetPauseABCIApp.initial_round_cls,
     FailedPurchaseProcessingRound: ElcollectooorrBaseAbciApp.initial_round_cls,
     ErrorneousRound: TransactionSubmissionAbciApp.initial_round_cls,
+    FinishedResetAndPauseErrorRound: RegistrationRound,
 }
 
 ElCollectooorrAbciApp = chain(
@@ -1042,6 +1065,7 @@ ElCollectooorrAbciApp = chain(
         BankAbciApp,
         PostFractionPayoutAbciApp,
         ResyncAbciApp,
+        ResetPauseABCIApp,
     ),
     el_collectooorr_app_transition_mapping,
 )
