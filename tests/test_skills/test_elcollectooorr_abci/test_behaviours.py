@@ -1257,7 +1257,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = DecisionRoundBehaviour
     decided_yes_behaviour_class = TransactionRoundBehaviour
-    decided_no_behaviour_class = DeployDecisionRoundBehaviour
+    decided_no_behaviour_class = ResetAndPauseBehaviour
     gib_details_behaviour_class = DetailsRoundBehaviour
 
     def test_decided_yes(self) -> None:
@@ -1919,7 +1919,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = PayoutFractionsRoundBehaviour
     next_behaviour_class = RandomnessTransactionSubmissionBehaviour
-    no_payouts_next_behaviour = ResetAndPauseBehaviour
+    no_payouts_next_behaviour = ObservationRoundBehaviour
     fraction_price = 10500000000000000
 
     def _mock_available_tokens(
@@ -2529,7 +2529,7 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for Payout Fractions Round Behaviour"""
 
     behaviour_class = PostPayoutRoundBehaviour
-    next_behaviour_class = ResetAndPauseBehaviour
+    next_behaviour_class = ObservationRoundBehaviour
 
     def test_the_happy_path(self) -> None:
         """The users that got paid get logged."""
@@ -2582,7 +2582,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = ProcessPurchaseRoundBehaviour
     next_behaviour_class = TransferNFTRoundBehaviour
-    failed_next_behaviour = ResetAndPauseBehaviour
+    failed_next_behaviour = ObservationRoundBehaviour
 
     def test_the_happy_path(self) -> None:
         """A token has been purchased, the agent extracts the data from the tx hash."""
@@ -2695,7 +2695,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = TransferNFTRoundBehaviour
     next_behaviour_class = RandomnessTransactionSubmissionBehaviour
-    no_transfer = DeployDecisionRoundBehaviour
+    no_transfer = ResetAndPauseBehaviour
 
     def test_the_happy_path(self) -> None:
         """A token has been purchased, the agent transfers it to the safe contract."""
