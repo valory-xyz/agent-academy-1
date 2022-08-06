@@ -101,6 +101,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour as BaseState,
 )
+from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )
@@ -1918,7 +1919,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = PayoutFractionsRoundBehaviour
     next_behaviour_class = RandomnessTransactionSubmissionBehaviour
-    no_payouts_next_behaviour = ObservationRoundBehaviour
+    no_payouts_next_behaviour = ResetAndPauseBehaviour
     fraction_price = 10500000000000000
 
     def _mock_available_tokens(
@@ -2528,7 +2529,7 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     """Tests for Payout Fractions Round Behaviour"""
 
     behaviour_class = PostPayoutRoundBehaviour
-    next_behaviour_class = ObservationRoundBehaviour
+    next_behaviour_class = ResetAndPauseBehaviour
 
     def test_the_happy_path(self) -> None:
         """The users that got paid get logged."""
@@ -2581,7 +2582,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = ProcessPurchaseRoundBehaviour
     next_behaviour_class = TransferNFTRoundBehaviour
-    failed_next_behaviour = ObservationRoundBehaviour
+    failed_next_behaviour = ResetAndPauseBehaviour
 
     def test_the_happy_path(self) -> None:
         """A token has been purchased, the agent extracts the data from the tx hash."""

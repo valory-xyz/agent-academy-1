@@ -96,6 +96,11 @@ PURCHASE_TOKEN_STRING = (
     "'transfer_nft_round' round is done with event: Event.DONE",
 )
 
+RESET_STRINGS = (
+    "Entered in the 'reset_and_pause' round for period 0",
+    "Period end.",
+)
+
 
 @pytest.mark.parametrize("nb_nodes", (4,))
 class TestHappyPath(
@@ -114,5 +119,6 @@ class TestHappyPath(
         + POST_TX_SETTLEMENT_STRINGS
         + FRACTIONALIZE_STRINGS
         + PURCHASE_TOKEN_STRING
+        + RESET_STRINGS
     )
     use_benchmarks = True
