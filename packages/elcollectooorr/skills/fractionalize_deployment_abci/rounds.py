@@ -459,6 +459,7 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = ["basket_addresses"]
 
 
 class DeployVaultAbciApp(AbciApp[Event]):
@@ -499,3 +500,4 @@ class PostVaultDeploymentAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+    cross_period_persisted_keys = ["vault_addresses"]

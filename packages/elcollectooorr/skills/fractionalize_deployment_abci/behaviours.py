@@ -88,13 +88,13 @@ class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
 class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour for deciding whether a new basket & vault should be deployed"""
 
-    behaviour_id = "deploy_decision_round_behaviour"
+    behaviour_id = "deploy_decision_behaviour"
     matching_round = DeployDecisionRound
 
     def async_act(self) -> Generator:
         """Implement the act."""
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             deploy_decision = DeployDecisionRound.DECIDE_DONT_DEPLOY
 
@@ -143,7 +143,7 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             self.context.logger.info(f"Deploy new basket and vault? {deploy_decision}.")
 
@@ -212,7 +212,7 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
@@ -234,7 +234,7 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = DeployBasketPayload(
                 self.context.agent_address,
@@ -301,7 +301,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
@@ -323,7 +323,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = DeployVaultPayload(
                 self.context.agent_address,
@@ -401,7 +401,7 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         """Implement the act."""
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
@@ -424,7 +424,7 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = BasketAddressesPayload(
                 self.context.agent_address,
@@ -468,7 +468,7 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
@@ -499,7 +499,7 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = PermissionVaultFactoryPayload(
                 self.context.agent_address,
@@ -592,7 +592,7 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         """Implement the act."""
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             try:
                 vault_addresses = cast(
@@ -608,7 +608,7 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = VaultAddressesPayload(
                 self.context.agent_address,
