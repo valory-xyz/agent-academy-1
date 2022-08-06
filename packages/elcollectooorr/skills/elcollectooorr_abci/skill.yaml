@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiankss7mun4gw6jgbuogefmziyuvhtnjtyks3l3tmizs3llc65gtm
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
-  behaviours.py: bafybeihwlpg5fzwkw7kdhmviejxihicdpvs527vt5yzlzdxp3l3hfcotli
+  behaviours.py: bafybeidc37suhsdaw63uo5bgmy2nmeb7qr3fzq6pcs3gfsrl3mblcm6fjm
   decision_models.py: bafybeifzkhhcihcguh64os3jda3wbdvs2jbywc2zw3ir7lbhps2rgw5cpu
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
   fsm_composition_specification.yaml: bafybeici35bidski7f5ixckatkxxcemudjzbtphckewrrgbxagpmj5snge
@@ -16,7 +16,7 @@ fingerprint:
   handlers.py: bafybeihr233wcw5uu4cnvc3oey2cp7dzrvm33diufl4pczx6raznkckjq4
   models.py: bafybeieqzvpv6yfat3yj7fcir4liwfwpgwbnfm4rie66fpg2caffnpcapa
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
-  rounds.py: bafybeianqldmpmoihq4jr6iqd2vyxnjtd7s7dk6s26a73bkya22mpcfpdm
+  rounds.py: bafybeidl6exjincikekslery5c347qrg2qmlt2uevuaagop4ivaalujgtu
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -31,9 +31,10 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibymnhjz52vjoo24vf6oejafa6arngh33pwbb7zzobawa47w5c6di
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeib4t7qyibkubvsv2qxxvahxyrmshtf6yztupf4ewaqg6kylc2pbj4
 - valory/abstract_round_abci:0.1.0:bafybeihcarapqbgd7czlfyygkdjvb3zxhfkxvud7hd5owajkcwqsxa63gy
 - valory/registration_abci:0.1.0:bafybeib54vcjymnqejppq6xnjvwvrcrs6ugq64prsgjo65qs6qvdn6u42a
+- valory/reset_pause_abci:0.1.0:bafybeigntwmltw62wtyjn4a7vumv7dreyuxng4kfv4lw76ktqswy3rjgum
 - valory/safe_deployment_abci:0.1.0:bafybeidjara6duo3cylvq4doewhqsvsjbpesva42nkxrlyqjolkbiaomte
 - valory/transaction_settlement_abci:0.1.0:bafybeich2q5fktbar6wd7d2zirw7teiqxgktayl4ie42adlnbgpvccxdhq
 behaviours:
