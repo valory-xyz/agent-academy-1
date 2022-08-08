@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeigzfnj6tpblbv2dynax2cqj4cy4xsakxl35zutnundrlb2lkyw23q
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeiawbyqu7e2ioulj5f4fpar4ordvedhokqashduy3lltnafbvtzdna
 network: ethereum
 number_of_agents: 1
 ---

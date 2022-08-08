@@ -3530,6 +3530,40 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
 
+    def test_no_safe_tx(self) -> None:
+        """The safe hasn't made any txs"""
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.behaviour_id,
+            PeriodState(
+                StateDB(
+                    setup_data=StateDB.data_to_lists(
+                        {
+                            "safe_contract_address": "0x0",
+                        },
+                    )
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+            ).behaviour_id
+            == self.behaviour_class.behaviour_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            txs: List = []
+            self._mock_safe_tx(txs=txs)
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "no tx were made from the safe",
+            )
+
 
 class TestDecisionModel:
     """Tests for the Decision Model"""
