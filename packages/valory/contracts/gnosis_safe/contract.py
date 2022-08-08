@@ -430,7 +430,6 @@ class GnosisSafeContract(Contract):
         configured_gas = base_gas + safe_tx_gas + 75000
         tx_parameters: Dict[str, Union[str, int]] = {
             "from": sender_address,
-            "gas": configured_gas,
         }
         actual_nonce = ledger_api.api.eth.get_transaction_count(
             ledger_api.api.toChecksumAddress(sender_address)
