@@ -116,7 +116,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 
 
 WEI_TO_ETH = 10 ** 18
-SAFE_GAS = 10 ** 7
+SAFE_GAS = 0
 INEXISTENT_CONTRACT = "0x"
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 

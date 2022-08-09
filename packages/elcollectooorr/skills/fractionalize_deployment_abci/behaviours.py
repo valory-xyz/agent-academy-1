@@ -68,7 +68,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 
 
 ONE_ETH = 10 ** 18
-SAFE_GAS = 10 ** 7
+SAFE_GAS = 0
 
 
 class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
