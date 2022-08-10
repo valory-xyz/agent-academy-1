@@ -20,6 +20,6 @@ models:
         safe_contract_address: []
       consensus:
         max_participants: 1
-      decision_model_threshold: 0.0
+      decision_model_threshold: 0.8
       whitelisted_investor_addresses:
       - '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
