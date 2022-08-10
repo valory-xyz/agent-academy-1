@@ -106,7 +106,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.constants import WEI_TO_ETH
+from tests.helpers.constants import DEFAULT_WHITELISTED_ADDRESSES, WEI_TO_ETH
 
 
 class DummyRoundId:
@@ -164,7 +164,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         cls.ledger_handler = cast(
             LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
         )
-
+        cls._set_default_whitelisted_address()
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():
                 setattr(
@@ -172,7 +172,6 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
                     param_name,
                     param_value,
                 )
-
         cls.elcollectooorr_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
         cls._skill.skill_context.state.round_sequence.end_sync()
@@ -181,6 +180,13 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
                 BaseState, cls.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
             == cls.elcollectooorr_abci_behaviour.initial_behaviour_cls.behaviour_id
+        )
+
+    @classmethod
+    def _set_default_whitelisted_address(cls) -> None:
+        """Sets the default whitelisted address to be used for tests."""
+        cls.elcollectooorr_abci_behaviour.context.params.whitelisted_investor_addresses = (
+            DEFAULT_WHITELISTED_ADDRESSES
         )
 
     def fast_forward_to_state(
@@ -1819,7 +1825,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                         body={
                             "data": [
                                 {
-                                    "sender": "0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0",
+                                    "sender": DEFAULT_WHITELISTED_ADDRESSES[0],
                                     "amount": 1,
                                     "blockNumber": 1,
                                 },

@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeiewrgxzissynbsufisb4dcbr7fn25hj4xjteij7srbjbxnrf5kira
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeibyun6makbm4msu5ngns55qcrmim77f3s2mu6byqwgqpymj3lnmgu
 network: ethereum
 number_of_agents: 1
 ---
@@ -21,5 +21,4 @@ models:
       consensus:
         max_participants: 1
       decision_model_threshold: 0.8
-      whitelisted_investor_addresses:
-      - '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
+      whitelisted_investor_addresses: []
