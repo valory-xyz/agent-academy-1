@@ -740,7 +740,7 @@ class GnosisSafeContract(Contract):
 
         ledger_api = cast(EthereumApi, ledger_api)
         factory_contract = cls.get_instance(ledger_api, contract_address)
-        entries = factory_contract.events.SafeMultiSigTransaction.createFilter(
+        entries = factory_contract.events.ExecutionSuccess.createFilter(
             fromBlock=from_block,
             toBlock=to_block,
         ).get_all_entries()
