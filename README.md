@@ -1,7 +1,9 @@
 
 # agent-academy-1
 
-Valory's Agent Academy 1 - participant repo
+[El Collectooorr](https://www.elcollectooorr.art/) is an autonomous service that watches for new Art Blocks drops and intelligently collects new works for you. This agent service has been created using the Autonolas stack as part of Valory's Agent Academy 1.
+
+## Cloning
 
 - Clone the repository, and recursively clone the submodules:
 
@@ -11,11 +13,20 @@ Valory's Agent Academy 1 - participant repo
 
       git submodule update --init --recursive
 
-## System requirements
+## Requirements
 
-- Python `>=3.7`
+- Python `>= 3.7`
+- Yarn `>=1.22.xx`
+- Node `>=v12.xx`
 - [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
-- [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==0.6.0`
+- [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
+- [Pip](https://pip.pypa.io/en/stable/installation/)
+- [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
+- [Go](https://go.dev/doc/install) `==1.14.2`
+- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Docker Engine](https://docs.docker.com/engine/install/)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>= 1.39.1`
 
 Alternatively, you can fetch this docker image with the relevant requirments satisfied:
 
@@ -99,7 +110,7 @@ For Ropsten run:
 make run-ropsten-fork
 ```
 
-This will create a ledger api (HTTP and WebSocket JSON-RPC) on `http://127.0.0.1:8545` 
+This will create a ledger api (HTTP and WebSocket JSON-RPC) on `http://127.0.0.1:8545`
 
 By default, this will make a fork using block `11844372`. If you want to fork from a given block number, you can do so by setting `BLOCK_NUMBER` to your desired block. Ex.
 ```bash
@@ -125,7 +136,7 @@ make run-ropsten-fork-docker
 ```
 
 By default, the Ropsten container will be available on port `8545`, and MainNet should be available on port `8546`.
-You can control what keys to use by setting MAINNET_KEY and ROPSTEN_KEY respectively. 
+You can control what keys to use by setting MAINNET_KEY and ROPSTEN_KEY respectively.
 The docker ports (mappings) can be set using `ROPSTEN_DOCKER_PORT` and `MAINNET_DOCKER_PORT`.
 `BLOCK_NUMBER` can be used to change the starting block number.
 
