@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests base classes for this repo."""
+import json
 import subprocess  # nosec
 import threading
 import time
@@ -58,7 +59,9 @@ from tests.helpers.constants import SETTINGS_ADRESS as _DEFAULT_SETTINGS_ADDRESS
 from tests.helpers.constants import (
     TOKEN_VAULT_FACTORY_ADDRESS as _DEFAULT_TOKEN_VAULT_FACTORY_ADDRESS,
 )
-
+from tests.helpers.constants import (
+    DEFAULT_WHITELISTED_ADDRESSES as _DEFAULT_WHITELISTED_ADDRESSES,
+)
 
 ONE_ETH = 10 ** 18
 
@@ -105,6 +108,11 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
         {
             "dotted_path": f"{__args_prefix}.multisend_address",
             "value": _DEFAULT_MULTISEND_ADDRESS,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.whitelisted_investor_addresses",
+            "value": json.dumps(_DEFAULT_WHITELISTED_ADDRESSES),
+            "type_": "list",
         },
     ]
 
