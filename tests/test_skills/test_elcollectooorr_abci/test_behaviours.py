@@ -106,7 +106,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.constants import WEI_TO_ETH
+from tests.helpers.constants import WEI_TO_ETH, DEFAULT_WHITELISTED_ADDRESSES
 
 
 class DummyRoundId:
@@ -184,11 +184,10 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
     @classmethod
     def _set_default_whitelisted_address(cls):
         """Sets the default whitelisted address to be used for tests."""
-        whitelisted_investor_addresses = ["0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"]
         setattr(
             cls.elcollectooorr_abci_behaviour.context.params,
             "whitelisted_investor_addresses",
-            whitelisted_investor_addresses,
+            DEFAULT_WHITELISTED_ADDRESSES,
         )
 
     def fast_forward_to_state(
@@ -1827,7 +1826,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                         body={
                             "data": [
                                 {
-                                    "sender": "0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0",
+                                    "sender": DEFAULT_WHITELISTED_ADDRESSES[0],
                                     "amount": 1,
                                     "blockNumber": 1,
                                 },
