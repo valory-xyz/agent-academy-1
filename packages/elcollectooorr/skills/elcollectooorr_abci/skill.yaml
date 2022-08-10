@@ -116,8 +116,7 @@ models:
       token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
-      whitelisted_investor_addresses:
-      - '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
+      whitelisted_investor_addresses: []
     class_name: Params
   randomness_api:
     args:
