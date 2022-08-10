@@ -2,6 +2,7 @@
 # agent-academy-1
 
 [El Collectooorr](https://www.elcollectooorr.art/) is an autonomous service that watches for new Art Blocks drops and intelligently collects new works for you. This agent service has been created using the Autonolas stack as part of Valory's Agent Academy 1.
+This repository holds the code for the [FSM apps](https://docs.autonolas.network/fsm_app_introduction) used in the El Collectooorr.
 
 ## Cloning
 
@@ -81,66 +82,13 @@ cd abci_build
 docker-compose up --force-recreate
 ```
 
-## Running a fork of ethereum
-
-### Running the fork locally
-
-You can make a fork using hardhat + an archive node. The following demo uses [Alchemy](https://alchemyapi.io).
-
-You will need:
-
-1. `npm`/`yarn` & `node` & `npx`
-2. `hardhat`
-
-To install `hardhat` globally run:
-
-```bash
-npm install --save-dev hardhat
-```
-
-For Mainnet run:
-
-```bash
-make run-mainnet-fork
-```
-
-For Ropsten run:
-
-```bash
-make run-ropsten-fork
-```
-
-This will create a ledger api (HTTP and WebSocket JSON-RPC) on `http://127.0.0.1:8545`
-
-By default, this will make a fork using block `11844372`. If you want to fork from a given block number, you can do so by setting `BLOCK_NUMBER` to your desired block. Ex.
-```bash
-BLOCK_NUMBER=123456 make run-ropsten-fork
-```
-
-### Run with docker
-
-To run the forks with docker:
-Build the image:
-```bash
-make build-fork-image
-```
-
-To run the MainNet fork:
-```bash
-make run-mainnet-fork-docker
-```
-
-To run the Ropsten fork:
-```bash
-make run-ropsten-fork-docker
-```
-
-By default, the Ropsten container will be available on port `8545`, and MainNet should be available on port `8546`.
-You can control what keys to use by setting MAINNET_KEY and ROPSTEN_KEY respectively.
-The docker ports (mappings) can be set using `ROPSTEN_DOCKER_PORT` and `MAINNET_DOCKER_PORT`.
-`BLOCK_NUMBER` can be used to change the starting block number.
-
 ## Useful commands:
 
 Check out the `Makefile` for useful commands, e.g. `make lint`, `make static` and `make pylint`, as well
 as `make hashes`. To run all tests use `make test`.
+
+### Running a fork of Ethereum
+You can run a fork of Ethereum Mainnet via [ganache](https://github.com/trufflesuite/ganache) in the following way:
+```
+ganache --fork.network mainnet
+```
