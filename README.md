@@ -54,6 +54,11 @@ Enter virtual environment:
 pipenv shell
 ```
 
+Populate the test data used in the tests:
+```bash
+python scripts/write_data_files.py
+```
+
 First, ensure the service and its dependencies are pushed:
 ```
 autonomy push-all
