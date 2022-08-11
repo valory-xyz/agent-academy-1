@@ -10,7 +10,7 @@
 
 ## 0.1.0.post2 (2022-08-08)
 
-- Thirs release of the initial package.
+- Third release of the initial package.
 
 ## 0.1.0.post1 (2022-08-08)
 
