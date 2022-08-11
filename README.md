@@ -56,7 +56,7 @@ pipenv shell
 
 Populate the test data used in the tests:
 ```bash
-python scripts/write_data_files.py
+make test-data
 ```
 
 First, ensure the service and its dependencies are pushed:

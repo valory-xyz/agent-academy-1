@@ -102,6 +102,10 @@ new_env: clean
 		exit 1;\
 	fi;\
 
+.PHONY: test-data
+test-data:
+	python scripts/write_data_files.py
+
 .PHONY: run-mainnet-fork
 run-mainnet-fork:
 	@cd tests/helpers/hardhat;\
