@@ -50,6 +50,8 @@ make test-data
 
 First, ensure the service and its dependencies are pushed:
 ```
+export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
+autonomy init --reset --remote --ipfs
 autonomy push-all
 ```
 
