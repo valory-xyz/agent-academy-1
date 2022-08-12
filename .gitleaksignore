@@ -45,3 +45,7 @@ ea848b39b744b7b25183d839827b0906359df982:packages/valory/skills/simple_abci/skil
 7f21b9ef43b5cc1c533c8cd7ece93b1ef30a3251:packages/valory/protocols/ledger_api/protocol.yaml:generic-api-key:14
 7f21b9ef43b5cc1c533c8cd7ece93b1ef30a3251:packages/valory/protocols/ledger_api/protocol.yaml:generic-api-key:15
 977b4ceb9ee5b1cc7d5963d56cc643e2c95b56a3:tests/helpers/hardhat/Dockerfile:generic-api-key:12
+d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:76
+d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:72
+d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:68
+d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:64
