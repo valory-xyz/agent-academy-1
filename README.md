@@ -16,18 +16,7 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 
 ## Requirements
 
-- Python `>= 3.7`
-- Yarn `>=1.22.xx`
-- Node `>=v12.xx`
-- [Tendermint](https://docs.tendermint.com/master/introduction/install.html) `==0.34.19`
-- [IPFS node](https://docs.ipfs.io/install/command-line/#official-distributions) `==v0.6.0`
-- [Pip](https://pip.pypa.io/en/stable/installation/)
-- [Pipenv](https://pipenv.pypa.io/en/latest/install/) `>=2021.x.xx`
-- [Go](https://go.dev/doc/install) `==1.17.7`
-- [Kubectl](https://kubernetes.io/docs/tasks/tools/)
-- [Docker Engine](https://docs.docker.com/engine/install/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- [Skaffold](https://skaffold.dev/docs/install/#standalone-binary) `>= 1.39.1`
+Refer to requirements for [open-autonomy](https://github.com/valory-xyz/open-autonomy) v0.1.6.post1 in the Requirements section of the README.
 
 Alternatively, you can fetch this docker image with the relevant requirments satisfied:
 
