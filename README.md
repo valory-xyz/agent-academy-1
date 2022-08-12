@@ -55,7 +55,7 @@ Alternatively, you can fetch this docker image with the relevant requirments sat
       autonomy push-all
       ```
 
-5. Prepare a JSON file `keys.json` containing the addresses and keys of the agents. Below you have some sample keys for testing. Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**
+5. Prepare a JSON file `keys.json` containing the addresses and keys of the agents. Below you have some sample keys for testing. Use these keys for testing purposes only. **Never use these keys in a production environment or for personal use.**. Also, make sure that the addresses have some funds or transactions will fail.
 
       ```json
       [
