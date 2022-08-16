@@ -9,7 +9,6 @@ fingerprint:
   README.md: bafybeidivjoq36doknaw7u7dyyis57nigzkkd5g2x66ejh3a4757cnjtbm
   __init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
   build/Basket.json: bafybeidg5favibiv4jzggfgmtme6lkheg4smgdwkj76xvkrqpsnsswftba
-  build/Keep3rV1.json: bafybeibrz47jfww6kh6cqmj6t3vu4bbwswrut6gxqpmjpfeff7dqzcqo2y
   contract.py: bafybeievs5yhvkrqo7idvpf7lxty3odtqqslsfn4gsrabgzuum3csmyu7q
 fingerprint_ignore_patterns: []
 contracts:
