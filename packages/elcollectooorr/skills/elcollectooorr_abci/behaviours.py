@@ -119,7 +119,7 @@ from packages.valory.skills.transaction_settlement_abci.payload_tools import (
 
 
 WEI_TO_ETH = 10 ** 18
-SAFE_GAS = 10 ** 7
+SAFE_GAS = 0
 INEXISTENT_CONTRACT = "0x"
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
@@ -155,110 +155,7 @@ class ResyncRoundBehaviour(
         ).local():
             payload_data = {}
             try:
-                safe_txs = yield from self._get_safe_txs()
-                block_nums = [tx["block_number"] for tx in safe_txs]
-                earliest_tx, latest_tx = (
-                    min(block_nums),
-                    max(block_nums),
-                )  # these will help in filtering events
-                self.context.logger.info(f"found safe txs: {safe_txs}")
-                self.context.logger.info(
-                    f"earliest tx block num: {earliest_tx}; latest tx block num: {latest_tx}"
-                )
-
-                all_mints = yield from self._get_all_mints(
-                    from_block=earliest_tx, to_block=latest_tx
-                )
-                curated_projects = yield from self._get_curated_projects()
-                purchased_project_ids = [mint["project_id"] for mint in all_mints]
-                purchased_projects = [
-                    dict(
-                        project_id=project_id,
-                        is_curated=(project_id in curated_projects),
-                    )
-                    for project_id in purchased_project_ids
-                ]
-                self.context.logger.info(
-                    f"already purchased projects: {purchased_project_ids}"
-                )
-
-                baskets = yield from self._get_all_baskets(
-                    from_block=earliest_tx, to_block=latest_tx
-                )
-                basket_addresses: List[str] = []
-                vault_addresses: List[str] = []
-                latest_basket: str
-                latest_vault: str
-                # defines the block in which the most recent basket was deployed to
-                max_block_num = 0
-                for basket in baskets:
-                    basket_address = basket["basket_address"]
-                    block_num = basket["block_number"]
-                    basket_addresses.append(basket_address)
-
-                    vault = yield from self._get_vault(
-                        basket_address,
-                        from_block=block_num,
-                        to_block=(
-                            block_num + 50
-                        ),  # we give a 50 block window for the vault to be deployed after the basket
-                    )
-                    vault_addresses += vault
-
-                    if len(vault) == 0:
-                        self.context.logger.warning(
-                            f"basket {basket_address} is not associated with any vault."
-                        )
-                    elif len(vault) > 1:
-                        self.context.logger.warning(
-                            f"basket {basket_address} is associated with {len(vault)} vaults"
-                        )
-
-                    if block_num > max_block_num:
-                        max_block_num = block_num
-                        latest_basket = basket_address
-                        # we take the first in case the basket-to-vault relation is 1:n.
-                        # NOTE: we expect it to be 1:1, under certain conditions it can be 1:0.
-                        # example: the service is down just after a basket is deployed but before
-                        # a vault is deployed.
-                        if len(vault) > 0:
-                            latest_vault = vault[0]
-
-                self.context.logger.info(f"all deployed baskets: {basket_addresses}")
-                self.context.logger.info(f"latest deployed basket: {latest_basket}")
-                self.context.logger.info(f"all deployed vaults: {vault_addresses}")
-                self.context.logger.info(f"latest deployed vault: {latest_vault}")
-
-                all_payouts = []
-                for vault_address in vault_addresses:
-                    payouts = yield from self._get_payouts(
-                        vault_address, from_block=earliest_tx, to_block=latest_tx
-                    )
-                    all_payouts.extend(payouts)
-
-                txs_since_last_basket = [
-                    tx["tx_hash"]
-                    for tx in safe_txs
-                    if tx["block_number"] >= max_block_num
-                ]
-                amount_spent = yield from self._get_amount_spent(txs_since_last_basket)
-                address_to_fractions = self._address_to_fractions(all_payouts)
-                self.context.logger.info(
-                    f"txs since the deployment of the last basket: {txs_since_last_basket}"
-                )
-                self.context.logger.info(
-                    f"amount spent since last basket was deployed: {amount_spent / WEI_TO_ETH}Ξ"
-                )
-                self.context.logger.info(
-                    f"address to fraction amount already paid out: {address_to_fractions}"
-                )
-                payload_data = {
-                    "amount_spent": amount_spent,
-                    "basket_addresses": [latest_basket] if latest_basket else [],
-                    "vault_addresses": [latest_vault] if latest_vault else [],
-                    "purchased_projects": purchased_projects,
-                    "paid_users": address_to_fractions,
-                }
+                payload_data = yield from self._get_prev_data()
             except AEAEnforceError as e:
                 self.context.logger.error(
                     f"Couldn't resync, the following error was encountered {type(e).__name__}: {e}"
@@ -276,6 +173,121 @@ class ResyncRoundBehaviour(
                 yield from self.wait_until_round_end()
 
         self.set_done()
+
+    def _get_prev_data(self) -> Generator[None, None, Dict]:
+        """Get data from previous deployments."""
+        safe_txs = yield from self._get_safe_txs()
+        if len(safe_txs) == 0:
+            self.context.logger.info("no tx were made from the safe")
+            return {
+                "amount_spent": 0,
+                "basket_addresses": [],
+                "vault_addresses": [],
+                "purchased_projects": [],
+                "paid_users": {},
+            }
+
+        block_nums = [tx["block_number"] for tx in safe_txs]
+        earliest_tx, latest_tx = (
+            min(block_nums),
+            max(block_nums),
+        )  # these will help in filtering events
+        self.context.logger.info(f"found safe txs: {safe_txs}")
+        self.context.logger.info(
+            f"earliest tx block num: {earliest_tx}; latest tx block num: {latest_tx}"
+        )
+        all_mints = yield from self._get_all_mints(
+            from_block=earliest_tx, to_block=latest_tx
+        )
+        curated_projects = yield from self._get_curated_projects()
+        purchased_project_ids = [mint["project_id"] for mint in all_mints]
+        purchased_projects = [
+            dict(
+                project_id=project_id,
+                is_curated=(project_id in curated_projects),
+            )
+            for project_id in purchased_project_ids
+        ]
+        self.context.logger.info(f"already purchased projects: {purchased_project_ids}")
+        baskets = yield from self._get_all_baskets(
+            from_block=earliest_tx, to_block=latest_tx
+        )
+        basket_addresses: List[str] = []
+        vault_addresses: List[str] = []
+        latest_basket: str = ""
+        latest_vault: str = ""
+        # defines the block in which the most recent basket was deployed to
+        max_block_num = 0
+        for basket in baskets:
+            basket_address = basket["basket_address"]
+            block_num = basket["block_number"]
+            basket_addresses.append(basket_address)
+
+            vault = yield from self._get_vault(
+                basket_address,
+                from_block=block_num,
+                to_block=(
+                    block_num + 50
+                ),  # we give a 50 block window for the vault to be deployed after the basket
+            )
+            vault_addresses += vault
+
+            if len(vault) == 0:
+                self.context.logger.warning(
+                    f"basket {basket_address} is not associated with any vault."
+                )
+            elif len(vault) > 1:
+                self.context.logger.warning(
+                    f"basket {basket_address} is associated with {len(vault)} vaults"
+                )
+
+            if block_num > max_block_num:
+                max_block_num = block_num
+                latest_basket = basket_address
+                # we take the first in case the basket-to-vault relation is 1:n.
+                # NOTE: we expect it to be 1:1, under certain conditions it can be 1:0.
+                # example: the service is down just after a basket is deployed but before
+                # a vault is deployed.
+                if len(vault) > 0:
+                    latest_vault = vault[0]
+
+        self.context.logger.info(f"all deployed baskets: {basket_addresses}")
+        if latest_basket != "":
+            self.context.logger.info(f"latest deployed basket: {latest_basket}")
+
+        self.context.logger.info(f"all deployed vaults: {vault_addresses}")
+        if latest_vault != "":
+            self.context.logger.info(f"latest deployed vault: {latest_vault}")
+
+        all_payouts = []
+        for vault_address in vault_addresses:
+            payouts = yield from self._get_payouts(
+                vault_address, from_block=earliest_tx, to_block=latest_tx
+            )
+            all_payouts.extend(payouts)
+        txs_since_last_basket = [
+            tx["tx_hash"] for tx in safe_txs if tx["block_number"] >= max_block_num
+        ]
+        amount_spent = yield from self._get_amount_spent(txs_since_last_basket)
+        address_to_fractions = self._address_to_fractions(all_payouts)
+        self.context.logger.info(
+            f"txs since the deployment of the last basket: {txs_since_last_basket}"
+        )
+        self.context.logger.info(
+            f"amount spent since last basket was deployed: {amount_spent / WEI_TO_ETH}Ξ"
+        )
+        self.context.logger.info(
+            f"address to fraction amount already paid out: {address_to_fractions}"
+        )
+        payload_data = {
+            "amount_spent": amount_spent,
+            "basket_addresses": [latest_basket] if latest_basket != "" else [],
+            "vault_addresses": [latest_vault] if latest_vault != "" else [],
+            "purchased_projects": purchased_projects,
+            "paid_users": address_to_fractions,
+        }
+
+        return payload_data
 
     @staticmethod
     def _address_to_fractions(all_payouts: List[Dict]) -> Dict[str, int]:

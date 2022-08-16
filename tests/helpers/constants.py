@@ -59,6 +59,7 @@ ELCOL_NET_CHAIN_ID = 31337
 TARGET_PROJECT_ID = (
     56  # id of project that we want to test the behaviour of the El Collectooorr
 )
+DEFAULT_WHITELISTED_ADDRESSES = ["0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"]
 # default hardhat key pairs (public key, private key)
 KEY_PAIRS: List[Tuple[str, str]] = [
     (

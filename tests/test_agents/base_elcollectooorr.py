@@ -18,6 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """End2end tests base classes for this repo."""
+import json
 import subprocess  # nosec
 import threading
 import time
@@ -34,6 +35,9 @@ from tests.helpers.constants import (
 )
 from tests.helpers.constants import (
     BASKET_FACTORY_ADDRESS as _DEFAULT_BASKET_FACTORY_ADDRESS,
+)
+from tests.helpers.constants import (
+    DEFAULT_WHITELISTED_ADDRESSES as _DEFAULT_WHITELISTED_ADDRESSES,
 )
 from tests.helpers.constants import ELCOL_NET_CHAIN_ID as _DEFAULT_ELCOL_NET_CHAIN_ID
 from tests.helpers.constants import ELCOL_NET_HOST as _DEFAULT_ELCOL_NET_HOST
@@ -105,6 +109,11 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
         {
             "dotted_path": f"{__args_prefix}.multisend_address",
             "value": _DEFAULT_MULTISEND_ADDRESS,
+        },
+        {
+            "dotted_path": f"{__args_prefix}.whitelisted_investor_addresses",
+            "value": json.dumps(_DEFAULT_WHITELISTED_ADDRESSES),
+            "type_": "list",
         },
     ]
 

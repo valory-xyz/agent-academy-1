@@ -107,7 +107,7 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 )
 
 from tests.conftest import ROOT_DIR
-from tests.helpers.constants import WEI_TO_ETH
+from tests.helpers.constants import DEFAULT_WHITELISTED_ADDRESSES, WEI_TO_ETH
 
 
 class DummyRoundId:
@@ -165,7 +165,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
         cls.ledger_handler = cast(
             LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
         )
-
+        cls._set_default_whitelisted_address()
         if kwargs.get("param_overrides") is not None:
             for param_name, param_value in kwargs["param_overrides"].items():
                 setattr(
@@ -173,7 +173,6 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
                     param_name,
                     param_value,
                 )
-
         cls.elcollectooorr_abci_behaviour.setup()
         cls._skill.skill_context.state.setup()
         cls._skill.skill_context.state.round_sequence.end_sync()
@@ -182,6 +181,13 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
                 BaseState, cls.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
             == cls.elcollectooorr_abci_behaviour.initial_behaviour_cls.behaviour_id
+        )
+
+    @classmethod
+    def _set_default_whitelisted_address(cls) -> None:
+        """Sets the default whitelisted address to be used for tests."""
+        cls.elcollectooorr_abci_behaviour.context.params.whitelisted_investor_addresses = (
+            DEFAULT_WHITELISTED_ADDRESSES
         )
 
     def fast_forward_to_state(
@@ -1820,7 +1826,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                         body={
                             "data": [
                                 {
-                                    "sender": "0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0",
+                                    "sender": DEFAULT_WHITELISTED_ADDRESSES[0],
                                     "amount": 1,
                                     "blockNumber": 1,
                                 },
@@ -3530,6 +3536,40 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+
+    def test_no_safe_tx(self) -> None:
+        """The safe hasn't made any txs"""
+        self.fast_forward_to_state(
+            self.elcollectooorr_abci_behaviour,
+            self.behaviour_class.behaviour_id,
+            PeriodState(
+                StateDB(
+                    setup_data=StateDB.data_to_lists(
+                        {
+                            "safe_contract_address": "0x0",
+                        },
+                    )
+                ),
+            ),
+        )
+
+        assert (
+            cast(
+                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+            ).behaviour_id
+            == self.behaviour_class.behaviour_id
+        )
+
+        with patch.object(
+            self.elcollectooorr_abci_behaviour.context.logger, "log"
+        ) as mock_logger:
+            self.elcollectooorr_abci_behaviour.act_wrapper()
+            txs: List = []
+            self._mock_safe_tx(txs=txs)
+            mock_logger.assert_any_call(
+                logging.INFO,
+                "no tx were made from the safe",
+            )
 
 
 class TestDecisionModel:
