@@ -10,24 +10,21 @@
 
 ## 0.1.0.post4 (2022-08-10)
 
-- Fifth release of the initial package.
-
-## 0.1.0.post4 (2022-08-10)
-
-- Fifth release of the initial package.
+- Set the project decision threshold to 80%.
 
 ## 0.1.0.post3 (2022-08-09)
 
-- Fourth release of the initial package.
+- Use all available gas for safe txs. 
 
 ## 0.1.0.post2 (2022-08-08)
 
-- Third release of the initial package.
+- Remove configured gas for safe txs.   
 
 ## 0.1.0.post1 (2022-08-08)
 
-- Second release of the initial package.
+- Adds package metadata.
+- Handles resync case when no safe txs have been made.
 
 ## 0.1.0 (2022-08-05)
 
-- First release of the initial package.
+- The first release of El Collectooorr on Ethereum mainnet with single agent configuration.
