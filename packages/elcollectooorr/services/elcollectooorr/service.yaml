@@ -22,3 +22,5 @@ models:
         max_participants: 1
       decision_model_threshold: 0.8
       whitelisted_investor_addresses: []
+      observation_interval: 180
+      reset_tendermint_after: 60
