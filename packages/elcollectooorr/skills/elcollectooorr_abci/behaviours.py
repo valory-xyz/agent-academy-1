@@ -104,6 +104,9 @@ from packages.valory.skills.registration_abci.behaviours import (
     AgentRegistrationRoundBehaviour,
     RegistrationStartupBehaviour,
 )
+from packages.valory.skills.reset_pause_abci.behaviours import (
+    ResetPauseABCIConsensusBehaviour,
+)
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     SafeDeploymentRoundBehaviour,
 )
@@ -148,7 +151,7 @@ class ResyncRoundBehaviour(
     def async_act(self) -> Generator:
         """The resyncing act."""
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             payload_data = {}
             try:
@@ -159,7 +162,7 @@ class ResyncRoundBehaviour(
                 )
 
             with self.context.benchmark_tool.measure(
-                self,
+                self.behaviour_id,
             ).consensus():
                 payload = ResyncPayload(
                     self.context.agent_address,
@@ -484,7 +487,7 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
     def async_act(self) -> Generator:
         """The observation act."""
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             payload_data = {}
 
@@ -550,7 +553,7 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
             with self.context.benchmark_tool.measure(
-                self,
+                self.behaviour_id,
             ).consensus():
                 payload = ObservationPayload(
                     self.context.agent_address,
@@ -624,7 +627,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
     def async_act(self) -> Generator:
         """The details act"""
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             payload_data = {}
 
@@ -641,7 +644,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = DetailsPayload(
                 self.context.agent_address,
@@ -798,7 +801,7 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
     def async_act(self) -> Generator:
         """The Decision act"""
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             project_to_purchase: Optional[Dict] = {}
 
@@ -843,7 +846,7 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             project_to_purchase = cast(Dict, project_to_purchase)
             payload = DecisionPayload(
@@ -907,7 +910,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             try:
                 project_to_purchase = self.period_state.db.get_strict(
@@ -941,7 +944,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = TransactionPayload(
                 self.context.agent_address,
@@ -1092,7 +1095,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     def async_act(self) -> Generator:
         """Implement the act."""
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             try:
                 latest_vault = cast(
@@ -1121,7 +1124,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = PayoutFractionsPayload(
                 self.context.agent_address,
@@ -1335,7 +1338,7 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
         """Implement the act."""
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             token_id = -1
@@ -1349,7 +1352,7 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = PurchasedNFTPayload(
                 self.context.agent_address,
@@ -1392,7 +1395,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
         payload_data = ""
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             try:
                 transfer_data_str = yield from self._get_safe_transfer_from_data()
@@ -1414,7 +1417,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
                 )
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).consensus():
             payload = TransferNFTPayload(
                 self.context.agent_address,
@@ -1499,7 +1502,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
         payload_data = {}
 
         with self.context.benchmark_tool.measure(
-            self,
+            self.behaviour_id,
         ).local():
             try:
                 tx_submitter = self.period_state.db.get("tx_submitter", None)
@@ -1526,7 +1529,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
                 )
 
             with self.context.benchmark_tool.measure(
-                self,
+                self.behaviour_id,
             ).consensus():
                 payload = PostTxPayload(
                     self.context.agent_address,
@@ -1612,6 +1615,7 @@ class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
     initial_behaviour_cls = RegistrationStartupBehaviour
     abci_app_cls = ElCollectooorrAbciApp  # type: ignore
     behaviours: Set[Type[BaseState]] = {
+        *ResetPauseABCIConsensusBehaviour.behaviours,
         *AgentRegistrationRoundBehaviour.behaviours,
         *SafeDeploymentRoundBehaviour.behaviours,
         *TransactionSettlementRoundBehaviour.behaviours,

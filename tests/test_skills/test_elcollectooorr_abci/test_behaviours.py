@@ -101,6 +101,7 @@ from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundB
 from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour as BaseState,
 )
+from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )
@@ -1262,7 +1263,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = DecisionRoundBehaviour
     decided_yes_behaviour_class = TransactionRoundBehaviour
-    decided_no_behaviour_class = DeployDecisionRoundBehaviour
+    decided_no_behaviour_class = ResetAndPauseBehaviour
     gib_details_behaviour_class = DetailsRoundBehaviour
 
     def test_decided_yes(self) -> None:
@@ -2700,7 +2701,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     behaviour_class = TransferNFTRoundBehaviour
     next_behaviour_class = RandomnessTransactionSubmissionBehaviour
-    no_transfer = DeployDecisionRoundBehaviour
+    no_transfer = ResetAndPauseBehaviour
 
     def test_the_happy_path(self) -> None:
         """A token has been purchased, the agent transfers it to the safe contract."""
