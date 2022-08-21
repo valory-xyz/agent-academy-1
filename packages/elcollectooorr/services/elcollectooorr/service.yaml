@@ -8,7 +8,6 @@ fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
 agent: elcollectooorr/elcollectooorr:0.1.0:bafybeihfpj3calvepeh6q6mxb25stci2mchc5uhfxdnowyj7opwb6jewbu
-network: ethereum
 number_of_agents: 1
 ---
 public_id: elcollectooorr/elcollectooorr_abci:0.1.0
@@ -24,3 +23,11 @@ models:
       whitelisted_investor_addresses: []
       observation_interval: 180
       reset_tendermint_after: 60
+---
+public_id: valory/ledger:0.1.0
+type: connection
+config:
+  ledger_apis:
+    ethereum:
+      address: https://mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
+      chain_id: 1
