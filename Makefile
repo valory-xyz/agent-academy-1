@@ -63,18 +63,6 @@ test:
 	pytest -rfE tests/ --cov-report=html --cov=packages --cov-report=xml --cov-report=term --cov-report=term-missing --cov-config=.coveragerc
 	find . -name ".coverage*" -not -name ".coveragerc" -exec rm -fr "{}" \;
 
-.PHONY: grpc-fuzzy-tests
-grpc-fuzzy-tests:
-	pytest tests/test_packages/test_connections/fuzzy_tests/fuzzy.py::GrpcFuzzyTests
-
-.PHONY: tcp-fuzzy-tests
-tcp-fuzzy-tests:
-	pytest tests/test_packages/test_connections/fuzzy_tests/fuzzy.py::TcpFuzzyTests
-
-.PHONY: fuzzy-tests
-fuzzy-tests: grpc-fuzzy-tests tcp-fuzzy-tests
-	@echo " Running fuzzy tests"
-
 v := $(shell pip -V | grep virtualenvs)
 
 .PHONY: new_env
@@ -100,10 +88,6 @@ new_env: clean
 		echo "The development setup requires Pipenv, exit";\
 		exit 1;\
 	fi;\
-
-.PHONY: test-data
-test-data:
-	python scripts/write_data_files.py
 
 .PHONY: run-mainnet-fork
 run-mainnet-fork:
