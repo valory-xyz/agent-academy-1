@@ -80,7 +80,7 @@ Alternatively, you can fetch this docker image with the relevant requirments sat
 
 6. Run the build:
       ``` bash
-      autonomy deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeievsxqqih7wnrksuyrotjfvm7vgfsttej5a2fsah5576f7kna7ddu keys.json --force --local
+      autonomy deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeidv5xvk3lfu33aufqiqzrjisppme24i2sfwdcuomxnxaffgouhqke keys.json --force --local
       ```
 
       (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
