@@ -26,6 +26,8 @@ from typing import Any, Generator, List, Tuple, cast
 import docker
 import pytest
 import web3
+from web3 import Web3
+
 from autonomy.test_tools.docker.base import launch_image, launch_many_containers
 from autonomy.test_tools.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
@@ -44,7 +46,6 @@ from autonomy.test_tools.docker.tendermint import (
     FlaskTendermintDockerImage,
     TendermintDockerImage,
 )
-from web3 import Web3
 
 from tests.helpers.artblocks_utils import (
     add_approved_minter,
