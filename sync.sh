@@ -1,5 +1,4 @@
 cp -r ../open-autonomy/packages/open_aea/protocols packages/open_aea
-cp -r ../open-autonomy/packages/valory/agents/__init__.py packages/valory/agents
 cp -r ../open-autonomy/packages/valory/connections/__init__.py packages/valory/connections
 cp -r ../open-autonomy/packages/valory/connections/abci packages/valory/connections
 cp -r ../open-autonomy/packages/valory/connections/http_client packages/valory/connections

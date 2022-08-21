@@ -24,6 +24,7 @@ from typing import Any, Dict, cast
 
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
+
 from autonomy.test_tools.base_test_classes.contracts import (
     BaseGanacheContractWithDependencyTest,
 )

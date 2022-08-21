@@ -25,8 +25,9 @@ from typing import List
 import docker
 import requests
 from aea.exceptions import enforce
-from autonomy.test_tools.docker.base import DockerImage
 from docker.models.containers import Container
+
+from autonomy.test_tools.docker.base import DockerImage
 
 from tests.helpers.constants import THIRD_PARTY
 

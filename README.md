@@ -16,7 +16,7 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 
 ## Requirements
 
-Refer to requirements for [open-autonomy](https://github.com/valory-xyz/open-autonomy) v0.1.6.post1 in the Requirements section of the README.
+Refer to requirements for [open-autonomy](https://github.com/valory-xyz/open-autonomy) in the requirements section of the README.
 
 Alternatively, you can fetch this docker image with the relevant requirments satisfied:
 
@@ -80,7 +80,7 @@ Alternatively, you can fetch this docker image with the relevant requirments sat
 
 6. Run the build:
       ``` bash
-      ./wrap.py deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeievsxqqih7wnrksuyrotjfvm7vgfsttej5a2fsah5576f7kna7ddu keys.json --force --local
+      autonomy deploy build deployment elcollectooorr/elcollectooorr:0.1.0:bafybeidv5xvk3lfu33aufqiqzrjisppme24i2sfwdcuomxnxaffgouhqke keys.json --force --local
       ```
 
       (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
