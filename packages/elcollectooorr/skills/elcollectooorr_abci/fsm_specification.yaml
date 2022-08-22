@@ -9,7 +9,7 @@ alphabet_in:
 default_start_state: ObservationRound
 final_states:
 - FinishedElCollectoorBaseRound
-label: packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp
+label: packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp
 start_states:
 - ObservationRound
 states:

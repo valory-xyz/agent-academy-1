@@ -32,7 +32,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeif2c3jt4tim3zbfq5c2lds7bs6qj5gvj2obk3pzdk3uy6zk2ivo3e
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeihtxuow7odhx4ysrznppuvm3tdyiwnlehs3c7ch4qgbkaarxd2xny
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeidoehyv5b7lg3hqtyfwi2vqu7j2uplzktuawmaj5z264gdn456klm
 - elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeigb5koyqokbxrcd5pgtqfz4dzr4tgra4oto4dfxvjpqokyz7ufpwi
 - valory/abstract_abci:0.1.0:bafybeiam52ztcss46i3tgywuv4qmvddqgn7exmbt5kcicqpyip4kfeyap4
 - valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si

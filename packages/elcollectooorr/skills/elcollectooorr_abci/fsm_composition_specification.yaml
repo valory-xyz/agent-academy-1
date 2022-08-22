@@ -22,7 +22,7 @@ alphabet_in:
 - VALIDATE_TIMEOUT
 default_start_state: RegistrationStartupRound
 final_states: []
-label: packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp
+label: packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp
 start_states:
 - RegistrationStartupRound
 states:

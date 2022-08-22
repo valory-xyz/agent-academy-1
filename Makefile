@@ -109,8 +109,8 @@ new_env: clean
 
 .PHONY: fix-abci-app-specs
 fix-abci-app-specs:
-	autonomy analyse abci generate-app-specs packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
-	autonomy analyse abci generate-app-specs packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
+	autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
+	autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
 .PHONY: run-mainnet-fork
