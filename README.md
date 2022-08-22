@@ -122,8 +122,8 @@ These steps only work for operators registered on-chain!
 
 ## Useful commands:
 
-Check out the `Makefile` for useful commands, e.g. `make lint`, `make static` and `make pylint`, as well
-as `make hashes`. To run all tests use `make test`. Or simply use `tox`.
+Check out the `Makefile` for useful commands, e.g. `make formatters`, `make generators`, `make code-checks`, as well
+as `make common-checks-1`. To run all tests use `make test`. Or simply use `tox`.
 
 ### Running a fork of Ethereum
 
