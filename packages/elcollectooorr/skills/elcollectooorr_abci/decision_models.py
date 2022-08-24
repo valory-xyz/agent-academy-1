@@ -136,7 +136,7 @@ class BaseDecisionModel(ABC):
         Automatic participation in the auction and optimal price discovery.
 
         :param most_voted_details: a list of changing attributes over time
-        :return: the decision 0=No, 1=Yes, -1=GIB DETAILS
+        :return: the decision 0=No, 1=Yes
         """
 
 
@@ -272,20 +272,3 @@ class NoDecisionModel(BaseDecisionModel):
         :return: 0=No
         """
         return 0
-
-
-class GibDetailsThenYesDecisionModel(YesDecisionModel):
-    """A model that initially asks for more details, then decides for yes."""
-
-    def dynamic(self, most_voted_details: List[Dict]) -> int:
-        """
-        Decide for yes if details are provided, otherwise decide for "GIB DETAILS"
-
-        :param most_voted_details: a list of changing attributes over time
-        :return: 1=Yes, -1=GIB DETAILS
-        """
-
-        if len(most_voted_details) > 1:
-            return 1
-
-        return -1

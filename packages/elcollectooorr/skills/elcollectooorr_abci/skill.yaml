@@ -9,14 +9,14 @@ fingerprint:
   README.md: bafybeiankss7mun4gw6jgbuogefmziyuvhtnjtyks3l3tmizs3llc65gtm
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
   behaviours.py: bafybeicwiwbhkvbvxhrn53cqgvkc2fse7zrtd3g2pajjetnv7cfkoyhtcy
-  decision_models.py: bafybeifzkhhcihcguh64os3jda3wbdvs2jbywc2zw3ir7lbhps2rgw5cpu
+  decision_models.py: bafybeicchjstlojkxtlvxt5atqxkpr6cqcz47xldyyn2sa64ywmz3bygsi
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
   fsm_composition_specification.yaml: bafybeidmjznfvfdaodcrd3qpuwmzjo4qn3vptbv65hfm5zuge7m5ljsq2i
-  fsm_specification.yaml: bafybeiagj2cmpk2qq7b7muysbqll5e2lknolzeeb4larktd5ceokpbzoyy
+  fsm_specification.yaml: bafybeia2kr62st2cv2huuczb4iygs62uzrsb7r4dvbtjnhdfp6lhbzmz3a
   handlers.py: bafybeihr233wcw5uu4cnvc3oey2cp7dzrvm33diufl4pczx6raznkckjq4
-  models.py: bafybeieqzvpv6yfat3yj7fcir4liwfwpgwbnfm4rie66fpg2caffnpcapa
+  models.py: bafybeibw5l6vuiqur4vudzwhhe5oceqjztgcozw66qqdwnmlo6w2w5unpu
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
-  rounds.py: bafybeidl6exjincikekslery5c347qrg2qmlt2uevuaagop4ivaalujgtu
+  rounds.py: bafybeiet6ibyzmo4ufeu2bmfyx27kzcxolisuunn2mcrrlbifzx5jxggt4
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -31,7 +31,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeigb5koyqokbxrcd5pgtqfz4dzr4tgra4oto4dfxvjpqokyz7ufpwi
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibtcgequjfvaidouklgg3abvl6a4in2mq7blya4cc3m4he5p6yeme
 - valory/abstract_round_abci:0.1.0:bafybeify5cyzxqczuoap2winsssau5wjiv4nhvla7ktmamhadsq5x2p6si
 - valory/registration_abci:0.1.0:bafybeihebvuim7u5wkkzbj6bseywo27eudezdcvmbi33swejasd6mvjkmi
 - valory/reset_pause_abci:0.1.0:bafybeidjcxhhywaa5ddaqh7jikbxqk4qdcmt2sxhpx3eib5o6ji4xyywsq

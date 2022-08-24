@@ -104,7 +104,6 @@ class Event(Enum):
     RESET_TIMEOUT = "reset_timeout"
     DECIDED_YES = "decided_yes"
     DECIDED_NO = "decided_no"
-    GIB_DETAILS = "gib_details"
     NO_PAYOUTS = "no_payouts"
     NO_TRANSFER = "no_transfer"
     NO_ACTIVE_PROJECTS = "no_active_projects"
@@ -507,7 +506,6 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
             Event.DECIDED_NO: FinishedElCollectooorrWithoutPurchase,
-            Event.GIB_DETAILS: DetailsRound,
             Event.ROUND_TIMEOUT: FinishedElCollectooorrWithoutPurchase,
             Event.NO_MAJORITY: FinishedElCollectooorrWithoutPurchase,
         },

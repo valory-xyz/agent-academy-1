@@ -23,7 +23,6 @@ from typing import Any, Dict, Optional, Type
 
 from packages.elcollectooorr.skills.elcollectooorr_abci.decision_models import (
     EightyPercentDecisionModel,
-    GibDetailsThenYesDecisionModel,
     NoDecisionModel,
     SimpleDecisionModel,
     YesDecisionModel,
@@ -127,7 +126,6 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
         valid_types: Dict[str, Type[ABC]] = {
             "yes": YesDecisionModel,
             "no": NoDecisionModel,
-            "gib_details_then_yes": GibDetailsThenYesDecisionModel,
             "simple": SimpleDecisionModel,
             "eighty_percent": EightyPercentDecisionModel,
         }

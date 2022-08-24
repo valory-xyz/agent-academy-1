@@ -1475,45 +1475,6 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_no_behaviour_class.behaviour_id
 
-    def test_decided_gib_details(self) -> None:
-        """The agent decided it needs more data"""
-
-        test_project = {
-            "artist_address": "0x33C9371d25Ce44A408f8a6473fbAD86BF81E1A17",
-            "price_per_token_in_wei": 1,
-            "project_id": 121,
-            "project_name": "Incomplete Control",
-            "artist": "Tyler Hobbs",
-            "description": "",
-            "website": "tylerxhobbs.com",
-            "script": "too_long",
-            "royalty_receiver": "0x00000",
-            "invocations": 1,
-            "max_invocations": 10,
-            "ipfs_hash": "",
-        }
-        test_details: List[Dict] = [{}]
-
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
-                StateDB(
-                    setup_data=StateDB.data_to_lists(
-                        dict(
-                            most_voted_project=json.dumps(test_project),
-                            most_voted_details=json.dumps(test_details),
-                        ),
-                    ),
-                ),
-            ),
-        )
-
-        self.end_round(event=Event.GIB_DETAILS)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-
-        assert state.behaviour_id == self.gib_details_behaviour_class.behaviour_id
-
     def test_bad_response(self) -> None:
         """The agent receives a bad response from the contract."""
         active_projects = [
