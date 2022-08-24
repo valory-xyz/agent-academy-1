@@ -56,11 +56,10 @@ formatters:
 # flake8: wrapper around various code checks, https://flake8.pycqa.org/en/latest/user/error-codes.html
 # mypy: static type checker
 # pylint: code analysis for code smells and refactoring suggestions
-# vulture: finds dead code
 # darglint: docstring linter
 .PHONY: code-checks
 code-checks:
-	tox -p -e black-check -e isort-check -e flake8 -e mypy -e pylint -e vulture -e darglint
+	tox -p -e black-check -e isort-check -e flake8 -e mypy -e pylint -e darglint
 
 # safety: checks dependencies for known security vulnerabilities
 # bandit: security linter
@@ -109,8 +108,8 @@ new_env: clean
 
 .PHONY: fix-abci-app-specs
 fix-abci-app-specs:
-	autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
-	autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
+	#autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
+	autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElCollectooorrAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
 .PHONY: run-mainnet-fork
