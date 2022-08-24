@@ -1,11 +1,11 @@
 BLOCK_NUMBER ?= 11844372
-MAINNET_KEY ?= gP4Np3Qs4ABcu-LCQNDETRklUaW7ouUq
-ROPSTEN_KEY ?= WIedVERFqJW1Rlc5Yg6hshrLSCGqzXru
+MAINNET_KEY ?= ""
+ROPSTEN_KEY ?= ""
 ROPSTEN_DOCKER_PORT ?= 8545
 MAINNET_DOCKER_PORT ?= 8546
 
 .PHONY: clean
-clean: clean-build clean-pyc clean-test
+clean: clean-test clean-build clean-pyc clean-docs
 
 .PHONY: clean-build
 clean-build:
@@ -15,7 +15,12 @@ clean-build:
 	rm -fr pip-wheel-metadata
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -fr {} +
+	find . -type d -name __pycache__ -exec rm -rv {} +
 	rm -fr Pipfile.lock
+
+.PHONY: clean-docs
+clean-docs:
+	rm -fr site/
 
 .PHONY: clean-pyc
 clean-pyc:
@@ -39,24 +44,41 @@ clean-test:
 	find . -name 'log.txt' -exec rm -fr {} +
 	find . -name 'log.*.txt' -exec rm -fr {} +
 
-.PHONY: lint
-lint:
-	black packages tests scripts
-	isort packages tests scripts
-	flake8 packages tests scripts
-	darglint packages tests
+# isort: fix import orders
+# black: format files according to the pep standards
+.PHONY: formatters
+formatters:
+	tox -e isort
+	tox -e black
 
-.PHONY: pylint
-pylint:
-	pylint -j4 packages
+# black-check: check code style
+# isort-check: check for import order
+# flake8: wrapper around various code checks, https://flake8.pycqa.org/en/latest/user/error-codes.html
+# mypy: static type checker
+# pylint: code analysis for code smells and refactoring suggestions
+# darglint: docstring linter
+.PHONY: code-checks
+code-checks:
+	tox -p -e black-check -e isort-check -e flake8 -e mypy -e pylint -e darglint
 
-.PHONY: hashes
-hashes:
+# safety: checks dependencies for known security vulnerabilities
+# bandit: security linter
+.PHONY: security
+security:
+	tox -p -e safety -e bandit
+
+# generate latest abci docstrings
+# generate latest hashes for updated packages
+# update copyright headers
+.PHONY: generators
+generators:
+	tox -e abci-docstrings
+	tox -e fix-copyright
 	autonomy hash all
 
-.PHONY: static
-static:
-	mypy packages tests --disallow-untyped-defs
+.PHONY: common-checks-1
+common-checks-1:
+	tox -p -e check-copyright -e check-hash -e check-packages
 
 .PHONY: test
 test:
@@ -67,27 +89,28 @@ v := $(shell pip -V | grep virtualenvs)
 
 .PHONY: new_env
 new_env: clean
-	which svn;\
-	if [ $$? -ne 0 ];\
+	if [ ! -z "$(which svn)" ];\
 	then\
 		echo "The development setup requires SVN, exit";\
 		exit 1;\
 	fi;\
+
 	if [ -z "$v" ];\
 	then\
 		pipenv --rm;\
-		pipenv --python 3.8;\
-		pipenv install --dev --skip-lock --clear;\
+		pipenv --clear;\
+		pipenv --python 3.10;\
+		pipenv install --dev --skip-lock;\
 		echo "Enter virtual environment with all development dependencies now: 'pipenv shell'.";\
 	else\
 		echo "In a virtual environment! Exit first: 'exit'.";\
 	fi
-	which pipenv;\
-	if [ $$? -ne 0 ];\
-	then\
-		echo "The development setup requires Pipenv, exit";\
-		exit 1;\
-	fi;\
+
+.PHONY: fix-abci-app-specs
+fix-abci-app-specs:
+	autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
+	autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElCollectooorrAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
+	echo "Successfully validated abcis!"
 
 .PHONY: run-mainnet-fork
 run-mainnet-fork:
@@ -116,13 +139,3 @@ run-ropsten-fork-docker:
 run-mainnet-fork-docker:
 	@echo Running mainnet fork as a docker container;\
 	docker run -d -e KEY=$(MAINNET_KEY) --name mainnet-fork -e NETWORK=mainnet -e BLOCK_NUMBER=$(BLOCK_NUMBER) -p $(MAINNET_DOCKER_PORT):8545 hardhat:latest
-
-.PHONY: copyright
-copyright:
-	tox -e check-copyright
-
-.PHONY: check_abci_specs
-check_abci_specs:
-	autonomy analyse abci generate-app-specs packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp packages/valory/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
-	autonomy analyse abci generate-app-specs packages.valory.skills.elcollectooorr_abci.rounds.ElcollectooorrAbciApp packages/valory/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
-	echo "Successfully validated abcis!"

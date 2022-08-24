@@ -58,7 +58,6 @@ class Event(Enum):
     DECIDED_YES = "decided_yes"
     DECIDED_NO = "decided_no"
     DECIDED_SKIP = "decided_skip"
-    GIB_DETAILS = "gib_details"
     ERROR = "error"
 
 
