@@ -3,6 +3,7 @@
 ## 0.2.1 (2022-08-25)
 
 - Use open-autonomy v0.2.0.
+- Remove unused event `GIB_DETAILS` from FSM and code.
 
 ## 0.2.0 (2022-08-17)
 
