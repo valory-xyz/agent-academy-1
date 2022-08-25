@@ -1,5 +1,10 @@
 # Release History - `agent-academy-1`
 
+## 0.2.1 (2022-08-25)
+
+- Use open-autonomy v0.2.0.
+- Remove unused event `GIB_DETAILS` from FSM and code.
+
 ## 0.2.0 (2022-08-17)
 
 - Add reset and pause support using [`reset_pause_abci`](https://github.com/valory-xyz/open-autonomy/tree/v0.1.6/packages/valory/skills/reset_pause_abci).
