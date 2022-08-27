@@ -15,11 +15,6 @@ fingerprint:
   common.py: bafybeicz7feaxvwftwi7qe2x4g4f6edwsh434kr4duebafbwphqyxzuyka
   dialogues.py: bafybeibvnmcn7kofol2h6owljhde4llfc3kwwkb5helxsgsy47mokhwb4i
   handlers.py: bafybeidammqyvz2wvqirr3it4tfy7vbe5kxybwkz5o3y4ogo3wrbaqwcmy
-  io/__init__.py: bafybeiattfgecxl5y276etqe5jiuhqk3grcov6qky5cgokstmwhrbaodri
-  io/ipfs.py: bafybeigmsaoxdcpg5qvsxjkhilpfvcdmpsb2lie4fu5oqc2ows6i7pifwa
-  io/load.py: bafybeib63wgk7wcghrvldqn6dpurkw6o7q3eohg3dpinnf7rhw4qwo2j7q
-  io/paths.py: bafybeicfno2l4vwtmjcm3rzpp6tqi3xlkof47pypf5teecad22d44u2ple
-  io/store.py: bafybeiee7uhs372q3kxd5s3itufb3ws24ey74my2jpnivit3kboon6xsaq
   io_/__init__.py: bafybeiattfgecxl5y276etqe5jiuhqk3grcov6qky5cgokstmwhrbaodri
   io_/ipfs.py: bafybeibuedqnzz7itggtkxptbz6i7oehqzyp3lk3kzy35647kfll6lxkbm
   io_/load.py: bafybeifdki3qeq4aplu6chpozysmeqrt23lxhvcmlefsbesdrklh4wxu64
