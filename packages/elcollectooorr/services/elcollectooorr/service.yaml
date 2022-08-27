@@ -29,5 +29,5 @@ type: connection
 config:
   ledger_apis:
     ethereum:
-      address: https://mainnet.infura.io/v3/1622a5f5b56a4e1f9bd9292db7da93b8
+      address: https://mainnet.infura.io/v3/API_KEY_HERE
       chain_id: 1
