@@ -55,7 +55,6 @@ These steps only work for operators registered on-chain!
 
 1. Ensure the service and its dependencies are pushed:
       ```bash
-      export OPEN_AEA_IPFS_ADDR="/dns/registry.autonolas.tech/tcp/443/https"
       autonomy init --reset --remote --ipfs
       autonomy push-all
       ```
@@ -88,10 +87,14 @@ These steps only work for operators registered on-chain!
       - Option 1: Step-by-step
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidv5xvk3lfu33aufqiqzrjisppme24i2sfwdcuomxnxaffgouhqke --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidifw22pd3asyglwrfkamhiho6q7pc3erasejwg6clshxplzr3smq --service
       cd elcollectooorr
-      autonomy build-images
-      autonomy build-images --dependencies
+      ```
+
+      Replace the API key placeholder for the RPC endpoint.
+
+      ```bash
+      autonomy build-image
       autonomy deploy build keys.json --force --local
       ```
 
