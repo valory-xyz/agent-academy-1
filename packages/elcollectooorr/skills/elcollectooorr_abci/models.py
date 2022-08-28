@@ -43,6 +43,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
 
 
 MARGIN = 5
@@ -64,7 +65,7 @@ class SharedState(BaseSharedState):
         ElCollectooorrAbciApp.event_to_timeout[
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        ElCollectooorrAbciApp.event_to_timeout[Event.RESET_TIMEOUT] = (
+        ElCollectooorrAbciApp.event_to_timeout[ResetPauseEvent.RESET_AND_PAUSE_TIMEOUT] = (
             self.context.params.observation_interval + MARGIN
         )
 
