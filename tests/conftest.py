@@ -21,14 +21,14 @@
 import json
 import logging
 from pathlib import Path
-from typing import Any, Generator, List, Tuple
+from typing import Any, Generator, List, Tuple, cast
 
 import docker
 import pytest
 import web3
 from web3 import Web3
 
-from autonomy.test_tools.docker.base import launch_image
+from autonomy.test_tools.docker.base import launch_image, launch_many_containers
 from autonomy.test_tools.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
@@ -38,6 +38,12 @@ from autonomy.test_tools.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
+)
+from autonomy.test_tools.docker.tendermint import (
+    DEFAULT_ABCI_HOST,
+    DEFAULT_ABCI_PORT,
+    DEFAULT_TENDERMINT_PORT,
+    FlaskTendermintDockerImage,
 )
 
 from tests.helpers.artblocks_utils import (
@@ -224,6 +230,33 @@ def hardhat_elcol_port() -> int:
 def hardhat_elcol_key_pairs() -> List[Tuple[str, str]]:
     """Get the default key paris for ganache."""
     return HARDHAT_ELCOL_KEY_PAIRS
+
+
+@pytest.fixture(scope="session")
+def tendermint_port() -> int:
+    """Get the Tendermint port"""
+    return DEFAULT_TENDERMINT_PORT
+
+
+@pytest.fixture
+def flask_tendermint(
+    tendermint_port: Any,
+    nb_nodes: int,
+    abci_host: str = DEFAULT_ABCI_HOST,
+    abci_port: int = DEFAULT_ABCI_PORT,
+    timeout: float = 2.0,
+    max_attempts: int = 10,
+) -> Generator[FlaskTendermintDockerImage, None, None]:
+    """Launch the Flask server with Tendermint container."""
+    client = docker.from_env()
+    logging.info(
+        f"Launching Tendermint nodes at ports {[tendermint_port + i * 10 for i in range(nb_nodes)]}"
+    )
+    image = FlaskTendermintDockerImage(client, abci_host, abci_port, tendermint_port)
+    yield from cast(
+        Generator[FlaskTendermintDockerImage, None, None],
+        launch_many_containers(image, nb_nodes, timeout, max_attempts),
+    )
 
 
 @pytest.fixture(scope="function")
