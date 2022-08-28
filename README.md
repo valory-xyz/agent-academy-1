@@ -8,16 +8,15 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 ## Cloning
 
 - Clone the repository, and recursively clone the submodules:
-
-      ```bash
-      git clone --recursive git@github.com:valory-xyz/agent-academy-1.git
-      ```
+    ```bash
+    git clone --recursive git@github.com:valory-xyz/agent-academy-1.git
+    ```
 
 - Note: to update the Git submodules later:
 
-      ```bash
-      git submodule update --init --recursive
-      ```
+    ```bash      
+    git submodule update --init --recursive
+    ```
 
 ## Requirements & Setup
 
@@ -25,29 +24,28 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 
 - Build the Hardhat projects:
 
-      ```bash
-      cd third_party/safe-contracts && yarn install
-      cd ../contracts-elcol && yarn install
-      cd ../..
-      ```
+    ```bash
+    cd third_party/safe-contracts && yarn install
+    cd ../contracts-elcol && yarn install
+    cd ../..
+    ```
 
 - Create a virtual environment with all development dependencies:
 
-      ```bash
-      make new_env
-      ```
+    ```bash
+    make new_env
+    ```
 
 - Enter virtual environment:
 
-      ```bash
-      pipenv shell
-      ```
+    ```bash
+    pipenv shell
+    ```
 
 - Optionally: run all checks 
 
-      ```bash
       tox
-      ```
+      
 
 ## Running El Collectooorr as a service
 
@@ -87,7 +85,7 @@ These steps only work for operators registered on-chain!
       - Option 1: Step-by-step
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeif3xaxg7yh6rhqgbshvbatw7lkmghfa456r7aoxjqlwei3tprqhg4 --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeicjieodualqoefunitnouxvhrbvowowg3j2iyo5qa2mjbba3o7j5a --service
       cd elcollectooorr
       ```
 
@@ -102,11 +100,11 @@ These steps only work for operators registered on-chain!
 
       Substitute the safe address taken from on-chain. In `abci_build/docker-compose.yaml`, replace
       ```bash
-            - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=[]
+      - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=[]
       ```
       with
       ```bash
-            - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]
+      - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]
       ```
       where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment.
 
