@@ -28,6 +28,7 @@ from aea_ledger_ethereum import EthereumCrypto
 from autonomy.test_tools.base_test_classes.contracts import (
     BaseGanacheContractWithDependencyTest,
 )
+from autonomy.test_tools.configurations import ETHEREUM_KEY_PATH_1
 
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
 from packages.elcollectooorr.contracts.basket_factory.contract import (
@@ -38,7 +39,7 @@ from packages.elcollectooorr.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
 )
 
-from tests.conftest import ETHEREUM_KEY_PATH_1, ROOT_DIR
+from tests.conftest import ROOT_DIR
 
 
 DEFAULT_GAS = 1000000000
