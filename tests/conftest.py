@@ -44,7 +44,6 @@ from autonomy.test_tools.docker.tendermint import (
     DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
-    TendermintDockerImage,
 )
 
 from tests.helpers.artblocks_utils import (
@@ -81,32 +80,8 @@ from tests.helpers.docker.mock_arblocks_api import (
 )
 
 
-def get_key(key_path: Path) -> str:
-    """Returns key value from file.""" ""
-    return key_path.read_bytes().strip().decode()
-
-
-ANY_ADDRESS = "0.0.0.0"  # nosec
-
 ROOT_DIR = _ROOT_DIR
-
-DATA_PATH = _ROOT_DIR / "tests" / "data"
-DEFAULT_AMOUNT = 1000000000000000000000
-
-ETHEREUM_KEY_DEPLOYER = DATA_PATH / "ethereum_key_deployer.txt"
-ETHEREUM_KEY_PATH_1 = DATA_PATH / "ethereum_key_1.txt"
-ETHEREUM_KEY_PATH_2 = DATA_PATH / "ethereum_key_2.txt"
-ETHEREUM_KEY_PATH_3 = DATA_PATH / "ethereum_key_3.txt"
-ETHEREUM_KEY_PATH_4 = DATA_PATH / "ethereum_key_4.txt"
-GANACHE_CONFIGURATION = dict(
-    accounts_balances=[
-        (get_key(ETHEREUM_KEY_DEPLOYER), DEFAULT_AMOUNT),
-        (get_key(ETHEREUM_KEY_PATH_1), DEFAULT_AMOUNT),
-        (get_key(ETHEREUM_KEY_PATH_2), DEFAULT_AMOUNT),
-        (get_key(ETHEREUM_KEY_PATH_3), DEFAULT_AMOUNT),
-        (get_key(ETHEREUM_KEY_PATH_4), DEFAULT_AMOUNT),
-    ],
-)
+THIRD_PARTY_CONTRACTS = ROOT_DIR / "third_party"
 
 
 @pytest.fixture()
@@ -137,7 +112,9 @@ def gnosis_safe_hardhat_scope_function(
     """Launch the HardHat node with Gnosis Safe contracts deployed. This fixture is scoped to a function which means it will destroyed at the end of the test."""
     client = docker.from_env()
     logging.info(f"Launching Hardhat at port {hardhat_port}")
-    image = GnosisSafeNetDockerImage(client, hardhat_addr, hardhat_port)
+    image = GnosisSafeNetDockerImage(
+        client, THIRD_PARTY_CONTRACTS, hardhat_addr, hardhat_port
+    )
     yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
 
 
@@ -261,21 +238,7 @@ def tendermint_port() -> int:
     return DEFAULT_TENDERMINT_PORT
 
 
-@pytest.fixture(scope="class")
-def tendermint(
-    tendermint_port: Any,
-    abci_host: str = DEFAULT_ABCI_HOST,
-    abci_port: int = DEFAULT_ABCI_PORT,
-    timeout: float = 2.0,
-    max_attempts: int = 10,
-) -> Generator:
-    """Launch the Ganache image."""
-    client = docker.from_env()
-    logging.info(f"Launching Tendermint at port {tendermint_port}")
-    image = TendermintDockerImage(client, abci_host, abci_port, tendermint_port)
-    yield from launch_image(image, timeout=timeout, max_attempts=max_attempts)
-
-
+# TOFIX: Required due to a missing functionality in autonomy
 @pytest.fixture
 def flask_tendermint(
     tendermint_port: Any,
