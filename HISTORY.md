@@ -1,5 +1,11 @@
 # Release History - `agent-academy-1`
 
+## 0.2.2 (2022-08-28)
+
+- Sync with open-autonomy `v0.2.1`.
+- Simplified dependencies. 
+- Fix reset timeout interval.
+
 ## 0.2.1 (2022-08-25)
 
 - Use open-autonomy v0.2.0.
