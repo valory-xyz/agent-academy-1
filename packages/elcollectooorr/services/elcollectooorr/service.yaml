@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeibdzmnkug4a2hnptsphnzc2f66kjtw5thldmgepky2yh5eflbv44q
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeifb36kowt3r3nd7f4lb56l3ny4dfluu53qk5u3zsrd3gbivox3jeq
 number_of_agents: 1
 ---
 public_id: elcollectooorr/elcollectooorr_abci:0.1.0
@@ -21,7 +21,7 @@ models:
         max_participants: 1
       decision_model_threshold: 0.8
       whitelisted_investor_addresses: []
-      observation_interval: 180
+      observation_interval: 300
       reset_tendermint_after: 60
 ---
 public_id: valory/ledger:0.1.0

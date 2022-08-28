@@ -14,7 +14,7 @@ fingerprint:
   fsm_composition_specification.yaml: bafybeig26dq7lbwygs6gayahb3h6anej77veo4zwxeiqmftxwogrmgcgxm
   fsm_specification.yaml: bafybeia2kr62st2cv2huuczb4iygs62uzrsb7r4dvbtjnhdfp6lhbzmz3a
   handlers.py: bafybeihr233wcw5uu4cnvc3oey2cp7dzrvm33diufl4pczx6raznkckjq4
-  models.py: bafybeibw5l6vuiqur4vudzwhhe5oceqjztgcozw66qqdwnmlo6w2w5unpu
+  models.py: bafybeidv4ncw2nd7sjwe3vqti65oqfnqw7fzirhczzg6cfoa6fkt74n4we
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
   rounds.py: bafybeiet6ibyzmo4ufeu2bmfyx27kzcxolisuunn2mcrrlbifzx5jxggt4
 fingerprint_ignore_patterns: []
@@ -96,10 +96,10 @@ models:
       max_purchase_per_project: 1
       max_retries: 5
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
-      observation_interval: 10
+      observation_interval: 300
       on_chain_service_id: null
       period_setup: {}
-      reset_tendermint_after: 2
+      reset_tendermint_after: 60
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
