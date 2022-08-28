@@ -237,6 +237,7 @@ def tendermint_port() -> int:
     """Get the Tendermint port"""
     return DEFAULT_TENDERMINT_PORT
 
+
 # TOFIX: Required due to a missing functionality in autonomy
 @pytest.fixture
 def flask_tendermint(
