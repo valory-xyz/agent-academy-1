@@ -42,8 +42,8 @@ from packages.valory.skills.abstract_round_abci.models import Requests as BaseRe
 from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
+from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
 
 
 MARGIN = 5
