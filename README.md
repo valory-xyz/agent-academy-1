@@ -85,7 +85,7 @@ These steps only work for operators registered on-chain!
       - Option 1: Step-by-step
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeicjieodualqoefunitnouxvhrbvowowg3j2iyo5qa2mjbba3o7j5a --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidgx5oijdq66r3w7cy3gwbvgig23nf4v45tebqzu6kzpmdpfzdedm --service
       cd elcollectooorr
       ```
 
