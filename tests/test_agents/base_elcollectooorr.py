@@ -25,10 +25,9 @@ import time
 
 import web3
 from aea.configurations.base import PublicId
+from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2End
 from click.testing import Result
 from web3.types import Wei
-
-from autonomy.test_tools.base_test_classes.agents import BaseTestEnd2End
 
 from tests.helpers.constants import ARTBLOCKS_ADDRESS as _DEFAULT_ARTBLOCKS_ADDRESS
 from tests.helpers.constants import (

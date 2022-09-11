@@ -26,17 +26,17 @@ contracts:
 - elcollectooorr/basket_factory:0.1.0:bafybeihg43xlt66kwnwvymfwmml7d4zdh4j4m3wfnlakvz35q33wlam3ny
 - elcollectooorr/token_vault:0.1.0:bafybeifysc2r7t5h32kvck4nkeyjccyqaq7ubjizlm2zashpag4p7lyvw4
 - elcollectooorr/token_vault_factory:0.1.0:bafybeia37ppv5ogxtndcbt33ztbmer4zw7jhamlk64oqwziqdj6dnqoori
-- valory/gnosis_safe:0.1.0:bafybeif5ump4p7p5bygqyxeznwdvtdhtwihxnjnvjajbcnt7rmcyzyjafy
-- valory/multisend:0.1.0:bafybeidvuabdn32lpsh3z7wb5fonotimysfsntueeb53dgil5jmiezrasq
+- valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
+- valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
 protocols:
-- valory/contract_api:1.0.0:bafybeigkedpmqhm7lrqusnkyfcapyx3dlkz2djfq74hou5pwtrskxgvuxu
+- valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeihjmmocfbaenvbjp52epvh6viqkltbv65nlz5tqkvzrq52r4jbkrq
-- valory/abstract_round_abci:0.1.0:bafybeiayewfb2ytovp7exhawqwbw63eerx4tw53ztey5r4ozbtcvsw3gua
-- valory/registration_abci:0.1.0:bafybeibe2so7dcm2sivhum7gqik27c73a6v7gf3aligmbbucgh2zh2wvzu
-- valory/reset_pause_abci:0.1.0:bafybeiehyoay5bjg7zpc47bynycvs7gf7o7tcau77b5rwsgpg7shnrjnje
-- valory/safe_deployment_abci:0.1.0:bafybeiaewimpi6qjr3mjvruyu6napuylprnwkp4gzydlxlqbc6lm4jyw7y
-- valory/transaction_settlement_abci:0.1.0:bafybeiaz3mvzv4xc5pmnbrpj7ha5i4t4twpnulqit7ixnvcmy6uhckm7de
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeig3r5ge5wuepjipvck7wzoodipb7yfcnxxxopk5z5yonctbe5ukoq
+- valory/abstract_round_abci:0.1.0:bafybeicqihaqm7w7qf2cz5nsop3yrg64mm5eb7vlbl4z5qppmhgtzegpye
+- valory/registration_abci:0.1.0:bafybeidlts5ca4qcfd4u2ix7vzj34f7xwfkr74hj3g6awmh6rvlnbagsde
+- valory/reset_pause_abci:0.1.0:bafybeihywet5df7nrgarlx5qqkef6ofh6xrcd3hm2m7mpqpqfvbypra3wq
+- valory/safe_deployment_abci:0.1.0:bafybeicjswvogpm3rut3aghokeodfm3ug2t74zy5og5xnpmid4cdfrazda
+- valory/transaction_settlement_abci:0.1.0:bafybeifhlmfxcxoyxytvcevttoix44kto5z6bskery7y5hltqur25vgory
 behaviours:
   main:
     args: {}

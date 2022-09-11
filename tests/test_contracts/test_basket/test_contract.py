@@ -22,7 +22,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional, cast
 
-from autonomy.test_tools.base_test_classes.contracts import (
+from aea_test_autonomy.base_test_classes.contracts import (
     BaseGanacheContractWithDependencyTest,
 )
 
