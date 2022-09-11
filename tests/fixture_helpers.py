@@ -22,9 +22,8 @@ from typing import Any, List, Tuple
 
 import docker
 import pytest
-
-from autonomy.test_tools.docker.base import DockerImage
-from autonomy.test_tools.fixture_helpers import HardHatBaseTest
+from aea_test_autonomy.docker.base import DockerImage
+from aea_test_autonomy.fixture_helpers import HardHatBaseTest
 
 from tests.helpers.constants import HARDHAT_ELCOL_KEY_PAIRS
 from tests.helpers.docker.elcol_net import ElColNetDockerImage

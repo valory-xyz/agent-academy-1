@@ -26,25 +26,24 @@ from typing import Any, Generator, List, Tuple, cast
 import docker
 import pytest
 import web3
-from web3 import Web3
-
-from autonomy.test_tools.docker.base import launch_image, launch_many_containers
-from autonomy.test_tools.docker.ganache import (
+from aea_test_autonomy.docker.base import launch_image, launch_many_containers
+from aea_test_autonomy.docker.ganache import (
     DEFAULT_GANACHE_ADDR,
     DEFAULT_GANACHE_PORT,
     GanacheForkDockerImage,
 )
-from autonomy.test_tools.docker.gnosis_safe_net import (
+from aea_test_autonomy.docker.gnosis_safe_net import (
     DEFAULT_HARDHAT_ADDR,
     DEFAULT_HARDHAT_PORT,
     GnosisSafeNetDockerImage,
 )
-from autonomy.test_tools.docker.tendermint import (
+from aea_test_autonomy.docker.tendermint import (
     DEFAULT_ABCI_HOST,
     DEFAULT_ABCI_PORT,
     DEFAULT_TENDERMINT_PORT,
     FlaskTendermintDockerImage,
 )
+from web3 import Web3
 
 from tests.helpers.artblocks_utils import (
     add_approved_minter,
@@ -102,6 +101,7 @@ def hardhat_port() -> int:
     return DEFAULT_HARDHAT_PORT
 
 
+# TOFIX: Required due to a missing functionality in autonomy
 @pytest.fixture(scope="function")
 def gnosis_safe_hardhat_scope_function(
     hardhat_addr: Any,

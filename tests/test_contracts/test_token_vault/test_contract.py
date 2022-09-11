@@ -24,11 +24,10 @@ from typing import Any, Dict, cast
 
 from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
-
-from autonomy.test_tools.base_test_classes.contracts import (
+from aea_test_autonomy.base_test_classes.contracts import (
     BaseGanacheContractWithDependencyTest,
 )
-from autonomy.test_tools.configurations import ETHEREUM_KEY_PATH_1
+from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_1
 
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
 from packages.elcollectooorr.contracts.basket_factory.contract import (
