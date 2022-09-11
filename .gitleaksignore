@@ -49,3 +49,8 @@ d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:76
 d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:72
 d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:68
 d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:64
+9d524f02ae0fa518c3472f8cd6df9f59d4007495:packages/valory/connections/http_client/connection.yaml:generic-api-key:14
+9d524f02ae0fa518c3472f8cd6df9f59d4007495:packages/valory/connections/ledger/connection.yaml:generic-api-key:17
+9d524f02ae0fa518c3472f8cd6df9f59d4007495:packages/valory/protocols/contract_api/protocol.yaml:generic-api-key:19
+9d524f02ae0fa518c3472f8cd6df9f59d4007495:packages/valory/protocols/ledger_api/protocol.yaml:generic-api-key:19
+9d524f02ae0fa518c3472f8cd6df9f59d4007495:packages/valory/skills/abstract_round_abci/skill.yaml:generic-api-key:27
