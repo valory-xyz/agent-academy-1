@@ -31,14 +31,9 @@ from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker.models.containers import Container
 
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
-    THIRD_PARTY,
-)
-
 
 DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
 DEFAULT_HARDHAT_PORT = 8545
-ELCOL_CONTRACTS_ROOT_DIR = THIRD_PARTY / "contracts-elcol"
 
 _SLEEP_TIME = 1
 
@@ -59,6 +54,8 @@ ARTBLOCKS_SET_PRICE_V0_CONTRACT = "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE"
 class ElColNetDockerImage(DockerImage):
     """Spawn a local network with deployed Gnosis Safe Factory, Fracionalize and Artblocks contracts."""
 
+    _CONTAINER_PORT = DEFAULT_HARDHAT_PORT
+
     def __init__(
         self,
         client: docker.DockerClient,
@@ -77,32 +74,15 @@ class ElColNetDockerImage(DockerImage):
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "node:16.7.0"
-
-    def _build_command(self) -> List[str]:
-        """Build command."""
-        cmd = ["run", "hardhat", "extra-compile", "--port", str(self.port)]
-        return cmd
+        return "valory/elcollectooorr-network:latest"
 
     def create(self) -> Container:
         """Create the container."""
-        cmd = self._build_command()
-        working_dir = "/build"
-        volumes = {
-            str(ELCOL_CONTRACTS_ROOT_DIR): {
-                "bind": working_dir,
-                "mode": "rw",
-            },
-        }
-        ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
+        ports = {f"{self._CONTAINER_PORT}/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
             self.tag,
-            command=cmd,
             detach=True,
             ports=ports,
-            volumes=volumes,
-            working_dir=working_dir,
-            entrypoint="yarn",
             extra_hosts={"host.docker.internal": "host-gateway"},
         )
         return container
