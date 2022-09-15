@@ -16,12 +16,17 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: skip-file
+# mypy: ignore-errors
+# flake8: noqa
 
 """Utils functions setting up the artblocks contracts."""
 
 from typing import Any
 
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import ELCOL_NET_CHAIN_ID
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    ELCOL_NET_CHAIN_ID,
+)
 
 
 def toggle_project_is_active(

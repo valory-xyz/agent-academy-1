@@ -16,6 +16,8 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# mypy: ignore-errors
+# flake8: noqa
 
 """This module contains helper classes/functions for fixtures."""
 from typing import Any, List, Tuple
@@ -25,8 +27,12 @@ import pytest
 from aea_test_autonomy.docker.base import DockerImage
 from aea_test_autonomy.fixture_helpers import HardHatBaseTest
 
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import HARDHAT_ELCOL_KEY_PAIRS
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.elcol_net import ElColNetDockerImage
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    HARDHAT_ELCOL_KEY_PAIRS,
+)
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.elcol_net import (
+    ElColNetDockerImage,
+)
 
 
 @pytest.mark.integration

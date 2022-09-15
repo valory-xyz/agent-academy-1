@@ -16,6 +16,9 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: skip-file
+# mypy: ignore-errors
+# flake8: noqa
 
 """ElCol Network Docker image."""
 import logging
@@ -29,7 +32,9 @@ from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker.models.containers import Container
 
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import TEST_DATA_DIR
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    TEST_DATA_DIR,
+)
 
 
 DEFAULT_JSON_SERVER_ADDR = "http://127.0.0.1"

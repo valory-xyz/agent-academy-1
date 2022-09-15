@@ -16,6 +16,9 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: skip-file
+# mypy: ignore-errors
+# flake8: noqa
 
 """Conftest module for Pytest."""
 import json
@@ -69,9 +72,15 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
     HARDHAT_ELCOL_KEY_PAIRS,
     KEY_PAIRS,
 )
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import ROOT_DIR as _ROOT_DIR
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import TARGET_PROJECT_ID
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.elcol_net import ElColNetDockerImage
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    ROOT_DIR as _ROOT_DIR,
+)
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    TARGET_PROJECT_ID,
+)
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.elcol_net import (
+    ElColNetDockerImage,
+)
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.mock_arblocks_api import (
     DEFAULT_JSON_SERVER_ADDR,
     DEFAULT_JSON_SERVER_PORT,

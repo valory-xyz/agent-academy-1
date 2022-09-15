@@ -16,13 +16,19 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: skip-file
+# mypy: ignore-errors
+# flake8: noqa
 
 """Integration tests for the valory/price_estimation_abci skill."""
 
 import pytest
 
+from packages.agents.elcollectooorr.packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID,
+)
+
 from tests.fixture_helpers import UseHardHatElColBaseTest
-from packages.agents.elcollectooorr.packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
 from tests.test_agents.base_elcollectooorr import BaseTestElCollectooorrEnd2End
 
 
