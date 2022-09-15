@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# pylint: disable=protected-access
+# pylint: skip-file
 
 """Tests for valory/fractionalize_deployment_abci skill's behaviours."""
 import json

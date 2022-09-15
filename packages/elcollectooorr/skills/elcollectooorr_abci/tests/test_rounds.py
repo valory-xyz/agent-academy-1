@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: skip-file
 
 """Test the base.py module of the skill."""
 import json
@@ -63,6 +64,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     RandomnessPayload,
     SelectKeeperPayload,
 )
+
 
 WEI_TO_ETH = 10 ** 18
 

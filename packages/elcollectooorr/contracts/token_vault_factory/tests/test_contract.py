@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# pylint: skip-file
 """Tests for valory/token_vault_factory contract."""
 import time
 from pathlib import Path

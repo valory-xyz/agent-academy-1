@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# pylint: skip-file
 """Tests for valory/elcollectooorr_abci skill's behaviours."""
 import json
 import logging

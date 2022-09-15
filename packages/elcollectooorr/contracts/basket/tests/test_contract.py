@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# pylint: skip-file
 """Tests for valory/basket contract."""
 import time
 from pathlib import Path

@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: skip-file
 
 """Test the base.py module of the skill."""
 import json
@@ -48,9 +49,8 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
 )
 
+
 WEI_TO_ETH = 10 ** 18
-
-
 MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
