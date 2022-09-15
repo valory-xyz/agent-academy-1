@@ -48,7 +48,7 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 class TestTokenVault(BaseGanacheContractWithDependencyTest):
     """Test deployment of Token Vault to Ganache."""
 
-    CONTRACTS_DIR = Path(__file__).parent.parent.parent
+    CONTRACTS_DIR = Path(__file__).parent.parent.parent.parent.parent / "contracts"
     contract_directory = Path(CONTRACTS_DIR, "token_vault")
     contract: TokenVaultContract
 

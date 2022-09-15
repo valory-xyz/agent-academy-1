@@ -11,7 +11,7 @@ fingerprint:
   build/TokenSettings.json: bafybeiefchbpv5ckkqpsxi3x2bjufg7f4qsxr6tkhzlcggryvzh5alvdta
   contract.py: bafybeiacab6ln5nrzvpfekj3p355r55uuxzpzktwy2u7pofdsao7rnohdq
   tests/__init__.py: bafybeigb7ye6j67m6mxmhhkdebykjwhcdlpfv2oxy45dqkbtsypnnbmnjq
-  tests/test_contract.py: bafybeihma5jjdk4k253xs2n6324lsytqminwutuvey4buhzgpfklbx5eaq
+  tests/test_contract.py: bafybeidb4o5vvcu2hul4wtnp6e2kmoe3jblh47x4woemavcmexiprc4zsi
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: TokenSettingsContract

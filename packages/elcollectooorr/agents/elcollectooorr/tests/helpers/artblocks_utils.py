@@ -21,7 +21,7 @@
 
 from typing import Any
 
-from tests.helpers.constants import ELCOL_NET_CHAIN_ID
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import ELCOL_NET_CHAIN_ID
 
 
 def toggle_project_is_active(

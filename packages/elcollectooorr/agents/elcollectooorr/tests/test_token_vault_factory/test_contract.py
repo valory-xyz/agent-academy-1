@@ -46,7 +46,7 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 class BaseTestTokenVaultFactory(BaseGanacheContractWithDependencyTest):  # pylint disable=too-few-public-methods
     """Test deployment of Token Vault Factory to Ganache."""
 
-    CONTRACTS_DIR = Path(__file__).parent.parent.parent
+    CONTRACTS_DIR = Path(__file__).parent.parent.parent.parent.parent / "contracts"
     contract_directory = Path(CONTRACTS_DIR, "token_vault_factory")
     contract: TokenVaultFactoryContract
 

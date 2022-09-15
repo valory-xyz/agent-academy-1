@@ -29,37 +29,37 @@ from aea_test_autonomy.base_test_classes.agents import BaseTestEnd2End
 from click.testing import Result
 from web3.types import Wei
 
-from tests.helpers.constants import ARTBLOCKS_ADDRESS as _DEFAULT_ARTBLOCKS_ADDRESS
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import ARTBLOCKS_ADDRESS as _DEFAULT_ARTBLOCKS_ADDRESS
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     ARTBLOCKS_FILTER_ADDRESS as _DEFAULT_ARTBLOCKS_FILTER_ADDRESS,
 )
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     BASKET_FACTORY_ADDRESS as _DEFAULT_BASKET_FACTORY_ADDRESS,
 )
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     DEFAULT_WHITELISTED_ADDRESSES as _DEFAULT_WHITELISTED_ADDRESSES,
 )
-from tests.helpers.constants import ELCOL_NET_CHAIN_ID as _DEFAULT_ELCOL_NET_CHAIN_ID
-from tests.helpers.constants import ELCOL_NET_HOST as _DEFAULT_ELCOL_NET_HOST
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import ELCOL_NET_CHAIN_ID as _DEFAULT_ELCOL_NET_CHAIN_ID
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import ELCOL_NET_HOST as _DEFAULT_ELCOL_NET_HOST
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     HARDHAT_ELCOL_KEY_PAIRS as _DEFAULT_HARDHAT_ELCOL_KEY_PAIRS,
 )
-from tests.helpers.constants import HTTP_LOCALHOST as _DEFAULT_HTTP_LOCALHOST
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import HTTP_LOCALHOST as _DEFAULT_HTTP_LOCALHOST
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     MOCK_ARTBLOCKS_API_PORT as _DEFAULT_MOCK_ARTBLOCKS_API_PORT,
 )
-from tests.helpers.constants import MULTISEND_ADDRESS as _DEFAULT_MULTISEND_ADDRESS
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import MULTISEND_ADDRESS as _DEFAULT_MULTISEND_ADDRESS
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     SAFE_CALLBACK_HANDLER as _DEFAULT_SAFE_CALLBACK_HANDLER,
 )
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     SAFE_CONTRACT_ADDRESS as _DEFAULT_SAFE_CONTRACT_ADDRESS,
 )
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     SAFE_FACTORY_ADDRESS as _DEFAULT_SAFE_FACTORY_ADDRESS,
 )
-from tests.helpers.constants import SETTINGS_ADRESS as _DEFAULT_SETTINGS_ADDRESS
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import SETTINGS_ADRESS as _DEFAULT_SETTINGS_ADDRESS
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     TOKEN_VAULT_FACTORY_ADDRESS as _DEFAULT_TOKEN_VAULT_FACTORY_ADDRESS,
 )
 

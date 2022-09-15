@@ -22,7 +22,7 @@
 import pytest
 
 from tests.fixture_helpers import UseHardHatElColBaseTest
-from tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
+from packages.agents.elcollectooorr.packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID
 from tests.test_agents.base_elcollectooorr import BaseTestElCollectooorrEnd2End
 
 

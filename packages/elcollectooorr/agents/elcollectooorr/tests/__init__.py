@@ -17,4 +17,4 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for valory/token_vault_factory contract."""
+"""This module contains the support resources for the fractional token vault (TokenVault) contract."""

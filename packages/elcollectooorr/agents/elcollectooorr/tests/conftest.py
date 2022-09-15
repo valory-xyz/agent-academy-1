@@ -45,7 +45,7 @@ from aea_test_autonomy.docker.tendermint import (
 )
 from web3 import Web3
 
-from tests.helpers.artblocks_utils import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.artblocks_utils import (
     add_approved_minter,
     add_mint_whitelisted,
     create_project,
@@ -58,7 +58,7 @@ from tests.helpers.artblocks_utils import (
     update_max_invocations,
     update_price,
 )
-from tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     ARTBLOCKS_ADDRESS,
     ARTBLOCKS_CORE_FILE,
     ARTBLOCKS_FILTER_ADDRESS,
@@ -69,10 +69,10 @@ from tests.helpers.constants import (
     HARDHAT_ELCOL_KEY_PAIRS,
     KEY_PAIRS,
 )
-from tests.helpers.constants import ROOT_DIR as _ROOT_DIR
-from tests.helpers.constants import TARGET_PROJECT_ID
-from tests.helpers.docker.elcol_net import ElColNetDockerImage
-from tests.helpers.docker.mock_arblocks_api import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import ROOT_DIR as _ROOT_DIR
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import TARGET_PROJECT_ID
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.elcol_net import ElColNetDockerImage
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.mock_arblocks_api import (
     DEFAULT_JSON_SERVER_ADDR,
     DEFAULT_JSON_SERVER_PORT,
     MockArtblocksJsonServer,

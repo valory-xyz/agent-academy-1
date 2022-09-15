@@ -18,10 +18,10 @@ fingerprint:
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
   rounds.py: bafybeiet6ibyzmo4ufeu2bmfyx27kzcxolisuunn2mcrrlbifzx5jxggt4
   tests/__init__.py: bafybeicyk6e2i3lwxuhl3h2cbayew3cfc7mtghmoqiu3dzmecykoqwkpru
-  tests/test_behaviours.py: bafybeifhxz5akk5nlpvefdimfy4vhpztwffwsane2joqvs2zmsalnjl4ge
-  tests/test_dialogues.py: bafybeiebm75woet7a45aw4vdbc5ce7bkmizl2irgnguzgex5qdw4zjyiuy
+  tests/test_behaviours.py: bafybeiddpnby4mqdrelxhrrv6owl6cwq7opcibdptgfxfyeg3jilctmwmi
+  tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
   tests/test_payloads.py: bafybeiarokonoz2okmdc4ktmrzckdxitoophwt6wk3at4wjnrhjvcqlabq
-  tests/test_rounds.py: bafybeiduumchphpe7fkugzdmqul6poeck76hvzgb7jfn4dww5wk72igfeu
+  tests/test_rounds.py: bafybeicz3pylqnelk5y6artzvvo4riqk43zf7n3qeofvjmqz65x754pe34
 fingerprint_ignore_patterns: []
 connections:
 - valory/http_client:0.1.0:bafybeiayvkp3jkaahfuej72gididod5dzpa2vivjmxk7uxtcimc4g5e66i
@@ -30,9 +30,9 @@ contracts:
 - elcollectooorr/artblocks:0.1.0:bafybeibdgvtwjxi7rhjaubexpzw2od3zeahl7pfxbmvmyx4grat3vpzmmi
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeiehuqgzexwz7wlcitgoz6zgp4ks4reoazq5mc3sgvgeasmsuakjbq
 - elcollectooorr/artblocks_periphery:0.1.0:bafybeicbkgpwb372na2j3khveekvdw4h34ohvpufixvuh2f4x6hdj7z52e
-- elcollectooorr/basket_factory:0.1.0:bafybeietq5qxlziwwof3rywcah2hblclh2p2yjdbn6ph7mjo6i456hv6d4
-- elcollectooorr/token_vault:0.1.0:bafybeiadneg7bejhjsbmjo5dy2w2fey6extae43tdvjvxjvo4x3bg2qgq4
-- elcollectooorr/token_vault_factory:0.1.0:bafybeiakup3k6itra5kwdtxp734bqdsoygxpff7wrfpwyjieguw45r3pcy
+- elcollectooorr/basket_factory:0.1.0:bafybeiedx7gq5yymwuk7psbg3pcsb7er4moznayjcriqkdwn373ejsikmy
+- elcollectooorr/token_vault:0.1.0:bafybeiazpiwuwpe7qa5ovcxala4454on3ij5ue5ejhtxwzrqjiqtldsp54
+- elcollectooorr/token_vault_factory:0.1.0:bafybeidkcqxxef3of24kxwctilks2wk2cx2y5fvrpa6sv7qgvxvnlbdb4e
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 - valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
 protocols:
@@ -41,7 +41,7 @@ protocols:
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeig6doin7mf3rhy75yd7zpeudih4nshz5ua6nejvinwsz2i6ueh3oq
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeie4odmgbz2dh22r35xxbyolpmuj3fczwtmz6f4ys3ombusvrsw75y
 - valory/abstract_round_abci:0.1.0:bafybeicqihaqm7w7qf2cz5nsop3yrg64mm5eb7vlbl4z5qppmhgtzegpye
 - valory/registration_abci:0.1.0:bafybeidlts5ca4qcfd4u2ix7vzj34f7xwfkr74hj3g6awmh6rvlnbagsde
 - valory/reset_pause_abci:0.1.0:bafybeihywet5df7nrgarlx5qqkef6ofh6xrcd3hm2m7mpqpqfvbypra3wq

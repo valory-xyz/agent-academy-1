@@ -15,17 +15,17 @@ fingerprint:
   payloads.py: bafybeiaiu3eu6tflsntmmzfigwx2yzibqkxluoyhuexa47upszhsjid4by
   rounds.py: bafybeigdmxhfztgsctqvlm5kflorlqu46pl56365jp74pn22e4m4dac6tq
   tests/__init__.py: bafybeifpwsaub3khxsixvj6yc2b7zlmkpt3h6m2q65x2zmmo6uvcbpdgpm
-  tests/test_behaviours.py: bafybeicfqesqyjznf2j66elqgs7bmpung25fjy46ita46n4tirt6k3ohqi
-  tests/test_dialogues.py: bafybeidd6i3sqfrk2slmyh26akcr5nq6qkcyyg7mjlsz6ho2buwfqc6lfy
+  tests/test_behaviours.py: bafybeifsstkeuglkwfbql2zyddybqyekxtk24u5hfi2sp67ixblhzdb6qy
+  tests/test_dialogues.py: bafybeihea5tjndkyr2a5ezys26mxw3bcrsyrhqdd75egux35ydtvadndva
   tests/test_payloads.py: bafybeigtrkmgejek2raj65ulbiogslzsd4tnf5xkjvvbgxlo6x4jx4cwrq
-  tests/test_rounds.py: bafybeigl7gvoet26pzsny7b5uam2i3skctakbhcy7o25yfv3me6e4xmxfi
+  tests/test_rounds.py: bafybeiekq7q7acupqw7xpzptp2wsdlneh7fposabbhx7rkixxgj7tgdmjm
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/basket:0.1.0:bafybeicj42zsgwytodoidtvdxf2cizq2bpaem56425y2bydg5ij4wxjelq
-- elcollectooorr/basket_factory:0.1.0:bafybeietq5qxlziwwof3rywcah2hblclh2p2yjdbn6ph7mjo6i456hv6d4
-- elcollectooorr/token_vault:0.1.0:bafybeiadneg7bejhjsbmjo5dy2w2fey6extae43tdvjvxjvo4x3bg2qgq4
-- elcollectooorr/token_vault_factory:0.1.0:bafybeiakup3k6itra5kwdtxp734bqdsoygxpff7wrfpwyjieguw45r3pcy
+- elcollectooorr/basket:0.1.0:bafybeigreucbbbisd4mxp2bwzyb43obdzb3o6xm5ma67medljqfz3xstsi
+- elcollectooorr/basket_factory:0.1.0:bafybeiedx7gq5yymwuk7psbg3pcsb7er4moznayjcriqkdwn373ejsikmy
+- elcollectooorr/token_vault:0.1.0:bafybeiazpiwuwpe7qa5ovcxala4454on3ij5ue5ejhtxwzrqjiqtldsp54
+- elcollectooorr/token_vault_factory:0.1.0:bafybeidkcqxxef3of24kxwctilks2wk2cx2y5fvrpa6sv7qgvxvnlbdb4e
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim

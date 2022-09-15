@@ -20,6 +20,7 @@
 """ElCol Network Docker image."""
 import logging
 import time
+from pathlib import Path
 from typing import List
 
 import docker
@@ -28,42 +29,29 @@ from aea.exceptions import enforce
 from aea_test_autonomy.docker.base import DockerImage
 from docker.models.containers import Container
 
-from tests.helpers.constants import THIRD_PARTY
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import TEST_DATA_DIR
 
 
-DEFAULT_HARDHAT_ADDR = "http://127.0.0.1"
-DEFAULT_HARDHAT_PORT = 8545
-ELCOL_CONTRACTS_ROOT_DIR = THIRD_PARTY / "contracts-elcol"
-
-_SLEEP_TIME = 1
-
-# Note: addresses of deployment of master contracts are deterministic
-PROXY_FACTORY_CONTRACT = "0x5FbDB2315678afecb367f032d93F642f64180aa3"
-MULTISEND_CONTRACT = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6"
-MULTISEND_CALL_ONLY_CONTRACT = "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318"
-SETTINGS_CONTRACT = "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e"
-ERC721_VAULT_FACTORY_CONTRACT = "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0"
-BASKET_FACTORY_CONTRACT = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82"
-ARTBLOCKS_CORE_CONTRACT = "0x0B306BF915C4d645ff596e518fAf3F9669b97016"
-ARTBLOCKS_MINTER_FILTER = "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1"
-ARTBLOCKS_DA_EXP_V0_CONTRACT = "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c"
-ARTBLOCKS_DA_LIN_V0_CONTRACT = "0x68B1D87F95878fE05B998F19b66F4baba5De1aed"
-ARTBLOCKS_SET_PRICE_V0_CONTRACT = "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE"
+DEFAULT_JSON_SERVER_ADDR = "http://127.0.0.1"
+DEFAULT_JSON_SERVER_PORT = 3000
+DEFAULT_JSON_DATA_DIR = TEST_DATA_DIR / "json_server" / "data.json"
 
 
-class ElColNetDockerImage(DockerImage):
-    """Spawn a local network with deployed Gnosis Safe Factory, Fracionalize and Artblocks contracts."""
+class MockArtblocksJsonServer(DockerImage):
+    """Spawn a JSON server."""
 
     def __init__(
         self,
         client: docker.DockerClient,
-        addr: str = DEFAULT_HARDHAT_ADDR,
-        port: int = DEFAULT_HARDHAT_PORT,
+        addr: str = DEFAULT_JSON_SERVER_ADDR,
+        port: int = DEFAULT_JSON_SERVER_PORT,
+        json_data: Path = DEFAULT_JSON_DATA_DIR,
     ):
         """Initialize."""
         super().__init__(client)
         self.addr = addr
         self.port = port
+        self.json_data = json_data
 
     def create_many(self, nb_containers: int) -> List[Container]:
         """Instantiate the image in many containers, parametrized."""
@@ -72,32 +60,23 @@ class ElColNetDockerImage(DockerImage):
     @property
     def tag(self) -> str:
         """Get the tag."""
-        return "node:16.7.0"
-
-    def _build_command(self) -> List[str]:
-        """Build command."""
-        cmd = ["run", "hardhat", "extra-compile", "--port", str(self.port)]
-        return cmd
+        return "ajoelpod/mock-json-server:latest"
 
     def create(self) -> Container:
         """Create the container."""
-        cmd = self._build_command()
-        working_dir = "/build"
+        data = "/usr/src/app/data.json"
         volumes = {
-            str(ELCOL_CONTRACTS_ROOT_DIR): {
-                "bind": working_dir,
+            str(self.json_data): {
+                "bind": data,
                 "mode": "rw",
             },
         }
-        ports = {f"{self.port}/tcp": ("0.0.0.0", self.port)}  # nosec
+        ports = {"8000/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
             self.tag,
-            command=cmd,
             detach=True,
             ports=ports,
             volumes=volumes,
-            working_dir=working_dir,
-            entrypoint="yarn",
             extra_hosts={"host.docker.internal": "host-gateway"},
         )
         return container

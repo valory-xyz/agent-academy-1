@@ -11,7 +11,7 @@ fingerprint:
   build/BasketFactory.json: bafybeigrhyobgofcivfzchurfkegahetannmw7ekpiz3pyid6q2w3newbu
   contract.py: bafybeidlh2sa3xrljoolvdsxoknbd67qkaej3lxa76omeo5qsk3awebu2y
   tests/__init__.py: bafybeibjn6qwcqamcjxt6jivan4wzitidbowrpedzbh646vvinnrzwboyy
-  tests/test_contract.py: bafybeigkj36xc5xdba2eadvowlslywuhzmrn6eykxd3ic7zbetkmtxqizq
+  tests/test_contract.py: bafybeifwhc2f7kxczo5s2jyrq3dz5676l6fzyg4nmlvqnsspsopgmks574
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: BasketFactoryContract
