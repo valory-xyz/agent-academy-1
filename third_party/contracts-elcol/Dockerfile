@@ -1,10 +1,11 @@
-FROM node:17.3.0
-RUN mkdir -p /code
-WORKDIR /code
-ADD . /code
+FROM node:16.7.0 as builder
 
-ENV NODE_OPTIONS=--openssl-legacy-provider
-RUN npm run compile
+RUN mkdir elcol
+COPY . ./elcol
+WORKDIR ./elcol
 
-CMD [ "npx", "hardhat", "node", "--hostname", "0.0.0.0" ]
+RUN yarn install
 
+ENTRYPOINT ["yarn", "run", "hardhat", "extra-compile", "--port", "8545"]
+
+# TODO: introduce second stage (runner)
