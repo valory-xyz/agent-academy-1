@@ -54,3 +54,10 @@ d49a18441c1edbab327b011a99463a199d30c97b:README.md:generic-api-key:64
 9d524f02ae0fa518c3472f8cd6df9f59d4007495:packages/valory/protocols/contract_api/protocol.yaml:generic-api-key:19
 9d524f02ae0fa518c3472f8cd6df9f59d4007495:packages/valory/protocols/ledger_api/protocol.yaml:generic-api-key:19
 9d524f02ae0fa518c3472f8cd6df9f59d4007495:packages/valory/skills/abstract_round_abci/skill.yaml:generic-api-key:27
+63fd752e1200d15934e8b5110848458b4eee1d9d:packages/elcollectooorr/agents/elcollectooorr/aea-config.yaml:generic-api-key:17
+8af6febb2747661bd80ffdab2796eb0289c6e96e:packages/elcollectooorr/agents/elcollectooorr/aea-config.yaml:generic-api-key:17
+cb6bd9f001e47da752da4d27306cfe61a4f77b49:packages/valory/skills/eoa_purchase_abci/skill.yaml:generic-api-key:67
+12836b58ca93760181d19047a4da4afbb1fc9b44:packages/valory/agents/simple_abci/aea-config.yaml:private-key:69
+12836b58ca93760181d19047a4da4afbb1fc9b44:packages/valory/connections/abci/connection.yaml:private-key:90
+fa1c5c4f9e01e22e72814a1be950d7a87f5f41e2:packages/valory/connections/abci/connection.yaml:generic-api-key:22
+fa1c5c4f9e01e22e72814a1be950d7a87f5f41e2:packages/valory/connections/abci/connection.yaml:generic-api-key:23
