@@ -106,8 +106,9 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )
 
-from tests.conftest import ROOT_DIR
-from tests.helpers.constants import DEFAULT_WHITELISTED_ADDRESSES, WEI_TO_ETH
+
+DEFAULT_WHITELISTED_ADDRESSES = ["0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"]
+WEI_TO_ETH = 10 ** 18
 
 
 class DummyRoundId:
@@ -120,12 +121,10 @@ class DummyRoundId:
         self.round_id = round_id
 
 
-class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
+class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):  # pylint: disable=protected-access
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "packages", "elcollectooorr", "skills", "elcollectooorr_abci"
-    )
+    path_to_skill = Path(__file__).parent.parent
 
     elcollectooorr_abci_behaviour: AbstractRoundBehaviour
     ledger_handler: LedgerApiHandler
@@ -135,7 +134,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):
     old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
 
     @classmethod
-    def setup(cls, **kwargs: Any) -> None:
+    def setup(cls, **kwargs: Any) -> None:  # pylint: disable=protected-access
         """Setup the test class."""
         # we need to store the current value of the meta-class attribute
         # _MetaPayload.transaction_type_to_payload_cls, and restore it
@@ -3536,7 +3535,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 class TestDecisionModel:
     """Tests for the Decision Model"""
 
-    def test_static_should_return_1_when_no_royalty_receiver(self) -> None:
+    def test_static_should_return_1_when_no_royalty_receiver(self) -> None:  # pylint: disable=no-self-use
         """Static should return 1, when there is no royalty receiver"""
 
         test_project_details = {

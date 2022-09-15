@@ -31,8 +31,6 @@ from packages.elcollectooorr.contracts.basket_factory.contract import (
     BasketFactoryContract,
 )
 
-from tests.conftest import ROOT_DIR
-
 
 DEFAULT_GAS = 10000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
@@ -42,8 +40,9 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 class TestBasketFactory(BaseGanacheContractTest):
     """Test deployment of the proxy to Ganache."""
 
+    CONTRACTS_DIR = Path(__file__).parent.parent.parent
     contract_directory = Path(
-        ROOT_DIR, "packages", "elcollectooorr", "contracts", "basket_factory"
+        CONTRACTS_DIR, "basket_factory"
     )
     contract: BasketFactoryContract
 

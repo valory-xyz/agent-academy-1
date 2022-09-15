@@ -64,7 +64,7 @@ from packages.valory.skills.transaction_settlement_abci.payloads import (
     SelectKeeperPayload,
 )
 
-from tests.helpers.constants import WEI_TO_ETH
+WEI_TO_ETH = 10 ** 18
 
 
 MAX_PARTICIPANTS: int = 4
@@ -97,12 +97,12 @@ class BaseRoundTestClass:
         )
         cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
 
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
+    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:  # pylint: disable=
         """Test the NO_MAJORITY event."""
         with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
             result = round_obj.end_block()
             assert result is not None
-            state, event = result
+            _, event = result
             assert event == Event.NO_MAJORITY
 
 
@@ -942,7 +942,7 @@ def test_rotate_list_method() -> None:
     assert rotate_list(ex_list, 2) == [3, 4, 5, 1, 2]
 
 
-def test_period_state() -> None:  # pylint:too-many-locals
+def test_period_state() -> None:  # pylint: disable=too-many-locals
     """Test PeriodState."""
 
     participants = get_participants()

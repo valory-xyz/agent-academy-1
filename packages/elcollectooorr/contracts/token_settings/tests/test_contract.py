@@ -31,8 +31,6 @@ from packages.elcollectooorr.contracts.token_settings.contract import (
     TokenSettingsContract,
 )
 
-from tests.conftest import ROOT_DIR
-
 
 DEFAULT_GAS = 10000000
 DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
@@ -42,8 +40,9 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 class TestTokenSettingsFactory(BaseGanacheContractTest):
     """Test deployment of Token Settings to Ganache."""
 
+    CONTRACTS_DIR = Path(__file__).parent.parent.parent
     contract_directory = Path(
-        ROOT_DIR, "packages", "elcollectooorr", "contracts", "token_settings"
+        CONTRACTS_DIR, "token_settings"
     )
     contract: TokenSettingsContract
 

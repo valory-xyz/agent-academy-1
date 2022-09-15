@@ -48,7 +48,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     ConsensusParams,
 )
 
-from tests.helpers.constants import WEI_TO_ETH
+WEI_TO_ETH = 10 ** 18
 
 
 MAX_PARTICIPANTS: int = 4

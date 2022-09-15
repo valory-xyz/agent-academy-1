@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: disable=protected-access
 
 """Tests for valory/fractionalize_deployment_abci skill's behaviours."""
 import json
@@ -87,8 +88,6 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
     RandomnessTransactionSubmissionBehaviour,
 )
 
-from tests.conftest import ROOT_DIR
-
 
 class DummyRoundId:
     """Dummy class for setting round_id for exit condition."""
@@ -103,8 +102,9 @@ class DummyRoundId:
 class FractionalizeFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing Fractionalize FSMBehaviour."""
 
+    ROOT_DIR = Path(__file__).parent.parent.parent
     path_to_skill = Path(
-        ROOT_DIR, "packages", "elcollectooorr", "skills", "elcollectooorr_abci"
+        ROOT_DIR, "elcollectooorr_abci"
     )
 
     fractionalize_deployment_abci_behaviour: AbstractRoundBehaviour
