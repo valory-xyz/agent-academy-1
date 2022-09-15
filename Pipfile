@@ -4,12 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-open-aea = "==1.18.0.post1"
-open-aea-ledger-ethereum = "==1.18.0"
-open-aea-ledger-cosmos = "==1.18.0"
-open-aea-cli-ipfs = "==1.18.0"
-open-aea-test-autonomy = "==0.2.2"
+open-aea = "==1.19.0"
+open-aea-ledger-ethereum = "==1.19.0"
+open-aea-ledger-cosmos = "==1.19.0"
+open-aea-cli-ipfs = "==1.19.0"
+open-aea-test-autonomy = "==0.3.0"
 tox = "==3.24.4"
+typing-extensions = "*"
 
 [dev-packages]
 aiohttp = "==3.7.4.post0"
@@ -55,7 +56,7 @@ vulture = "==2.3"
 python_version = "3.10"
 
 [packages.open-autonomy]
-version = "==0.2.2"
+version = "==0.3.0"
 extras = [ "all",]
 
 [dev-packages.mkdocs-mermaid-plugin]
