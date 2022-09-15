@@ -24,12 +24,12 @@
 
 import pytest
 
-from packages.agents.elcollectooorr.packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     TARGET_PROJECT_ID as _DEFAULT_TARGET_PROJECT_ID,
 )
 
-from tests.fixture_helpers import UseHardHatElColBaseTest
-from tests.test_agents.base_elcollectooorr import BaseTestElCollectooorrEnd2End
+from packages.elcollectooorr.agents.elcollectooorr.tests.fixture_helpers import UseHardHatElColBaseTest
+from packages.elcollectooorr.agents.elcollectooorr.tests.test_agents.base_elcollectooorr import BaseTestElCollectooorrEnd2End
 
 
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID

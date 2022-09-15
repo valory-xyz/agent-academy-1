@@ -11,9 +11,7 @@ fingerprint:
   build/ERC721VaultFactory.json: bafybeiedxlmem43q36q4kcymefbs2luxhylb5xg7ebc7bx7yqjvwulffju
   contract.py: bafybeicugyws4xybiab3o7qngx7ed45a44eqq5wjzbkvbzikb5qtjs5sta
 fingerprint_ignore_patterns: []
-contracts:
-- elcollectooorr/basket:0.1.0:bafybeigreucbbbisd4mxp2bwzyb43obdzb3o6xm5ma67medljqfz3xstsi
-- elcollectooorr/basket_factory:0.1.0:bafybeiedx7gq5yymwuk7psbg3pcsb7er4moznayjcriqkdwn373ejsikmy
+contracts: []
 class_name: TokenVaultFactoryContract
 contract_interface_paths:
   ethereum: build/ERC721VaultFactory.json
