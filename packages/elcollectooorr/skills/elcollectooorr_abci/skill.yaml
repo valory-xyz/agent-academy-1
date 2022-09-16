@@ -17,8 +17,8 @@ fingerprint:
   models.py: bafybeidv4ncw2nd7sjwe3vqti65oqfnqw7fzirhczzg6cfoa6fkt74n4we
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
   rounds.py: bafybeiet6ibyzmo4ufeu2bmfyx27kzcxolisuunn2mcrrlbifzx5jxggt4
-  tests/__init__.py: bafybeicyk6e2i3lwxuhl3h2cbayew3cfc7mtghmoqiu3dzmecykoqwkpru
-  tests/test_behaviours.py: bafybeiddpnby4mqdrelxhrrv6owl6cwq7opcibdptgfxfyeg3jilctmwmi
+  tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
+  tests/test_behaviours.py: bafybeiac4uvrcr76ee7etf76rambou3fl25rwlrunruvsccq75h6cp6yo4
   tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
   tests/test_payloads.py: bafybeiarokonoz2okmdc4ktmrzckdxitoophwt6wk3at4wjnrhjvcqlabq
   tests/test_rounds.py: bafybeicz3pylqnelk5y6artzvvo4riqk43zf7n3qeofvjmqz65x754pe34
@@ -27,12 +27,12 @@ connections:
 - valory/http_client:0.1.0:bafybeiayvkp3jkaahfuej72gididod5dzpa2vivjmxk7uxtcimc4g5e66i
 - valory/ledger:0.1.0:bafybeibrjvpha6payy23d7wcschuf3w4b2nwlms32x5b6u2wipqyh2rcbm
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeifdlwwflakhfyic3cbqha2hbvjet42gafamnhckbavx37tmqxrcrm
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeiehuqgzexwz7wlcitgoz6zgp4ks4reoazq5mc3sgvgeasmsuakjbq
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeicbkgpwb372na2j3khveekvdw4h34ohvpufixvuh2f4x6hdj7z52e
-- elcollectooorr/basket_factory:0.1.0:bafybeiedx7gq5yymwuk7psbg3pcsb7er4moznayjcriqkdwn373ejsikmy
-- elcollectooorr/token_vault:0.1.0:bafybeifysc2r7t5h32kvck4nkeyjccyqaq7ubjizlm2zashpag4p7lyvw4
-- elcollectooorr/token_vault_factory:0.1.0:bafybeia37ppv5ogxtndcbt33ztbmer4zw7jhamlk64oqwziqdj6dnqoori
+- elcollectooorr/artblocks:0.1.0:bafybeiebk7ldudazfdxhvmiaz7r7u4pyupmfqflskgtosb26yuehif3dju
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeicpdjm3xdbg2a7cshg63mutuyac2xl2hnmtrptyx7rx3i6fneuzam
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeifnfae5b643q3z6j2jwj6mvwwlpidseetsl6jtcjkaiheqphibvpy
+- elcollectooorr/basket_factory:0.1.0:bafybeic4psoqdm4nfcdhybiq5otfftofgs6safgrfrapd2jtr5mlienm3i
+- elcollectooorr/token_vault:0.1.0:bafybeif5cgknn7qjbm7js7jhhfv7zs2cp2eywcfgzru3mvlieqqwl2ohuq
+- elcollectooorr/token_vault_factory:0.1.0:bafybeiefrxf4ymdzrdsovmn5pja4i36w3mzuabct4a5maiaerbzjmsuk4i
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 - valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
 protocols:
@@ -41,7 +41,7 @@ protocols:
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibi2i46pzwekiltarrkj72tcj4ynvrqwi64nr4yzshk7rw4eieqwy
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeifi3egpy2yfvj4isjtsg2y3had7e4ifn2o7v32dkjozkusfvxepti
 - valory/abstract_round_abci:0.1.0:bafybeicqihaqm7w7qf2cz5nsop3yrg64mm5eb7vlbl4z5qppmhgtzegpye
 - valory/registration_abci:0.1.0:bafybeidlts5ca4qcfd4u2ix7vzj34f7xwfkr74hj3g6awmh6rvlnbagsde
 - valory/reset_pause_abci:0.1.0:bafybeihywet5df7nrgarlx5qqkef6ofh6xrcd3hm2m7mpqpqfvbypra3wq

@@ -23,7 +23,6 @@ import json
 import logging
 from copy import copy
 from enum import Enum
-from pathlib import Path
 from typing import Any, Dict, List, Type, cast
 from unittest import mock
 from unittest.mock import patch
@@ -31,9 +30,6 @@ from unittest.mock import patch
 from aea.helpers.transaction.base import SignedMessage, State
 from aea.test_tools.test_skill import BaseSkillTestCase
 
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
-    ROOT_DIR,
-)
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
 from packages.elcollectooorr.contracts.basket_factory.contract import (
     BasketFactoryContract,
@@ -53,6 +49,9 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.handlers import (
     SigningHandler,
 )
 from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import PeriodState
+from packages.elcollectooorr.skills.elcollectooorr_abci.tests import (
+    PACKAGE_DIR as ELCOLLECTOOORR_PACKAGE_DIR,
+)
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours import (
     BasketAddressesRoundBehaviour,
     DeployBasketTxRoundBehaviour,
@@ -105,10 +104,7 @@ class DummyRoundId:
 class FractionalizeFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing Fractionalize FSMBehaviour."""
 
-    path_to_skill = Path(
-        ROOT_DIR, "skills", "elcollectooorr_abci",
-    )
-
+    path_to_skill = ELCOLLECTOOORR_PACKAGE_DIR
     fractionalize_deployment_abci_behaviour: AbstractRoundBehaviour
     ledger_handler: LedgerApiHandler
     http_handler: HttpHandler

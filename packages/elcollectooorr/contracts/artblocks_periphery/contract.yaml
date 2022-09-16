@@ -6,7 +6,7 @@ description: The artblocks minter contract interface.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeidihy6loi6z7h3s5lxldw7btpo263pljzrfwohk2kooji2van7jei
+  __init__.py: bafybeigc7hvddoxcdqdkybwiu6bhytnlu2l3k4v4v4dbyexyzpnrkvwghi
   build/Minter.json: bafybeieqfmxzi2jdpuy6ayqpi7cs3yvb3z4lypyafxv5qunzsx5f2utl44
   contract.py: bafybeianfpcivnzb2wcvcr3cvbztmmcvpepvjfvydut6gstavxw46c7sv4
 fingerprint_ignore_patterns: []

@@ -18,3 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the support resources for the fractional token vault (TokenVault) contract."""
+from pathlib import Path
+
+
+PACKAGE_DIR = Path(__file__).parent

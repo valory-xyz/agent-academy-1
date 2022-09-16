@@ -22,7 +22,6 @@ import json
 import logging
 from copy import copy
 from enum import Enum
-from pathlib import Path
 from typing import Any, Dict, List, Type, cast
 from unittest import mock
 from unittest.mock import patch
@@ -72,6 +71,7 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     PeriodState,
     PostTransactionSettlementEvent,
 )
+from packages.elcollectooorr.skills.elcollectooorr_abci.tests import PACKAGE_DIR
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours import (
     DeployDecisionRoundBehaviour,
 )
@@ -124,7 +124,7 @@ class DummyRoundId:
 class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):  # pylint: disable=protected-access
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = Path(__file__).parent.parent
+    path_to_skill = PACKAGE_DIR
 
     elcollectooorr_abci_behaviour: AbstractRoundBehaviour
     ledger_handler: LedgerApiHandler

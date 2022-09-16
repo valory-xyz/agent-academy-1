@@ -17,17 +17,19 @@
 #
 # ------------------------------------------------------------------------------
 """Constants for tests."""
-import inspect
-import os
 from typing import List, Tuple
 
-from packages.elcollectooorr import ELCOLLETOOORR_PACKAGES
+from packages.elcollectooorr.agents.elcollectooorr.tests import PACKAGE_DIR
+from packages.elcollectooorr.contracts.artblocks import PACKAGE_DIR as ARTBLOCKS_DIR
+from packages.elcollectooorr.contracts.artblocks_minter_filter import (
+    PACKAGE_DIR as ARTBLOCKS_MINTER_FILTER_DIR,
+)
+from packages.elcollectooorr.contracts.artblocks_periphery import (
+    PACKAGE_DIR as ARTBLOCKS_PERIPHERY_DIR,
+)
 
 
-CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
-ROOT_DIR = ELCOLLETOOORR_PACKAGES
-TEST_DATA_DIR = ROOT_DIR / "agents" / "elcollectooorr" / "tests" / "data"
-ELCOL_CONTRACT_PACKAGES = ROOT_DIR / "contracts"
+TEST_DATA_DIR = PACKAGE_DIR / "tests" / "data"
 DEFAULT_ASYNC_TIMEOUT = 5.0
 DEFAULT_REQUESTS_TIMEOUT = 5.0
 MAX_RETRIES = 30
@@ -38,12 +40,12 @@ SAFE_CONTRACT_ADDRESS = "0x32Cf1f3a98aeAF57b88b3740875D19912A522c1A"
 SAFE_FACTORY_ADDRESS = "0xD3aA556287Afe63102e5797BFDDd2A1E8DbB3eA5"
 SAFE_CALLBACK_HANDLER = "0x5Cca2cF3f8a0e5a5aF6A1E9A54A0c98510D92081"
 DEPLOYED_SAFE_CONTRACT = "0xfe8E74C5453fE73A1c927A4B95251DFF66D46Fac"  # this is the contract that get deployed once the test is run
-ARTBLOCKS_CORE_FILE = ELCOL_CONTRACT_PACKAGES / "artblocks" / "build" / "artblocks.json"
+ARTBLOCKS_CORE_FILE = ARTBLOCKS_DIR / "build" / "artblocks.json"
 ARTBLOCKS_PERIPHERY_FILE = (
-    ELCOL_CONTRACT_PACKAGES / "artblocks_periphery" / "build" / "Minter.json"
+    ARTBLOCKS_PERIPHERY_DIR / "build" / "Minter.json"
 )
 ARTBLOCKS_MINTER_FILTER_FILE = (
-    ELCOL_CONTRACT_PACKAGES / "artblocks_minter_filter" / "build" / "MinterFilter.json"
+    ARTBLOCKS_MINTER_FILTER_DIR / "build" / "MinterFilter.json"
 )
 ARTBLOCKS_ADDRESS = "0xE0F8cEe346A702CCA192a6Ec807ff89B4c6bC70E"
 ARTBLOCKS_FILTER_ADDRESS = "0x3A78BF1783a0187c1C8000e41C2a008897D0a35f"

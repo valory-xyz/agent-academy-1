@@ -18,7 +18,3 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the elcollectooorr packages authored by Valory AG."""
-from pathlib import Path
-
-
-ELCOLLETOOORR_PACKAGES = Path(__file__).parent

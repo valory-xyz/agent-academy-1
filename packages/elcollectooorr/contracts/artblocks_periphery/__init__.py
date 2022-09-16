@@ -18,3 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the support resources for the artblocks periphery contracts."""
+from pathlib import Path
+
+
+PACKAGE_DIR = Path(__file__).parent
