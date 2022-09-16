@@ -20,7 +20,7 @@ models:
       consensus:
         max_participants: 1
       decision_model_threshold: 0.8
-      whitelisted_investor_addresses: []
+      whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
       observation_interval: 300
       reset_tendermint_after: 60
 ---

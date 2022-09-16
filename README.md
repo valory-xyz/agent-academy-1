@@ -34,6 +34,10 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
     pipenv shell
     ```
 
+- Fetch packages:
+
+      autonomy packages sync
+
 - Optionally: run all checks 
 
       tox
@@ -80,15 +84,16 @@ These steps only work for operators registered on-chain!
 
       ```bash
       export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]
+      export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES={YOUR_WHITELIST}
       export SERVICE_ELCOLLECTOOORR_RPC={YOUR_RPC_URL}
       ```
 
-      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment.
+      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `{YOUR_WHITELIST}` and `{YOUR_RPC_URL}` should be replaced accordingly.
 
       Then fetch the service
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidgx5oijdq66r3w7cy3gwbvgig23nf4v45tebqzu6kzpmdpfzdedm --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeifhe4apmnehbfke7dgtghxbv6775nix56b2x66uhilixssuvjre5u --service
       cd elcollectooorr
       ```
 
