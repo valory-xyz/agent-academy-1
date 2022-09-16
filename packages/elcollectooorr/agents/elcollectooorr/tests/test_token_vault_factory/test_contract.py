@@ -301,7 +301,7 @@ class TestRenounceTokenVaultFactory(BaseTestTokenVaultFactory):
 class TestMintTokenVault(BaseTestTokenVaultFactory):
     """Test minting a new token vault"""
 
-    CONTRACTS_DIR = Path(__file__).parent.parent.parent
+    CONTRACTS_DIR = Path(__file__).parent.parent.parent.parent.parent / "contracts"
     dependencies = BaseTestTokenVaultFactory.dependencies + [
         (
             "basket_factory",
