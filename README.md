@@ -7,28 +7,20 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 
 ## Cloning
 
-- Clone the repository, and recursively clone the submodules:
+- Clone the repository:
     ```bash
-    git clone --recursive git@github.com:valory-xyz/agent-academy-1.git
-    ```
-
-- Note: to update the Git submodules later:
-
-    ```bash      
-    git submodule update --init --recursive
+    git clone git@github.com:valory-xyz/agent-academy-1.git
     ```
 
 ## Requirements & Setup
 
 - Refer to requirements for [open-autonomy](https://github.com/valory-xyz/open-autonomy) in the requirements section of the README.
 
-- Build the Hardhat projects:
+- Pull pre-built images:
 
-    ```bash
-    cd third_party/safe-contracts && yarn install
-    cd ../contracts-elcol && yarn install
-    cd ../..
-    ```
+      docker pull node:16.7.0
+      docker pull trufflesuite/ganache:beta
+      docker pull valory/elcollectooorr-network:latest
 
 - Create a virtual environment with all development dependencies:
 
@@ -84,6 +76,17 @@ These steps only work for operators registered on-chain!
 
       - Option 1: Step-by-step
 
+      Ensure you have set the following environment variables:
+
+      ```bash
+      export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]
+      export SERVICE_ELCOLLECTOOORR_RPC={YOUR_RPC_URL}
+      ```
+
+      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment.
+
+      Then fetch the service
+
       ```bash
       autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidgx5oijdq66r3w7cy3gwbvgig23nf4v45tebqzu6kzpmdpfzdedm --service
       cd elcollectooorr
@@ -93,20 +96,10 @@ These steps only work for operators registered on-chain!
 
       ```bash
       autonomy build-image
-      autonomy deploy build keys.json --force --local
+      autonomy deploy build keys.json --force --local --aev
       ```
 
       (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
-
-      Substitute the safe address taken from on-chain. In `abci_build/docker-compose.yaml`, replace
-      ```bash
-      - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=[]
-      ```
-      with
-      ```bash
-      - SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]
-      ```
-      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment.
 
       Then run the service:
 
