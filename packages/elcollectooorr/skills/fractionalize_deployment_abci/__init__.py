@@ -18,8 +18,10 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the ABCI 'Fractionalize Deployment' skill for an AEA."""
+from pathlib import Path
 
 from aea.configurations.base import PublicId
 
 
 PUBLIC_ID = PublicId.from_str("elcollectooorr/fractionalize_deployment_abci:0.1.0")
+PACKAGE_DIR = Path(__file__).parent

@@ -7,25 +7,20 @@ license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeicxwrytguk3vkvcavvcoltgrajw3a4lv5vjkaq7ixo6xbpbtmjsaq
-  __init__.py: bafybeia5rva2h2e5cig5csusvodctzoxwa3s5axqcfv23og6hgxfumuxaq
+  __init__.py: bafybeid64gala35gw2y43v3ibxzcjki5fesoylbi5yk6yh4t5kpqgeifeu
   behaviours.py: bafybeids5p46ibnw7lpdq5hts5e4v2mk6zz5mozlavbl773c6hvdlzikz4
   dialogues.py: bafybeicrchr3af6s6s4m7lqhamo5tqacwly6jnm3ymdxtxqfhemu2gw6sq
   handlers.py: bafybeic6d3w35brxfuldxaxx2y3kkgfxyhqbhytdgu3czk3c3rrruhsbcm
   models.py: bafybeib6q2edaaspgprivesnupyepw5375hrlddl4qt7bxs5ig774epspm
   payloads.py: bafybeiaiu3eu6tflsntmmzfigwx2yzibqkxluoyhuexa47upszhsjid4by
   rounds.py: bafybeigdmxhfztgsctqvlm5kflorlqu46pl56365jp74pn22e4m4dac6tq
-  tests/__init__.py: bafybeifpwsaub3khxsixvj6yc2b7zlmkpt3h6m2q65x2zmmo6uvcbpdgpm
-  tests/test_behaviours.py: bafybeifsstkeuglkwfbql2zyddybqyekxtk24u5hfi2sp67ixblhzdb6qy
-  tests/test_dialogues.py: bafybeihea5tjndkyr2a5ezys26mxw3bcrsyrhqdd75egux35ydtvadndva
-  tests/test_payloads.py: bafybeigtrkmgejek2raj65ulbiogslzsd4tnf5xkjvvbgxlo6x4jx4cwrq
-  tests/test_rounds.py: bafybeiekq7q7acupqw7xpzptp2wsdlneh7fposabbhx7rkixxgj7tgdmjm
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/basket:0.1.0:bafybeigreucbbbisd4mxp2bwzyb43obdzb3o6xm5ma67medljqfz3xstsi
-- elcollectooorr/basket_factory:0.1.0:bafybeiedx7gq5yymwuk7psbg3pcsb7er4moznayjcriqkdwn373ejsikmy
-- elcollectooorr/token_vault:0.1.0:bafybeiazpiwuwpe7qa5ovcxala4454on3ij5ue5ejhtxwzrqjiqtldsp54
-- elcollectooorr/token_vault_factory:0.1.0:bafybeidkcqxxef3of24kxwctilks2wk2cx2y5fvrpa6sv7qgvxvnlbdb4e
+- elcollectooorr/basket:0.1.0:bafybeievb6an7m7wtfy4qwqurfgqsoczfzmz5f6zqbkbsi7jjxyp6tofc4
+- elcollectooorr/basket_factory:0.1.0:bafybeic4psoqdm4nfcdhybiq5otfftofgs6safgrfrapd2jtr5mlienm3i
+- elcollectooorr/token_vault:0.1.0:bafybeif5cgknn7qjbm7js7jhhfv7zs2cp2eywcfgzru3mvlieqqwl2ohuq
+- elcollectooorr/token_vault_factory:0.1.0:bafybeiefrxf4ymdzrdsovmn5pja4i36w3mzuabct4a5maiaerbzjmsuk4i
 - valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim

@@ -18,3 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """Tests package for valory/token_settings contract."""
+from pathlib import Path
+
+
+PACKAGE_DIR = Path(__file__).parent.parent

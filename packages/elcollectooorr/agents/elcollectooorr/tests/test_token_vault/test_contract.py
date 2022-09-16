@@ -20,7 +20,6 @@
 
 """Tests for valory/token_vault contract."""
 import time
-from pathlib import Path
 from typing import Any, Dict, cast
 
 from aea.crypto.registries import crypto_registry
@@ -31,10 +30,21 @@ from aea_test_autonomy.base_test_classes.contracts import (
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_1
 
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
+from packages.elcollectooorr.contracts.basket.tests import PACKAGE_DIR as BASKET_DIR
 from packages.elcollectooorr.contracts.basket_factory.contract import (
     BasketFactoryContract,
 )
+from packages.elcollectooorr.contracts.basket_factory.tests import (
+    PACKAGE_DIR as BASKET_FACTORY_DIR,
+)
+from packages.elcollectooorr.contracts.token_settings.tests import (
+    PACKAGE_DIR as TOKEN_SETTINGS_DIR,
+)
+from packages.elcollectooorr.contracts.token_vault import PACKAGE_DIR as TOKEN_VAULT_DIR
 from packages.elcollectooorr.contracts.token_vault.contract import TokenVaultContract
+from packages.elcollectooorr.contracts.token_vault_factory import (
+    PACKAGE_DIR as TOKEN_VAULT_FACTORY_DIR,
+)
 from packages.elcollectooorr.contracts.token_vault_factory.contract import (
     TokenVaultFactoryContract,
 )
@@ -48,28 +58,27 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 class TestTokenVault(BaseGanacheContractWithDependencyTest):
     """Test deployment of Token Vault to Ganache."""
 
-    CONTRACTS_DIR = Path(__file__).parent.parent.parent.parent.parent / "contracts"
-    contract_directory = Path(CONTRACTS_DIR, "token_vault")
+    contract_directory = TOKEN_VAULT_DIR
     contract: TokenVaultContract
 
     dependencies = [
         (
             "token_settings",
-            Path(CONTRACTS_DIR, "token_settings"),
+            TOKEN_SETTINGS_DIR,
             dict(
                 gas=DEFAULT_GAS,
             ),
         ),
         (
             "basket_factory",
-            Path(CONTRACTS_DIR, "basket_factory"),
+            BASKET_FACTORY_DIR,
             dict(
                 gas=DEFAULT_GAS,
             ),
         ),
         (
             "basket",
-            Path(CONTRACTS_DIR, "basket"),
+            BASKET_DIR,
             dict(
                 gas=DEFAULT_GAS,
                 is_basket=True,
@@ -77,9 +86,7 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         ),
         (
             "token_vault_factory",
-            Path(
-                CONTRACTS_DIR, "token_vault_factory",
-            ),
+            TOKEN_VAULT_FACTORY_DIR,
             dict(gas=DEFAULT_GAS, deps={"_settings": "token_settings"}),
         ),
     ]

@@ -71,11 +71,6 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
     GANACHE_KEY_PAIRS,
     HARDHAT_ELCOL_KEY_PAIRS,
     KEY_PAIRS,
-)
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
-    ROOT_DIR as _ROOT_DIR,
-)
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     TARGET_PROJECT_ID,
 )
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.elcol_net import (
@@ -86,10 +81,6 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.docker.mock_arb
     DEFAULT_JSON_SERVER_PORT,
     MockArtblocksJsonServer,
 )
-
-
-ROOT_DIR = _ROOT_DIR
-THIRD_PARTY_CONTRACTS = ROOT_DIR / "third_party"
 
 
 @pytest.fixture()
