@@ -136,7 +136,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
         """Run the test."""
         self.prepare_and_launch(nb_nodes)
         self.health_check(
-            max_retries=self.HEALTH_CHECK_MAX_RETRIES,
+            max_retries=3,
             sleep_interval=self.HEALTH_CHECK_SLEEP_INTERVAL,
         )
         thread = threading.Thread(target=self._deposit_to_safe_contract)

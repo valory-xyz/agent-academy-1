@@ -29,6 +29,9 @@ from aea_test_autonomy.base_test_classes.contracts import (
 )
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_1
 
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    ELCOL_CONTRACT_PACKAGES as CONTRACTS_DIR,
+)
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
 from packages.elcollectooorr.contracts.basket_factory.contract import (
     BasketFactoryContract,
@@ -46,7 +49,6 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 class BaseTestTokenVaultFactory(BaseGanacheContractWithDependencyTest):  # pylint disable=too-few-public-methods
     """Test deployment of Token Vault Factory to Ganache."""
 
-    CONTRACTS_DIR = Path(__file__).parent.parent.parent.parent.parent / "contracts"
     contract_directory = Path(CONTRACTS_DIR, "token_vault_factory")
     contract: TokenVaultFactoryContract
 
@@ -301,7 +303,6 @@ class TestRenounceTokenVaultFactory(BaseTestTokenVaultFactory):
 class TestMintTokenVault(BaseTestTokenVaultFactory):
     """Test minting a new token vault"""
 
-    CONTRACTS_DIR = Path(__file__).parent.parent.parent.parent.parent / "contracts"
     dependencies = BaseTestTokenVaultFactory.dependencies + [
         (
             "basket_factory",

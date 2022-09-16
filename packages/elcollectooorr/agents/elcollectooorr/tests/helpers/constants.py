@@ -19,12 +19,13 @@
 """Constants for tests."""
 import inspect
 import os
-from pathlib import Path
 from typing import List, Tuple
+
+from packages.elcollectooorr import ELCOLLETOOORR_PACKAGES
 
 
 CUR_PATH = os.path.dirname(inspect.getfile(inspect.currentframe()))  # type: ignore
-ROOT_DIR = Path(CUR_PATH, "..", "..", "..", "..",).resolve().absolute()
+ROOT_DIR = ELCOLLETOOORR_PACKAGES
 TEST_DATA_DIR = ROOT_DIR / "agents" / "elcollectooorr" / "tests" / "data"
 ELCOL_CONTRACT_PACKAGES = ROOT_DIR / "contracts"
 DEFAULT_ASYNC_TIMEOUT = 5.0

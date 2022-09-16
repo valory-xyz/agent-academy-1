@@ -31,6 +31,9 @@ from unittest.mock import patch
 from aea.helpers.transaction.base import SignedMessage, State
 from aea.test_tools.test_skill import BaseSkillTestCase
 
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    ROOT_DIR,
+)
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
 from packages.elcollectooorr.contracts.basket_factory.contract import (
     BasketFactoryContract,
@@ -102,9 +105,8 @@ class DummyRoundId:
 class FractionalizeFSMBehaviourBaseCase(BaseSkillTestCase):
     """Base case for testing Fractionalize FSMBehaviour."""
 
-    ROOT_DIR = Path(__file__).parent.parent.parent
     path_to_skill = Path(
-        ROOT_DIR, "elcollectooorr_abci"
+        ROOT_DIR, "skills", "elcollectooorr_abci",
     )
 
     fractionalize_deployment_abci_behaviour: AbstractRoundBehaviour
