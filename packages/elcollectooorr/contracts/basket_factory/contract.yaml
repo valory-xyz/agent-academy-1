@@ -10,6 +10,8 @@ fingerprint:
   __init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
   build/BasketFactory.json: bafybeigrhyobgofcivfzchurfkegahetannmw7ekpiz3pyid6q2w3newbu
   contract.py: bafybeidlh2sa3xrljoolvdsxoknbd67qkaej3lxa76omeo5qsk3awebu2y
+  tests/__init__.py: bafybeigq6zj3x5frzgwooqftwcvinzh7yhziibop6zedcdn3kwyks2rqty
+  tests/test_contract.py: bafybeifwhc2f7kxczo5s2jyrq3dz5676l6fzyg4nmlvqnsspsopgmks574
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: BasketFactoryContract

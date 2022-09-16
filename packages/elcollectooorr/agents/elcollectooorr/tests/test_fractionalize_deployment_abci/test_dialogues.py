@@ -16,12 +16,12 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: skip-file
 
-"""This module contains the ABCI 'Fractionalize Deployment' skill for an AEA."""
-from pathlib import Path
+"""Test the dialogues.py module of the skill."""
 
-from aea.configurations.base import PublicId
+import packages.elcollectooorr.skills.fractionalize_deployment_abci.dialogues  # noqa
 
 
-PUBLIC_ID = PublicId.from_str("elcollectooorr/fractionalize_deployment_abci:0.1.0")
-PACKAGE_DIR = Path(__file__).parent
+def test_import() -> None:
+    """Test that the 'dialogues.py' Python module can be imported."""
