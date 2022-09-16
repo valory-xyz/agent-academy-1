@@ -1,5 +1,11 @@
 # Release History - `agent-academy-1`
 
+## 0.2.3 (2022-09-16)
+
+- Removed 3rd party sub-modules and `node.js` dependency.
+- Bump to `open-autonomy` 0.3.0.
+- Update service to handle environment vars.
+
 ## 0.2.2 (2022-08-28)
 
 - Sync with open-autonomy `v0.2.1`.
