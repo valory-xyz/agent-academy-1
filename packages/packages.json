@@ -24,12 +24,12 @@
     "contract/elcollectooorr/artblocks_minter_filter/0.1.0": "bafybeicpdjm3xdbg2a7cshg63mutuyac2xl2hnmtrptyx7rx3i6fneuzam",
     "contract/elcollectooorr/artblocks_periphery/0.1.0": "bafybeifnfae5b643q3z6j2jwj6mvwwlpidseetsl6jtcjkaiheqphibvpy",
     "contract/valory/multisend/0.1.0": "bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya",
-    "skill/elcollectooorr/fractionalize_deployment_abci/0.1.0": "bafybeifi3egpy2yfvj4isjtsg2y3had7e4ifn2o7v32dkjozkusfvxepti",
+    "skill/elcollectooorr/fractionalize_deployment_abci/0.1.0": "bafybeihmd4iw6qvfridfo2dzoucsclivl36c3n3fwahhhck7onndcpkwke",
     "skill/valory/registration_abci/0.1.0": "bafybeie7lxe5spcitc7pwfilapsu5wlictp4ibz7gbko5yg3nx6llcjisu",
     "skill/valory/reset_pause_abci/0.1.0": "bafybeiamkbck2c35uc6h7c6sotmsobr7h6tc2vzskoxztlu7o6af6mcacm",
     "skill/valory/safe_deployment_abci/0.1.0": "bafybeifgljjbc2x42xcynmirchrno7iwwq6ufnhpqr37ypeoqstfnjujli",
-    "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeieco6qygpwen2uzzf7verj7ee3dziwvlvo6msjqzs4jxsbycpjgza",
-    "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeia4zn34dgz6lgaogyjuxpmml27dz7w2qwemq2kxngiebzdln6sroa",
+    "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeig4mqfnqwkxgswjbiv5p25mlvtg4rkowzjixvm4ptd2edzcu5a6uu",
+    "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeib3xhrvn7kbcjf3mftsi2iu4n5hdixhtxyc2dypsrl6thqsmg3u4y",
     "contract/elcollectooorr/token_settings/0.1.0": "bafybeiakmc2uikfzls3kwwpnokd645ih74avadiylbev5gxh4t6qqt7z64",
-    "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeifhe4apmnehbfke7dgtghxbv6775nix56b2x66uhilixssuvjre5u"
+    "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeiczs3il3a3bqcqo7zc3siadmbwgdvzsr45mzfav2ih2wn7efw43ju"
 }
