@@ -18,7 +18,7 @@ fingerprint:
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
   rounds.py: bafybeiet6ibyzmo4ufeu2bmfyx27kzcxolisuunn2mcrrlbifzx5jxggt4
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
-  tests/test_behaviours.py: bafybeiac4uvrcr76ee7etf76rambou3fl25rwlrunruvsccq75h6cp6yo4
+  tests/test_behaviours.py: bafybeicpruaznh5qafd4pdpj2okrt3tvreejojfo2doxdic54w3zzxgxhi
   tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
   tests/test_payloads.py: bafybeiarokonoz2okmdc4ktmrzckdxitoophwt6wk3at4wjnrhjvcqlabq
   tests/test_rounds.py: bafybeicz3pylqnelk5y6artzvvo4riqk43zf7n3qeofvjmqz65x754pe34
@@ -41,7 +41,7 @@ protocols:
 - valory/http:1.0.0:bafybeibfjhmmjut4dukhunbcmp5zi4eqsk6rgreztmg4svqfzyq4ei3o7i
 - valory/ledger_api:1.0.0:bafybeifawyt7ayxrvpagqecowx6y5hvc3dxzjbhhkutxsuk7u54cxo2g54
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeihmd4iw6qvfridfo2dzoucsclivl36c3n3fwahhhck7onndcpkwke
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeigf3qiwrbok2kbh56ikm5wm4ju4zieqbrtjouaii2pdpld6c5d5ou
 - valory/abstract_round_abci:0.1.0:bafybeiasu3lbnwqdgdzoaxrvbos5qgabxtxkhb52r3rosrp4s4c246467a
 - valory/registration_abci:0.1.0:bafybeie7lxe5spcitc7pwfilapsu5wlictp4ibz7gbko5yg3nx6llcjisu
 - valory/reset_pause_abci:0.1.0:bafybeiamkbck2c35uc6h7c6sotmsobr7h6tc2vzskoxztlu7o6af6mcacm
@@ -99,6 +99,23 @@ models:
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       enforce_investor_whitelisting: true
       finalize_timeout: 60.0
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
       history_check_timeout: 1205
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
