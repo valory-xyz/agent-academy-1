@@ -21,12 +21,12 @@ contracts:
 - elcollectooorr/basket_factory:0.1.0:bafybeic4psoqdm4nfcdhybiq5otfftofgs6safgrfrapd2jtr5mlienm3i
 - elcollectooorr/token_vault:0.1.0:bafybeif5cgknn7qjbm7js7jhhfv7zs2cp2eywcfgzru3mvlieqqwl2ohuq
 - elcollectooorr/token_vault_factory:0.1.0:bafybeiefrxf4ymdzrdsovmn5pja4i36w3mzuabct4a5maiaerbzjmsuk4i
-- valory/gnosis_safe:0.1.0:bafybeidkfwvbyknjwlndhdf5euan7i4wmugxgtf2uhakvqspy24vgaehya
+- valory/gnosis_safe:0.1.0:bafybeihht4j726a4swe4duqxohnxtctdghftgywurw55zwjjqsbqjwnacm
 protocols:
 - valory/contract_api:1.0.0:bafybeidyjrthhq3p27k3v3a4xx7b7lu4fe4h765gmkyyyj7xur4b25bxim
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeicqihaqm7w7qf2cz5nsop3yrg64mm5eb7vlbl4z5qppmhgtzegpye
-- valory/transaction_settlement_abci:0.1.0:bafybeifhlmfxcxoyxytvcevttoix44kto5z6bskery7y5hltqur25vgory
+- valory/abstract_round_abci:0.1.0:bafybeiasu3lbnwqdgdzoaxrvbos5qgabxtxkhb52r3rosrp4s4c246467a
+- valory/transaction_settlement_abci:0.1.0:bafybeia2gs36s2mz32yaznhlidiolhw5swkumiej4vgwywphppjvurldie
 behaviours:
   main:
     args: {}
@@ -71,6 +71,23 @@ models:
       consensus:
         max_participants: 1
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
+      genesis_config:
+        genesis_time: '2022-05-20T16:00:21.735122717Z'
+        chain_id: chain-c4daS1
+        consensus_params:
+          block:
+            max_bytes: '22020096'
+            max_gas: '-1'
+            time_iota_ms: '1000'
+          evidence:
+            max_age_num_blocks: '100000'
+            max_age_duration: '172800000000000'
+            max_bytes: '1048576'
+          validator:
+            pub_key_types:
+            - ed25519
+          version: {}
+        voting_power: '10'
       keeper_timeout: 30.0
       max_healthcheck: 120
       max_retries: 5

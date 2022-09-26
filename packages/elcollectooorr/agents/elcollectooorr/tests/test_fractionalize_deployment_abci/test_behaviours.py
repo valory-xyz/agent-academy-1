@@ -65,8 +65,8 @@ from packages.open_aea.protocols.signing import SigningMessage
 from packages.valory.connections.http_client.connection import (
     PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
 )
-from packages.valory.connections.ledger.base import (
-    CONNECTION_ID as LEDGER_CONNECTION_PUBLIC_ID,
+from packages.valory.connections.ledger.connection import (
+    PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
@@ -123,7 +123,7 @@ class FractionalizeFSMBehaviourBaseCase(BaseSkillTestCase):
             _MetaPayload.transaction_type_to_payload_cls
         )
         _MetaPayload.transaction_type_to_payload_cls = {}
-        super().setup()
+        super().setup_class()
         assert cls._skill.skill_context._agent_context is not None
         cls._skill.skill_context._agent_context.identity._default_address_key = (
             "ethereum"
