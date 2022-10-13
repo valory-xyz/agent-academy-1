@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeig6x664uhqkrv5x62jir4anksdebgtjpni2dsr5lkxiyii7miqlum
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeiahjxzohjffjghxylnknxtcromgcd4oo6hjle2suzluhatmwbxtpi
 number_of_agents: 1
 ---
 public_id: elcollectooorr/elcollectooorr_abci:0.1.0
@@ -24,7 +24,7 @@ models:
       observation_interval: 300
       reset_tendermint_after: 60
 ---
-public_id: valory/ledger:0.1.0
+public_id: valory/ledger:0.19.0
 type: connection
 config:
   ledger_apis:
