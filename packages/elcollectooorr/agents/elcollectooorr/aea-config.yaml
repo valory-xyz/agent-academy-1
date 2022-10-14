@@ -28,9 +28,9 @@ fingerprint:
   tests/test_fractionalize_deployment_abci/test_payloads.py: bafybeigtrkmgejek2raj65ulbiogslzsd4tnf5xkjvvbgxlo6x4jx4cwrq
   tests/test_fractionalize_deployment_abci/test_rounds.py: bafybeiekq7q7acupqw7xpzptp2wsdlneh7fposabbhx7rkixxgj7tgdmjm
   tests/test_token_vault/__init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
-  tests/test_token_vault/test_contract.py: bafybeia6wfxo4ry5anceivqtwkdiv54xugryhvvs6m4i3kljs2uojv6oeq
+  tests/test_token_vault/test_contract.py: bafybeifbgxr5pclftalkyzz7cyauiq7kqxdvsipacgq65yjuvpry32etjq
   tests/test_token_vault_factory/__init__.py: bafybeibvzzcxfah75gtx6wlvc6k2lfsbwo572bltjxwg2orlv3oqhj5yrq
-  tests/test_token_vault_factory/test_contract.py: bafybeicrahopov3fmctsqwa7spcaelm2nb46353r2jrhr7rg6b2ozpmegu
+  tests/test_token_vault_factory/test_contract.py: bafybeidyyypsobocweokoihqpctr57irijlenao7qpp7bexyoltbio5rdy
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeid6p7vwyikn7sntlpc36vymotldfgonjbk3qa5gfacxxamybhmpvy
@@ -41,8 +41,8 @@ contracts:
 - elcollectooorr/artblocks:0.1.0:bafybeiebk7ldudazfdxhvmiaz7r7u4pyupmfqflskgtosb26yuehif3dju
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeicpdjm3xdbg2a7cshg63mutuyac2xl2hnmtrptyx7rx3i6fneuzam
 - elcollectooorr/artblocks_periphery:0.1.0:bafybeifnfae5b643q3z6j2jwj6mvwwlpidseetsl6jtcjkaiheqphibvpy
-- elcollectooorr/basket:0.1.0:bafybeievb6an7m7wtfy4qwqurfgqsoczfzmz5f6zqbkbsi7jjxyp6tofc4
-- elcollectooorr/basket_factory:0.1.0:bafybeic4psoqdm4nfcdhybiq5otfftofgs6safgrfrapd2jtr5mlienm3i
+- elcollectooorr/basket:0.1.0:bafybeib4x6ogudzpmyujqewgdthps2utsaqtb3evty7xvmvlbkqqzzqpa4
+- elcollectooorr/basket_factory:0.1.0:bafybeidjb37y3tc7bgaqqnjovmo63mrntyy3ebkmu6ytllyqqi5py73gge
 - elcollectooorr/token_vault:0.1.0:bafybeif5cgknn7qjbm7js7jhhfv7zs2cp2eywcfgzru3mvlieqqwl2ohuq
 - elcollectooorr/token_vault_factory:0.1.0:bafybeiefrxf4ymdzrdsovmn5pja4i36w3mzuabct4a5maiaerbzjmsuk4i
 - valory/gnosis_safe:0.1.0:bafybeiaema4xgfolq3nx26zu4o3kafro4aubmsjfwvzi5tfbp3fwg4cmoa
@@ -58,8 +58,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeidji6ahry6luxu4lhbwszxiciyaa6blw5mwvgnco7yjdjn2nyczve
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeig2kxjqiavp7er4a6rdivgip3yuxq5wzt3dozv4j4m5chtau3sv24
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeiba5mcmfzogxim6nxpewuaqxwssdzhdtnm2kpcs2uhr74hasbfvdu
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeid3zygm6inpvqawebequf6kxfxjwew6w5agyw4ha5njq22na5kp4m
 - valory/abstract_abci:0.1.0:bafybeiabow5j6wc63szukedutrx6bia2agnju62avxsbhqkhchcwwpvu5i
 - valory/abstract_round_abci:0.1.0:bafybeiegpewio6lkpikfnohjqmlwkqtxdmjbky4dphof4jvrixlvkiqixi
 - valory/registration_abci:0.1.0:bafybeigck3gb5tvm5tilzii7kvzqpryxrmxu2meck5empgl7lhuz66mbgq

@@ -30,7 +30,7 @@ contracts:
 - elcollectooorr/artblocks:0.1.0:bafybeiebk7ldudazfdxhvmiaz7r7u4pyupmfqflskgtosb26yuehif3dju
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeicpdjm3xdbg2a7cshg63mutuyac2xl2hnmtrptyx7rx3i6fneuzam
 - elcollectooorr/artblocks_periphery:0.1.0:bafybeifnfae5b643q3z6j2jwj6mvwwlpidseetsl6jtcjkaiheqphibvpy
-- elcollectooorr/basket_factory:0.1.0:bafybeic4psoqdm4nfcdhybiq5otfftofgs6safgrfrapd2jtr5mlienm3i
+- elcollectooorr/basket_factory:0.1.0:bafybeidjb37y3tc7bgaqqnjovmo63mrntyy3ebkmu6ytllyqqi5py73gge
 - elcollectooorr/token_vault:0.1.0:bafybeif5cgknn7qjbm7js7jhhfv7zs2cp2eywcfgzru3mvlieqqwl2ohuq
 - elcollectooorr/token_vault_factory:0.1.0:bafybeiefrxf4ymdzrdsovmn5pja4i36w3mzuabct4a5maiaerbzjmsuk4i
 - valory/gnosis_safe:0.1.0:bafybeiaema4xgfolq3nx26zu4o3kafro4aubmsjfwvzi5tfbp3fwg4cmoa
@@ -41,7 +41,7 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeig2kxjqiavp7er4a6rdivgip3yuxq5wzt3dozv4j4m5chtau3sv24
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeid3zygm6inpvqawebequf6kxfxjwew6w5agyw4ha5njq22na5kp4m
 - valory/abstract_round_abci:0.1.0:bafybeiegpewio6lkpikfnohjqmlwkqtxdmjbky4dphof4jvrixlvkiqixi
 - valory/registration_abci:0.1.0:bafybeigck3gb5tvm5tilzii7kvzqpryxrmxu2meck5empgl7lhuz66mbgq
 - valory/reset_pause_abci:0.1.0:bafybeid65rpcwq3rzxijwrpsbirersuwk2sdtcwnpkplczbszzoq2tbitu

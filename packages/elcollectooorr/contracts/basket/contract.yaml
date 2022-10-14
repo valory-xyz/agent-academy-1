@@ -11,10 +11,10 @@ fingerprint:
   build/Basket.json: bafybeidg5favibiv4jzggfgmtme6lkheg4smgdwkj76xvkrqpsnsswftba
   contract.py: bafybeievs5yhvkrqo7idvpf7lxty3odtqqslsfn4gsrabgzuum3csmyu7q
   tests/__init__.py: bafybeigq6zj3x5frzgwooqftwcvinzh7yhziibop6zedcdn3kwyks2rqty
-  tests/test_contract.py: bafybeic5jb7ubks2442fnzzuju6uix7nfoy3orxuetf4d5k5q2if4xsqie
+  tests/test_contract.py: bafybeigopcgatpmvxk7exysrocbp36axrlnvti5rx75l2px2eq6jxzhwvm
 fingerprint_ignore_patterns: []
 contracts:
-- elcollectooorr/basket_factory:0.1.0:bafybeic4psoqdm4nfcdhybiq5otfftofgs6safgrfrapd2jtr5mlienm3i
+- elcollectooorr/basket_factory:0.1.0:bafybeidjb37y3tc7bgaqqnjovmo63mrntyy3ebkmu6ytllyqqi5py73gge
 class_name: BasketContract
 contract_interface_paths:
   ethereum: build/Basket.json
