@@ -27,6 +27,7 @@ from aea.crypto.registries import crypto_registry
 from aea_ledger_ethereum import EthereumCrypto
 from aea_test_autonomy.base_test_classes.contracts import BaseGanacheContractTest
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_2
+from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.elcollectooorr.contracts.token_settings.contract import (
     TokenSettingsContract,
@@ -38,6 +39,7 @@ DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
 DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 
 
+@skip_docker_tests
 class TestTokenSettingsFactory(BaseGanacheContractTest):
     """Test deployment of Token Settings to Ganache."""
 

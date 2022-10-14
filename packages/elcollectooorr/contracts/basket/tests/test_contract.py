@@ -25,6 +25,7 @@ from typing import Any, Dict, Optional, cast
 from aea_test_autonomy.base_test_classes.contracts import (
     BaseGanacheContractWithDependencyTest,
 )
+from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
 from packages.elcollectooorr.contracts.basket_factory.contract import (
@@ -37,6 +38,7 @@ DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
 DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 
 
+@skip_docker_tests
 class TestBasket(BaseGanacheContractWithDependencyTest):
     """Test deployment of the proxy to Ganache."""
 
