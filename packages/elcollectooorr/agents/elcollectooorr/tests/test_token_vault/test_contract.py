@@ -28,6 +28,7 @@ from aea_test_autonomy.base_test_classes.contracts import (
     BaseGanacheContractWithDependencyTest,
 )
 from aea_test_autonomy.configurations import ETHEREUM_KEY_PATH_1
+from aea_test_autonomy.docker.base import skip_docker_tests
 
 from packages.elcollectooorr.contracts.basket.contract import BasketContract
 from packages.elcollectooorr.contracts.basket.tests import PACKAGE_DIR as BASKET_DIR
@@ -55,6 +56,7 @@ DEFAULT_MAX_FEE_PER_GAS = 10 ** 10
 DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 
 
+@skip_docker_tests
 class TestTokenVault(BaseGanacheContractWithDependencyTest):
     """Test deployment of Token Vault to Ganache."""
 
