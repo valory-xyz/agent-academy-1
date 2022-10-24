@@ -80,6 +80,7 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
 
 
 ONE_ETH = 10 ** 18
+TERMINATION_TIMEOUT = 120
 
 
 class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
@@ -142,7 +143,7 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
         thread = threading.Thread(target=self._deposit_to_safe_contract)
         thread.start()
         self.check_aea_messages()
-        self.terminate_processes()
+        self.terminate_agents(timeout=TERMINATION_TIMEOUT)
 
     def _BaseTestEnd2End__prepare_agent_i(self, i: int, nb_agents: int) -> None:
         """Prepare the i-th agent."""
