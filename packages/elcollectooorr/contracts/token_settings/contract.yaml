@@ -18,4 +18,8 @@ class_name: TokenSettingsContract
 contract_interface_paths:
   ethereum: build/TokenSettings.json
 dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.22.0
   py-eth-sig-utils: {}
+  web3:
+    version: ==5.25.0
