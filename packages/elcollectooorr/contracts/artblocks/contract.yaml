@@ -14,4 +14,8 @@ class_name: ArtBlocksContract
 contract_interface_paths:
   ethereum: build/artblocks.json
 contracts: []
-dependencies: {}
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.22.0
+  web3:
+    version: ==5.25.0

@@ -14,4 +14,8 @@ class_name: ArtBlocksMinterFilterContract
 contract_interface_paths:
   ethereum: build/MinterFilter.json
 contracts: []
-dependencies: {}
+dependencies:
+  open-aea-ledger-ethereum:
+    version: ==1.22.0
+  web3:
+    version: ==5.25.0

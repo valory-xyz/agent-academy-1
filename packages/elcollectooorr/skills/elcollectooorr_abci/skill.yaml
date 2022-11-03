@@ -27,26 +27,26 @@ connections:
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
 - valory/ledger:0.19.0:bafybeihmz5us4ntmzvgikpkx4tththrl7zvou4uiebvletdeliidiuhi6m
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeiebk7ldudazfdxhvmiaz7r7u4pyupmfqflskgtosb26yuehif3dju
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeicpdjm3xdbg2a7cshg63mutuyac2xl2hnmtrptyx7rx3i6fneuzam
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeifnfae5b643q3z6j2jwj6mvwwlpidseetsl6jtcjkaiheqphibvpy
-- elcollectooorr/basket_factory:0.1.0:bafybeidjb37y3tc7bgaqqnjovmo63mrntyy3ebkmu6ytllyqqi5py73gge
-- elcollectooorr/token_vault:0.1.0:bafybeif5cgknn7qjbm7js7jhhfv7zs2cp2eywcfgzru3mvlieqqwl2ohuq
-- elcollectooorr/token_vault_factory:0.1.0:bafybeiefrxf4ymdzrdsovmn5pja4i36w3mzuabct4a5maiaerbzjmsuk4i
-- valory/gnosis_safe:0.1.0:bafybeigoga63majfpe7svjnum5yp36tuwpgeyv26iacidgdbqcydonwvr4
-- valory/multisend:0.1.0:bafybeig45676hbh4c3p3mujrrskxgxww4cxdyyginlg5rmmav6orv4gtya
+- elcollectooorr/artblocks:0.1.0:bafybeibcqfkw56odforw3nd4qfrpkay5mskqvip7sl6h2b2c7tfp4ybksa
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeibebpft4mc7k7ki3eixv7bt2qd3x4r3qxafc4qdq6qfx7wizze3ty
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeib5hei2bkronaxzh7mlisrq6d46uswlg2l4mjwllvejil4nj2eij4
+- elcollectooorr/basket_factory:0.1.0:bafybeidaolust5btsuehwk46kmgm2ruizxwqqidb56fim7sypm5b76g2va
+- elcollectooorr/token_vault:0.1.0:bafybeidz4jhttdnwjzq4p6zhrczpus7kwh4yilgamzcdj3ztx5yy7df3xy
+- elcollectooorr/token_vault_factory:0.1.0:bafybeihwuicnnksx4zlzamzb3v6ghsgcr2kcxfifgfpclnqlcfjgwq4jbm
+- valory/gnosis_safe:0.1.0:bafybeibqsf4sh4f4lshbxnwapzxuul6ywzgq4nfoxd7wye6s3ncb5amlvq
+- valory/multisend:0.1.0:bafybeiaveffaomsnmsc5hx62o77u7ilma6eipox7m5lrwa56737ektva3i
 protocols:
 - open_aea/signing:1.0.0:bafybeiambqptflge33eemdhis2whik67hjplfnqwieoa6wblzlaf7vuo44
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicyflfmqrrsry57kwt4lilcvomna4hux6jmfvmae2jxjxwv4jndam
-- valory/abstract_round_abci:0.1.0:bafybeicwhcpuov2bvfwvzxdvmy6fhmijdhqi3uthee3bv4cfe7wm5fsbjy
-- valory/registration_abci:0.1.0:bafybeievtpfxmzrdueqgisebeqkefukvfhzhiczvmdnp4rerwup4v6karm
-- valory/reset_pause_abci:0.1.0:bafybeibplkijgsex7ikdkchzbbspyvyvic3tupq5kxm6pwih6vz4p6ckfi
-- valory/safe_deployment_abci:0.1.0:bafybeiaymfpdqx2s2mxa3bszhauehgxpvxqgrzzeqszgnx2atu4d5bnly4
-- valory/transaction_settlement_abci:0.1.0:bafybeigjicugr6w7rfux4ukrvs4w7lyvbnsihxjj4lwcwrcjl67mrrkrsu
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeiesqlhovjrylfnqlzilz67veyp2an4zdqsrilg3rn7o56p6e3644y
+- valory/abstract_round_abci:0.1.0:bafybeihx3owgbdtbu4zr6v5gaqk6ur6er4wynameikbq6ndi2kfk5vovnu
+- valory/registration_abci:0.1.0:bafybeiee4hlizshxa55a2fego65glek6dkkafamuo4wxwnpp2prqlhximi
+- valory/reset_pause_abci:0.1.0:bafybeibqoz7wpk2sarakxnxm2j427x4r6jz5g2ewvg5ipvakbqvhjge2ta
+- valory/safe_deployment_abci:0.1.0:bafybeihzoavtj7oiuifizksjsshcudcmfsasgogy2ddfbzhm7kfz4wgwca
+- valory/transaction_settlement_abci:0.1.0:bafybeiclk72s54inkmlbeama3st2774tcssttorb6jlu3vj3yt7ne2tmkq
 behaviours:
   main:
     args: {}
@@ -167,6 +167,8 @@ models:
     args: {}
     class_name: SharedState
 dependencies:
+  hexbytes: {}
+  numpy: {}
   pandas:
     version: ==1.3.5
 is_abstract: false
