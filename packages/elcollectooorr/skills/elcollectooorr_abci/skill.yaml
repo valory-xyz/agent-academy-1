@@ -8,15 +8,15 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiankss7mun4gw6jgbuogefmziyuvhtnjtyks3l3tmizs3llc65gtm
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
-  behaviours.py: bafybeicwiwbhkvbvxhrn53cqgvkc2fse7zrtd3g2pajjetnv7cfkoyhtcy
+  behaviours.py: bafybeidu3a26jr4tb5o6gsovtiy3y2inucjqyuzesinlosfnrk5c3ctsgq
   decision_models.py: bafybeicchjstlojkxtlvxt5atqxkpr6cqcz47xldyyn2sa64ywmz3bygsi
   dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
   fsm_composition_specification.yaml: bafybeig26dq7lbwygs6gayahb3h6anej77veo4zwxeiqmftxwogrmgcgxm
   fsm_specification.yaml: bafybeia2kr62st2cv2huuczb4iygs62uzrsb7r4dvbtjnhdfp6lhbzmz3a
   handlers.py: bafybeihr233wcw5uu4cnvc3oey2cp7dzrvm33diufl4pczx6raznkckjq4
-  models.py: bafybeidv4ncw2nd7sjwe3vqti65oqfnqw7fzirhczzg6cfoa6fkt74n4we
+  models.py: bafybeih373vlogve2ajn2gqkdh3j5t4g46ls32a74ud664ow4kh2o42f34
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
-  rounds.py: bafybeiet6ibyzmo4ufeu2bmfyx27kzcxolisuunn2mcrrlbifzx5jxggt4
+  rounds.py: bafybeiaolhi4tkd263mpy6w5ohb7cpc5qfaaqbaxssu6nsgg3vr6dqlj44
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
   tests/test_behaviours.py: bafybeicpruaznh5qafd4pdpj2okrt3tvreejojfo2doxdic54w3zzxgxhi
   tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
@@ -46,6 +46,7 @@ skills:
 - valory/registration_abci:0.1.0:bafybeiee4hlizshxa55a2fego65glek6dkkafamuo4wxwnpp2prqlhximi
 - valory/reset_pause_abci:0.1.0:bafybeibqoz7wpk2sarakxnxm2j427x4r6jz5g2ewvg5ipvakbqvhjge2ta
 - valory/safe_deployment_abci:0.1.0:bafybeihzoavtj7oiuifizksjsshcudcmfsasgogy2ddfbzhm7kfz4wgwca
+- valory/termination_abci:0.1.0:bafybeih6scoe2k5boil2n2nuf3u6t4spjnhjwat7wzfmflhj2qs5zal7vy
 - valory/transaction_settlement_abci:0.1.0:bafybeiclk72s54inkmlbeama3st2774tcssttorb6jlu3vj3yt7ne2tmkq
 behaviours:
   main:
@@ -124,14 +125,14 @@ models:
       max_retries: 5
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 300
-      on_chain_service_id: null
+      on_chain_service_id: 1
       period_setup: {}
       reset_tendermint_after: 60
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
       service_id: el_collectooorr_1
-      service_registry_address: null
+      service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       setup:
         safe_contract_address: []
@@ -141,6 +142,7 @@ models:
       tendermint_com_url: http://localhost:8080
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
+      termination_sleep: 900
       token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
