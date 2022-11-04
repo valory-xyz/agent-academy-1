@@ -43,7 +43,7 @@ from packages.valory.skills.abstract_round_abci.models import (
     SharedState as BaseSharedState,
 )
 from packages.valory.skills.reset_pause_abci.rounds import Event as ResetPauseEvent
-from packages.valory.skills.transaction_settlement_abci.models import TransactionParams
+from packages.valory.skills.termination_abci.models import TerminationParams
 
 
 MARGIN = 5
@@ -142,8 +142,8 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
         return valid_types[model_type]
 
 
-class Params(ElCollectooorParams, TransactionParams, FractionalizeDeploymentParams):
-    """Union class for ElCollectoor and Transaction Settlement ABCI"""
+class Params(ElCollectooorParams, FractionalizeDeploymentParams, TerminationParams):
+    """Union class for ElCollectooorr and Transaction Settlement ABCI"""
 
 
 class RandomnessApi(ApiSpecs):

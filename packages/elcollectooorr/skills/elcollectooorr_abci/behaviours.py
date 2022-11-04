@@ -110,6 +110,10 @@ from packages.valory.skills.reset_pause_abci.behaviours import (
 from packages.valory.skills.safe_deployment_abci.behaviours import (
     SafeDeploymentRoundBehaviour,
 )
+from packages.valory.skills.termination_abci.behaviours import (
+    BackgroundBehaviour,
+    TerminationAbciBehaviours,
+)
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
     TransactionSettlementRoundBehaviour,
 )
@@ -1629,7 +1633,9 @@ class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
         *PostFractionsPayoutRoundBehaviour.behaviours,
         *TransferNFTAbciBehaviour.behaviours,
         *ResyncAbciBehaviour.behaviours,
+        *TerminationAbciBehaviours.behaviours,
     }
+    background_behaviour_cls = BackgroundBehaviour
 
     def setup(self) -> None:
         """Set up the behaviour."""

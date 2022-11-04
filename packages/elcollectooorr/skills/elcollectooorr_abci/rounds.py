@@ -88,6 +88,9 @@ from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
     SafeDeploymentAbciApp,
 )
+from packages.valory.skills.termination_abci.rounds import BackgroundRound
+from packages.valory.skills.termination_abci.rounds import Event as TerminationEvent
+from packages.valory.skills.termination_abci.rounds import TerminationAbciApp
 from packages.valory.skills.transaction_settlement_abci.rounds import (
     FailedRound,
     FinishedTransactionSubmissionRound,
@@ -1066,4 +1069,8 @@ ElCollectooorrAbciApp = chain(
         ResetPauseABCIApp,
     ),
     el_collectooorr_app_transition_mapping,
+).add_termination(
+    background_round_cls=BackgroundRound,
+    termination_event=TerminationEvent.TERMINATE,
+    termination_abci_app=TerminationAbciApp,
 )
