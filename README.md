@@ -21,6 +21,9 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
       docker pull node:16.7.0
       docker pull trufflesuite/ganache:beta
       docker pull valory/elcollectooorr-network:latest
+      docker pull valory/open-autonomy-tendermint:latest
+      docker pull valory/open-autonomy:latest
+      docker pull valory/open-autonomy-user:latest
 
 - Create a virtual environment with all development dependencies:
 
