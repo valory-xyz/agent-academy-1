@@ -151,13 +151,13 @@ models:
       max_retries: 5
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       observation_interval: 300
-      on_chain_service_id: null
+      on_chain_service_id: 1
       reset_tendermint_after: 60
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
       service_id: el_collectooorr_1
-      service_registry_address: null
+      service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       sleep_time: 1
       starting_project_id: 301
