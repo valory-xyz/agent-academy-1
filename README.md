@@ -97,7 +97,7 @@ These steps only work for operators registered on-chain!
       Then fetch the service:
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeiaoz56cvp5bl3xpsgyqomtf4umfrsm7qab7andq4gar6qwf6jcqzi --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeibnkj6jt5qpvxyrjjctoytgktbejv4eithuqu65e3ur7hetmp5u6u --service
       cd elcollectooorr
       ```
 
@@ -105,7 +105,7 @@ These steps only work for operators registered on-chain!
 
       ```bash
       autonomy build-image
-      autonomy deploy build keys.json --force --local --aev
+      autonomy deploy build keys.json --force --local --password "\${PASSWORD}" --aev
       ```
 
       (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
