@@ -101,8 +101,7 @@ These steps only work for operators registered on-chain!
 
       ```bash
       autonomy build-image
-      autonomy deploy build keys.json --force --local --aev
-      ```
+      autonomy deploy build keys.json --force --local --password "\${PASSWORD}" --aev      ```
 
       (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
 
