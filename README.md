@@ -21,6 +21,9 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
       docker pull node:16.7.0
       docker pull trufflesuite/ganache:beta
       docker pull valory/elcollectooorr-network:latest
+      docker pull valory/open-autonomy-tendermint:latest
+      docker pull valory/open-autonomy:latest
+      docker pull valory/open-autonomy-user:latest
 
 - Create a virtual environment with all development dependencies:
 
@@ -36,7 +39,7 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 
 - Fetch packages:
 
-      autonomy packages sync
+      autonomy packages sync --update-packages
 
 - Optionally: run all checks 
 
@@ -78,30 +81,31 @@ These steps only work for operators registered on-chain!
 
 3. Run the service:
 
-      - Option 1: Step-by-step
+      - **Option 1: Step-by-step**
 
       Ensure you have set the following environment variables:
 
       ```bash
-      export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]
-      export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES={YOUR_WHITELIST}
-      export SERVICE_ELCOLLECTOOORR_RPC={YOUR_RPC_URL}
+      export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=`["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]`
+      export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES='["YOUR_WHITELIST"]'
+      export SERVICE_ELCOLLECTOOORR_RPC_0="YOUR_RPC_URL"
+      export SERVICE_ELCOLLECTOOORR_RPC_1="YOUR_RPC_URL"
       ```
 
-      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `{YOUR_WHITELIST}` and `{YOUR_RPC_URL}` should be replaced accordingly.
+      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `YOUR_WHITELIST`, `YOUR_RPC_URL_0` and `YOUR_RPC_URL_1` should be replaced accordingly.
 
-      Then fetch the service
+      Then fetch the service:
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeifhe4apmnehbfke7dgtghxbv6775nix56b2x66uhilixssuvjre5u --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeibnkj6jt5qpvxyrjjctoytgktbejv4eithuqu65e3ur7hetmp5u6u --service
       cd elcollectooorr
       ```
 
-      Replace the API key placeholder for the RPC endpoint.
+      Then build the service:
 
       ```bash
       autonomy build-image
-      autonomy deploy build keys.json --force --local --aev
+      autonomy deploy build keys.json --force --local --password "\${PASSWORD}" --aev
       ```
 
       (On MAC OS manually update permissions with `chmod 777 abci_build` and it's subfolders!)
@@ -113,7 +117,7 @@ These steps only work for operators registered on-chain!
       docker-compose up --force-recreate
       ```
 
-      - Option 2: One-step (requires on-chain to reference the correct hash)
+      - **Option 2: One-step (requires on-chain to reference the correct hash)**
 
       ```bash
       autonomy deploy from-token 1 keys.json
