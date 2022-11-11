@@ -21,7 +21,6 @@
 """Test the base.py module of the skill."""
 import json
 import logging  # noqa: F401
-from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
 
@@ -128,7 +127,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_deploy_decision=MappingProxyType(test_round.collection),
+                participant_to_deploy_decision=test_round.collection,
                 most_voted_deploy_decision=payload_data,
                 amount_spent=0,
             ),
@@ -197,7 +196,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_deploy_decision=MappingProxyType(test_round.collection),
+                participant_to_deploy_decision=test_round.collection,
                 most_voted_deploy_decision=payload_data,
                 amount_spent=WEI_TO_ETH,
             ),
@@ -264,7 +263,7 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_deploy_decision=MappingProxyType(test_round.collection),
+                participant_to_deploy_decision=test_round.collection,
                 most_voted_deploy_decision=payload_data,
                 amount_spent=WEI_TO_ETH,
             ),
@@ -329,7 +328,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
+                participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
                 tx_submitter=DeployBasketTxRound.round_id,
             ),
@@ -396,7 +395,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
+                participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
                 tx_submitter=DeployVaultTxRound.round_id,
             ),
@@ -465,7 +464,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_basket_addresses=MappingProxyType(test_round.collection),
+                participant_to_basket_addresses=test_round.collection,
                 basket_addresses=payload_data,
             ),
         )
@@ -533,7 +532,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
+                participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
                 tx_submitter=PermissionVaultFactoryRound.round_id,
             ),
@@ -602,7 +601,7 @@ class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_voted_tx_hash=MappingProxyType(test_round.collection),
+                participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
                 tx_submitter=PermissionVaultFactoryRound.round_id,
             ),
@@ -671,7 +670,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
         actual_next_state = cast(
             PeriodState,
             self.period_state.update(
-                participant_to_vault_addresses=MappingProxyType(test_round.collection),
+                participant_to_vault_addresses=test_round.collection,
                 vault_addresses=payload_data,
             ),
         )

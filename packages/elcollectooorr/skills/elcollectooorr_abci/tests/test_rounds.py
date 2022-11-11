@@ -22,7 +22,6 @@
 import json
 import logging  # noqa: F401
 from copy import deepcopy
-from types import MappingProxyType
 from typing import Dict, FrozenSet, cast
 from unittest import mock
 
@@ -163,7 +162,7 @@ class TestObservationRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.period_state.update(
-            participant_to_project=MappingProxyType(test_round.collection),
+            participant_to_project=test_round.collection,
             most_voted_project=test_round.most_voted_payload,
             most_recent_project=123,
             inactive_projects=inactive_projects,
@@ -240,7 +239,7 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.period_state.update(
-            participant_to_project=MappingProxyType(test_round.collection),
+            participant_to_project=test_round.collection,
             most_voted_project=test_round.most_voted_payload,
             most_recent_project=123,
             inactive_projects=inactive_projects,
@@ -306,7 +305,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.period_state.update(
-            participant_to_decision=MappingProxyType(test_round.collection),
+            participant_to_decision=test_round.collection,
             most_voted_decision=test_round.most_voted_payload,
         )
 
@@ -372,7 +371,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.period_state.update(
-            participant_to_decision=MappingProxyType(test_round.collection),
+            participant_to_decision=test_round.collection,
             most_voted_decision=test_round.most_voted_payload,
         )
 
@@ -435,7 +434,7 @@ class TestTransactionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.period_state.update(
-            participant_to_purchase_data=MappingProxyType(test_round.collection),
+            participant_to_purchase_data=test_round.collection,
             most_voted_purchase_data=test_round.most_voted_payload,
         )
 
@@ -498,7 +497,7 @@ class TestDetailsRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.period_state.update(
-            participant_to_details=MappingProxyType(test_round.collection),
+            participant_to_details=test_round.collection,
             active_projects=test_round.most_voted_payload,
         )
 
@@ -560,7 +559,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.period_state.update(
-            participant_to_funds=MappingProxyType(test_round.collection),
+            participant_to_funds=test_round.collection,
             most_voted_funds=test_round.most_voted_payload,
         )
 
