@@ -22,7 +22,6 @@ import json
 import struct
 from abc import ABC
 from enum import Enum
-from types import MappingProxyType
 from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
 
 from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
@@ -360,7 +359,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_project=MappingProxyType(self.collection),
+                participant_to_project=self.collection,
                 finished_projects=finished_projects,
                 active_projects=active_projects,
                 inactive_projects=inactive_projects,
@@ -397,7 +396,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_details=MappingProxyType(self.collection),
+                participant_to_details=self.collection,
                 active_projects=payload["active_projects"],
             )
             return state, Event.DONE
@@ -428,7 +427,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRo
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_decision=MappingProxyType(self.collection),
+                participant_to_decision=self.collection,
                 project_to_purchase=project_to_purchase,
             )
 
@@ -457,7 +456,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
             )
@@ -673,7 +672,7 @@ class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
                 most_voted_funds=json.loads(self.most_voted_payload),
-                participant_to_funding_round=MappingProxyType(self.collection),
+                participant_to_funding_round=self.collection,
             )
             return state, Event.DONE
 
@@ -710,7 +709,7 @@ class PayoutFractionsRound(
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=tx_hash,
                 users_being_paid=users_being_paid,
                 tx_submitter=self.round_id,

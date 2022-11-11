@@ -21,7 +21,6 @@
 import json
 from abc import ABC
 from enum import Enum
-from types import MappingProxyType
 from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
 
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads import (
@@ -184,7 +183,7 @@ class DeployDecisionRound(
         if self.threshold_reached:
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_deploy_decision=MappingProxyType(self.collection),
+                participant_to_deploy_decision=self.collection,
                 most_voted_deploy_decision=self.most_voted_payload,
             )
 
@@ -232,7 +231,7 @@ class DeployBasketTxRound(
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
             )
@@ -269,7 +268,7 @@ class DeployVaultTxRound(
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
             )
@@ -308,7 +307,7 @@ class BasketAddressRound(
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_basket_addresses=MappingProxyType(self.collection),
+                participant_to_basket_addresses=self.collection,
                 basket_addresses=basket_addresses,
             )
 
@@ -342,7 +341,7 @@ class PermissionVaultFactoryRound(
 
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
             )
@@ -386,7 +385,7 @@ class VaultAddressRound(
             vault_addresses = cast(Dict[str, int], json.loads(self.most_voted_payload))
             state = self.period_state.update(
                 period_state_class=self.period_state_class,
-                participant_to_voted_tx_hash=MappingProxyType(self.collection),
+                participant_to_voted_tx_hash=self.collection,
                 vault_addresses=vault_addresses,
             )
 
