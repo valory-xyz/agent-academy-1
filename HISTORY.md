@@ -1,11 +1,11 @@
 # Release History - `agent-academy-1`
 
-## 0.3.0 (2022-11-04)
+## 0.3.0 (2022-11-15)
 - Update the service to use 2 agents. 
 - Add termination support.
 - Add multiplatform checks.
 - Clean-up Pipfile.
-- Update to `open-autonomy@v0.3.4`.
+- Update to `open-autonomy@v0.3.5`.
 
 ## 0.2.3 (2022-09-16)
 
