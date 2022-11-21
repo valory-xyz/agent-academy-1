@@ -8,7 +8,7 @@ fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
 agent: elcollectooorr/elcollectooorr:0.1.0:bafybeiah2absbc7pzuzxuwszr6jrhppu72rf2tfjdbcszdy45hrkmhrata
-number_of_agents: 2
+number_of_agents: 4
 ---
 public_id: elcollectooorr/elcollectooorr_abci:0.1.0
 type: skill
@@ -18,7 +18,7 @@ models:
       setup:
         safe_contract_address: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:[]}
       consensus:
-        max_participants: 2
+        max_participants: 4
       decision_model_threshold: 0.8
       whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
       observation_interval: 300
@@ -36,4 +36,14 @@ config:
   - ledger_apis:
       ethereum:
         address: ${SERVICE_ELCOLLECTOOORR_RPC_1:str:http://127.0.0.1:8545}
+        chain_id: 1
+  2:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ELCOLLECTOOORR_RPC_2:str:http://127.0.0.1:8545}
+        chain_id: 1
+  3:
+  - ledger_apis:
+      ethereum:
+        address: ${SERVICE_ELCOLLECTOOORR_RPC_3:str:http://127.0.0.1:8545}
         chain_id: 1
