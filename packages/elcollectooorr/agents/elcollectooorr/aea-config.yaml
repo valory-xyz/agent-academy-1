@@ -15,7 +15,7 @@ fingerprint:
   tests/helpers/constants.py: bafybeiha2uepi2sa6ihvg4vbvjhkrz3kujxqysexmj2kytpxpacmzekhru
   tests/helpers/docker/__init__.py: bafybeidakk3cxongkwm6pkuokufzpqr2ms2fvnecmdpxdm5lk7d2ko244q
   tests/helpers/docker/elcol_net.py: bafybeia3rzjwwc3isxqnzh6b33lf2m3psuzxj4jlrx7zwomzctxzy6sqoy
-  tests/helpers/docker/mock_arblocks_api.py: bafybeidv3jsfwpeyi4ajk2azrmj2vdmr4ntrygzuv2hrmeevgmduagtn34
+  tests/helpers/docker/mock_arblocks_api.py: bafybeid2mp277jhtjnd5piy3eeyc2hghp7mgfu6k2agwohvgi7fvhmhx2a
   tests/helpers/hardhat/Dockerfile: bafybeih7wleg3g263gfsimckqgqb5rtpd72uwm4wzhba2v5u5es5gqhkwy
   tests/helpers/hardhat/hardhat.config.js: bafybeiag3rxhb2luzd4nr6whsti7wtlnvzlm32gctq45p6xfwmsyijpe54
   tests/helpers/hardhat/package.json: bafybeifjyofuzq66sjjtxdynvy4be5rxzkiuwyntjibrjvsrly5ddeai64
