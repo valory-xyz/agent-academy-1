@@ -35,7 +35,7 @@ def main() -> None:
     ) as packages_file:
         readme = readme_file.read()
         packages = json.load(packages_file)
-        wanted_hash = packages['dev'].get(el_collectooorr_service_package, None)
+        wanted_hash = packages["dev"].get(el_collectooorr_service_package, None)
 
         if wanted_hash is None or wanted_hash not in readme:
             # we were not able to find the wanted hash
