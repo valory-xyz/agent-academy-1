@@ -75,6 +75,7 @@ states:
 transition_func:
     (BasketAddressRound, DONE): PermissionVaultFactoryRound
     (BasketAddressRound, ERROR): BasketAddressRound
+    (BasketAddressRound, NO_MAJORITY): BasketAddressRound
     (CheckLateTxHashesRound, CHECK_LATE_ARRIVING_MESSAGE): SynchronizeLateMessagesRound
     (CheckLateTxHashesRound, CHECK_TIMEOUT): CheckLateTxHashesRound
     (CheckLateTxHashesRound, DONE): PostTransactionSettlementRound
@@ -96,14 +97,17 @@ transition_func:
     (DecisionRound, ROUND_TIMEOUT): ResetAndPauseRound
     (DeployBasketTxRound, DONE): RandomnessTransactionSubmissionRound
     (DeployBasketTxRound, ERROR): FundingRound
+    (DeployBasketTxRound, NO_MAJORITY): DeployBasketTxRound
     (DeployDecisionRound, DECIDED_NO): FundingRound
     (DeployDecisionRound, DECIDED_SKIP): BasketAddressRound
     (DeployDecisionRound, DECIDED_YES): DeployBasketTxRound
+    (DeployDecisionRound, NO_MAJORITY): DeployDecisionRound
     (DeploySafeRound, DEPLOY_TIMEOUT): SelectKeeperSafeRound
     (DeploySafeRound, DONE): ValidateSafeRound
     (DeploySafeRound, FAILED): SelectKeeperSafeRound
     (DeployVaultTxRound, DONE): RandomnessTransactionSubmissionRound
     (DeployVaultTxRound, ERROR): DeployVaultTxRound
+    (DeployVaultTxRound, NO_MAJORITY): DeployVaultTxRound
     (DetailsRound, DONE): DecisionRound
     (DetailsRound, ERROR): ResetAndPauseRound
     (DetailsRound, NO_MAJORITY): DecisionRound
@@ -129,7 +133,9 @@ transition_func:
     (PermissionVaultFactoryRound, DECIDED_NO): DeployVaultTxRound
     (PermissionVaultFactoryRound, DECIDED_YES): RandomnessTransactionSubmissionRound
     (PermissionVaultFactoryRound, ERROR): PermissionVaultFactoryRound
+    (PermissionVaultFactoryRound, NO_MAJORITY): PermissionVaultFactoryRound
     (PostPayoutRound, DONE): ObservationRound
+    (PostPayoutRound, NO_MAJORITY): PostPayoutRound
     (PostPayoutRound, ROUND_TIMEOUT): PostPayoutRound
     (PostTransactionSettlementRound, BASKET_DONE): BasketAddressRound
     (PostTransactionSettlementRound, BASKET_PERMISSION): DeployVaultTxRound
@@ -161,8 +167,8 @@ transition_func:
     (ResetRound, RESET_TIMEOUT): RegistrationRound
     (ResyncRound, DONE): DeployDecisionRound
     (ResyncRound, ERROR): ResyncRound
-    (ResyncRound, ROUND_TIMEOUT): ResyncRound
     (ResyncRound, NO_MAJORITY): ResyncRound
+    (ResyncRound, ROUND_TIMEOUT): ResyncRound
     (SelectKeeperSafeRound, DONE): DeploySafeRound
     (SelectKeeperSafeRound, NO_MAJORITY): RandomnessSafeRound
     (SelectKeeperSafeRound, ROUND_TIMEOUT): RandomnessSafeRound
@@ -205,3 +211,4 @@ transition_func:
     (ValidateTransactionRound, VALIDATE_TIMEOUT): SelectKeeperTransactionSubmissionRoundB
     (VaultAddressRound, DONE): FundingRound
     (VaultAddressRound, ERROR): VaultAddressRound
+    (VaultAddressRound, NO_MAJORITY): VaultAddressRound
