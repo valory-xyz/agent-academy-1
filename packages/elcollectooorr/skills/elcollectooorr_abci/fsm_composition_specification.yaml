@@ -33,7 +33,7 @@ alphabet_in:
 - VAULT_DONE
 default_start_state: RegistrationStartupRound
 final_states: []
-label: packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElCollectooorrAbciApp
+label: ElCollectooorrAbciApp
 start_states:
 - RegistrationStartupRound
 states:
@@ -162,6 +162,7 @@ transition_func:
     (ResyncRound, DONE): DeployDecisionRound
     (ResyncRound, ERROR): ResyncRound
     (ResyncRound, ROUND_TIMEOUT): ResyncRound
+    (ResyncRound, NO_MAJORITY): ResyncRound
     (SelectKeeperSafeRound, DONE): DeploySafeRound
     (SelectKeeperSafeRound, NO_MAJORITY): RandomnessSafeRound
     (SelectKeeperSafeRound, ROUND_TIMEOUT): RandomnessSafeRound

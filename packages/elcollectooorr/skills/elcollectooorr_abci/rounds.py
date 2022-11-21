@@ -81,7 +81,7 @@ from packages.valory.skills.registration_abci.rounds import (
 from packages.valory.skills.reset_pause_abci.rounds import (
     FinishedResetAndPauseErrorRound,
     FinishedResetAndPauseRound,
-    ResetPauseABCIApp,
+    ResetPauseAbciApp,
 )
 from packages.valory.skills.safe_deployment_abci.rounds import (
     FinishedSafeRound,
@@ -815,6 +815,7 @@ class PostFractionPayoutAbciApp(AbciApp[Event]):
         PostPayoutRound: {
             Event.DONE: FinishedPostPayoutRound,
             Event.ROUND_TIMEOUT: PostPayoutRound,
+            Event.NO_MAJORITY: PostPayoutRound,
         },
         FinishedPostPayoutRound: {},
     }
@@ -1005,6 +1006,7 @@ class ResyncAbciApp(AbciApp[Event]):
             Event.DONE: FinishedResyncRound,
             Event.ERROR: ResyncRound,
             Event.ROUND_TIMEOUT: ResyncRound,
+            Event.NO_MAJORITY: ResyncRound,
         },
         FinishedResyncRound: {},
     }
@@ -1021,7 +1023,7 @@ el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
     FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
-    FinishedElCollectooorrWithoutPurchase: ResetPauseABCIApp.initial_round_cls,
+    FinishedElCollectooorrWithoutPurchase: ResetPauseAbciApp.initial_round_cls,
     FinishedRegistrationFFWRound: ResyncAbciApp.initial_round_cls,
     FinishedResyncRound: DeployBasketAbciApp.initial_round_cls,
     FinishedTransactionSubmissionRound: PostTransactionSettlementRound,
@@ -1042,9 +1044,9 @@ el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedBankWithPayoutsRounds: TransactionSubmissionAbciApp.initial_round_cls,
     FailedRound: RegistrationRound,
     FinishedWithoutDeploymentRound: BankAbciApp.initial_round_cls,
-    FinishedWithoutTransferRound: ResetPauseABCIApp.initial_round_cls,
+    FinishedWithoutTransferRound: ResetPauseAbciApp.initial_round_cls,
     FinishedWithTransferRound: TransactionSubmissionAbciApp.initial_round_cls,
-    FinishedTransferNftTxRound: ResetPauseABCIApp.initial_round_cls,
+    FinishedTransferNftTxRound: ResetPauseAbciApp.initial_round_cls,
     FailedPurchaseProcessingRound: ElcollectooorrBaseAbciApp.initial_round_cls,
     ErrorneousRound: TransactionSubmissionAbciApp.initial_round_cls,
     FinishedResetAndPauseErrorRound: RegistrationRound,
@@ -1065,7 +1067,7 @@ ElCollectooorrAbciApp = chain(
         BankAbciApp,
         PostFractionPayoutAbciApp,
         ResyncAbciApp,
-        ResetPauseABCIApp,
+        ResetPauseAbciApp,
     ),
     el_collectooorr_app_transition_mapping,
 ).add_termination(

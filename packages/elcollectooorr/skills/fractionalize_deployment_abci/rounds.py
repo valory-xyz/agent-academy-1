@@ -412,10 +412,12 @@ class DeployBasketAbciApp(AbciApp[Event]):
             Event.DECIDED_YES: DeployBasketTxRound,
             Event.DECIDED_SKIP: FinishedWithBasketDeploymentSkippedRound,
             Event.DECIDED_NO: FinishedWithoutDeploymentRound,
+            Event.NO_MAJORITY: DeployDecisionRound,
         },
         DeployBasketTxRound: {
             Event.DONE: FinishedDeployBasketTxRound,
             Event.ERROR: FinishedWithoutDeploymentRound,
+            Event.NO_MAJORITY: DeployBasketTxRound,
         },
         FinishedDeployBasketTxRound: {},
         FinishedWithoutDeploymentRound: {},
@@ -440,11 +442,13 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
         BasketAddressRound: {
             Event.DONE: PermissionVaultFactoryRound,
             Event.ERROR: BasketAddressRound,
+            Event.NO_MAJORITY: BasketAddressRound,
         },
         PermissionVaultFactoryRound: {
             Event.DECIDED_YES: FinishedPostBasketRound,
             Event.DECIDED_NO: FinishedPostBasketWithoutPermissionRound,
             Event.ERROR: PermissionVaultFactoryRound,
+            Event.NO_MAJORITY: PermissionVaultFactoryRound,
         },
         FinishedPostBasketRound: {},
         FinishedPostBasketWithoutPermissionRound: {},
@@ -468,6 +472,7 @@ class DeployVaultAbciApp(AbciApp[Event]):
         DeployVaultTxRound: {
             Event.DONE: FinishedDeployVaultTxRound,
             Event.ERROR: DeployVaultTxRound,
+            Event.NO_MAJORITY: DeployVaultTxRound,
         },
         FinishedDeployVaultTxRound: {},
     }
@@ -488,6 +493,7 @@ class PostVaultDeploymentAbciApp(AbciApp[Event]):
         VaultAddressRound: {
             Event.DONE: FinishedPostVaultRound,
             Event.ERROR: VaultAddressRound,
+            Event.NO_MAJORITY: VaultAddressRound,
         },
         FinishedPostVaultRound: {},
     }
