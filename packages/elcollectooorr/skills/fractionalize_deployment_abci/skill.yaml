@@ -13,20 +13,20 @@ fingerprint:
   handlers.py: bafybeic6d3w35brxfuldxaxx2y3kkgfxyhqbhytdgu3czk3c3rrruhsbcm
   models.py: bafybeib6q2edaaspgprivesnupyepw5375hrlddl4qt7bxs5ig774epspm
   payloads.py: bafybeiaiu3eu6tflsntmmzfigwx2yzibqkxluoyhuexa47upszhsjid4by
-  rounds.py: bafybeiaxdkzp4erdgwoljhc4jwlcy53uyemgau27yzqlu2pgrgq2cjsw2i
+  rounds.py: bafybeiffq54zeq33c2sajlyjq7an7bltvls4frcbcpo4fpkuezrlum4nue
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/basket:0.1.0:bafybeie26c547rv2g5uxgxv6k5jcou3j5r6bikzggfkpchqr5li7jrwvuy
-- elcollectooorr/basket_factory:0.1.0:bafybeidr7sgkselgmv44qoub6pwramjfe3tfrs4fs5qbycvj2ayshu4ur4
-- elcollectooorr/token_vault:0.1.0:bafybeie3445nnzoxkeqolwpgjv7cydz7ntews4u2ncv7xbmxp7narx3x2y
-- elcollectooorr/token_vault_factory:0.1.0:bafybeidyyv77nlk2fofvxort4plguc4ennhaeiwxwkahkyi56wrlbh72my
-- valory/gnosis_safe:0.1.0:bafybeiaxnlzlnlb34ud6wrsm2el477xnubhpe36gh4pcvmvurfz2uafbve
+- elcollectooorr/basket:0.1.0:bafybeiekepfnrc3v2uvilv5l7o2fgcg437hycajuvzh557fvtmvb3ib6nm
+- elcollectooorr/basket_factory:0.1.0:bafybeihjsrb5mcwwwq5by4rh5jgxq3hthj26mxatxzeaypa3xenvantf5y
+- elcollectooorr/token_vault:0.1.0:bafybeidxba7pxpalursxmsyt4sqdn7q3bew6ttybogqfh2yprg3bcnelvm
+- elcollectooorr/token_vault_factory:0.1.0:bafybeidchranlbnhyrmzpauftcglamkbccdidlfgp554xo2aolytsgs7yy
+- valory/gnosis_safe:0.1.0:bafybeidoa7hkpzpnjswns2jq6tlisbzinzpkdqtqd6gbpyxiytt3mnszpm
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigqcsyldiu4arougcfaz4kgqa37ko4gzkrrup22hwz344nuv3qx5q
-- valory/transaction_settlement_abci:0.1.0:bafybeicgvudend6ame7taeqfqreferppqx4sgnteih4lnoq3drm2b7fqwq
+- valory/abstract_round_abci:0.1.0:bafybeid3sx66tzs6mmwu52tlaqdycfszzpetgybzu34gagfocg5bmivh7e
+- valory/transaction_settlement_abci:0.1.0:bafybeiaaugllwdbh5pmnus2gbnsr72cvdysoobb7gf2ccmtctvxzdqcpii
 behaviours:
   main:
     args: {}

@@ -109,8 +109,8 @@ new_env: clean
 
 .PHONY: fix-abci-app-specs
 fix-abci-app-specs:
-	export PYTHONPATH=${PYTHONPATH}:${PWD} && autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_specification.yaml || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
-	export PYTHONPATH=${PYTHONPATH}:${PWD} && autonomy analyse abci generate-app-specs packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElCollectooorrAbciApp packages/elcollectooorr/skills/elcollectooorr_abci/fsm_composition_specification.yaml || (echo "Failed to check chained abci consistency" && exit 1)
+	export PYTHONPATH=${PYTHONPATH}:${PWD} && autonomy analyse fsm-specs --app-class ElcollectooorrBaseAbciApp --package packages/elcollectooorr/skills/elcollectooorr_abci --yaml  || (echo "Failed to check elcollectooorr abci consistency" && exit 1)
+	export PYTHONPATH=${PYTHONPATH}:${PWD} && autonomy analyse fsm-specs --app-class ElCollectooorrAbciApp --package packages/elcollectooorr/skills/elcollectooorr_abci || (echo "Failed to check chained abci consistency" && exit 1)
 	echo "Successfully validated abcis!"
 
 .PHONY: run-mainnet-fork

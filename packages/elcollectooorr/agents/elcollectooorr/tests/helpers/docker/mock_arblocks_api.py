@@ -63,8 +63,8 @@ class MockArtblocksJsonServer(DockerImage):
         raise NotImplementedError()
 
     @property
-    def tag(self) -> str:
-        """Get the tag."""
+    def image(self) -> str:
+        """Get the image name."""
         return "ajoelpod/mock-json-server:latest"
 
     def create(self) -> Container:
@@ -78,7 +78,7 @@ class MockArtblocksJsonServer(DockerImage):
         }
         ports = {"8000/tcp": ("0.0.0.0", self.port)}  # nosec
         container = self._client.containers.run(
-            self.tag,
+            self.image,
             detach=True,
             ports=ports,
             volumes=volumes,

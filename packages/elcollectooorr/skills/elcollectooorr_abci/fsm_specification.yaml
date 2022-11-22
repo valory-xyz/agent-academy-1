@@ -10,7 +10,7 @@ default_start_state: ObservationRound
 final_states:
 - FinishedElCollectooorrWithoutPurchase
 - FinishedElCollectoorBaseRound
-label: packages.elcollectooorr.skills.elcollectooorr_abci.rounds.ElcollectooorrBaseAbciApp
+label: ElcollectooorrBaseAbciApp
 start_states:
 - ObservationRound
 states:
