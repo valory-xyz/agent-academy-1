@@ -41,8 +41,9 @@ type: connection
 2:
   config:
     ledger_apis:
-      address: ${SERVICE_ELCOLLECTOOORR_RPC_2:str:http://127.0.0.1:8545}
-      chain_id: 1
+      ethereum:
+        address: ${SERVICE_ELCOLLECTOOORR_RPC_2:str:http://127.0.0.1:8545}
+        chain_id: 1
 3:
   config:
     ledger_apis:
