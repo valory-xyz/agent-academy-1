@@ -17,10 +17,10 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/basket:0.1.0:bafybeiekepfnrc3v2uvilv5l7o2fgcg437hycajuvzh557fvtmvb3ib6nm
-- elcollectooorr/basket_factory:0.1.0:bafybeihjsrb5mcwwwq5by4rh5jgxq3hthj26mxatxzeaypa3xenvantf5y
-- elcollectooorr/token_vault:0.1.0:bafybeidxba7pxpalursxmsyt4sqdn7q3bew6ttybogqfh2yprg3bcnelvm
-- elcollectooorr/token_vault_factory:0.1.0:bafybeidchranlbnhyrmzpauftcglamkbccdidlfgp554xo2aolytsgs7yy
+- elcollectooorr/basket:0.1.0:bafybeibslfoy2ua3is4fppvpmd6m2gtedsriwpndahhdpie5qywpqofily
+- elcollectooorr/basket_factory:0.1.0:bafybeigvkuvq7f64ej2clcgismf45weylxvp6zfen2bgmakqavffu2pm4m
+- elcollectooorr/token_vault:0.1.0:bafybeifyx3kykoyl5c6opunbx4mgf2bhg2eyyoisvsaphgve5zdzonnile
+- elcollectooorr/token_vault_factory:0.1.0:bafybeifosvdfjxmorbwfa5nohfo6oxefked7igtyc332a5jabdohdrmhre
 - valory/gnosis_safe:0.1.0:bafybeidoa7hkpzpnjswns2jq6tlisbzinzpkdqtqd6gbpyxiytt3mnszpm
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64

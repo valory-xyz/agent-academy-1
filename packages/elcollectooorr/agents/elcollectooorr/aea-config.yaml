@@ -38,13 +38,13 @@ connections:
 - valory/ledger:0.19.0:bafybeiadc25se7dgnn4mufztwpzdono4xsfs45qknzdqyi3gckn6ccuv44
 - valory/p2p_libp2p_client:0.1.0:bafybeidkk33xbga54szmitk6uwsi3ef56hbbdbuasltqtiyki34hgfpnxa
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeih4oua452rz6oeity6oza6bfuf5p6conyah65a3ije4pv743vuuzu
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeihaawfytduxjl5scypdbs6enymuiqqytpkcmt3wzyjisviwio4f2e
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeibrx6utugro4hyl3cn3fzq6meuhwnsn2qmdzwrw4fmuibzm72igym
-- elcollectooorr/basket:0.1.0:bafybeiekepfnrc3v2uvilv5l7o2fgcg437hycajuvzh557fvtmvb3ib6nm
-- elcollectooorr/basket_factory:0.1.0:bafybeihjsrb5mcwwwq5by4rh5jgxq3hthj26mxatxzeaypa3xenvantf5y
-- elcollectooorr/token_vault:0.1.0:bafybeidxba7pxpalursxmsyt4sqdn7q3bew6ttybogqfh2yprg3bcnelvm
-- elcollectooorr/token_vault_factory:0.1.0:bafybeidchranlbnhyrmzpauftcglamkbccdidlfgp554xo2aolytsgs7yy
+- elcollectooorr/artblocks:0.1.0:bafybeiaxjs3x4yff2yaeroydoldrbc6c7ub7p4m27qfwxtzevsuw4azfsq
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeif724nb4zlufy7eigycu65rlaimtaqsrtozw5ajutiz4hd2lza4qe
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeibp7gx4kagl4iytsfaadbusrkmdi52fobet3m4kap7inr3o4g7rki
+- elcollectooorr/basket:0.1.0:bafybeibslfoy2ua3is4fppvpmd6m2gtedsriwpndahhdpie5qywpqofily
+- elcollectooorr/basket_factory:0.1.0:bafybeigvkuvq7f64ej2clcgismf45weylxvp6zfen2bgmakqavffu2pm4m
+- elcollectooorr/token_vault:0.1.0:bafybeifyx3kykoyl5c6opunbx4mgf2bhg2eyyoisvsaphgve5zdzonnile
+- elcollectooorr/token_vault_factory:0.1.0:bafybeifosvdfjxmorbwfa5nohfo6oxefked7igtyc332a5jabdohdrmhre
 - valory/gnosis_safe:0.1.0:bafybeidoa7hkpzpnjswns2jq6tlisbzinzpkdqtqd6gbpyxiytt3mnszpm
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeibcw3qbegmizo432nqi66hddcvt4ww3uq4jdkoqczyafofwichzgm
 - valory/multisend:0.1.0:bafybeiaveffaomsnmsc5hx62o77u7ilma6eipox7m5lrwa56737ektva3i
@@ -58,8 +58,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeidyf7hj7qfmtcg6ifqsgsikttpbp3rnpqxjmjez6xvbe43psfzyxi
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeigtbsimdsalyokjelik66yoqrp5vr2kuvbzglwxcltorxxze6zfbq
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeicbv65x6semn7yfbnpmtkyxxhodsh6zvihehbjbhsnumt6wzlf34y
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeie763xm526nyobxthp7tskoeqyeqzw7g6qujxjyaqliddnv7vfixe
 - valory/abstract_abci:0.1.0:bafybeicog4eierjad4f542ubhe3ez7sxgrsna7t2e5pci2hncpq5vckw4e
 - valory/abstract_round_abci:0.1.0:bafybeid3sx66tzs6mmwu52tlaqdycfszzpetgybzu34gagfocg5bmivh7e
 - valory/registration_abci:0.1.0:bafybeifxquhkccygjawoqyj26b3k6rxizaa7geoef7oyet2baojjk4gy2q
