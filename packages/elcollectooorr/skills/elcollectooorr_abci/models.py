@@ -65,9 +65,9 @@ class SharedState(BaseSharedState):
         ElCollectooorrAbciApp.event_to_timeout[
             Event.ROUND_TIMEOUT
         ] = self.context.params.round_timeout_seconds
-        ElCollectooorrAbciApp.event_to_timeout[ResetPauseEvent.RESET_AND_PAUSE_TIMEOUT] = (
-            self.context.params.observation_interval + MARGIN
-        )
+        ElCollectooorrAbciApp.event_to_timeout[
+            ResetPauseEvent.RESET_AND_PAUSE_TIMEOUT
+        ] = (self.context.params.observation_interval + MARGIN)
 
 
 class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attributes

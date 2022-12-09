@@ -54,7 +54,9 @@ DEFAULT_MAX_PRIORITY_FEE_PER_GAS = 10 ** 10
 
 
 @skip_docker_tests
-class BaseTestTokenVaultFactory(BaseGanacheContractWithDependencyTest):  # pylint disable=too-few-public-methods
+class BaseTestTokenVaultFactory(
+    BaseGanacheContractWithDependencyTest
+):  # pylint disable=too-few-public-methods
     """Test deployment of Token Vault Factory to Ganache."""
 
     contract_directory = TOKEN_VAULT_FACTORY_DIR
@@ -333,7 +335,9 @@ class TestMintTokenVault(BaseTestTokenVaultFactory):
     ]
 
     @classmethod
-    def _setup_class(cls, **kwargs: Any) -> None:  # pylint: disable=inconsistent-return-statements
+    def _setup_class(
+        cls, **kwargs: Any
+    ) -> None:  # pylint: disable=inconsistent-return-statements
         """Setup class, approve token vault to use the basket"""
 
         super()._setup_class(**kwargs)
@@ -358,7 +362,9 @@ class TestMintTokenVault(BaseTestTokenVaultFactory):
         assert tx_hash is not None, "Tx hash is none"
 
     @classmethod
-    def deploy(cls, **kwargs: Any) -> None:  # pylint: disable=inconsistent-return-statements
+    def deploy(
+        cls, **kwargs: Any
+    ) -> None:  # pylint: disable=inconsistent-return-statements
         """Deploy the contract."""
 
         is_basket = kwargs.pop("is_basket", False)

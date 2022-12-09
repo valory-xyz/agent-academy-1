@@ -44,9 +44,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
     """Test deployment of Token Settings to Ganache."""
 
     CONTRACTS_DIR = Path(__file__).parent.parent.parent
-    contract_directory = Path(
-        CONTRACTS_DIR, "token_settings"
-    )
+    contract_directory = Path(CONTRACTS_DIR, "token_settings")
     contract: TokenSettingsContract
 
     @classmethod

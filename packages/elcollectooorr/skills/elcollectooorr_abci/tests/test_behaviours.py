@@ -121,7 +121,9 @@ class DummyRoundId:
         self.round_id = round_id
 
 
-class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):  # pylint: disable=protected-access
+class ElCollectooorrFSMBehaviourBaseCase(
+    BaseSkillTestCase
+):  # pylint: disable=protected-access
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = PACKAGE_DIR
@@ -3535,7 +3537,9 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 class TestDecisionModel:
     """Tests for the Decision Model"""
 
-    def test_static_should_return_1_when_no_royalty_receiver(self) -> None:  # pylint: disable=no-self-use
+    def test_static_should_return_1_when_no_royalty_receiver(
+        self,
+    ) -> None:  # pylint: disable=no-self-use
         """Static should return 1, when there is no royalty receiver"""
 
         test_project_details = {

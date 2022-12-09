@@ -43,9 +43,7 @@ class TestBasket(BaseGanacheContractWithDependencyTest):
     """Test deployment of the proxy to Ganache."""
 
     CONTRACTS_DIR = Path(__file__).parent.parent.parent
-    contract_directory = Path(
-        CONTRACTS_DIR, "basket"
-    )
+    contract_directory = Path(CONTRACTS_DIR, "basket")
     contract: BasketContract
     dependencies = [
         (

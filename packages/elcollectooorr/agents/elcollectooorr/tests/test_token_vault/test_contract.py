@@ -117,7 +117,9 @@ class TestTokenVault(BaseGanacheContractWithDependencyTest):
         )
 
     @classmethod
-    def _deploy_basket(cls, **kwargs: Any) -> None:  # pylint: disable=inconsistent-return-statements
+    def _deploy_basket(
+        cls, **kwargs: Any
+    ) -> None:  # pylint: disable=inconsistent-return-statements
         """Deploy basket"""
 
         basket_factory_address, _ = cls.dependency_info["basket_factory"]
