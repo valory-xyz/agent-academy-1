@@ -14,14 +14,14 @@ fingerprint:
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
   fsm_specification.yaml: bafybeicvno4avecvthyonwf2u2ygokkt342yrtt62ckjmdcfdlw6stz65a
   handlers.py: bafybeihr5jn6pfk3m4ijh5dj7v6kyr2miwxiugsumscbfll54ofqsomije
-  models.py: bafybeih373vlogve2ajn2gqkdh3j5t4g46ls32a74ud664ow4kh2o42f34
+  models.py: bafybeihwwvwehjdccx2rgx3epexsqmccn7wxlayedtf3sygvpxzkur3poi
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
   rounds.py: bafybeifjwh76wehqolryitcugkzuirebgssqbczh25v6xhhhfg4knmq7ae
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
-  tests/test_behaviours.py: bafybeicpruaznh5qafd4pdpj2okrt3tvreejojfo2doxdic54w3zzxgxhi
+  tests/test_behaviours.py: bafybeibwteh563ul46acwgkvpcovd6f23jtm5lhrjvitahpsxv6lrs5e5y
   tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
   tests/test_payloads.py: bafybeiarokonoz2okmdc4ktmrzckdxitoophwt6wk3at4wjnrhjvcqlabq
-  tests/test_rounds.py: bafybeicch3byxwdnmuft5bqd4en5kc5mnafuqegzo563zgk7f6hdma2is4
+  tests/test_rounds.py: bafybeid4s7oocrplg5gkijmz6ixppbrh4f5onpbejuvp45djdfudzea5m4
 fingerprint_ignore_patterns: []
 connections:
 - valory/http_client:0.23.0:bafybeihz3tubwado7j3wlivndzzuj3c6fdsp4ra5r3nqixn3ufawzo3wii
@@ -30,7 +30,7 @@ contracts:
 - elcollectooorr/artblocks:0.1.0:bafybeiaxjs3x4yff2yaeroydoldrbc6c7ub7p4m27qfwxtzevsuw4azfsq
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeif724nb4zlufy7eigycu65rlaimtaqsrtozw5ajutiz4hd2lza4qe
 - elcollectooorr/artblocks_periphery:0.1.0:bafybeibp7gx4kagl4iytsfaadbusrkmdi52fobet3m4kap7inr3o4g7rki
-- elcollectooorr/basket_factory:0.1.0:bafybeigvkuvq7f64ej2clcgismf45weylxvp6zfen2bgmakqavffu2pm4m
+- elcollectooorr/basket_factory:0.1.0:bafybeiboljkwsbzamjisaafl3pxkaja6xl3r5p63fpdvsmkseie3e3wbmm
 - elcollectooorr/token_vault:0.1.0:bafybeifyx3kykoyl5c6opunbx4mgf2bhg2eyyoisvsaphgve5zdzonnile
 - elcollectooorr/token_vault_factory:0.1.0:bafybeifosvdfjxmorbwfa5nohfo6oxefked7igtyc332a5jabdohdrmhre
 - valory/gnosis_safe:0.1.0:bafybeifhppiz5wnvwcf5ucf4yfklef4twh7fveixqy5vf2pfnt5dr37hbm
@@ -41,7 +41,7 @@ protocols:
 - valory/http:1.0.0:bafybeigzqo2zaakcjtzzsm6dh4x73v72xg6ctk6muyp5uq5ueb7y34fbxy
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicermc63znxdg37ddxrkqetwpeg7jksp5phwxndvb32owyqctp7tm
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeidlzgw2adz7aqsx6gby2wieeryisakovplxeiqhwpf5num7sfbpdm
 - valory/abstract_round_abci:0.1.0:bafybeihcp5arzsm6btzj2d25hd4bxqouu3nnmwjfhpcapc4ugq22tlxswa
 - valory/registration_abci:0.1.0:bafybeia3xu4slpgovvcgiappzgmotil2mfvgl4iejwpi6vawkm3jr5w5le
 - valory/reset_pause_abci:0.1.0:bafybeic56oda27soy7yoo7nwhq4ke2rf3alohxjhnurh5ozaelzsjlehry

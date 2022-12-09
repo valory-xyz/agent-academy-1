@@ -12,7 +12,7 @@ fingerprint:
   tests/fixture_helpers.py: bafybeiftrapue6wb6dv6wfsdhuaxc2prn6fzltcdbrynnvbpvyqkzzvyau
   tests/helpers/__init__.py: bafybeifzu3wezqxxzwznjug3xwqlumu76fmdvj7aiywutqgrakbxzimu3i
   tests/helpers/artblocks_utils.py: bafybeid7gcxt7t42oc5k74ddpx5cpyciwkfegmjrdcbrcfoqq3c4wxfquy
-  tests/helpers/constants.py: bafybeiha2uepi2sa6ihvg4vbvjhkrz3kujxqysexmj2kytpxpacmzekhru
+  tests/helpers/constants.py: bafybeicotw4go2lxsxax4brbnnk742phdz66bmmxwr4lz2x662fu2pldaa
   tests/helpers/docker/__init__.py: bafybeidakk3cxongkwm6pkuokufzpqr2ms2fvnecmdpxdm5lk7d2ko244q
   tests/helpers/docker/elcol_net.py: bafybeia3rzjwwc3isxqnzh6b33lf2m3psuzxj4jlrx7zwomzctxzy6sqoy
   tests/helpers/docker/mock_arblocks_api.py: bafybeid2mp277jhtjnd5piy3eeyc2hghp7mgfu6k2agwohvgi7fvhmhx2a
@@ -28,9 +28,9 @@ fingerprint:
   tests/test_fractionalize_deployment_abci/test_payloads.py: bafybeigtrkmgejek2raj65ulbiogslzsd4tnf5xkjvvbgxlo6x4jx4cwrq
   tests/test_fractionalize_deployment_abci/test_rounds.py: bafybeiaezuj5ggz7ipwmabm3qgqixddqmlzv3gevk6xpv5ng7je6wgkytu
   tests/test_token_vault/__init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
-  tests/test_token_vault/test_contract.py: bafybeifbgxr5pclftalkyzz7cyauiq7kqxdvsipacgq65yjuvpry32etjq
+  tests/test_token_vault/test_contract.py: bafybeic72kqav7ipzf44lpbghmcpllwf4xhtsly3wcmehmiw4tj725hvzi
   tests/test_token_vault_factory/__init__.py: bafybeibvzzcxfah75gtx6wlvc6k2lfsbwo572bltjxwg2orlv3oqhj5yrq
-  tests/test_token_vault_factory/test_contract.py: bafybeidyyypsobocweokoihqpctr57irijlenao7qpp7bexyoltbio5rdy
+  tests/test_token_vault_factory/test_contract.py: bafybeiewxdjcyzbgellfrmscesiqqtukxrcxlktw25s3s5w2zs7gkkgfvm
 fingerprint_ignore_patterns: []
 connections:
 - valory/abci:0.1.0:bafybeidvxgw3f4hpbmswuifpla4oj2mrqf7je37ar62zqmwuwqvxxzj73m
@@ -41,8 +41,8 @@ contracts:
 - elcollectooorr/artblocks:0.1.0:bafybeiaxjs3x4yff2yaeroydoldrbc6c7ub7p4m27qfwxtzevsuw4azfsq
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeif724nb4zlufy7eigycu65rlaimtaqsrtozw5ajutiz4hd2lza4qe
 - elcollectooorr/artblocks_periphery:0.1.0:bafybeibp7gx4kagl4iytsfaadbusrkmdi52fobet3m4kap7inr3o4g7rki
-- elcollectooorr/basket:0.1.0:bafybeibslfoy2ua3is4fppvpmd6m2gtedsriwpndahhdpie5qywpqofily
-- elcollectooorr/basket_factory:0.1.0:bafybeigvkuvq7f64ej2clcgismf45weylxvp6zfen2bgmakqavffu2pm4m
+- elcollectooorr/basket:0.1.0:bafybeic2wx55vph4bn6ctcsmkcret2csv3kao35gcmrkxsuiunsndraqam
+- elcollectooorr/basket_factory:0.1.0:bafybeiboljkwsbzamjisaafl3pxkaja6xl3r5p63fpdvsmkseie3e3wbmm
 - elcollectooorr/token_vault:0.1.0:bafybeifyx3kykoyl5c6opunbx4mgf2bhg2eyyoisvsaphgve5zdzonnile
 - elcollectooorr/token_vault_factory:0.1.0:bafybeifosvdfjxmorbwfa5nohfo6oxefked7igtyc332a5jabdohdrmhre
 - valory/gnosis_safe:0.1.0:bafybeifhppiz5wnvwcf5ucf4yfklef4twh7fveixqy5vf2pfnt5dr37hbm
@@ -58,8 +58,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeibjvjdgnwsgcmw6itcii562cznncqlokaljrgodqgvgqfwbcnol5i
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicermc63znxdg37ddxrkqetwpeg7jksp5phwxndvb32owyqctp7tm
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeic3zxfa453j73ukfhaldap6jh2mbrquoxxssodbdcw7zrmukmwce4
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeidlzgw2adz7aqsx6gby2wieeryisakovplxeiqhwpf5num7sfbpdm
 - valory/abstract_abci:0.1.0:bafybeihgpuyj5bqlkpwl52r43okgyvnnsx7vzot5iptnjmcfdpl3577tjq
 - valory/abstract_round_abci:0.1.0:bafybeihcp5arzsm6btzj2d25hd4bxqouu3nnmwjfhpcapc4ugq22tlxswa
 - valory/registration_abci:0.1.0:bafybeia3xu4slpgovvcgiappzgmotil2mfvgl4iejwpi6vawkm3jr5w5le
