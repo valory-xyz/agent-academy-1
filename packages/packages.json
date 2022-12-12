@@ -9,9 +9,9 @@
         "contract/elcollectooorr/artblocks_periphery/0.1.0": "bafybeibp7gx4kagl4iytsfaadbusrkmdi52fobet3m4kap7inr3o4g7rki",
         "skill/elcollectooorr/fractionalize_deployment_abci/0.1.0": "bafybeidlzgw2adz7aqsx6gby2wieeryisakovplxeiqhwpf5num7sfbpdm",
         "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeic3zxfa453j73ukfhaldap6jh2mbrquoxxssodbdcw7zrmukmwce4",
-        "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeifwkiqxtqlnqqnctokhh7bydmjkjzzkaqkll62hjwejpbplruiu7y",
+        "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeiaxui5uvbpahnl73kwh7wazgwsue2lrhwcmho4oshitrnd7p4nmmm",
         "contract/elcollectooorr/token_settings/0.1.0": "bafybeieut4alr56p2k6kode3ze5xkbobexcxjehwynosyled3yelb6xl7u",
-        "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeicq7jpftcnh37zvzhmd5yjq65kov2v3emgthdex4rbk27245ualnu"
+        "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeigwg6kognrxphpcbzhyrhmyzw4cnpmykww2pdfm6zvi7grewnu3ji"
     },
     "third_party": {
         "protocol/valory/abci/0.1.0": "bafybeiaw3tzlg3rkvnn5fcufblktmfwngmxugn4yo7pyjp76zz6aqtqcay",
