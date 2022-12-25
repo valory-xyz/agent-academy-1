@@ -44,12 +44,12 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     FundingRound,
     ObservationRound,
     PayoutFractionsRound,
-    PeriodState,
     PostPayoutRound,
     PostTransactionSettlementEvent,
     PostTransactionSettlementRound,
     ProcessPurchaseRound,
     ResyncRound,
+    SynchronizedData,
     TransactionRound,
     TransferNFTRound,
     rotate_list,
@@ -80,7 +80,7 @@ def get_participants() -> FrozenSet[str]:
 class BaseRoundTestClass:
     """Base test class for Rounds."""
 
-    period_state: PeriodState
+    synchronized_data: SynchronizedData
     consensus_params: ConsensusParams
     participants: FrozenSet[str]
 
@@ -91,7 +91,7 @@ class BaseRoundTestClass:
         """Setup the test class."""
 
         cls.participants = get_participants()
-        cls.period_state = PeriodState(
+        cls.synchronized_data = SynchronizedData(
             StateDB(
                 setup_data=StateDB.data_to_lists(dict(participants=cls.participants))
             )
@@ -136,7 +136,7 @@ class TestObservationRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -161,7 +161,7 @@ class TestObservationRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             participant_to_project=test_round.collection,
             most_voted_project=test_round.most_voted_payload,
             most_recent_project=123,
@@ -176,17 +176,17 @@ class TestObservationRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_project
-            == cast(PeriodState, actual_next_state).most_voted_project
+            cast(SynchronizedData, state).most_voted_project
+            == cast(SynchronizedData, actual_next_state).most_voted_project
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).participant_to_project[participant]
+                cast(SynchronizedData, state).participant_to_project[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
+                    SynchronizedData, actual_next_state
                 ).participant_to_project.items()
             ]
         )
@@ -213,7 +213,7 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -238,7 +238,7 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             participant_to_project=test_round.collection,
             most_voted_project=test_round.most_voted_payload,
             most_recent_project=123,
@@ -253,17 +253,17 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_project
-            == cast(PeriodState, actual_next_state).most_voted_project
+            cast(SynchronizedData, state).most_voted_project
+            == cast(SynchronizedData, actual_next_state).most_voted_project
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).participant_to_project[participant]
+                cast(SynchronizedData, state).participant_to_project[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
+                    SynchronizedData, actual_next_state
                 ).participant_to_project.items()
             ]
         )
@@ -281,7 +281,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         payload_data = {"project_id": 123}
 
         test_round = DecisionRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -304,7 +304,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             participant_to_decision=test_round.collection,
             most_voted_decision=test_round.most_voted_payload,
         )
@@ -316,17 +316,17 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_decision
-            == cast(PeriodState, actual_next_state).most_voted_decision
+            cast(SynchronizedData, state).most_voted_decision
+            == cast(SynchronizedData, actual_next_state).most_voted_decision
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).participant_to_decision[participant]
+                cast(SynchronizedData, state).participant_to_decision[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
+                    SynchronizedData, actual_next_state
                 ).participant_to_decision.items()
             ]
         )
@@ -343,7 +343,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = DecisionRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         project_to_purchase: Dict = {}  # {} represents a NO decision for now
@@ -370,7 +370,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             participant_to_decision=test_round.collection,
             most_voted_decision=test_round.most_voted_payload,
         )
@@ -382,17 +382,17 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_decision
-            == cast(PeriodState, actual_next_state).most_voted_decision
+            cast(SynchronizedData, state).most_voted_decision
+            == cast(SynchronizedData, actual_next_state).most_voted_decision
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).participant_to_decision[participant]
+                cast(SynchronizedData, state).participant_to_decision[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
+                    SynchronizedData, actual_next_state
                 ).participant_to_decision.items()
             ]
         )
@@ -410,7 +410,7 @@ class TestTransactionRound(BaseRoundTestClass):
         test_purchase_data = "test_data"
 
         test_round = TransactionRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -433,7 +433,7 @@ class TestTransactionRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             participant_to_purchase_data=test_round.collection,
             most_voted_purchase_data=test_round.most_voted_payload,
         )
@@ -445,17 +445,17 @@ class TestTransactionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_purchase_data
-            == cast(PeriodState, actual_next_state).most_voted_purchase_data
+            cast(SynchronizedData, state).most_voted_purchase_data
+            == cast(SynchronizedData, actual_next_state).most_voted_purchase_data
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).participant_to_purchase_data[participant]
+                cast(SynchronizedData, state).participant_to_purchase_data[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
+                    SynchronizedData, actual_next_state
                 ).participant_to_purchase_data.items()
             ]
         )
@@ -473,7 +473,7 @@ class TestDetailsRound(BaseRoundTestClass):
         test_details = json.dumps({"active_projects": [{"data": "more"}]})
 
         test_round = DetailsRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -496,7 +496,7 @@ class TestDetailsRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             participant_to_details=test_round.collection,
             active_projects=test_round.most_voted_payload,
         )
@@ -507,17 +507,17 @@ class TestDetailsRound(BaseRoundTestClass):
 
         # a new period has started
         # make sure the correct project is chosen
-        assert cast(PeriodState, state).db.get_strict("active_projects") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("active_projects") == cast(
+            SynchronizedData, actual_next_state
         ).db.get("active_projects")
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).participant_to_details[participant]
+                cast(SynchronizedData, state).participant_to_details[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
+                    SynchronizedData, actual_next_state
                 ).participant_to_details.items()
             ]
         )
@@ -535,7 +535,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         test_funds = {"0x0": WEI_TO_ETH}
 
         test_round = FundingRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -558,7 +558,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             participant_to_funds=test_round.collection,
             most_voted_funds=test_round.most_voted_payload,
         )
@@ -570,17 +570,17 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         # a new period has started
         # make sure the correct project is chosen
         assert (
-            cast(PeriodState, state).most_voted_funds
-            == cast(PeriodState, actual_next_state).most_voted_funds
+            cast(SynchronizedData, state).most_voted_funds
+            == cast(SynchronizedData, actual_next_state).most_voted_funds
         )
 
         # make sure all the votes are as expected
         assert all(
             [
-                cast(PeriodState, state).participant_to_funds[participant]
+                cast(SynchronizedData, state).participant_to_funds[participant]
                 == actual_vote
                 for (participant, actual_vote) in cast(
-                    PeriodState, actual_next_state
+                    SynchronizedData, actual_next_state
                 ).participant_to_funds.items()
             ]
         )
@@ -600,7 +600,7 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
         purchased_projects = [120, 121, 122]
 
         initial_state = deepcopy(
-            self.period_state.update(
+            self.synchronized_data.update(
                 project_to_purchase=test_project,
                 purchased_projects=purchased_projects,
             )
@@ -643,11 +643,11 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert cast(PeriodState, state).db.get_strict("purchased_nft") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("purchased_nft") == cast(
+            SynchronizedData, actual_next_state
         ).db.get_strict("purchased_nft")
-        assert cast(PeriodState, state).db.get_strict("purchased_projects") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("purchased_projects") == cast(
+            SynchronizedData, actual_next_state
         ).db.get_strict("purchased_projects")
 
         assert event == Event.DONE
@@ -662,7 +662,7 @@ class TestTransferNFTRound(BaseRoundTestClass):
         """Run tests."""
 
         initial_state = deepcopy(
-            self.period_state.update(
+            self.synchronized_data.update(
                 purchased_nft=123,
             )
         )
@@ -692,7 +692,7 @@ class TestTransferNFTRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = initial_state.update(
-            tx_submitter=TransferNFTRound.round_id,
+            tx_submitter=TransferNFTRound.auto_round_id(),
         )
 
         res = test_round.end_block()
@@ -701,8 +701,8 @@ class TestTransferNFTRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert cast(PeriodState, state).db.get_strict("tx_submitter") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("tx_submitter") == cast(
+            SynchronizedData, actual_next_state
         ).db.get_strict("tx_submitter")
 
         assert event == Event.DONE
@@ -716,7 +716,7 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
     ) -> None:
         """Run tests."""
 
-        initial_state = deepcopy(self.period_state)
+        initial_state = deepcopy(self.synchronized_data)
 
         test_round = PayoutFractionsRound(
             synchronized_data=initial_state, consensus_params=self.consensus_params
@@ -748,7 +748,7 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
         actual_next_state = initial_state.update(
             most_voted_tx_hash="0x0",
             users_being_paid={"0x0": 123},
-            tx_submitter=PayoutFractionsRound.round_id,
+            tx_submitter=PayoutFractionsRound.auto_round_id(),
         )
 
         res = test_round.end_block()
@@ -757,14 +757,14 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert cast(PeriodState, state).db.get_strict("most_voted_tx_hash") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("most_voted_tx_hash") == cast(
+            SynchronizedData, actual_next_state
         ).db.get_strict("most_voted_tx_hash")
-        assert cast(PeriodState, state).db.get_strict("users_being_paid") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("users_being_paid") == cast(
+            SynchronizedData, actual_next_state
         ).db.get_strict("users_being_paid")
-        assert cast(PeriodState, state).db.get_strict("tx_submitter") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("tx_submitter") == cast(
+            SynchronizedData, actual_next_state
         ).db.get_strict("tx_submitter")
 
         assert event == Event.DONE
@@ -779,7 +779,7 @@ class TestPostPayoutRound(BaseRoundTestClass):
         """Run tests."""
 
         initial_state = deepcopy(
-            self.period_state.update(
+            self.synchronized_data.update(
                 paid_users={"0x1": 1},
                 users_being_paid={"0x1": 2, "0x2": 1},
             )
@@ -801,11 +801,11 @@ class TestPostPayoutRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert cast(PeriodState, state).db.get_strict("users_being_paid") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("users_being_paid") == cast(
+            SynchronizedData, actual_next_state
         ).db.get_strict("users_being_paid")
-        assert cast(PeriodState, state).db.get_strict("paid_users") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get_strict("paid_users") == cast(
+            SynchronizedData, actual_next_state
         ).db.get_strict("paid_users")
 
         assert event == Event.DONE
@@ -820,9 +820,9 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
         """Run tests."""
         test_payload_data = {"amount_spent": 123}
 
-        self.period_state.update(tx_submitter=TransactionRound.round_id)
+        self.synchronized_data.update(tx_submitter=TransactionRound.auto_round_id())
         test_round = PostTransactionSettlementRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -847,7 +847,7 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             amount_spent=123,
         )
 
@@ -857,8 +857,8 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
 
         # a new period has started
         # make sure the correct project is chosen
-        assert cast(PeriodState, state).db.get("amount_spent") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get("amount_spent") == cast(
+            SynchronizedData, actual_next_state
         ).db.get("amount_spent")
 
         assert event == PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE
@@ -880,7 +880,7 @@ class TestResyncRound(BaseRoundTestClass):
         }
 
         test_round = ResyncRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -903,7 +903,7 @@ class TestResyncRound(BaseRoundTestClass):
         for payload in payloads:
             test_round.process_payload(payload)
 
-        actual_next_state = self.period_state.update(
+        actual_next_state = self.synchronized_data.update(
             amount_spent=1,
             basket_addresses=["0x0"],
             vault_addresses=["0x1"],
@@ -917,20 +917,20 @@ class TestResyncRound(BaseRoundTestClass):
 
         # a new period has started
         # make sure the correct project is chosen
-        assert cast(PeriodState, state).db.get("amount_spent") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get("amount_spent") == cast(
+            SynchronizedData, actual_next_state
         ).db.get("amount_spent")
-        assert cast(PeriodState, state).db.get("basket_addresses") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get("basket_addresses") == cast(
+            SynchronizedData, actual_next_state
         ).db.get("basket_addresses")
-        assert cast(PeriodState, state).db.get("vault_addresses") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get("vault_addresses") == cast(
+            SynchronizedData, actual_next_state
         ).db.get("vault_addresses")
-        assert cast(PeriodState, state).db.get("purchased_projects") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get("purchased_projects") == cast(
+            SynchronizedData, actual_next_state
         ).db.get("purchased_projects")
-        assert cast(PeriodState, state).db.get("paid_users") == cast(
-            PeriodState, actual_next_state
+        assert cast(SynchronizedData, state).db.get("paid_users") == cast(
+            SynchronizedData, actual_next_state
         ).db.get("paid_users")
 
         assert event == Event.DONE
@@ -943,8 +943,8 @@ def test_rotate_list_method() -> None:
     assert rotate_list(ex_list, 2) == [3, 4, 5, 1, 2]
 
 
-def test_period_state() -> None:  # pylint: disable=too-many-locals
-    """Test PeriodState."""
+def test_synchronized_data() -> None:  # pylint: disable=too-many-locals
+    """Test SynchronizedData."""
 
     participants = get_participants()
     period_count = 0
@@ -962,7 +962,7 @@ def test_period_state() -> None:  # pylint: disable=too-many-locals
     }
     most_voted_keeper_address = "keeper"
 
-    period_state = PeriodState(
+    synchronized_data = SynchronizedData(
         StateDB(
             setup_data=StateDB.data_to_lists(
                 dict(
@@ -978,13 +978,13 @@ def test_period_state() -> None:  # pylint: disable=too-many-locals
         )
     )
 
-    assert period_state.participants == participants
-    assert period_state.period_count == period_count
-    assert period_state.participant_to_randomness == participant_to_randomness
-    assert period_state.most_voted_randomness == most_voted_randomness
-    assert period_state.participant_to_selection == participant_to_selection
-    assert period_state.most_voted_keeper_address == most_voted_keeper_address
-    assert period_state.sorted_participants == sorted(participants)
-    assert period_state.keeper_randomness == cast(
+    assert synchronized_data.participants == participants
+    assert synchronized_data.period_count == period_count
+    assert synchronized_data.participant_to_randomness == participant_to_randomness
+    assert synchronized_data.most_voted_randomness == most_voted_randomness
+    assert synchronized_data.participant_to_selection == participant_to_selection
+    assert synchronized_data.most_voted_keeper_address == most_voted_keeper_address
+    assert synchronized_data.sorted_participants == sorted(participants)
+    assert synchronized_data.keeper_randomness == cast(
         float, (int(most_voted_randomness, base=16) // 10 ** 0 % 10) / 10
     )

@@ -26,24 +26,27 @@ models:
 ---
 public_id: valory/ledger:0.19.0
 type: connection
-config:
-  0:
-  - ledger_apis:
+0:
+  config:
+    ledger_apis:
       ethereum:
         address: ${SERVICE_ELCOLLECTOOORR_RPC_0:str:http://127.0.0.1:8545}
         chain_id: 1
-  1:
-  - ledger_apis:
+1:
+  config:
+    ledger_apis:
       ethereum:
         address: ${SERVICE_ELCOLLECTOOORR_RPC_1:str:http://127.0.0.1:8545}
         chain_id: 1
-  2:
-  - ledger_apis:
+2:
+  config:
+    ledger_apis:
       ethereum:
         address: ${SERVICE_ELCOLLECTOOORR_RPC_2:str:http://127.0.0.1:8545}
         chain_id: 1
-  3:
-  - ledger_apis:
+3:
+  config:
+    ledger_apis:
       ethereum:
         address: ${SERVICE_ELCOLLECTOOORR_RPC_3:str:http://127.0.0.1:8545}
         chain_id: 1

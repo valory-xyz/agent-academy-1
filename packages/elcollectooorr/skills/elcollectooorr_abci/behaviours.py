@@ -69,13 +69,13 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     FundingRound,
     ObservationRound,
     PayoutFractionsRound,
-    PeriodState,
     PostFractionPayoutAbciApp,
     PostPayoutRound,
     PostTransactionSettlementRound,
     ProcessPurchaseRound,
     ResyncAbciApp,
     ResyncRound,
+    SynchronizedData,
     TransactionRound,
     TransactionSettlementAbciMultiplexer,
     TransferNFTAbciApp,
@@ -132,10 +132,10 @@ class ElcollectooorrABCIBaseState(BaseState, ABC):
     """Base state behaviour for the El Collectooorr abci skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
         return cast(
-            PeriodState, cast(SharedState, self.context.state).synchronized_data
+            SynchronizedData, cast(SharedState, self.context.state).synchronized_data
         )
 
     @property
@@ -149,7 +149,6 @@ class ResyncRoundBehaviour(
 ):  # pylint: disable=too-many-locals, too-many-statements
     """Behaviour for the resyncing round."""
 
-    behaviour_id = "resync"
     matching_round = ResyncRound
 
     def async_act(self) -> Generator:
@@ -341,7 +340,7 @@ class ResyncRoundBehaviour(
         """Get the all MultiSig txs made by the safe."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.period_state.db.get_strict("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_safe_txs",
         )
@@ -363,7 +362,7 @@ class ResyncRoundBehaviour(
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=vault_address,
-            from_address=self.period_state.db.get_strict("safe_contract_address"),
+            from_address=self.synchronized_data.safe_contract_address,
             contract_id=str(TokenVaultContract.contract_id),
             contract_callable="get_all_erc20_transfers",
             from_block=from_block,
@@ -389,7 +388,7 @@ class ResyncRoundBehaviour(
             contract_address=self.params.basket_factory_address,
             contract_id=str(BasketFactoryContract.contract_id),
             contract_callable="get_deployed_baskets",
-            deployer_address=self.period_state.db.get_strict("safe_contract_address"),
+            deployer_address=self.synchronized_data.safe_contract_address,
             from_block=from_block,
             to_block=to_block,
         )
@@ -435,7 +434,7 @@ class ResyncRoundBehaviour(
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.params.artblocks_contract,
-            minted_to_address=self.period_state.db.get_strict("safe_contract_address"),
+            minted_to_address=self.synchronized_data.safe_contract_address,
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="get_mints",
             from_block=from_block,
@@ -485,7 +484,6 @@ class ResyncRoundBehaviour(
 class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Observation round behaviour"""
 
-    behaviour_id = "observation"
     matching_round = ObservationRound
 
     def async_act(self) -> Generator:
@@ -497,16 +495,16 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
 
             try:
                 prev_finished = cast(
-                    List[int], self.period_state.db.get("finished_projects", [])
+                    List[int], self.synchronized_data.db.get("finished_projects", [])
                 )
                 prev_active = cast(
-                    List[Dict], self.period_state.db.get("active_projects", [])
+                    List[Dict], self.synchronized_data.db.get("active_projects", [])
                 )
                 prev_inactive = cast(
-                    List[int], self.period_state.db.get("inactive_projects", [])
+                    List[int], self.synchronized_data.db.get("inactive_projects", [])
                 )
                 most_recent_project = cast(
-                    int, self.period_state.db.get("most_recent_project", 0)
+                    int, self.synchronized_data.db.get("most_recent_project", 0)
                 )
 
                 if most_recent_project == 0:
@@ -625,7 +623,6 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
 class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Details Round behaviour"""
 
-    behaviour_id = "details"
     matching_round = DetailsRound
 
     def async_act(self) -> Generator:
@@ -636,7 +633,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
             payload_data = {}
 
             try:
-                active_projects = self.period_state.db.get_strict("active_projects")
+                active_projects = self.synchronized_data.db.get_strict("active_projects")
                 enhanced_projects = yield from self._enhance_active_projects(
                     active_projects
                 )
@@ -799,7 +796,6 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
 class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Decision Round behaviour"""
 
-    behaviour_id = "decision"
     matching_round = DecisionRound
 
     def async_act(self) -> Generator:
@@ -811,13 +807,13 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
 
             try:
                 active_projects = cast(
-                    List[Dict], self.period_state.db.get_strict("active_projects")
+                    List[Dict], self.synchronized_data.db.get_strict("active_projects")
                 )
                 purchased_projects = cast(
-                    List[Dict], self.period_state.db.get("purchased_projects", [])
+                    List[Dict], self.synchronized_data.db.get("purchased_projects", [])
                 )  # NOTE: projects NOT tokens
                 already_spent = cast(
-                    int, self.period_state.db.get_strict("amount_spent")
+                    int, self.synchronized_data.db.get_strict("amount_spent")
                 )
                 safe_balance = yield from self._get_safe_balance()
                 current_budget = min(
@@ -887,7 +883,7 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
     def _get_safe_balance(self) -> Generator[None, None, int]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.period_state.db.get_strict("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_balance",
         )
@@ -906,7 +902,6 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
 class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Transaction Round behaviour"""
 
-    behaviour_id = "transaction_collection"
     matching_round = TransactionRound
 
     def async_act(self) -> Generator:
@@ -917,7 +912,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
             self.behaviour_id,
         ).local():
             try:
-                project_to_purchase = self.period_state.db.get_strict(
+                project_to_purchase = self.synchronized_data.db.get_strict(
                     "project_to_purchase"
                 )
                 minter = project_to_purchase["minter"]
@@ -967,7 +962,7 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.db.get_strict("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=to_address,
@@ -1013,7 +1008,6 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
 class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
     """Checks the balance of the safe contract."""
 
-    behaviour_id = "funding_behaviour"
     matching_round = FundingRound
 
     def async_act(self) -> Generator:
@@ -1047,7 +1041,7 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
-            contract_address=self.period_state.db.get("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_ingoing_transfers",
             from_block=from_block,
@@ -1093,7 +1087,6 @@ class FundingRoundBehaviour(ElcollectooorrABCIBaseState):
 class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
-    behaviour_id = "payout_fractions"
     matching_round = PayoutFractionsRound
 
     def async_act(self) -> Generator:
@@ -1103,7 +1096,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
         ).local():
             try:
                 latest_vault = cast(
-                    List[str], self.period_state.db.get("vault_addresses")
+                    List[str], self.synchronized_data.db.get("vault_addresses")
                 )[-1]
                 multisend_data_obj = yield from self._get_multisend_tx(latest_vault)
 
@@ -1143,7 +1136,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.db.get("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=self.params.multisend_address,
@@ -1167,7 +1160,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     def _get_transferERC20_tx(
         self, address: str, amount: int
     ) -> Generator[None, None, str]:
-        latest_vault = cast(List[str], self.period_state.db.get("vault_addresses"))[-1]
+        latest_vault = cast(List[str], self.synchronized_data.db.get("vault_addresses"))[-1]
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -1191,13 +1184,13 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
 
     def _available_tokens(self) -> Generator:
         """Get the tokens that are left undistributed."""
-        latest_vault = cast(List[str], self.period_state.db.get("vault_addresses"))[-1]
+        latest_vault = cast(List[str], self.synchronized_data.db.get("vault_addresses"))[-1]
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_id=str(TokenVaultContract.contract_id),
             contract_callable="get_balance",
             contract_address=latest_vault,
-            address=self.period_state.db.get("safe_contract_address"),
+            address=self.synchronized_data.safe_contract_address,
         )
 
         enforce(
@@ -1214,9 +1207,9 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     ) -> Generator:
         """Get a dictionary of addresses and the tokens to be sent to them."""
 
-        paid_users = cast(Dict[str, int], self.period_state.db.get("paid_users", {}))
+        paid_users = self.synchronized_data.paid_users
         all_transfers = cast(
-            List[Dict], self.period_state.db.get("most_voted_funds", [])
+            List[Dict], self.synchronized_data.db.get("most_voted_funds", [])
         )
         undistributed_tokens = yield from self._available_tokens()
         tokens_to_be_distributed = 0
@@ -1309,12 +1302,11 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
 class PostPayoutRoundBehaviour(ElcollectooorrABCIBaseState):
     """Trivial behaviour for post payout"""
 
-    behaviour_id = "post_fraction_payout_behaviour"
     matching_round = PostPayoutRound
 
     def async_act(self) -> Generator:
         """Trivially log that the behaviour is done."""
-        users_paid = self.period_state.db.get("users_being_paid", "{}")
+        users_paid = self.synchronized_data.db.get("users_being_paid", "{}")
 
         self.context.logger.info(f"The following users were paid: {users_paid}")
         yield from self.wait_until_round_end()
@@ -1335,7 +1327,6 @@ class PostFractionsPayoutRoundBehaviour(AbstractRoundBehaviour):
 class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
     """Process the purchase of an NFT"""
 
-    behaviour_id = "process_purchase"
     matching_round = ProcessPurchaseRound
 
     def async_act(self) -> Generator:
@@ -1374,7 +1365,7 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_address=self.params.artblocks_contract,
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="process_purchase_receipt",
-            tx_hash=self.period_state.db.get("final_tx_hash"),
+            tx_hash=self.synchronized_data.db.get("final_tx_hash"),
         )
 
         enforce(
@@ -1391,7 +1382,6 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
 class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
     """Defines the Transaction Round behaviour"""
 
-    behaviour_id = "transfer_nft"
     matching_round = TransferNFTRound
 
     def async_act(self) -> Generator:
@@ -1436,7 +1426,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
     def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.db.get_strict("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=self.params.artblocks_contract,
@@ -1456,10 +1446,10 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
         return tx_hash
 
     def _get_safe_transfer_from_data(self) -> Generator[None, None, str]:
-        latest_basket = cast(List[str], self.period_state.db.get("basket_addresses"))[
+        latest_basket = cast(List[str], self.synchronized_data.db.get("basket_addresses"))[
             -1
         ]
-        token_id = self.period_state.db.get("purchased_nft", None)
+        token_id = self.synchronized_data.db.get("purchased_nft", None)
 
         enforce(token_id is not None, "No token to be transferred")
         response = yield from self.get_contract_api_response(
@@ -1467,7 +1457,7 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_address=self.params.artblocks_contract,
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="safe_transfer_from_data",
-            from_address=self.period_state.db.get("safe_contract_address"),
+            from_address=self.synchronized_data.safe_contract_address,
             to_address=latest_basket,
             token_id=token_id,
         )
@@ -1499,7 +1489,6 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
     """Behaviour for Post TX Settlement Round."""
 
     matching_round = PostTransactionSettlementRound
-    behaviour_id = "post_tx_settlement_state"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
@@ -1509,7 +1498,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
             self.behaviour_id,
         ).local():
             try:
-                tx_submitter = self.period_state.db.get("tx_submitter", None)
+                tx_submitter = self.synchronized_data.db.get("tx_submitter", None)
 
                 if tx_submitter is None:
                     self.context.logger.error(
@@ -1552,7 +1541,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
             contract_address=ZERO_ADDRESS,  # not needed
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_amount_spent",
-            tx_hash=self.period_state.db.get("final_tx_hash"),
+            tx_hash=self.synchronized_data.db.get("final_tx_hash"),
         )
 
         enforce(

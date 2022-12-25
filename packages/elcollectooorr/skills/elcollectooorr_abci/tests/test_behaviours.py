@@ -68,8 +68,8 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.handlers import (
 )
 from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     Event,
-    PeriodState,
     PostTransactionSettlementEvent,
+    SynchronizedData,
 )
 from packages.elcollectooorr.skills.elcollectooorr_abci.tests import PACKAGE_DIR
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours import (
@@ -88,11 +88,9 @@ from packages.valory.protocols.contract_api.message import ContractApiMessage
 from packages.valory.protocols.http import HttpMessage
 from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
-from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData as BasePeriodState,
-)
-from packages.valory.skills.abstract_round_abci.base import (
+    AbstractRound,
+    BaseSynchronizedData,
     BaseTxPayload,
     OK_CODE,
     _MetaPayload,
@@ -179,7 +177,7 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):  # pylint: disable=
             cast(
                 BaseState, cls.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == cls.elcollectooorr_abci_behaviour.initial_behaviour_cls.behaviour_id
+            == cls.elcollectooorr_abci_behaviour.initial_behaviour_cls.auto_behaviour_id()
         )
 
     @classmethod
@@ -193,14 +191,14 @@ class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):  # pylint: disable=
         self,
         behaviour: AbstractRoundBehaviour,
         state_id: str,
-        period_state: BasePeriodState,
+        period_state: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
-        next_state = {s.behaviour_id: s for s in behaviour.behaviours}[state_id]
+        next_state = {s.auto_behaviour_id(): s for s in behaviour.behaviours}[state_id]
         assert next_state is not None, f"State {state_id} not found"
         next_state = cast(Type[BaseState], next_state)
         behaviour.current_behaviour = next_state(
-            name=next_state.behaviour_id, skill_context=behaviour.context
+            name=next_state.auto_behaviour_id(), skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
             period_state
@@ -466,8 +464,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -485,7 +483,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -552,7 +550,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round()
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == DetailsRoundBehaviour.behaviour_id
+        assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
     def test_no_project_was_previously_observed(self) -> None:
         """The agent queries the contract for the first time."""
@@ -564,8 +562,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -583,7 +581,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -650,7 +648,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round()
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == DetailsRoundBehaviour.behaviour_id
+        assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
     def test_project_becomes_active(self) -> None:
         """The agent queries the contract and a project has become active."""
@@ -662,8 +660,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -681,7 +679,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -734,7 +732,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round()
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == DetailsRoundBehaviour.behaviour_id
+        assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
     def test_no_new_projects(self) -> None:
         """The agent queries the contract and nothing has changed."""
@@ -746,8 +744,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -765,7 +763,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -832,7 +830,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round()
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == DetailsRoundBehaviour.behaviour_id
+        assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
     def test_bad_response(self) -> None:
         """The agent queries the contract and nothing has changed."""
@@ -844,8 +842,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -863,7 +861,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -895,7 +893,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round()
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == DetailsRoundBehaviour.behaviour_id
+        assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
 
 class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -932,8 +930,8 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -948,7 +946,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -1057,7 +1055,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_bad_response_graph(self) -> None:
         """Bad response from the graph."""
@@ -1087,8 +1085,8 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -1103,7 +1101,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -1148,7 +1146,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_bad_response_contract(self) -> None:
         """Bad response from the contract."""
@@ -1178,8 +1176,8 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -1194,7 +1192,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -1254,7 +1252,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
 class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -1305,8 +1303,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -1324,7 +1322,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -1367,7 +1365,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.decided_yes_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.decided_yes_behaviour_class.auto_behaviour_id()
 
     def test_decided_no(self) -> None:
         """The agent evaluated the project and decided for NO"""
@@ -1410,8 +1408,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -1429,7 +1427,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -1472,7 +1470,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_NO)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.decided_no_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.decided_no_behaviour_class.auto_behaviour_id()
 
     def test_bad_response(self) -> None:
         """The agent receives a bad response from the contract."""
@@ -1514,8 +1512,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -1533,7 +1531,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -1565,7 +1563,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.decided_yes_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.decided_yes_behaviour_class.auto_behaviour_id()
 
 
 class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -1589,8 +1587,8 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1609,7 +1607,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -1651,7 +1649,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
         """The agent gathers the necessary data to make the purchase,makes a contract requests and receives valid data"""
@@ -1668,8 +1666,8 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1688,7 +1686,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         with patch.object(
             self.elcollectooorr_abci_behaviour.context.logger, "log"
@@ -1738,7 +1736,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.ERROR)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == ObservationRoundBehaviour.behaviour_id
+        assert state.behaviour_id == ObservationRoundBehaviour.auto_behaviour_id()
 
 
 class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -1751,8 +1749,8 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         """The agent gets the ingoing transfers."""
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1767,7 +1765,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -1821,15 +1819,15 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
         """The agent can't get the ingoing transfers."""
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1844,7 +1842,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
         with patch.object(
             self.elcollectooorr_abci_behaviour.context.logger, "log"
@@ -1877,7 +1875,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
 class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -1976,8 +1974,8 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2001,7 +1999,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2024,14 +2022,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_two_users_get_paid(self) -> None:
         """Two users need to get paid."""
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2060,7 +2058,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2084,14 +2082,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_no_users_get_paid(self) -> None:
         """No users need to get paid."""
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2120,7 +2118,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -2131,14 +2129,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_no_investments(self) -> None:
         """No users need to get paid."""
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2156,7 +2154,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -2167,14 +2165,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.NO_PAYOUTS)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.no_payouts_next_behaviour.behaviour_id
+        assert state.behaviour_id == self.no_payouts_next_behaviour.auto_behaviour_id()
 
     def test_a_user_invests_twice(self) -> None:
         """A user has invested once before, but needs to get paid for the new investment."""
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2205,7 +2203,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2228,14 +2226,14 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_a_user_invests_twice_consecutively(self) -> None:
         """A user has invested twice."""
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2266,7 +2264,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2289,7 +2287,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_not_enough_tokens_for_two_users(self) -> None:
         """
@@ -2300,8 +2298,8 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
-            PeriodState(
+            self.behaviour_class.auto_behaviour_id(),
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2332,7 +2330,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2357,7 +2355,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_not_enough_tokens_to_fully_pay_two_users(self) -> None:
         """
@@ -2369,7 +2367,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2400,7 +2398,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2429,7 +2427,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_bad_contract_response(self) -> None:
         """A contract returns a bad response."""
@@ -2437,7 +2435,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2468,7 +2466,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2488,7 +2486,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.NO_PAYOUTS)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.no_payouts_next_behaviour.behaviour_id
+        assert state.behaviour_id == self.no_payouts_next_behaviour.auto_behaviour_id()
 
 
 class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -2506,7 +2504,7 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2524,7 +2522,7 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2540,7 +2538,7 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
 class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -2556,7 +2554,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2571,7 +2569,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2600,7 +2598,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_bad_response(self) -> None:
         """The contract returns a bad response."""
@@ -2608,7 +2606,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2623,7 +2621,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2653,7 +2651,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.ERROR)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.failed_next_behaviour.behaviour_id
+        assert state.behaviour_id == self.failed_next_behaviour.auto_behaviour_id()
 
 
 class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -2669,7 +2667,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2686,7 +2684,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         self.elcollectooorr_abci_behaviour.act_wrapper()
@@ -2723,7 +2721,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_bad_response(self) -> None:
         """The contract returns a bad response."""
@@ -2731,7 +2729,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2748,7 +2746,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2793,7 +2791,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.NO_TRANSFER)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.no_transfer.behaviour_id
+        assert state.behaviour_id == self.no_transfer.auto_behaviour_id()
 
     def test_the_token_id_is_none(self) -> None:
         """The token_id is none."""
@@ -2801,7 +2799,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2817,7 +2815,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2835,7 +2833,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.NO_TRANSFER)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.no_transfer.behaviour_id
+        assert state.behaviour_id == self.no_transfer.auto_behaviour_id()
 
 
 class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -2851,7 +2849,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2867,7 +2865,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2902,7 +2900,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self.end_round(event=PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_bad_response(self) -> None:
         """The contract returns a bad response."""
@@ -2910,7 +2908,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2926,7 +2924,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -2960,7 +2958,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self.end_round(event=Event.ERROR)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.error_next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.error_next_behaviour_class.auto_behaviour_id()
 
     def test_the_the_tx_submitter_is_missing(self) -> None:
         """A token with value 1ETH was settled, but the tx_submitter is missing."""
@@ -2968,7 +2966,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -2983,7 +2981,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -3018,7 +3016,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self.end_round(event=PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
 class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -3146,7 +3144,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -3161,7 +3159,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -3236,7 +3234,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_bad_response(self) -> None:
         """The service was restarted with no vaults deployed."""
@@ -3244,7 +3242,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -3259,7 +3257,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -3288,7 +3286,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_more_than_1_vault_per_basket(self) -> None:
         """More than 1 vault is present per basket."""
@@ -3296,7 +3294,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -3311,7 +3309,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -3393,7 +3391,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_basket_without_vault(self) -> None:
         """A basket doesn't have a vault associated with it."""
@@ -3401,7 +3399,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -3416,7 +3414,7 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
@@ -3495,14 +3493,14 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.end_round(event=Event.DONE)
 
         state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
-        assert state.behaviour_id == self.next_behaviour_class.behaviour_id
+        assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_no_safe_tx(self) -> None:
         """The safe hasn't made any txs"""
         self.fast_forward_to_state(
             self.elcollectooorr_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -3517,7 +3515,8 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             cast(
                 BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
             ).behaviour_id
-            == self.behaviour_class.behaviour_id
+            == self.behaviour_class.auto_behaviour_id()
+
         )
 
         with patch.object(

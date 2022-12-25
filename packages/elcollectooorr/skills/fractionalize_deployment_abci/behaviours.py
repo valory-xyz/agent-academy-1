@@ -20,7 +20,7 @@
 """This module contains the behaviour_classes for the 'fractionalize_deployment_abci' skill."""
 import json
 from abc import ABC
-from typing import Generator, List, Set, Type, cast
+from typing import Generator, Set, Type, cast
 
 from aea.exceptions import AEAEnforceError, enforce
 
@@ -50,10 +50,10 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import 
     DeployVaultTxRound,
     FinishedDeployBasketTxRound,
     FinishedDeployVaultTxRound,
-    PeriodState,
     PermissionVaultFactoryRound,
     PostBasketDeploymentAbciApp,
     PostVaultDeploymentAbciApp,
+    SynchronizedData,
     VaultAddressRound,
 )
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
@@ -75,9 +75,9 @@ class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
     """Base state behaviour for the Fractionalize Deployment abci skill."""
 
     @property
-    def period_state(self) -> PeriodState:
-        """Return the period state."""
-        return cast(PeriodState, self.context.state.synchronized_data)
+    def synchronized_data(self) -> SynchronizedData:
+        """Return the synchronized data associated with this state."""
+        return cast(SynchronizedData, self.context.state.synchronized_data)
 
     @property
     def params(self) -> Params:
@@ -88,7 +88,6 @@ class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
 class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour for deciding whether a new basket & vault should be deployed"""
 
-    behaviour_id = "deploy_decision_behaviour"
     matching_round = DeployDecisionRound
 
     def async_act(self) -> Generator:
@@ -99,13 +98,9 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             deploy_decision = DeployDecisionRound.DECIDE_DONT_DEPLOY
 
             try:
-                vault_addresses = cast(
-                    List[str], self.period_state.db.get("vault_addresses", [])
-                )
-                basket_addresses = cast(
-                    List[str], self.period_state.db.get("basket_addresses", [])
-                )
-                amount_spent = self.period_state.db.get("amount_spent", 0)
+                vault_addresses = self.synchronized_data.vault_addresses
+                basket_addresses = self.synchronized_data.basket_addresses
+                amount_spent = self.synchronized_data.db.get("amount_spent", 0)
                 budget = self.params.budget_per_vault - (
                     0.15 * ONE_ETH
                 )  # we leave a 0.15ETH margin
@@ -184,7 +179,7 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_id=str(TokenVaultContract.contract_id),
             contract_callable="get_balance",
             contract_address=vault_address,
-            address=self.period_state.db.get_strict("safe_contract_address"),
+            address=self.synchronized_data.safe_contract_address,
         )
 
         enforce(
@@ -204,7 +199,6 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
-    behaviour_id = "deploy_basket_transaction_collection"
     matching_round = DeployBasketTxRound
 
     def async_act(self) -> Generator:
@@ -249,7 +243,7 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.db.get("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=self.params.basket_factory_address,
@@ -293,7 +287,6 @@ class DeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
-    behaviour_id = "deploy_vault_transaction_collection"
     matching_round = DeployVaultTxRound
 
     def async_act(self) -> Generator:
@@ -338,7 +331,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     def _get_safe_hash(self, data: bytes) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.db.get("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=self.params.token_vault_factory_address,
@@ -359,9 +352,7 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         return tx_hash
 
     def _get_mint_vault(self) -> Generator[None, None, str]:
-        all_baskets = cast(
-            List[str], self.period_state.db.get_strict("basket_addresses")
-        )
+        all_baskets = self.synchronized_data.basket_addresses
         latest_basket = all_baskets[-1]
 
         response = yield from self.get_contract_api_response(
@@ -394,7 +385,6 @@ class DeployTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour of basket addresses round"""
 
-    behaviour_id = "basket_address_round_behaviour"
     matching_round = BasketAddressRound
 
     def async_act(self) -> Generator:
@@ -405,12 +395,8 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
-                basket_addresses = cast(
-                    List[str], self.period_state.db.get("basket_addresses", [])
-                )
-                vault_addresses = cast(
-                    List[str], self.period_state.db.get("vault_addresses", [])
-                )
+                basket_addresses = self.synchronized_data.basket_addresses
+                vault_addresses = self.synchronized_data.vault_addresses
                 if len(basket_addresses) == len(vault_addresses):
                     # this check is necessary if for some reason we have successfully deployed a basket,
                     # but we fail before deploying the vault
@@ -442,7 +428,7 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=self.params.basket_factory_address,
             contract_id=str(BasketFactoryContract.contract_id),
             contract_callable="get_basket_address",
-            tx_hash=self.period_state.db.get("final_tx_hash"),
+            tx_hash=self.synchronized_data.db.get("final_tx_hash"),
         )
 
         # response body also has project details
@@ -460,7 +446,6 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
 class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Defines the DeployBasketTxRoundRound behaviour"""
 
-    behaviour_id = "permission_vault_factory"
     matching_round = PermissionVaultFactoryRound
 
     def async_act(self) -> Generator:
@@ -472,9 +457,7 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
         ).local():
             # we extract the project_id from the frozen set, and throw an error if it doest exist
             try:
-                latest_basket = cast(
-                    List[str], self.period_state.db.get_strict("basket_addresses")
-                )[-1]
+                latest_basket = self.synchronized_data.basket_addresses[-1]
 
                 is_permissioned = yield from self._is_basket_permissioned(latest_basket)
                 if not is_permissioned:
@@ -516,7 +499,7 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
     ) -> Generator[None, None, str]:
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,  # type: ignore
-            contract_address=self.period_state.db.get("safe_contract_address"),
+            contract_address=self.synchronized_data.safe_contract_address,
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_raw_safe_transaction_hash",
             to_address=basket_address,
@@ -585,7 +568,6 @@ class PermissionVaultFactoryRoundBehaviour(FractionalizeDeploymentABCIBaseState)
 class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Behaviour of vault addresses round"""
 
-    behaviour_id = "vault_address_round_behaviour"
     matching_round = VaultAddressRound
 
     def async_act(self) -> Generator:
@@ -595,9 +577,7 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             self.behaviour_id,
         ).local():
             try:
-                vault_addresses = cast(
-                    List[str], self.period_state.db.get("vault_addresses", [])
-                )
+                vault_addresses = self.synchronized_data.vault_addresses
                 new_vault = yield from self._get_vault()
                 vault_addresses.append(new_vault)
 
@@ -626,7 +606,7 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=self.params.token_vault_factory_address,
             contract_id=str(TokenVaultFactoryContract.contract_id),
             contract_callable="get_vault_address",
-            tx_hash=self.period_state.db.get("final_tx_hash"),
+            tx_hash=self.synchronized_data.db.get("final_tx_hash"),
         )
 
         # response body also has project details
@@ -645,7 +625,6 @@ class FinishedTokenVaultTxRoundBehaviour(FractionalizeDeploymentABCIBaseState):
     """Degenerate behaviour for a degenerate round"""
 
     matching_round = FinishedDeployVaultTxRound
-    behaviour_id = "finished_deploy_vault_tx"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""
@@ -660,7 +639,6 @@ class FinishedDeployBasketTxRoundBehaviour(FractionalizeDeploymentABCIBaseState)
     """Degenerate behaviour for a degenerate round"""
 
     matching_round = FinishedDeployBasketTxRound
-    behaviour_id = "finished_deploy_basket_tx_behaviour"
 
     def async_act(self) -> Generator:
         """Simply log that the app was executed successfully."""

@@ -48,7 +48,7 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.handlers import (
     LedgerApiHandler,
     SigningHandler,
 )
-from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import PeriodState
+from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import SynchronizedData
 from packages.elcollectooorr.skills.elcollectooorr_abci.tests import (
     PACKAGE_DIR as ELCOLLECTOOORR_PACKAGE_DIR,
 )
@@ -75,7 +75,7 @@ from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
 from packages.valory.skills.abstract_round_abci.base import AbstractRound
 from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData as BasePeriodState,
+    BaseSynchronizedData as BaseSynchronizedData,
 )
 from packages.valory.skills.abstract_round_abci.base import (
     BaseTxPayload,
@@ -166,7 +166,7 @@ class FractionalizeFSMBehaviourBaseCase(BaseSkillTestCase):
         self,
         behaviour: AbstractRoundBehaviour,
         state_id: str,
-        period_state: BasePeriodState,
+        synchronized_data: BaseSynchronizedData,
     ) -> None:
         """Fast forward the FSM to a state."""
         next_state = {s.behaviour_id: s for s in behaviour.behaviours}[state_id]
@@ -176,7 +176,7 @@ class FractionalizeFSMBehaviourBaseCase(BaseSkillTestCase):
             name=next_state.behaviour_id, skill_context=behaviour.context
         )
         self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
-            period_state
+            synchronized_data
         )
         self.skill.skill_context.state.round_sequence.abci_app._extend_previous_rounds_with_current_round()
         self.skill.skill_context.behaviours.main._last_round_height = (
@@ -184,7 +184,7 @@ class FractionalizeFSMBehaviourBaseCase(BaseSkillTestCase):
         )
         self.skill.skill_context.state.round_sequence.abci_app._current_round = (
             next_state.matching_round(
-                period_state, self.skill.skill_context.params.consensus_params
+                synchronized_data, self.skill.skill_context.params.consensus_params
             )
         )
 
@@ -438,7 +438,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -480,7 +480,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -524,7 +524,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -583,7 +583,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -659,7 +659,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -735,7 +735,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
@@ -821,7 +821,7 @@ class TestDeployBasketTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -889,7 +889,7 @@ class TestDeployBasketTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -970,7 +970,7 @@ class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1039,7 +1039,7 @@ class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1125,7 +1125,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1188,7 +1188,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1264,7 +1264,7 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1327,7 +1327,7 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1402,7 +1402,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1488,7 +1488,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
@@ -1542,7 +1542,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
         self.fast_forward_to_state(
             self.fractionalize_deployment_abci_behaviour,
             self.behaviour_class.behaviour_id,
-            PeriodState(
+            SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {

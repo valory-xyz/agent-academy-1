@@ -22,7 +22,7 @@ import json
 import struct
 from abc import ABC
 from enum import Enum
-from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
 
 from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
@@ -64,13 +64,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-)
-from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData as BasePeriodState,
-)
-from packages.valory.skills.abstract_round_abci.base import (
+    BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    get_name,
 )
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
@@ -133,9 +130,9 @@ def rotate_list(my_list: list, positions: int) -> List[str]:
     return my_list[positions:] + my_list[:positions]
 
 
-class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
+class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instance-attributes
     """
-    Class to represent a period state.
+    Class to represent a synchronized data.
 
     This state is replicated by the tendermint application.
     """
@@ -281,37 +278,72 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get vault addresses"""
         return cast(List[str], self.db.get("vault_addresses", []))
 
+    @property
+    def finished_projects(self) -> List:
+        """Get finished projects."""
+        return cast(List, self.db.get("finished_projects", []))
+
+    @property
+    def active_projects(self) -> List:
+        """Get active projects."""
+        return self.db.get_strict("active_projects")
+
+    @property
+    def inactive_projects(self) -> List:
+        """Get inactive projects."""
+        return self.db.get_strict("inactive_projects")
+
+    @property
+    def most_recent_project(self) -> Any:
+        """Get most recent project."""
+        return self.db.get_strict("most_recent_project")
+
+    @property
+    def purchased_projects(self) -> Any:
+        """Get purchases projects."""
+        return self.db.get_strict("purchased_projects")
+
+    @property
+    def amount_spent(self) -> int:
+        """Get purchases projects."""
+        return cast(int, self.db.get("amount_spent", 0))
+
+    @property
+    def paid_users(self) -> Dict[str, int]:
+        """Get paid users."""
+        return cast(Dict[str, int], self.db.get("paid_users", {}))
+
 
 class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the El Collectooorr skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, self.synchronized_data)
+        return cast(SynchronizedData, super().synchronized_data)
 
-    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+    def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY event.
 
         :return: a new period state and a NO_MAJORITY event
         """
-        return self.period_state, Event.NO_MAJORITY
+        return self.synchronized_data, Event.NO_MAJORITY
 
 
 class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the base reset round."""
 
     allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = "period_count"
-    period_state_class = PeriodState
+    payload_attribute = get_name(ResetPayload.period_count)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             # notice that we are not resetting the last_processed_id
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 period_count=self.most_voted_payload,
                 participant_to_randomness=None,
                 most_voted_randomness=None,
@@ -326,7 +358,7 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractR
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -336,29 +368,28 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
     """Defines the Observation Round"""
 
     allowed_tx_type = ObservationPayload.transaction_type
-    round_id = "observation"
-    payload_attribute = "project_details"
-    period_state_class = PeriodState
+    payload_attribute = get_name(ObservationPayload.project_details)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             most_voted_payload = json.loads(self.most_voted_payload)
 
             if most_voted_payload == {}:
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
             most_recent_project = most_voted_payload["most_recent_project"]
             finished_projects = (
-                self.period_state.db.get("finished_projects", [])
+                self.synchronized_data.finished_projects
                 + most_voted_payload["newly_finished_projects"]
             )
             active_projects = most_voted_payload["active_projects"]
             inactive_projects = most_voted_payload["inactive_projects"]
-            purchased_projects = self.period_state.db.get("purchased_projects", [])
+            purchased_projects = self.synchronized_data.db.get("purchased_projects", [])
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_project=self.collection,
                 finished_projects=finished_projects,
                 active_projects=active_projects,
@@ -373,7 +404,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
             return state, Event.NO_ACTIVE_PROJECTS
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -383,25 +414,24 @@ class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
     """Defines the Details Round"""
 
     allowed_tx_type = DetailsPayload.transaction_type
-    round_id = "details"
-    payload_attribute = "details"
-    period_state_class = PeriodState
+    payload_attribute = get_name(DetailsPayload.details)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             payload = json.loads(self.most_voted_payload)
             if payload == {}:
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_details=self.collection,
                 active_projects=payload["active_projects"],
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -411,11 +441,10 @@ class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRo
     """Defines the Decision Round"""
 
     allowed_tx_type = DecisionPayload.transaction_type
-    round_id = "decision"
-    payload_attribute = "decision"
-    period_state_class = PeriodState
+    payload_attribute = get_name(DecisionPayload.decision)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
 
         if self.threshold_reached:
@@ -423,10 +452,10 @@ class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRo
 
             if project_to_purchase == {}:
                 # no project needs to be purchased
-                return self.period_state, Event.DECIDED_NO
+                return self.synchronized_data, Event.DECIDED_NO
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_decision=self.collection,
                 project_to_purchase=project_to_purchase,
             )
@@ -434,7 +463,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRo
             return state, Event.DECIDED_YES
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -444,18 +473,17 @@ class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
     """Defines the Transaction Round"""
 
     allowed_tx_type = TransactionPayload.transaction_type
-    round_id = "elcollectooorr_transaction_collection"
-    payload_attribute = "purchase_data"
-    period_state_class = PeriodState
+    payload_attribute = get_name(TransactionPayload.purchase_data)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "":
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
@@ -463,7 +491,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -472,19 +500,13 @@ class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 class ResetFromObservationRound(BaseResetRound):
     """This class acts as a transit round to Observation."""
 
-    round_id = "reset_from_observation"
-
 
 class FinishedElCollectoorBaseRound(DegenerateRound):
     """This class represents the finished round during operation."""
 
-    round_id = "finished_base_elcollectooorr"
-
 
 class FinishedElCollectooorrWithoutPurchase(DegenerateRound):
     """This class represents the end of the Elcollectooorr Base ABCI App when there is no purchase to be made."""
-
-    round_id = "finished_base_elcollectooorr_no_purchase"
 
 
 class ElcollectooorrBaseAbciApp(AbciApp[Event]):
@@ -529,12 +551,17 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
         Event.RESET_TIMEOUT: 30.0,
     }
     cross_period_persisted_keys = [
-        "finished_projects",
-        "active_projects",
-        "inactive_projects",
-        "most_recent_project",
-        "active_projects",
+        get_name(SynchronizedData.finished_projects),
+        get_name(SynchronizedData.active_projects),
+        get_name(SynchronizedData.inactive_projects),
+        get_name(SynchronizedData.most_recent_project),
+        get_name(SynchronizedData.purchased_projects),
     ]
+    db_pre_conditions: Dict[AppState, List[str]] = {ObservationRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedElCollectoorBaseRound: [],
+        FinishedElCollectooorrWithoutPurchase: [],
+    }
 
 
 class ProcessPurchaseRound(
@@ -542,27 +569,26 @@ class ProcessPurchaseRound(
 ):
     """Round to process the purchase of the token on artblocks"""
 
-    round_id = "process_purchase_round"
     allowed_tx_type = PurchasedNFTPayload.transaction_type
-    payload_attribute = "purchased_nft"
-    period_state_class = PeriodState
+    payload_attribute = get_name(PurchasedNFTPayload.purchased_nft)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == -1:
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
-            purchased_project = self.period_state.db.get_strict(
+            purchased_project = self.synchronized_data.db.get_strict(
                 "project_to_purchase"
             )  # the project that got purchased
             all_purchased_projects = cast(
-                List[Dict], self.period_state.db.get("purchased_projects", [])
+                List[Dict], self.synchronized_data.db.get("purchased_projects", [])
             )
             all_purchased_projects.append(purchased_project)
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 purchased_nft=self.most_voted_payload,
                 project_to_purchase=None,
                 purchased_projects=all_purchased_projects,
@@ -570,9 +596,9 @@ class ProcessPurchaseRound(
             return state, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, Event.NO_MAJORITY
+            return self.synchronized_data, Event.NO_MAJORITY
 
         return None
 
@@ -580,19 +606,18 @@ class ProcessPurchaseRound(
 class TransferNFTRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """A round in which the NFT is transferred from the safe to the basket"""
 
-    round_id = "transfer_nft_round"
     allowed_tx_type = TransferNFTPayload.transaction_type
-    payload_attribute = "transfer_data"
-    period_state_class = PeriodState
+    payload_attribute = get_name(TransferNFTPayload.transfer_data)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "":
-                return self.period_state, Event.NO_TRANSFER
+                return self.synchronized_data, Event.NO_TRANSFER
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 most_voted_tx_hash=self.most_voted_payload,
                 purchased_nft=None,  # optimistic assumption that the tx will be settled correctly
                 tx_submitter=self.round_id,
@@ -600,9 +625,9 @@ class TransferNFTRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
             return state, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, Event.NO_MAJORITY
+            return self.synchronized_data, Event.NO_MAJORITY
 
         return None
 
@@ -610,19 +635,13 @@ class TransferNFTRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 class FinishedWithoutTransferRound(DegenerateRound):
     """Degenrate round."""
 
-    round_id = "finished_without_transfer_round"
-
 
 class FinishedWithTransferRound(DegenerateRound):
     """Degenrate round."""
 
-    round_id = "finished_with_transfer_round"
-
 
 class FailedPurchaseProcessingRound(DegenerateRound):
     """Degenrate round."""
-
-    round_id = "failed_purchase_process_round"
 
 
 class TransferNFTAbciApp(AbciApp[Event]):
@@ -655,31 +674,36 @@ class TransferNFTAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = ["purchased_projects"]
+    cross_period_persisted_keys = [get_name(SynchronizedData.purchased_projects)]
+    db_pre_conditions: Dict[AppState, List[str]] = {ProcessPurchaseRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FailedPurchaseProcessingRound: [],
+        FinishedWithTransferRound: [],
+        FinishedWithoutTransferRound: [],
+    }
 
 
 class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """A round in which the funding logic gets exceuted"""
 
-    round_id = "funding_round"
     allowed_tx_type = FundingPayload.transaction_type
-    payload_attribute = "address_to_funds"
-    period_state_class = PeriodState
+    payload_attribute = get_name(FundingPayload.address_to_funds)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 most_voted_funds=json.loads(self.most_voted_payload),
                 participant_to_funding_round=self.collection,
             )
             return state, Event.DONE
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, Event.NO_MAJORITY
+            return self.synchronized_data, Event.NO_MAJORITY
 
         return None
 
@@ -690,25 +714,24 @@ class PayoutFractionsRound(
     """This class represents the post vault deployment round"""
 
     allowed_tx_type = PayoutFractionsPayload.transaction_type
-    round_id = "payout_fractions_round"
-    payload_attribute = "payout_fractions"
-    period_state_class = PeriodState
+    payload_attribute = get_name(PayoutFractionsPayload.payout_fractions)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "{}":
-                if self.period_state.db.get("paid_users", None) is None:
+                if self.synchronized_data.db.get("paid_users", None) is None:
                     # initialize the paid users list
-                    return self.period_state.update(paid_users={}), Event.NO_PAYOUTS
-                return self.period_state, Event.NO_PAYOUTS
+                    return self.synchronized_data.update(paid_users={}), Event.NO_PAYOUTS
+                return self.synchronized_data, Event.NO_PAYOUTS
 
             payload = json.loads(self.most_voted_payload)
             users_being_paid = payload["raw"]
             tx_hash = payload["encoded"]
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=tx_hash,
                 users_being_paid=users_being_paid,
@@ -717,7 +740,7 @@ class PayoutFractionsRound(
 
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -726,13 +749,9 @@ class PayoutFractionsRound(
 class FinishedBankWithoutPayoutsRounds(DegenerateRound):
     """Degnerate round"""
 
-    round_id = "finished_bank_without_payouts"
-
 
 class FinishedBankWithPayoutsRounds(DegenerateRound):
     """Degnerate round"""
-
-    round_id = "finished_bank_with_payouts"
 
 
 class BankAbciApp(AbciApp[Event]):
@@ -762,16 +781,20 @@ class BankAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = ["most_voted_funds"]
+    cross_period_persisted_keys = [get_name(SynchronizedData.most_voted_funds)]
+    db_pre_conditions: Dict[AppState, List[str]] = {FundingRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedBankWithPayoutsRounds: [],
+        FinishedBankWithoutPayoutsRounds: [],
+    }
 
 
 class PostPayoutRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the post payout round"""
 
     allowed_tx_type = PaidFractionsPayload.transaction_type
-    round_id = "post_payout_fractions_round"
-    payload_attribute = "paid_fractions"
-    period_state_class = PeriodState
+    payload_attribute = get_name(PaidFractionsPayload.paid_fractions)
+    synchronized_data_class = SynchronizedData
 
     @staticmethod
     def _merge_paid_users(old: Dict[str, int], new: Dict[str, int]) -> Dict[str, int]:
@@ -785,15 +808,15 @@ class PostPayoutRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstract
 
         return merged
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
-        already_paid = cast(Dict[str, int], self.period_state.db.get("paid_users", {}))
+        already_paid = self.synchronized_data.paid_users
         newly_paid = cast(
-            Dict[str, int], self.period_state.db.get("users_being_paid", {})
+            Dict[str, int], self.synchronized_data.db.get("users_being_paid", {})
         )
         all_paid_users = self._merge_paid_users(already_paid, newly_paid)
-        state = self.period_state.update(
-            period_state_class=self.period_state_class,
+        state = self.synchronized_data.update(
+            synchronized_data_class=self.synchronized_data_class,
             users_being_paid={},
             paid_users=all_paid_users,
         )
@@ -803,8 +826,6 @@ class PostPayoutRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstract
 
 class FinishedPostPayoutRound(DegenerateRound):
     """This class represents the finished post payout ABCI"""
-
-    round_id = "finished_post_payout_round"
 
 
 class PostFractionPayoutAbciApp(AbciApp[Event]):
@@ -826,7 +847,11 @@ class PostFractionPayoutAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = ["paid_users"]
+    cross_period_persisted_keys = [get_name(SynchronizedData.paid_users)]
+    db_pre_conditions: Dict[AppState, List[str]] = {PostPayoutRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedPostPayoutRound: [],
+    }
 
 
 class PostTransactionSettlementRound(
@@ -835,9 +860,8 @@ class PostTransactionSettlementRound(
     """After tx settlement via the safe contract."""
 
     allowed_tx_type = PostTxPayload.transaction_type
-    round_id = "post_transaction_settlement_round"
-    payload_attribute = "post_tx_data"
-    period_state_class = PeriodState
+    payload_attribute = get_name(PostTxPayload.post_tx_data)
+    synchronized_data_class = SynchronizedData
 
     round_id_to_event = {
         TransactionRound.round_id: PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE,
@@ -848,34 +872,34 @@ class PostTransactionSettlementRound(
         TransferNFTRound.round_id: PostTransactionSettlementEvent.TRANSFER_NFT_DONE,
     }
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Enum]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """The end block."""
-        tx_submitter = self.period_state.db.get("tx_submitter", None)
+        tx_submitter = self.synchronized_data.db.get("tx_submitter", None)
 
         if tx_submitter is None or tx_submitter not in self.round_id_to_event.keys():
-            return self.period_state, Event.ERROR
+            return self.synchronized_data, Event.ERROR
 
         if self.threshold_reached:
             if self.most_voted_payload == "{}":
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
             payload = json.loads(self.most_voted_payload)
             amount_spent = payload["amount_spent"]
             total_amount_spent = (
-                self.period_state.db.get("amount_spent", 0) + amount_spent
+                self.synchronized_data.amount_spent + amount_spent
             )
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 amount_spent=total_amount_spent,
             )
 
             return state, self.round_id_to_event[tx_submitter]
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
-            return self.period_state, Event.NO_MAJORITY
+            return self.synchronized_data, Event.NO_MAJORITY
 
         return None
 
@@ -883,43 +907,29 @@ class PostTransactionSettlementRound(
 class FinishedElcollectooorrTxRound(DegenerateRound):
     """Initial round for settling the transactions."""
 
-    round_id = "finished_elcollectooorr_round"
-
 
 class FinishedBasketTxRound(DegenerateRound):
     """Initial round for settling the transactions."""
-
-    round_id = "finished_basket_round"
 
 
 class FinishedVaultTxRound(DegenerateRound):
     """Initial round for settling the transactions."""
 
-    round_id = "finished_vault_round"
-
 
 class FinishedBasketPermissionTxRound(DegenerateRound):
     """Initial round for settling the transactions."""
-
-    round_id = "finished_vault_round"
 
 
 class FinishedPayoutTxRound(DegenerateRound):
     """Initial round for settling the transactions."""
 
-    round_id = "finished_payout_tx_round"
-
 
 class FinishedTransferNftTxRound(DegenerateRound):
     """Initial round for settling the transactions."""
 
-    round_id = "finished_nft_tx_round"
-
 
 class ErrorneousRound(DegenerateRound):
     """Initial round for settling the transactions."""
-
-    round_id = "err_round"
 
 
 class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
@@ -958,34 +968,43 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = ["amount_spent"]
+    cross_period_persisted_keys = [get_name(SynchronizedData.amount_spent)]
+    db_pre_conditions: Dict[AppState, List[str]] = {PostTransactionSettlementRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        ErrorneousRound: [],
+        FinishedVaultTxRound: [],
+        FinishedBasketTxRound: [],
+        FinishedElcollectooorrTxRound: [],
+        FinishedBasketPermissionTxRound: [],
+        FinishedPayoutTxRound: [],
+        FinishedTransferNftTxRound: [],
+    }
 
 
 class ResyncRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the round used to sync the agent upon reset."""
 
     allowed_tx_type = ResyncPayload.transaction_type
-    round_id = "resync"
-    payload_attribute = "resync_data"
-    period_state_class = PeriodState
+    payload_attribute = get_name(ResyncPayload.resync_data)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             # notice that we are not resetting the last_processed_id
             if self.most_voted_payload == "{}":
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
             payload = json.loads(self.most_voted_payload)
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 period_count=self.most_voted_payload,
                 **payload,
             )
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -993,8 +1012,6 @@ class ResyncRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRoun
 
 class FinishedResyncRound(DegenerateRound):
     """A degen round for finished resyncing."""
-
-    round_id = "finished_resync"
 
 
 class ResyncAbciApp(AbciApp[Event]):
@@ -1016,6 +1033,10 @@ class ResyncAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
+    }
+    db_pre_conditions: Dict[AppState, List[str]] = {ResyncRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedResyncRound: [],
     }
 
 
