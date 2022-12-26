@@ -41,6 +41,7 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     PayoutFractionsRound,
     PostTransactionSettlementRound,
     ProcessPurchaseRound,
+    TransactionRound,
     TransferNFTRound,
 )
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import (
@@ -95,7 +96,7 @@ BASE_ELCOLLECTOOORR_CHECK_STRINGS = (
 
 POST_TX_SETTLEMENT_STRINGS = (
     f"Entered in the '{PostTransactionSettlementRound.auto_round_id()}' round for period 0",
-    "The TX submitted by elcollectooorr_transaction_collection was settled.",
+    f"The TX submitted by {TransactionRound.auto_round_id()} was settled.",
     f"'{PostTransactionSettlementRound.auto_round_id()}' round is done with event: PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE",
     f"'{PostTransactionSettlementRound.auto_round_id()}' round is done with event: PostTransactionSettlementEvent.TRANSFER_NFT_DONE",
     f"'{PostTransactionSettlementRound.auto_round_id()}' round is done with event: PostTransactionSettlementEvent.BASKET_DONE",
