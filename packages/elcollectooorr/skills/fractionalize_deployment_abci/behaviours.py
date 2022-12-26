@@ -100,7 +100,7 @@ class DeployDecisionRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             try:
                 vault_addresses = self.synchronized_data.vault_addresses
                 basket_addresses = self.synchronized_data.basket_addresses
-                amount_spent = self.synchronized_data.db.get("amount_spent", 0)
+                amount_spent = self.synchronized_data.amount_spent
                 budget = self.params.budget_per_vault - (
                     0.15 * ONE_ETH
                 )  # we leave a 0.15ETH margin
@@ -428,7 +428,7 @@ class BasketAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=self.params.basket_factory_address,
             contract_id=str(BasketFactoryContract.contract_id),
             contract_callable="get_basket_address",
-            tx_hash=self.synchronized_data.db.get("final_tx_hash"),
+            tx_hash=self.synchronized_data.final_tx_hash,
         )
 
         # response body also has project details
@@ -606,7 +606,7 @@ class VaultAddressesRoundBehaviour(FractionalizeDeploymentABCIBaseState):
             contract_address=self.params.token_vault_factory_address,
             contract_id=str(TokenVaultFactoryContract.contract_id),
             contract_callable="get_vault_address",
-            tx_hash=self.synchronized_data.db.get("final_tx_hash"),
+            tx_hash=self.synchronized_data.final_tx_hash,
         )
 
         # response body also has project details

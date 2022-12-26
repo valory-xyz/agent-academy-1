@@ -147,6 +147,16 @@ class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instan
         """Get most voted tx hash"""
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
+    @property
+    def final_tx_hash(self) -> str:
+        """Get final tx hash"""
+        return cast(str, self.db.get_strict("final_tx_hash"))
+
+    @property
+    def amount_spent(self) -> int:
+        """Get amount spent"""
+        return cast(int, self.db.get("amount_spent", 0))
+
 
 class FractionalizeDeploymentABCIAbstractRound(
     AbstractRound[Event, TransactionType], ABC

@@ -494,18 +494,10 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
             payload_data = {}
 
             try:
-                prev_finished = cast(
-                    List[int], self.synchronized_data.db.get("finished_projects", [])
-                )
-                prev_active = cast(
-                    List[Dict], self.synchronized_data.db.get("active_projects", [])
-                )
-                prev_inactive = cast(
-                    List[int], self.synchronized_data.db.get("inactive_projects", [])
-                )
-                most_recent_project = cast(
-                    int, self.synchronized_data.db.get("most_recent_project", 0)
-                )
+                prev_finished = self.synchronized_data.finished_projects
+                prev_active = self.synchronized_data.active_projects
+                prev_inactive = self.synchronized_data.inactive_projects
+                most_recent_project = self.synchronized_data.most_recent_project
 
                 if most_recent_project == 0:
                     projects_to_check = None
@@ -633,7 +625,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
             payload_data = {}
 
             try:
-                active_projects = self.synchronized_data.db.get_strict("active_projects")
+                active_projects = self.synchronized_data.active_projects
                 enhanced_projects = yield from self._enhance_active_projects(
                     active_projects
                 )
@@ -806,15 +798,10 @@ class DecisionRoundBehaviour(ElcollectooorrABCIBaseState):
             project_to_purchase: Optional[Dict] = {}
 
             try:
-                active_projects = cast(
-                    List[Dict], self.synchronized_data.db.get_strict("active_projects")
-                )
-                purchased_projects = cast(
-                    List[Dict], self.synchronized_data.db.get("purchased_projects", [])
-                )  # NOTE: projects NOT tokens
-                already_spent = cast(
-                    int, self.synchronized_data.db.get_strict("amount_spent")
-                )
+                active_projects = self.synchronized_data.active_projects
+                purchased_projects = self.synchronized_data.purchased_projects
+                # NOTE: projects NOT tokens
+                already_spent = self.synchronized_data.amount_spent
                 safe_balance = yield from self._get_safe_balance()
                 current_budget = min(
                     self.params.budget_per_vault - already_spent, safe_balance
@@ -912,15 +899,12 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
             self.behaviour_id,
         ).local():
             try:
-                project_to_purchase = self.synchronized_data.db.get_strict(
-                    "project_to_purchase"
-                )
+                project_to_purchase = self.synchronized_data.project_to_purchase
+                project_id = int(project_to_purchase["project_id"])
                 minter = project_to_purchase["minter"]
-                value = project_to_purchase[
-                    "price"
-                ]  # price of token in the project in wei
+                value = int(project_to_purchase["price"])  # price of token in the project in wei
                 purchase_data_str = yield from self._get_purchase_data(
-                    project_to_purchase["project_id"],
+                    project_id,
                     minter,
                 )
                 purchase_data = bytes.fromhex(purchase_data_str[2:])
@@ -1095,9 +1079,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
             self.behaviour_id,
         ).local():
             try:
-                latest_vault = cast(
-                    List[str], self.synchronized_data.db.get("vault_addresses")
-                )[-1]
+                latest_vault = self.synchronized_data.vault_addresses[-1]
                 multisend_data_obj = yield from self._get_multisend_tx(latest_vault)
 
                 if multisend_data_obj != {}:
@@ -1160,7 +1142,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
     def _get_transferERC20_tx(
         self, address: str, amount: int
     ) -> Generator[None, None, str]:
-        latest_vault = cast(List[str], self.synchronized_data.db.get("vault_addresses"))[-1]
+        latest_vault = self.synchronized_data.vault_addresses[-1]
 
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
@@ -1184,7 +1166,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
 
     def _available_tokens(self) -> Generator:
         """Get the tokens that are left undistributed."""
-        latest_vault = cast(List[str], self.synchronized_data.db.get("vault_addresses"))[-1]
+        latest_vault = self.synchronized_data.vault_addresses[-1]
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_id=str(TokenVaultContract.contract_id),
@@ -1208,9 +1190,7 @@ class PayoutFractionsRoundBehaviour(ElcollectooorrABCIBaseState):
         """Get a dictionary of addresses and the tokens to be sent to them."""
 
         paid_users = self.synchronized_data.paid_users
-        all_transfers = cast(
-            List[Dict], self.synchronized_data.db.get("most_voted_funds", [])
-        )
+        all_transfers = self.synchronized_data.most_voted_funds
         undistributed_tokens = yield from self._available_tokens()
         tokens_to_be_distributed = 0
         address_to_investment: Dict = {}
@@ -1306,7 +1286,7 @@ class PostPayoutRoundBehaviour(ElcollectooorrABCIBaseState):
 
     def async_act(self) -> Generator:
         """Trivially log that the behaviour is done."""
-        users_paid = self.synchronized_data.db.get("users_being_paid", "{}")
+        users_paid = self.synchronized_data.users_being_paid
 
         self.context.logger.info(f"The following users were paid: {users_paid}")
         yield from self.wait_until_round_end()
@@ -1365,7 +1345,7 @@ class ProcessPurchaseRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_address=self.params.artblocks_contract,
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="process_purchase_receipt",
-            tx_hash=self.synchronized_data.db.get("final_tx_hash"),
+            tx_hash=self.synchronized_data.final_tx_hash,
         )
 
         enforce(
@@ -1446,10 +1426,8 @@ class TransferNFTRoundBehaviour(ElcollectooorrABCIBaseState):
         return tx_hash
 
     def _get_safe_transfer_from_data(self) -> Generator[None, None, str]:
-        latest_basket = cast(List[str], self.synchronized_data.db.get("basket_addresses"))[
-            -1
-        ]
-        token_id = self.synchronized_data.db.get("purchased_nft", None)
+        latest_basket = self.synchronized_data.basket_addresses[-1]
+        token_id = self.synchronized_data.purchased_nft
 
         enforce(token_id is not None, "No token to be transferred")
         response = yield from self.get_contract_api_response(
@@ -1498,7 +1476,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
             self.behaviour_id,
         ).local():
             try:
-                tx_submitter = self.synchronized_data.db.get("tx_submitter", None)
+                tx_submitter = self.synchronized_data.tx_submitter
 
                 if tx_submitter is None:
                     self.context.logger.error(
@@ -1541,7 +1519,7 @@ class PostTransactionSettlementBehaviour(ElcollectooorrABCIBaseState):
             contract_address=ZERO_ADDRESS,  # not needed
             contract_id=str(GnosisSafeContract.contract_id),
             contract_callable="get_amount_spent",
-            tx_hash=self.synchronized_data.db.get("final_tx_hash"),
+            tx_hash=self.synchronized_data.final_tx_hash,
         )
 
         enforce(

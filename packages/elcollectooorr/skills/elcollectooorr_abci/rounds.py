@@ -22,7 +22,7 @@ import json
 import struct
 from abc import ABC
 from enum import Enum
-from typing import Any, Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
+from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, Type, cast
 
 from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
@@ -223,13 +223,13 @@ class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instan
         return cast(str, self.db.get_strict("safe_contract_address"))
 
     @property
-    def most_voted_funds(self) -> int:
+    def most_voted_funds(self) -> List[Dict]:
         """
         Returns the most voted funds
 
         :return: most voted funds amount (in wei)
         """
-        return cast(int, self.db.get_strict("most_voted_funds"))
+        return cast(List[Dict], self.db.get("most_voted_funds", []))
 
     @property
     def participant_to_funds(self) -> Mapping[str, FundingPayload]:
@@ -279,29 +279,29 @@ class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instan
         return cast(List[str], self.db.get("vault_addresses", []))
 
     @property
-    def finished_projects(self) -> List:
+    def finished_projects(self) -> List[int]:
         """Get finished projects."""
-        return cast(List, self.db.get("finished_projects", []))
+        return cast(List[int], self.db.get("finished_projects", []))
 
     @property
-    def active_projects(self) -> List:
+    def active_projects(self) -> List[Dict]:
         """Get active projects."""
-        return self.db.get_strict("active_projects")
+        return cast(List[Dict], self.db.get("active_projects", []))
 
     @property
-    def inactive_projects(self) -> List:
+    def inactive_projects(self) -> List[int]:
         """Get inactive projects."""
-        return self.db.get_strict("inactive_projects")
+        return cast(List[int], self.db.get("inactive_projects", []))
 
     @property
-    def most_recent_project(self) -> Any:
+    def most_recent_project(self) -> int:
         """Get most recent project."""
-        return self.db.get_strict("most_recent_project")
+        return cast(int, self.db.get("most_recent_project", 0))
 
     @property
-    def purchased_projects(self) -> Any:
+    def purchased_projects(self) -> List[Dict[str, str]]:
         """Get purchases projects."""
-        return self.db.get_strict("purchased_projects")
+        return cast(List[Dict[str, str]], self.db.get("purchased_projects", []))
 
     @property
     def amount_spent(self) -> int:
@@ -312,6 +312,31 @@ class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instan
     def paid_users(self) -> Dict[str, int]:
         """Get paid users."""
         return cast(Dict[str, int], self.db.get("paid_users", {}))
+
+    @property
+    def project_to_purchase(self) -> Dict[str, str]:
+        """Get project to purchase."""
+        return cast(Dict[str, str], self.db.get_strict("project_to_purchase"))
+
+    @property
+    def users_being_paid(self) -> Dict[str, int]:
+        """Get users being paid."""
+        return cast(Dict[str, int], self.db.get("users_being_paid", {}))
+
+    @property
+    def final_tx_hash(self) -> str:
+        """Get final tx hash"""
+        return cast(str, self.db.get_strict("final_tx_hash"))
+
+    @property
+    def purchased_nft(self) -> Optional[int]:
+        """Get purchased_nft"""
+        return cast(Optional[int], self.db.get("purchased_nft", None))
+
+    @property
+    def tx_submitter(self) -> Optional[str]:
+        """Get tx_submitter"""
+        return cast(Optional[str], self.db.get("tx_submitter", None))
 
 
 class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
@@ -386,7 +411,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
             )
             active_projects = most_voted_payload["active_projects"]
             inactive_projects = most_voted_payload["inactive_projects"]
-            purchased_projects = self.synchronized_data.db.get("purchased_projects", [])
+            purchased_projects = self.synchronized_data.purchased_projects
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
@@ -579,18 +604,15 @@ class ProcessPurchaseRound(
             if self.most_voted_payload == -1:
                 return self.synchronized_data, Event.ERROR
 
-            purchased_project = self.synchronized_data.db.get_strict(
-                "project_to_purchase"
-            )  # the project that got purchased
-            all_purchased_projects = cast(
-                List[Dict], self.synchronized_data.db.get("purchased_projects", [])
-            )
+            purchased_project = self.synchronized_data.project_to_purchase
+            # the project that got purchased
+            all_purchased_projects = self.synchronized_data.purchased_projects
             all_purchased_projects.append(purchased_project)
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 purchased_nft=self.most_voted_payload,
-                project_to_purchase=None,
+                project_to_purchase={},
                 purchased_projects=all_purchased_projects,
             )
             return state, Event.DONE
@@ -721,9 +743,6 @@ class PayoutFractionsRound(
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "{}":
-                if self.synchronized_data.db.get("paid_users", None) is None:
-                    # initialize the paid users list
-                    return self.synchronized_data.update(paid_users={}), Event.NO_PAYOUTS
                 return self.synchronized_data, Event.NO_PAYOUTS
 
             payload = json.loads(self.most_voted_payload)
@@ -811,9 +830,7 @@ class PostPayoutRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstract
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         already_paid = self.synchronized_data.paid_users
-        newly_paid = cast(
-            Dict[str, int], self.synchronized_data.db.get("users_being_paid", {})
-        )
+        newly_paid = self.synchronized_data.users_being_paid
         all_paid_users = self._merge_paid_users(already_paid, newly_paid)
         state = self.synchronized_data.update(
             synchronized_data_class=self.synchronized_data_class,
@@ -874,7 +891,7 @@ class PostTransactionSettlementRound(
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:
         """The end block."""
-        tx_submitter = self.synchronized_data.db.get("tx_submitter", None)
+        tx_submitter = self.synchronized_data.tx_submitter
 
         if tx_submitter is None or tx_submitter not in self.round_id_to_event.keys():
             return self.synchronized_data, Event.ERROR
