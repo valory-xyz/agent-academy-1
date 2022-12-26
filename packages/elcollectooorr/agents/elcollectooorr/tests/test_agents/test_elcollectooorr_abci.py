@@ -33,80 +33,106 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
 from packages.elcollectooorr.agents.elcollectooorr.tests.test_agents.base_elcollectooorr import (
     BaseTestElCollectooorrEnd2End,
 )
+from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
+    DecisionRound,
+    DetailsRound,
+    FundingRound,
+    ObservationRound,
+    PayoutFractionsRound,
+    PostTransactionSettlementRound,
+    ProcessPurchaseRound,
+    TransactionRound,
+    TransferNFTRound,
+)
+from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import (
+    BasketAddressRound,
+    DeployBasketTxRound,
+    DeployDecisionRound,
+    PermissionVaultFactoryRound,
+    VaultAddressRound,
+)
+from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
+from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
+from packages.valory.skills.safe_deployment_abci.rounds import (
+    DeploySafeRound,
+    RandomnessSafeRound,
+    SelectKeeperSafeRound,
+    ValidateSafeRound,
+)
 
 
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
 
 REGISTRATION_CHECK_STRINGS = (
-    "Entered in the 'registration_startup' round for period 0",
-    "'registration_startup' round is done",
+    f"Entered in the '{RegistrationStartupRound.auto_round_id()}' round for period 0",
+    f"'{RegistrationStartupRound.auto_round_id()}' round is done",
 )
 
 SAFE_CHECK_STRINGS = (
-    "Entered in the 'randomness_safe' round for period 0",
-    "'randomness_safe' round is done",
-    "Entered in the 'select_keeper_safe' round for period 0",
-    "'select_keeper_safe' round is done",
-    "Entered in the 'deploy_safe' round for period 0",
-    "'deploy_safe' round is done",
-    "Entered in the 'validate_safe' round for period 0",
-    "'validate_safe' round is done",
+    f"Entered in the '{RandomnessSafeRound.auto_round_id()}' round for period 0",
+    f"'{RandomnessSafeRound.auto_round_id()}' round is done",
+    f"Entered in the '{SelectKeeperSafeRound.auto_round_id()}' round for period 0",
+    f"'{SelectKeeperSafeRound.auto_round_id()}' round is done",
+    f"Entered in the '{DeploySafeRound.auto_round_id()}' round for period 0",
+    f"'{DeploySafeRound.auto_round_id()}' round is done",
+    f"Entered in the '{ValidateSafeRound.auto_round_id()}' round for period 0",
+    f"'{ValidateSafeRound.auto_round_id()}' round is done",
 )
 
 BASE_ELCOLLECTOOORR_CHECK_STRINGS = (
-    "Entered in the 'observation' round for period 0",
+    f"Entered in the '{ObservationRound.auto_round_id()}' round for period 0",
     "Most recent project is 3.",
     "There are 2 newly finished projects.",
     "There are 1 active projects.",
-    "'observation' round is done with event: Event.DONE",
-    "Entered in the 'details' round for period 0",
-    "'details' round is done with event: Event.DONE",
-    "Entered in the 'decision' round for period 0",
+    f"'{ObservationRound.auto_round_id()}' round is done with event: Event.DONE",
+    f"Entered in the '{DetailsRound.auto_round_id()}' round for period 0",
+    f"'{DetailsRound.auto_round_id()}' round is done with event: Event.DONE",
+    f"Entered in the '{DecisionRound.auto_round_id()}' round for period 0",
     "The safe contract balance is 1.0Ξ.",
     "The current budget is 1.0Ξ.",
     "1 projects fit the reqs.",
-    "'decision' round is done with event: Event.DECIDED_YES",
+    f"'{DecisionRound.auto_round_id()}' round is done with event: Event.DECIDED_YES",
 )
 
 POST_TX_SETTLEMENT_STRINGS = (
-    "Entered in the 'post_transaction_settlement_round' round for period 0",
-    "The TX submitted by elcollectooorr_transaction_collection was settled.",
-    "'post_transaction_settlement_round' round is done with event: PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE",
-    "'post_transaction_settlement_round' round is done with event: PostTransactionSettlementEvent.TRANSFER_NFT_DONE",
-    "'post_transaction_settlement_round' round is done with event: PostTransactionSettlementEvent.BASKET_DONE",
-    "'post_transaction_settlement_round' round is done with event: PostTransactionSettlementEvent.VAULT_DONE",
+    f"Entered in the '{PostTransactionSettlementRound.auto_round_id()}' round for period 0",
+    f"The TX submitted by {TransactionRound.auto_round_id()} was settled.",
+    f"'{PostTransactionSettlementRound.auto_round_id()}' round is done with event: PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE",
+    f"'{PostTransactionSettlementRound.auto_round_id()}' round is done with event: PostTransactionSettlementEvent.TRANSFER_NFT_DONE",
+    f"'{PostTransactionSettlementRound.auto_round_id()}' round is done with event: PostTransactionSettlementEvent.BASKET_DONE",
+    f"'{PostTransactionSettlementRound.auto_round_id()}' round is done with event: PostTransactionSettlementEvent.VAULT_DONE",
 )
 
 FRACTIONALIZE_STRINGS = (
-    "Entered in the 'deploy_decision_round' round for period 0",
+    f"Entered in the '{DeployDecisionRound.auto_round_id()}' round for period 0",
     "Deploy new basket and vault? deploy_full.",
     "Deploy new basket and vault? dont_deploy.",
-    "Entered in the 'deploy_basket_round' round for period 0",
-    "'deploy_basket_round' round is done with event: Event.DONE",
-    "Entered in the 'post_deploy_basket_round' round for period 0",
+    f"Entered in the '{DeployBasketTxRound.auto_round_id()}' round for period 0",
+    f"'{DeployBasketTxRound.auto_round_id()}' round is done with event: Event.DONE",
+    f"Entered in the '{BasketAddressRound.auto_round_id()}' round for period 0",
     "New basket address=0x",
-    "'post_deploy_basket_round' round is done with event: Event.DONE",
-    "Entered in the 'permission_factory_round' round for period 0",
-    "'permission_factory_round' round is done with event: Event.DECIDED_YES",
+    f"'{BasketAddressRound.auto_round_id()}' round is done with event: Event.DONE",
+    f"Entered in the '{PermissionVaultFactoryRound.auto_round_id()}' round for period 0",
+    f"'{PermissionVaultFactoryRound.auto_round_id()}' round is done with event: Event.DECIDED_YES",
     "Deployed new TokenVault at: 0x",
-    "'post_deploy_vault_round' round is done with event: Event.DONE",
-    "Entered in the 'funding_round' round for period 0",
-    "'funding_round' round is done with event: Event.DONE",
+    f"'{VaultAddressRound.auto_round_id()}' round is done with event: Event.DONE",
+    f"Entered in the '{FundingRound.auto_round_id()}' round for period 0",
+    f"'{FundingRound.auto_round_id()}' round is done with event: Event.DONE",
     "1 user(s) is(are) getting paid their fractions.",
     "The following users were paid: {'0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0': 95}",
-    "'payout_fractions_round' round is done with event: Event.DONE",
+    f"'{PayoutFractionsRound.auto_round_id()}' round is done with event: Event.DONE",
 )
 
 PURCHASE_TOKEN_STRING = (
-    "Entered in the 'process_purchase_round' round for period 0",
+    f"Entered in the '{ProcessPurchaseRound.auto_round_id()}' round for period 0",
     "Purchased token id=3000000.",
-    "'process_purchase_round' round is done with event: Event.DONE",
-    "Entered in the 'transfer_nft_round' round for period 0",
-    "'transfer_nft_round' round is done with event: Event.DONE",
+    f"'{ProcessPurchaseRound.auto_round_id()}' round is done with event: Event.DONE",
+    f"Entered in the '{TransferNFTRound.auto_round_id()}' round for period 0",
+    f"'{TransferNFTRound.auto_round_id()}' round is done with event: Event.DONE",
 )
 
 RESET_STRINGS = (
-    "Entered in the 'reset_and_pause' round for period 0",
+    f"Entered in the '{ResetAndPauseRound.auto_round_id()}' round for period 0",
     "Period end.",
 )
 
