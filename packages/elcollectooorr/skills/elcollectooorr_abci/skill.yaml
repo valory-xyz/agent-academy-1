@@ -10,7 +10,7 @@ fingerprint:
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
   behaviours.py: bafybeig54twaybg6nzret2m6dyrs7mf5wd73fyvlhbaywauai4if2i2g54
   decision_models.py: bafybeicchjstlojkxtlvxt5atqxkpr6cqcz47xldyyn2sa64ywmz3bygsi
-  dialogues.py: bafybeih2x4uyoj2c5j46jjn6jiddxcvx6vbsb3pf6b45fzf657mtqu2t5e
+  dialogues.py: bafybeielsp4eu7gr7lelednobuq32bav5kp7so4geut7j2rg7bkn2wuzee
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
   fsm_specification.yaml: bafybeicvno4avecvthyonwf2u2ygokkt342yrtt62ckjmdcfdlw6stz65a
   handlers.py: bafybeihr5jn6pfk3m4ijh5dj7v6kyr2miwxiugsumscbfll54ofqsomije
@@ -166,6 +166,9 @@ models:
   state:
     args: {}
     class_name: SharedState
+  tendermint_dialogues:
+    args: {}
+    class_name: TendermintDialogues
 dependencies:
   hexbytes: {}
   numpy: {}
