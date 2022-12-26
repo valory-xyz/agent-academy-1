@@ -21,8 +21,7 @@
 """Test the base.py module of the skill."""
 import json
 import logging  # noqa: F401
-from typing import Dict, FrozenSet, cast
-from unittest import mock
+from typing import Dict, cast
 
 from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import SynchronizedData
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads import (
@@ -42,51 +41,19 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import 
     PermissionVaultFactoryRound,
     VaultAddressRound,
 )
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    ConsensusParams,
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseRoundTestClass as ExternalBaseRoundTestClass,
 )
 
 
 WEI_TO_ETH = 10 ** 18
-MAX_PARTICIPANTS: int = 4
-RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
 
-def get_participants() -> FrozenSet[str]:
-    """Participants"""
-    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
-
-
-class BaseRoundTestClass:
+class BaseRoundTestClass(ExternalBaseRoundTestClass):
     """Base test class for Rounds."""
 
-    synchronized_data: SynchronizedData
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()
-        cls.synchronized_data = SynchronizedData(
-            StateDB(
-                setup_data=StateDB.data_to_lists(dict(participants=cls.participants))
-            )
-        )
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
-        """Test the NO_MAJORITY event."""
-        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-            result = round_obj.end_block()
-            assert result is not None
-            state, event = result
-            assert event == Event.NO_MAJORITY
+    _synchronized_data_class = SynchronizedData
+    _event_class = Event
 
 
 class TestDeployDecisionRound(BaseRoundTestClass):
@@ -330,7 +297,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
             self.synchronized_data.update(
                 participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
-                tx_submitter=DeployBasketTxRound.round_id,
+                tx_submitter=DeployBasketTxRound.auto_round_id(),
             ),
         )
 
@@ -397,7 +364,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
             self.synchronized_data.update(
                 participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
-                tx_submitter=DeployVaultTxRound.round_id,
+                tx_submitter=DeployVaultTxRound.auto_round_id(),
             ),
         )
 
@@ -534,7 +501,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
             self.synchronized_data.update(
                 participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
-                tx_submitter=PermissionVaultFactoryRound.round_id,
+                tx_submitter=PermissionVaultFactoryRound.auto_round_id(),
             ),
         )
 
@@ -603,7 +570,7 @@ class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
             self.synchronized_data.update(
                 participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
-                tx_submitter=PermissionVaultFactoryRound.round_id,
+                tx_submitter=PermissionVaultFactoryRound.auto_round_id(),
             ),
         )
 

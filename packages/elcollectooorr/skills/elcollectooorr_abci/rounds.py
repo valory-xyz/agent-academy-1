@@ -886,12 +886,12 @@ class PostTransactionSettlementRound(
     synchronized_data_class = SynchronizedData
 
     round_id_to_event = {
-        TransactionRound.round_id: PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE,
-        DeployBasketTxRound.round_id: PostTransactionSettlementEvent.BASKET_DONE,
-        DeployVaultTxRound.round_id: PostTransactionSettlementEvent.VAULT_DONE,
-        PermissionVaultFactoryRound.round_id: PostTransactionSettlementEvent.BASKET_PERMISSION,
-        PayoutFractionsRound.round_id: PostTransactionSettlementEvent.FRACTION_PAYOUT,
-        TransferNFTRound.round_id: PostTransactionSettlementEvent.TRANSFER_NFT_DONE,
+        TransactionRound.auto_round_id(): PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE,
+        DeployBasketTxRound.auto_round_id(): PostTransactionSettlementEvent.BASKET_DONE,
+        DeployVaultTxRound.auto_round_id(): PostTransactionSettlementEvent.VAULT_DONE,
+        PermissionVaultFactoryRound.auto_round_id(): PostTransactionSettlementEvent.BASKET_PERMISSION,
+        PayoutFractionsRound.auto_round_id(): PostTransactionSettlementEvent.FRACTION_PAYOUT,
+        TransferNFTRound.auto_round_id(): PostTransactionSettlementEvent.TRANSFER_NFT_DONE,
     }
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Enum]]:

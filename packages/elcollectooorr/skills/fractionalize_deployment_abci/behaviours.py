@@ -77,7 +77,7 @@ class FractionalizeDeploymentABCIBaseState(BaseState, ABC):
     @property
     def synchronized_data(self) -> SynchronizedData:
         """Return the synchronized data associated with this state."""
-        return cast(SynchronizedData, self.context.state.synchronized_data)
+        return cast(SynchronizedData, super().synchronized_data)
 
     @property
     def params(self) -> Params:

@@ -23,7 +23,6 @@ import json
 import logging  # noqa: F401
 from copy import deepcopy
 from typing import Dict, FrozenSet, cast
-from unittest import mock
 
 from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
@@ -55,9 +54,8 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     rotate_list,
 )
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    ConsensusParams,
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseRoundTestClass as ExternalBaseRoundTestClass,
 )
 from packages.valory.skills.transaction_settlement_abci.payloads import (
     RandomnessPayload,
@@ -77,34 +75,11 @@ def get_participants() -> FrozenSet[str]:
     return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
 
 
-class BaseRoundTestClass:
+class BaseRoundTestClass(ExternalBaseRoundTestClass):
     """Base test class for Rounds."""
 
-    synchronized_data: SynchronizedData
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()
-        cls.synchronized_data = SynchronizedData(
-            StateDB(
-                setup_data=StateDB.data_to_lists(dict(participants=cls.participants))
-            )
-        )
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:  # pylint: disable=
-        """Test the NO_MAJORITY event."""
-        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-            result = round_obj.end_block()
-            assert result is not None
-            _, event = result
-            assert event == Event.NO_MAJORITY
+    _synchronized_data_class = SynchronizedData
+    _event_class = Event
 
 
 class TestObservationRound(BaseRoundTestClass):

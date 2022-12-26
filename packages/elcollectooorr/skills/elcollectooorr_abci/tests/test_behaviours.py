@@ -20,14 +20,13 @@
 """Tests for valory/elcollectooorr_abci skill's behaviours."""
 import json
 import logging
-from copy import copy
 from enum import Enum
-from typing import Any, Dict, List, Type, cast
+from pathlib import Path
+from typing import Any, Dict, List, Optional, cast
 from unittest import mock
 from unittest.mock import patch
 
-from aea.helpers.transaction.base import RawTransaction, SignedMessage, State
-from aea.test_tools.test_skill import BaseSkillTestCase
+from aea.helpers.transaction.base import RawTransaction, State
 
 from packages.elcollectooorr.contracts.artblocks.contract import ArtBlocksContract
 from packages.elcollectooorr.contracts.artblocks_minter_filter.contract import (
@@ -60,44 +59,23 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.behaviours import (
 from packages.elcollectooorr.skills.elcollectooorr_abci.decision_models import (
     SimpleDecisionModel as DecisionModel,
 )
-from packages.elcollectooorr.skills.elcollectooorr_abci.handlers import (
-    ContractApiHandler,
-    HttpHandler,
-    LedgerApiHandler,
-    SigningHandler,
-)
 from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     Event,
     PostTransactionSettlementEvent,
     SynchronizedData,
 )
-from packages.elcollectooorr.skills.elcollectooorr_abci.tests import PACKAGE_DIR
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.behaviours import (
     DeployDecisionRoundBehaviour,
-)
-from packages.open_aea.protocols.signing import SigningMessage
-from packages.valory.connections.http_client.connection import (
-    PUBLIC_ID as HTTP_CLIENT_PUBLIC_ID,
-)
-from packages.valory.connections.ledger.connection import (
-    PUBLIC_ID as LEDGER_CONNECTION_PUBLIC_ID,
 )
 from packages.valory.contracts.gnosis_safe.contract import GnosisSafeContract
 from packages.valory.contracts.multisend.contract import MultiSendContract
 from packages.valory.protocols.contract_api.message import ContractApiMessage
-from packages.valory.protocols.http import HttpMessage
-from packages.valory.protocols.ledger_api.message import LedgerApiMessage
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    BaseSynchronizedData,
-    BaseTxPayload,
-    OK_CODE,
-    _MetaPayload,
-)
-from packages.valory.skills.abstract_round_abci.behaviours import AbstractRoundBehaviour
 from packages.valory.skills.abstract_round_abci.behaviours import (
     BaseBehaviour as BaseState,
+)
+from packages.valory.skills.abstract_round_abci.test_tools.base import (
+    FSMBehaviourBaseCase,
 )
 from packages.valory.skills.reset_pause_abci.behaviours import ResetAndPauseBehaviour
 from packages.valory.skills.transaction_settlement_abci.behaviours import (
@@ -109,343 +87,32 @@ DEFAULT_WHITELISTED_ADDRESSES = ["0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"]
 WEI_TO_ETH = 10 ** 18
 
 
-class DummyRoundId:
-    """Dummy class for setting round_id for exit condition."""
-
-    round_id: str
-
-    def __init__(self, round_id: str) -> None:
-        """Dummy class for setting round_id for exit condition."""
-        self.round_id = round_id
-
-
-class ElCollectooorrFSMBehaviourBaseCase(BaseSkillTestCase):  # pylint: disable=protected-access
+class ElCollectooorrFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disable=protected-access
     """Base case for testing PriceEstimation FSMBehaviour."""
 
-    path_to_skill = PACKAGE_DIR
+    path_to_skill = Path(__file__).parent.parent
 
-    elcollectooorr_abci_behaviour: AbstractRoundBehaviour
-    ledger_handler: LedgerApiHandler
-    http_handler: HttpHandler
-    contract_handler: ContractApiHandler
-    signing_handler: SigningHandler
-    old_tx_type_to_payload_cls: Dict[str, Type[BaseTxPayload]]
+    def setup(self, **kwargs: Any) -> None:
+        """
+        Set up the test method.
 
-    @classmethod
-    def setup(cls, **kwargs: Any) -> None:  # pylint: disable=protected-access
-        """Setup the test class."""
-        # we need to store the current value of the meta-class attribute
-        # _MetaPayload.transaction_type_to_payload_cls, and restore it
-        # in the teardown function. We do a shallow copy so we avoid
-        # to modify the old mapping during the execution of the tests.
-        cls.old_tx_type_to_payload_cls = copy(
-            _MetaPayload.transaction_type_to_payload_cls
-        )
-        _MetaPayload.transaction_type_to_payload_cls = {}
-        super().setup_class()
-        assert cls._skill.skill_context._agent_context is not None
-        cls._skill.skill_context._agent_context.identity._default_address_key = (
-            "ethereum"
-        )
-        cls._skill.skill_context._agent_context._default_ledger_id = "ethereum"
-        cls.elcollectooorr_abci_behaviour = cast(
-            AbstractRoundBehaviour,
-            cls._skill.skill_context.behaviours.main,
-        )
-        cls.http_handler = cast(HttpHandler, cls._skill.skill_context.handlers.http)
-        cls.signing_handler = cast(
-            SigningHandler, cls._skill.skill_context.handlers.signing
-        )
-        cls.contract_handler = cast(
-            ContractApiHandler, cls._skill.skill_context.handlers.contract_api
-        )
-        cls.ledger_handler = cast(
-            LedgerApiHandler, cls._skill.skill_context.handlers.ledger_api
-        )
-        cls._set_default_whitelisted_address()
-        if kwargs.get("param_overrides") is not None:
-            for param_name, param_value in kwargs["param_overrides"].items():
-                setattr(
-                    cls.elcollectooorr_abci_behaviour.context.params,
-                    param_name,
-                    param_value,
-                )
-        cls.elcollectooorr_abci_behaviour.setup()
-        cls._skill.skill_context.state.setup()
-        cls._skill.skill_context.state.round_sequence.end_sync()
-        assert (
-            cast(
-                BaseState, cls.elcollectooorr_abci_behaviour.current_behaviour
-            ).behaviour_id
-            == cls.elcollectooorr_abci_behaviour.initial_behaviour_cls.auto_behaviour_id()
-        )
+        Called each time before a test method is called.
 
-    @classmethod
-    def _set_default_whitelisted_address(cls) -> None:
+        :param kwargs: the keyword arguments passed to _prepare_skill
+        """
+        super().setup(**kwargs)
+        self._set_default_whitelisted_address()
+
+    def _set_default_whitelisted_address(self) -> None:
         """Sets the default whitelisted address to be used for tests."""
-        cls.elcollectooorr_abci_behaviour.context.params.whitelisted_investor_addresses = (
+        self.behaviour.context.params.whitelisted_investor_addresses = (
             DEFAULT_WHITELISTED_ADDRESSES
         )
 
-    def fast_forward_to_state(
-        self,
-        behaviour: AbstractRoundBehaviour,
-        state_id: str,
-        period_state: BaseSynchronizedData,
-    ) -> None:
-        """Fast forward the FSM to a state."""
-        next_state = {s.auto_behaviour_id(): s for s in behaviour.behaviours}[state_id]
-        assert next_state is not None, f"State {state_id} not found"
-        next_state = cast(Type[BaseState], next_state)
-        behaviour.current_behaviour = next_state(
-            name=next_state.auto_behaviour_id(), skill_context=behaviour.context
-        )
-        self.skill.skill_context.state.round_sequence.abci_app._round_results.append(
-            period_state
-        )
-        self.skill.skill_context.state.round_sequence.abci_app._extend_previous_rounds_with_current_round()
-        self.skill.skill_context.behaviours.main._last_round_height = (
-            self.skill.skill_context.state.round_sequence.abci_app.current_round_height
-        )
-        self.skill.skill_context.state.round_sequence.abci_app._current_round = (
-            next_state.matching_round(
-                period_state, self.skill.skill_context.params.consensus_params
-            )
-        )
-
-    def mock_ledger_api_request(
-        self, request_kwargs: Dict, response_kwargs: Dict
-    ) -> None:
-        """
-        Mock http request.
-
-        :param request_kwargs: keyword arguments for request check.
-        :param response_kwargs: keyword arguments for mock response.
-        """
-
-        self.assert_quantity_in_outbox(1)
-        actual_ledger_api_message = self.get_message_from_outbox()
-        assert actual_ledger_api_message is not None, "No message in outbox."
-        has_attributes, error_str = self.message_has_attributes(
-            actual_message=actual_ledger_api_message,
-            message_type=LedgerApiMessage,
-            to=str(LEDGER_CONNECTION_PUBLIC_ID),
-            sender=str(self.skill.skill_context.skill_id),
-            **request_kwargs,
-        )
-
-        assert has_attributes, error_str
-        incoming_message = self.build_incoming_message(
-            message_type=LedgerApiMessage,
-            dialogue_reference=(
-                actual_ledger_api_message.dialogue_reference[0],
-                "stub",
-            ),
-            target=actual_ledger_api_message.message_id,
-            message_id=-1,
-            to=str(self.skill.skill_context.skill_id),
-            sender=str(LEDGER_CONNECTION_PUBLIC_ID),
-            ledger_id=str(LEDGER_CONNECTION_PUBLIC_ID),
-            **response_kwargs,
-        )
-        self.ledger_handler.handle(incoming_message)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-
-    def mock_contract_api_request(
-        self, contract_id: str, request_kwargs: Dict, response_kwargs: Dict
-    ) -> None:
-        """
-        Mock http request.
-
-        :param contract_id: contract id.
-        :param request_kwargs: keyword arguments for request check.
-        :param response_kwargs: keyword arguments for mock response.
-        """
-
-        self.assert_quantity_in_outbox(1)
-        actual_contract_ledger_message = self.get_message_from_outbox()
-        assert actual_contract_ledger_message is not None, "No message in outbox."
-        has_attributes, error_str = self.message_has_attributes(
-            actual_message=actual_contract_ledger_message,
-            message_type=ContractApiMessage,
-            to=str(LEDGER_CONNECTION_PUBLIC_ID),
-            sender=str(self.skill.skill_context.skill_id),
-            ledger_id="ethereum",
-            contract_id=contract_id,
-            message_id=1,
-            **request_kwargs,
-        )
-        assert has_attributes, error_str
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-
-        incoming_message = self.build_incoming_message(
-            message_type=ContractApiMessage,
-            dialogue_reference=(
-                actual_contract_ledger_message.dialogue_reference[0],
-                "stub",
-            ),
-            target=actual_contract_ledger_message.message_id,
-            message_id=-1,
-            to=str(self.skill.skill_context.skill_id),
-            sender=str(LEDGER_CONNECTION_PUBLIC_ID),
-            ledger_id="ethereum",
-            contract_id="mock_contract_id",
-            **response_kwargs,
-        )
-        self.contract_handler.handle(incoming_message)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-
-    def mock_http_request(self, request_kwargs: Dict, response_kwargs: Dict) -> None:
-        """
-        Mock http request.
-
-        :param request_kwargs: keyword arguments for request check.
-        :param response_kwargs: keyword arguments for mock response.
-        """
-
-        self.assert_quantity_in_outbox(1)
-        actual_http_message = self.get_message_from_outbox()
-        assert actual_http_message is not None, "No message in outbox."
-        has_attributes, error_str = self.message_has_attributes(
-            actual_message=actual_http_message,
-            message_type=HttpMessage,
-            performative=HttpMessage.Performative.REQUEST,
-            to=str(HTTP_CLIENT_PUBLIC_ID),
-            sender=str(self.skill.skill_context.skill_id),
-            **request_kwargs,
-        )
-        assert has_attributes, error_str
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-        self.assert_quantity_in_outbox(0)
-        incoming_message = self.build_incoming_message(
-            message_type=HttpMessage,
-            dialogue_reference=(actual_http_message.dialogue_reference[0], "stub"),
-            performative=HttpMessage.Performative.RESPONSE,
-            target=actual_http_message.message_id,
-            message_id=-1,
-            to=str(self.skill.skill_context.skill_id),
-            sender=str(HTTP_CLIENT_PUBLIC_ID),
-            **response_kwargs,
-        )
-        self.http_handler.handle(incoming_message)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-
-    def mock_signing_request(self, request_kwargs: Dict, response_kwargs: Dict) -> None:
-        """Mock signing request."""
-        self.assert_quantity_in_decision_making_queue(1)
-        actual_signing_message = self.get_message_from_decision_maker_inbox()
-        assert actual_signing_message is not None, "No message in outbox."
-        has_attributes, error_str = self.message_has_attributes(
-            actual_message=actual_signing_message,
-            message_type=SigningMessage,
-            to=self.skill.skill_context.decision_maker_address,
-            sender=str(self.skill.skill_context.skill_id),
-            **request_kwargs,
-        )
-        assert has_attributes, error_str
-        incoming_message = self.build_incoming_message(
-            message_type=SigningMessage,
-            dialogue_reference=(actual_signing_message.dialogue_reference[0], "stub"),
-            target=actual_signing_message.message_id,
-            message_id=-1,
-            to=str(self.skill.skill_context.skill_id),
-            sender=self.skill.skill_context.decision_maker_address,
-            **response_kwargs,
-        )
-        self.signing_handler.handle(incoming_message)
-        self.elcollectooorr_abci_behaviour.act_wrapper()
-
-    def mock_a2a_transaction(
-        self,
-    ) -> None:
-        """Performs mock a2a transaction."""
-
-        self.mock_signing_request(
-            request_kwargs=dict(
-                performative=SigningMessage.Performative.SIGN_MESSAGE,
-            ),
-            response_kwargs=dict(
-                performative=SigningMessage.Performative.SIGNED_MESSAGE,
-                signed_message=SignedMessage(
-                    ledger_id="ethereum", body="stub_signature"
-                ),
-            ),
-        )
-
-        self.mock_http_request(
-            request_kwargs=dict(
-                method="GET",
-                headers="",
-                version="",
-                body=b"",
-            ),
-            response_kwargs=dict(
-                version="",
-                status_code=200,
-                status_text="",
-                headers="",
-                body=json.dumps({"result": {"hash": "", "code": OK_CODE}}).encode(
-                    "utf-8"
-                ),
-            ),
-        )
-        self.mock_http_request(
-            request_kwargs=dict(
-                method="GET",
-                headers="",
-                version="",
-                body=b"",
-            ),
-            response_kwargs=dict(
-                version="",
-                status_code=200,
-                status_text="",
-                headers="",
-                body=json.dumps({"result": {"tx_result": {"code": OK_CODE}}}).encode(
-                    "utf-8"
-                ),
-            ),
-        )
-
-    def end_round(self, event: Enum = Event.DONE) -> None:
-        """Ends round early to cover `wait_for_end` generator."""
-        current_state = cast(
-            BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-        )
-        if current_state is None:
-            return
-        current_state = cast(BaseState, current_state)
-        if current_state.matching_round is None:
-            return
-        abci_app = current_state.context.state.round_sequence.abci_app
-        old_round = abci_app._current_round
-        abci_app._last_round = old_round
-        abci_app._current_round = abci_app.transition_function[
-            current_state.matching_round
-        ][event](abci_app.synchronized_data, abci_app.consensus_params)
-        abci_app._previous_rounds.append(old_round)
-        abci_app._current_round_height += 1
-        self.elcollectooorr_abci_behaviour._process_current_round()
-
-    def _test_done_flag_set(self) -> None:
-        """Test that, when round ends, the 'done' flag is set."""
-        current_state = cast(
-            BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
-        )
-        assert not current_state.is_done()
-        with mock.patch.object(
-            self.elcollectooorr_abci_behaviour.context.state, "_round_sequence"
-        ) as mock_period:
-            mock_period.last_round_id = cast(
-                AbstractRound, current_state.matching_round
-            ).round_id
-            current_state.act_wrapper()
-            assert current_state.is_done()
-
-    @classmethod
-    def teardown(cls) -> None:
-        """Teardown the test class."""
-        _MetaPayload.transaction_type_to_payload_cls = cls.old_tx_type_to_payload_cls  # type: ignore
+    def end_round(self, event: Optional[Enum] = None) -> None:  # type: ignore
+        """End the test round."""
+        done_event = event or Event.DONE
+        super().end_round(done_event)
 
 
 class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -462,8 +129,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         inactive_projects: List = [2]
         most_recent_project: int = 2
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -481,15 +148,15 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
             # project 2 gets finished, project 3 is observed
             self.mock_contract_api_request(
@@ -549,7 +216,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.end_round()
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
     def test_no_project_was_previously_observed(self) -> None:
@@ -560,8 +227,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         inactive_projects: List = []
         most_recent_project: int = 0
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -579,15 +246,15 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
             # project 2 gets finished, project 3 is observed
             self.mock_contract_api_request(
@@ -647,7 +314,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.end_round()
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
     def test_project_becomes_active(self) -> None:
@@ -658,8 +325,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         inactive_projects: List = [4, 5, 6]
         most_recent_project: int = 6
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -677,15 +344,15 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
             # project 6 becomes active
             self.mock_contract_api_request(
@@ -731,7 +398,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.end_round()
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
     def test_no_new_projects(self) -> None:
@@ -742,8 +409,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         inactive_projects: List = [4, 5, 6]
         most_recent_project: int = 6
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -761,15 +428,15 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
             # project 6 becomes active
             self.mock_contract_api_request(
@@ -829,7 +496,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.end_round()
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
     def test_bad_response(self) -> None:
@@ -840,8 +507,8 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         inactive_projects: List = [4, 5, 6]
         most_recent_project: int = 6
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -859,15 +526,15 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -892,7 +559,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         self.end_round()
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == DetailsRoundBehaviour.auto_behaviour_id()
 
 
@@ -928,8 +595,8 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             },
         ]
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -944,12 +611,12 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         http_response = {
             "data": {
@@ -1054,7 +721,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_bad_response_graph(self) -> None:
@@ -1083,8 +750,8 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             },
         ]
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1099,15 +766,15 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             query = '{projects(where:{curationStatus:"curated"}){projectId}}'
             http_response = {
                 "data": {
@@ -1145,7 +812,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_bad_response_contract(self) -> None:
@@ -1174,8 +841,8 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             },
         ]
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1190,15 +857,15 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             http_response = {
                 "data": {
                     "projects": [
@@ -1251,7 +918,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
@@ -1301,8 +968,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             },
         ]
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1320,15 +987,15 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -1364,7 +1031,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_yes_behaviour_class.auto_behaviour_id()
 
     def test_decided_no(self) -> None:
@@ -1406,8 +1073,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             },
         ]
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1425,15 +1092,15 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -1469,7 +1136,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_NO)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_no_behaviour_class.auto_behaviour_id()
 
     def test_bad_response(self) -> None:
@@ -1510,8 +1177,8 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             },
         ]
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1529,15 +1196,15 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -1562,7 +1229,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_yes_behaviour_class.auto_behaviour_id()
 
 
@@ -1585,8 +1252,8 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             "minter": "0x1",
         }
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1605,12 +1272,12 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         self.mock_contract_api_request(
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
@@ -1648,7 +1315,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
@@ -1664,8 +1331,8 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             "minter": "0x1",
         }
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1684,14 +1351,14 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksPeripheryContract.contract_id),
@@ -1735,7 +1402,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.ERROR)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == ObservationRoundBehaviour.auto_behaviour_id()
 
 
@@ -1747,8 +1414,8 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
     def test_contract_returns_valid_data(self) -> None:
         """The agent gets the ingoing transfers."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1763,15 +1430,15 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
                 request_kwargs=dict(
@@ -1802,7 +1469,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
             elcol_state = cast(
                 ElcollectooorrABCIBaseState,
-                self.elcollectooorr_abci_behaviour.current_behaviour,
+                self.behaviour.current_behaviour,
             )
             if elcol_state.params.enforce_investor_whitelisting:
                 mock_logger.assert_any_call(
@@ -1818,14 +1485,14 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
         """The agent can't get the ingoing transfers."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1840,14 +1507,14 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -1874,7 +1541,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
@@ -1972,8 +1639,8 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     def test_the_happy_path(self) -> None:
         """There is an address waiting to be paid, the agent prepares a tx to pay to it."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -1997,15 +1664,15 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self._mock_available_tokens()
             self._mock_transferERC20_tx()
@@ -2021,13 +1688,13 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_two_users_get_paid(self) -> None:
         """Two users need to get paid."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -2056,15 +1723,15 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self._mock_available_tokens()
             self._mock_transferERC20_tx()
@@ -2081,13 +1748,13 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_no_users_get_paid(self) -> None:
         """No users need to get paid."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -2116,25 +1783,25 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
         self._mock_available_tokens()
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_no_investments(self) -> None:
         """No users need to get paid."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -2152,25 +1819,25 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
         self._mock_available_tokens()
 
         self.mock_a2a_transaction()
         self._test_done_flag_set()
         self.end_round(event=Event.NO_PAYOUTS)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.no_payouts_next_behaviour.auto_behaviour_id()
 
     def test_a_user_invests_twice(self) -> None:
         """A user has invested once before, but needs to get paid for the new investment."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -2201,15 +1868,15 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self._mock_available_tokens()
             self._mock_transferERC20_tx()
@@ -2225,13 +1892,13 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_a_user_invests_twice_consecutively(self) -> None:
         """A user has invested twice."""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -2262,15 +1929,15 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self._mock_available_tokens()
             self._mock_transferERC20_tx()
@@ -2286,7 +1953,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_not_enough_tokens_for_two_users(self) -> None:
@@ -2296,8 +1963,8 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         NOTE: The other user will get their share once the next vault has been created.
         """
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
             self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
@@ -2328,15 +1995,15 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self._mock_available_tokens(balance=10)
             self._mock_transferERC20_tx()
@@ -2354,7 +2021,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_not_enough_tokens_to_fully_pay_two_users(self) -> None:
@@ -2364,9 +2031,9 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         NOTE: The user owned 1 token will get that token once a new vault has been deployed.
         """
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2396,15 +2063,15 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self._mock_available_tokens(balance=19)
             self._mock_transferERC20_tx()
@@ -2426,15 +2093,15 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_bad_contract_response(self) -> None:
         """A contract returns a bad response."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2464,15 +2131,15 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self._mock_available_tokens(bad_response=True)
             mock_logger.assert_any_call(
@@ -2485,7 +2152,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.NO_PAYOUTS)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.no_payouts_next_behaviour.auto_behaviour_id()
 
 
@@ -2501,9 +2168,9 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
             "0x0": 1,
             "0x1": 1,
         }
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2520,15 +2187,15 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             mock_logger.assert_any_call(
                 logging.INFO,
                 f"The following users were paid: {users_being_paid}",
@@ -2537,7 +2204,7 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
@@ -2551,9 +2218,9 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     def test_the_happy_path(self) -> None:
         """A token has been purchased, the agent extracts the data from the tx hash."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2567,15 +2234,15 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -2597,15 +2264,15 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_bad_response(self) -> None:
         """The contract returns a bad response."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2619,15 +2286,15 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -2650,7 +2317,7 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.ERROR)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.failed_next_behaviour.auto_behaviour_id()
 
 
@@ -2664,9 +2331,9 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     def test_the_happy_path(self) -> None:
         """A token has been purchased, the agent transfers it to the safe contract."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2682,12 +2349,12 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        self.elcollectooorr_abci_behaviour.act_wrapper()
+        self.behaviour.act_wrapper()
 
         self.mock_contract_api_request(
             contract_id=str(ArtBlocksContract.contract_id),
@@ -2720,15 +2387,15 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_bad_response(self) -> None:
         """The contract returns a bad response."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2744,15 +2411,15 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -2790,15 +2457,15 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.NO_TRANSFER)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.no_transfer.auto_behaviour_id()
 
     def test_the_token_id_is_none(self) -> None:
         """The token_id is none."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2813,15 +2480,15 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             mock_logger.assert_any_call(
                 logging.ERROR,
                 "Couldn't create TransferNFT payload, "
@@ -2832,7 +2499,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.NO_TRANSFER)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.no_transfer.auto_behaviour_id()
 
 
@@ -2846,9 +2513,9 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
     def test_the_happy_path(self) -> None:
         """A tx with value 1ETH was settled."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2863,15 +2530,15 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -2899,15 +2566,15 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self._test_done_flag_set()
         self.end_round(event=PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_bad_response(self) -> None:
         """The contract returns a bad response."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2922,15 +2589,15 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -2957,15 +2624,15 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self._test_done_flag_set()
         self.end_round(event=Event.ERROR)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.error_next_behaviour_class.auto_behaviour_id()
 
     def test_the_the_tx_submitter_is_missing(self) -> None:
         """A token with value 1ETH was settled, but the tx_submitter is missing."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -2979,15 +2646,15 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -3015,7 +2682,7 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         self._test_done_flag_set()
         self.end_round(event=PostTransactionSettlementEvent.EL_COLLECTOOORR_DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
 
@@ -3141,9 +2808,9 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
     def test_the_happy_path(self) -> None:
         """The service was restarted with no vaults deployed."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -3157,15 +2824,15 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             txs = [
                 dict(tx_hash="0x0", block_number=0),
                 dict(tx_hash="0x0", block_number=1),
@@ -3233,15 +2900,15 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_bad_response(self) -> None:
         """The service was restarted with no vaults deployed."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -3255,15 +2922,15 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
                 request_kwargs=dict(
@@ -3285,15 +2952,15 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_more_than_1_vault_per_basket(self) -> None:
         """More than 1 vault is present per basket."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -3307,15 +2974,15 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             txs = [
                 dict(tx_hash="0x0", block_number=0),
                 dict(tx_hash="0x0", block_number=1),
@@ -3390,15 +3057,15 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_basket_without_vault(self) -> None:
         """A basket doesn't have a vault associated with it."""
 
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -3412,15 +3079,15 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             txs = [
                 dict(tx_hash="0x0", block_number=0),
                 dict(tx_hash="0x0", block_number=1),
@@ -3492,14 +3159,14 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(BaseState, self.elcollectooorr_abci_behaviour.current_behaviour)
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_no_safe_tx(self) -> None:
         """The safe hasn't made any txs"""
-        self.fast_forward_to_state(
-            self.elcollectooorr_abci_behaviour,
-            self.behaviour_class.behaviour_id,
+        self.fast_forward_to_behaviour(
+            self.behaviour,
+            self.behaviour_class.auto_behaviour_id(),
             SynchronizedData(
                 StateDB(
                     setup_data=StateDB.data_to_lists(
@@ -3513,16 +3180,16 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 
         assert (
             cast(
-                BaseState, self.elcollectooorr_abci_behaviour.current_behaviour
+                BaseState, self.behaviour.current_behaviour
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
 
         )
 
         with patch.object(
-            self.elcollectooorr_abci_behaviour.context.logger, "log"
+            self.behaviour.context.logger, "log"
         ) as mock_logger:
-            self.elcollectooorr_abci_behaviour.act_wrapper()
+            self.behaviour.act_wrapper()
             txs: List = []
             self._mock_safe_tx(txs=txs)
             mock_logger.assert_any_call(
