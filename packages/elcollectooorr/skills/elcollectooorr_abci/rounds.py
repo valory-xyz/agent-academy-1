@@ -338,6 +338,11 @@ class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instan
         """Get tx_submitter"""
         return cast(Optional[str], self.db.get("tx_submitter", None))
 
+    @property
+    def most_voted_tx_hash(self) -> str:
+        """Get tx_submitter"""
+        return cast(str, self.db.get_strict("most_voted_tx_hash"))
+
 
 class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
     """Abstract round for the El Collectooorr skill."""
@@ -584,7 +589,7 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
     ]
     db_pre_conditions: Dict[AppState, List[str]] = {ObservationRound: []}
     db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedElCollectoorBaseRound: [],
+        FinishedElCollectoorBaseRound: [get_name(SynchronizedData.most_voted_tx_hash)],
         FinishedElCollectooorrWithoutPurchase: [],
     }
 
@@ -803,7 +808,7 @@ class BankAbciApp(AbciApp[Event]):
     cross_period_persisted_keys = [get_name(SynchronizedData.most_voted_funds)]
     db_pre_conditions: Dict[AppState, List[str]] = {FundingRound: []}
     db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedBankWithPayoutsRounds: [],
+        FinishedBankWithPayoutsRounds: [get_name(SynchronizedData.most_voted_tx_hash)],
         FinishedBankWithoutPayoutsRounds: [],
     }
 
@@ -1089,6 +1094,12 @@ el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     ErrorneousRound: TransactionSubmissionAbciApp.initial_round_cls,
     FinishedResetAndPauseErrorRound: RegistrationRound,
 }
+
+AgentRegistrationAbciApp.db_post_conditions[FinishedRegistrationFFWRound].extend(
+    [
+        get_name(SynchronizedData.safe_contract_address),
+    ]
+)
 
 ElCollectooorrAbciApp = chain(
     (
