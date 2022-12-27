@@ -11,16 +11,16 @@ fingerprint:
   build/Basket.json: bafybeidg5favibiv4jzggfgmtme6lkheg4smgdwkj76xvkrqpsnsswftba
   contract.py: bafybeievs5yhvkrqo7idvpf7lxty3odtqqslsfn4gsrabgzuum3csmyu7q
   tests/__init__.py: bafybeigq6zj3x5frzgwooqftwcvinzh7yhziibop6zedcdn3kwyks2rqty
-  tests/test_contract.py: bafybeibbkm63o4ivlzcdpm3qsefdqpifmhpgx2vynz52zc6ql4oduapfmm
+  tests/test_contract.py: bafybeigopcgatpmvxk7exysrocbp36axrlnvti5rx75l2px2eq6jxzhwvm
 fingerprint_ignore_patterns: []
 contracts:
-- elcollectooorr/basket_factory:0.1.0:bafybeiboljkwsbzamjisaafl3pxkaja6xl3r5p63fpdvsmkseie3e3wbmm
+- elcollectooorr/basket_factory:0.1.0:bafybeigxsi3xt4wxhkimowagr34fipjbumaclwuo5wi24ttsph7sddrat4
 class_name: BasketContract
 contract_interface_paths:
   ethereum: build/Basket.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.25.0
+    version: ==1.26.0
   py-eth-sig-utils: {}
   web3:
     version: ==5.25.0

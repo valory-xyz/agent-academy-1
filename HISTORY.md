@@ -1,5 +1,9 @@
 # Release History - `agent-academy-1`
 
+## 0.4.0 (2022-12-27)
+- Update service to use 4 agents.
+- Bump to `open-autonomy@v0.6.0`.
+
 ## 0.3.0 (2022-11-15)
 - Update the service to use 2 agents. 
 - Add termination support.

@@ -37,13 +37,10 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
-)
-from packages.valory.skills.abstract_round_abci.base import (
-    BaseSynchronizedData as BasePeriodState,
-)
-from packages.valory.skills.abstract_round_abci.base import (
+    BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
+    get_name,
 )
 
 
@@ -60,9 +57,9 @@ class Event(Enum):
     ERROR = "error"
 
 
-class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attributes
+class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instance-attributes
     """
-    Class to represent a period state.
+    Class to represent the synchronized data.
 
     This state is replicated by the tendermint application.
     """
@@ -145,6 +142,21 @@ class PeriodState(BasePeriodState):  # pylint: disable=too-many-instance-attribu
         """Get vault addresses"""
         return cast(List[str], self.db.get("vault_addresses", []))
 
+    @property
+    def most_voted_tx_hash(self) -> str:
+        """Get most voted tx hash"""
+        return cast(str, self.db.get_strict("most_voted_tx_hash"))
+
+    @property
+    def final_tx_hash(self) -> str:
+        """Get final tx hash"""
+        return cast(str, self.db.get_strict("final_tx_hash"))
+
+    @property
+    def amount_spent(self) -> int:
+        """Get amount spent"""
+        return cast(int, self.db.get("amount_spent", 0))
+
 
 class FractionalizeDeploymentABCIAbstractRound(
     AbstractRound[Event, TransactionType], ABC
@@ -152,17 +164,17 @@ class FractionalizeDeploymentABCIAbstractRound(
     """Abstract round for the FractionalizeDeployment skill."""
 
     @property
-    def period_state(self) -> PeriodState:
+    def synchronized_data(self) -> SynchronizedData:
         """Return the period state."""
-        return cast(PeriodState, self.synchronized_data)
+        return cast(SynchronizedData, super().synchronized_data)
 
-    def _return_no_majority_event(self) -> Tuple[PeriodState, Event]:
+    def _return_no_majority_event(self) -> Tuple[SynchronizedData, Event]:
         """
         Trigger the NO_MAJORITY evenround_wrapper.
 
         :return: a new period state and a NO_MAJORITY event
         """
-        return self.period_state, Event.NO_MAJORITY
+        return self.synchronized_data, Event.NO_MAJORITY
 
 
 class DeployDecisionRound(
@@ -171,18 +183,17 @@ class DeployDecisionRound(
     """Round to check whether deployment is necessary"""
 
     allowed_tx_type = DeployDecisionPayload.transaction_type
-    round_id = "deploy_decision_round"
-    payload_attribute = "deploy_decision"
-    period_state_class = PeriodState
+    payload_attribute = get_name(DeployDecisionPayload.deploy_decision)
+    synchronized_data_class = SynchronizedData
     DECIDE_DEPLOY_FULL = "deploy_full"
     DECIDE_SKIP_BASKET = "deploy_skip_basket"
     DECIDE_DONT_DEPLOY = "dont_deploy"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_deploy_decision=self.collection,
                 most_voted_deploy_decision=self.most_voted_payload,
             )
@@ -195,7 +206,7 @@ class DeployDecisionRound(
             return state, Event.DECIDED_NO
 
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -204,13 +215,9 @@ class DeployDecisionRound(
 class FinishedWithoutDeploymentRound(DegenerateRound):
     """Degenerate round when no deployment should be made"""
 
-    round_id = "finished_without_deployment"
-
 
 class FinishedWithBasketDeploymentSkippedRound(DegenerateRound):
     """Degenerate round when a basket shouldn't be deployed."""
-
-    round_id = "finished_without_basket_deployment"
 
 
 class DeployBasketTxRound(
@@ -219,18 +226,17 @@ class DeployBasketTxRound(
     """Defines the Deploy Basket Round"""
 
     allowed_tx_type = DeployBasketPayload.transaction_type
-    round_id = "deploy_basket_round"
-    payload_attribute = "deploy_basket"
-    period_state_class = PeriodState
+    payload_attribute = get_name(DeployBasketPayload.deploy_basket)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "":
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
@@ -238,7 +244,7 @@ class DeployBasketTxRound(
 
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -247,8 +253,6 @@ class DeployBasketTxRound(
 class FinishedDeployBasketTxRound(DegenerateRound):
     """This class represents the finished round during operation."""
 
-    round_id = "finished_basket_tx_deployment"
-
 
 class DeployVaultTxRound(
     CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound
@@ -256,18 +260,17 @@ class DeployVaultTxRound(
     """Defines the Deploy Vault Round"""
 
     allowed_tx_type = DeployVaultPayload.transaction_type
-    round_id = "deploy_vault_round"
-    payload_attribute = "deploy_vault"
-    period_state_class = PeriodState
+    payload_attribute = get_name(DeployVaultPayload.deploy_vault)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "":
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
@@ -275,7 +278,7 @@ class DeployVaultTxRound(
 
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -284,8 +287,6 @@ class DeployVaultTxRound(
 class FinishedDeployVaultTxRound(DegenerateRound):
     """This class represents the finished round during operation."""
 
-    round_id = "finished_vault_tx_deployment"
-
 
 class BasketAddressRound(
     CollectSameUntilThresholdRound, FractionalizeDeploymentABCIAbstractRound
@@ -293,27 +294,26 @@ class BasketAddressRound(
     """This class represents the post basket deployment round"""
 
     allowed_tx_type = BasketAddressesPayload.transaction_type
-    round_id = "post_deploy_basket_round"
-    payload_attribute = "basket_addresses"
-    period_state_class = PeriodState
+    payload_attribute = get_name(BasketAddressesPayload.basket_addresses)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "":
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
             basket_addresses = json.loads(self.most_voted_payload)
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_basket_addresses=self.collection,
                 basket_addresses=basket_addresses,
             )
 
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -325,22 +325,21 @@ class PermissionVaultFactoryRound(
     """This class represents the round where the vault factory is permission with the basket"""
 
     allowed_tx_type = PermissionVaultFactoryPayload.transaction_type
-    round_id = "permission_factory_round"
-    payload_attribute = "permission_factory"
-    period_state_class = PeriodState
+    payload_attribute = get_name(PermissionVaultFactoryPayload.permission_factory)
+    synchronized_data_class = SynchronizedData
 
     SKIP_PERMISSION = "no_permissioning"
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "":
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
             if self.most_voted_payload == self.SKIP_PERMISSION:
-                return self.period_state, Event.DECIDED_NO
+                return self.synchronized_data, Event.DECIDED_NO
 
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_voted_tx_hash=self.collection,
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
@@ -348,7 +347,7 @@ class PermissionVaultFactoryRound(
 
             return state, Event.DECIDED_YES
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -357,13 +356,9 @@ class PermissionVaultFactoryRound(
 class FinishedPostBasketRound(DegenerateRound):
     """This class represents the last round of the PostBasketDeploymentAbci"""
 
-    round_id = "finished_post_basket_deployment_round"
-
 
 class FinishedPostBasketWithoutPermissionRound(DegenerateRound):
     """This class represents the last round of the PostBasketDeploymentAbci"""
-
-    round_id = "finished_post_basket_deployment_without_permission_round"
 
 
 class VaultAddressRound(
@@ -372,26 +367,25 @@ class VaultAddressRound(
     """This class represents the post vault deployment round"""
 
     allowed_tx_type = VaultAddressesPayload.transaction_type
-    round_id = "post_deploy_vault_round"
-    payload_attribute = "vault_addresses"
-    period_state_class = PeriodState
+    payload_attribute = get_name(VaultAddressesPayload.vault_addresses)
+    synchronized_data_class = SynchronizedData
 
-    def end_block(self) -> Optional[Tuple[BasePeriodState, Event]]:
+    def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
         """Process the end of the block."""
         if self.threshold_reached:
             if self.most_voted_payload == "":
-                return self.period_state, Event.ERROR
+                return self.synchronized_data, Event.ERROR
 
             vault_addresses = cast(Dict[str, int], json.loads(self.most_voted_payload))
-            state = self.period_state.update(
-                period_state_class=self.period_state_class,
+            state = self.synchronized_data.update(
+                synchronized_data_class=self.synchronized_data_class,
                 participant_to_voted_tx_hash=self.collection,
                 vault_addresses=vault_addresses,
             )
 
             return state, Event.DONE
         if not self.is_majority_possible(
-            self.collection, self.period_state.nb_participants
+            self.collection, self.synchronized_data.nb_participants
         ):
             return self._return_no_majority_event()
         return None
@@ -399,8 +393,6 @@ class VaultAddressRound(
 
 class FinishedPostVaultRound(DegenerateRound):
     """This class represents the last round of the PostVaultDeploymentAbci"""
-
-    round_id = "finished_post_vault_deployment_round"
 
 
 class DeployBasketAbciApp(AbciApp[Event]):
@@ -432,6 +424,12 @@ class DeployBasketAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
+    db_pre_conditions: Dict[AppState, List[str]] = {DeployDecisionRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedDeployBasketTxRound: [get_name(SynchronizedData.most_voted_tx_hash)],
+        FinishedWithoutDeploymentRound: [],
+        FinishedWithBasketDeploymentSkippedRound: []
+    }
 
 
 class PostBasketDeploymentAbciApp(AbciApp[Event]):
@@ -461,7 +459,12 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = ["basket_addresses"]
+    cross_period_persisted_keys = [get_name(SynchronizedData.basket_addresses)]
+    db_pre_conditions: Dict[AppState, List[str]] = {BasketAddressRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedPostBasketRound: [get_name(SynchronizedData.most_voted_tx_hash), get_name(SynchronizedData.basket_addresses)],
+        FinishedPostBasketWithoutPermissionRound: [get_name(SynchronizedData.basket_addresses)],
+    }
 
 
 class DeployVaultAbciApp(AbciApp[Event]):
@@ -482,6 +485,10 @@ class DeployVaultAbciApp(AbciApp[Event]):
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
+    }
+    db_pre_conditions: Dict[AppState, List[str]] = {DeployVaultTxRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedDeployVaultTxRound: [get_name(SynchronizedData.most_voted_tx_hash)],
     }
 
 
@@ -504,4 +511,8 @@ class PostVaultDeploymentAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = ["vault_addresses"]
+    cross_period_persisted_keys = [get_name(SynchronizedData.vault_addresses)]
+    db_pre_conditions: Dict[AppState, List[str]] = {VaultAddressRound: []}
+    db_post_conditions: Dict[AppState, List[str]] = {
+        FinishedPostVaultRound: [get_name(SynchronizedData.vault_addresses)],
+    }

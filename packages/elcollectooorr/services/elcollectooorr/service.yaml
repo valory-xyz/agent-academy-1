@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeiaxui5uvbpahnl73kwh7wazgwsue2lrhwcmho4oshitrnd7p4nmmm
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeic623urqopsmwh3dnk5azzzkredramxjptotnq2wc7jqaobwooune
 number_of_agents: 4
 ---
 public_id: elcollectooorr/elcollectooorr_abci:0.1.0
@@ -34,19 +34,19 @@ type: connection
     ledger_apis:
       ethereum:
         address: ${SERVICE_ELCOLLECTOOORR_RPC_0:str:http://127.0.0.1:8545}
-        chain_id: ${CHAIN_ID:int:1}
+        chain_id: 1
 1:
   config:
     ledger_apis:
       ethereum:
         address: ${SERVICE_ELCOLLECTOOORR_RPC_1:str:http://127.0.0.1:8545}
-        chain_id: ${CHAIN_ID:int:1}
+        chain_id: 1
 2:
   config:
     ledger_apis:
       ethereum:
         address: ${SERVICE_ELCOLLECTOOORR_RPC_2:str:http://127.0.0.1:8545}
-        chain_id: ${CHAIN_ID:int:1}
+        chain_id: 1
 3:
   config:
     ledger_apis:

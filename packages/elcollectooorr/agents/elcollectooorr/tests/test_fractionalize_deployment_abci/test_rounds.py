@@ -21,10 +21,9 @@
 """Test the base.py module of the skill."""
 import json
 import logging  # noqa: F401
-from typing import Dict, FrozenSet, cast
-from unittest import mock
+from typing import Dict, cast
 
-from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import PeriodState
+from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import SynchronizedData
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads import (
     BasketAddressesPayload,
     DeployBasketPayload,
@@ -42,51 +41,19 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import 
     PermissionVaultFactoryRound,
     VaultAddressRound,
 )
-from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
-from packages.valory.skills.abstract_round_abci.base import (
-    AbstractRound,
-    ConsensusParams,
+from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
+    BaseRoundTestClass as ExternalBaseRoundTestClass,
 )
 
 
 WEI_TO_ETH = 10 ** 18
-MAX_PARTICIPANTS: int = 4
-RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
 
-def get_participants() -> FrozenSet[str]:
-    """Participants"""
-    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
-
-
-class BaseRoundTestClass:
+class BaseRoundTestClass(ExternalBaseRoundTestClass):
     """Base test class for Rounds."""
 
-    period_state: PeriodState
-    consensus_params: ConsensusParams
-    participants: FrozenSet[str]
-
-    @classmethod
-    def setup(
-        cls,
-    ) -> None:
-        """Setup the test class."""
-
-        cls.participants = get_participants()
-        cls.period_state = PeriodState(
-            StateDB(
-                setup_data=StateDB.data_to_lists(dict(participants=cls.participants))
-            )
-        )
-        cls.consensus_params = ConsensusParams(max_participants=MAX_PARTICIPANTS)
-
-    def _test_no_majority_event(self, round_obj: AbstractRound) -> None:
-        """Test the NO_MAJORITY event."""
-        with mock.patch.object(round_obj, "is_majority_possible", return_value=False):
-            result = round_obj.end_block()
-            assert result is not None
-            state, event = result
-            assert event == Event.NO_MAJORITY
+    _synchronized_data_class = SynchronizedData
+    _event_class = Event
 
 
 class TestDeployDecisionRound(BaseRoundTestClass):
@@ -96,12 +63,12 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        self.period_state.update(amount_spent=WEI_TO_ETH)
+        self.synchronized_data.update(amount_spent=WEI_TO_ETH)
 
         payload_data = "deploy_full"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -125,8 +92,8 @@ class TestDeployDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_deploy_decision=test_round.collection,
                 most_voted_deploy_decision=payload_data,
                 amount_spent=0,
@@ -136,7 +103,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         # a new period has started
         # make sure the correct project is chosen
@@ -165,12 +132,12 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        self.period_state.update(amount_spent=WEI_TO_ETH)
+        self.synchronized_data.update(amount_spent=WEI_TO_ETH)
 
         payload_data = "dont_deploy"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -194,8 +161,8 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_deploy_decision=test_round.collection,
                 most_voted_deploy_decision=payload_data,
                 amount_spent=WEI_TO_ETH,
@@ -205,7 +172,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         assert state.db.get("most_voted_deploy_decision") == actual_next_state.db.get(
             "most_voted_deploy_decision"
@@ -232,12 +199,12 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
         self,
     ) -> None:
         """Run tests."""
-        self.period_state.update(amount_spent=WEI_TO_ETH)
+        self.synchronized_data.update(amount_spent=WEI_TO_ETH)
 
         payload_data = "deploy_skip_basket"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -261,8 +228,8 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_deploy_decision=test_round.collection,
                 most_voted_deploy_decision=payload_data,
                 amount_spent=WEI_TO_ETH,
@@ -272,7 +239,7 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         assert state.db.get("most_voted_deploy_decision") == actual_next_state.db.get(
             "most_voted_deploy_decision"
@@ -302,7 +269,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         payload_data = "0x0"
 
         test_round = DeployBasketTxRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -326,18 +293,18 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
-                tx_submitter=DeployBasketTxRound.round_id,
+                tx_submitter=DeployBasketTxRound.auto_round_id(),
             ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         # a new period has started
         # make sure the correct project is chosen
@@ -369,7 +336,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         payload_data = "0x0"
 
         test_round = DeployVaultTxRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -393,18 +360,18 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
-                tx_submitter=DeployVaultTxRound.round_id,
+                tx_submitter=DeployVaultTxRound.auto_round_id(),
             ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         # a new period has started
         # make sure the correct project is chosen
@@ -436,7 +403,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
         payload_data = [0x0, 0x1, 0x2]
 
         test_round = BasketAddressRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -462,8 +429,8 @@ class TestBasketAddressRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_basket_addresses=test_round.collection,
                 basket_addresses=payload_data,
             ),
@@ -472,7 +439,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         # a new period has started
         # make sure the correct project is chosen
@@ -504,7 +471,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
         payload_data = 0x0
 
         test_round = PermissionVaultFactoryRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -530,18 +497,18 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
-                tx_submitter=PermissionVaultFactoryRound.round_id,
+                tx_submitter=PermissionVaultFactoryRound.auto_round_id(),
             ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         # a new period has started
         # make sure the correct project is chosen
@@ -573,7 +540,7 @@ class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
         payload_data = "no_permissioning"
 
         test_round = PermissionVaultFactoryRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -599,18 +566,18 @@ class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_voted_tx_hash=test_round.collection,
                 most_voted_tx_hash=payload_data,
-                tx_submitter=PermissionVaultFactoryRound.round_id,
+                tx_submitter=PermissionVaultFactoryRound.auto_round_id(),
             ),
         )
 
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         # a new period has started
         # make sure the correct project is chosen
@@ -642,7 +609,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
         payload_data = [0x0, 0x1, 0x2]
 
         test_round = VaultAddressRound(
-            synchronized_data=self.period_state, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
         )
 
         first_payload, *payloads = [
@@ -668,8 +635,8 @@ class TestVaultAddressRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = cast(
-            PeriodState,
-            self.period_state.update(
+            SynchronizedData,
+            self.synchronized_data.update(
                 participant_to_vault_addresses=test_round.collection,
                 vault_addresses=payload_data,
             ),
@@ -678,7 +645,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
         res = test_round.end_block()
         assert res is not None
         state, event = res
-        state = cast(PeriodState, state)
+        state = cast(SynchronizedData, state)
 
         # a new period has started
         # make sure the correct project is chosen
