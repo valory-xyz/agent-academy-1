@@ -14,7 +14,7 @@ fingerprint:
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
   fsm_specification.yaml: bafybeicvno4avecvthyonwf2u2ygokkt342yrtt62ckjmdcfdlw6stz65a
   handlers.py: bafybeihr5jn6pfk3m4ijh5dj7v6kyr2miwxiugsumscbfll54ofqsomije
-  models.py: bafybeih373vlogve2ajn2gqkdh3j5t4g46ls32a74ud664ow4kh2o42f34
+  models.py: bafybeihwwvwehjdccx2rgx3epexsqmccn7wxlayedtf3sygvpxzkur3poi
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
   rounds.py: bafybeidztwv4jsngvwxm53ihse2ahwayirocs6wljs7jpabwczidplqq5m
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
@@ -28,7 +28,7 @@ contracts:
 - elcollectooorr/artblocks:0.1.0:bafybeif5o3pbnncpqzsqz6zcizkigrl46veoeiw5v4aslmequokim2z35i
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeihv5iyznokbhr54afn2q5ro3fsj2vg52phs6pcv2uzefiprzfh4hq
 - elcollectooorr/artblocks_periphery:0.1.0:bafybeihppsq6k7wxkmugwx33drgjtzpnpftjgkvjjd6ca7pbjibgngxybe
-- elcollectooorr/basket_factory:0.1.0:bafybeigxsi3xt4wxhkimowagr34fipjbumaclwuo5wi24ttsph7sddrat4
+- elcollectooorr/basket_factory:0.1.0:bafybeiguugu4f7dslqz4w44yvxjphpcoa34buykgop3yh37icbyksae5he
 - elcollectooorr/token_vault:0.1.0:bafybeidiejtfznrtcyz7cf22ilp6iun3tar2mdy5mnjdatjj66ggaruppa
 - elcollectooorr/token_vault_factory:0.1.0:bafybeidldxyqyln6yidq3rjjsrlrpafpem2w5bhqhrarnel63ux44ida3i
 - valory/gnosis_safe:0.1.0:bafybeich2izgpdvzzoodlmomvmob6yxadji6h7sp65dl4hz6vus7ra7jjm
@@ -36,7 +36,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibntmg5ajk6mufzqemxtr54ijtse5jf3y3ds6szg5ohturwptaozq
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeiekqnkqrnpobwpwp2fkb7wpkvc4bd3yhixg42nzl6baszsh3uzh3u
 - valory/abstract_round_abci:0.1.0:bafybeie4kfq3j3wlt4qoaodu3u6ggkxtcohx5uaxuvaefifncrewzebh7a
 - valory/registration_abci:0.1.0:bafybeidwxdstbi4anrsqvxbcb7vurs6d6cruvsxu24tfop3q4swzorhlzq
 - valory/reset_pause_abci:0.1.0:bafybeibr5upjmzetzg27wxugyl7mkiwyglqgvcfiupzrwd33lwvq6jthky
@@ -134,6 +134,7 @@ models:
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       setup:
         safe_contract_address: []
+      share_tm_config_on_startup: false
       sleep_time: 1
       starting_project_id: 301
       tendermint_check_sleep_delay: 3
