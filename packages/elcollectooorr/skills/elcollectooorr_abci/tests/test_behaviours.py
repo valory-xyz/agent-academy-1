@@ -87,7 +87,9 @@ DEFAULT_WHITELISTED_ADDRESSES = ["0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"]
 WEI_TO_ETH = 10 ** 18
 
 
-class ElCollectooorrFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disable=protected-access
+class ElCollectooorrFSMBehaviourBaseCase(
+    FSMBehaviourBaseCase
+):  # pylint: disable=protected-access
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = Path(__file__).parent.parent
@@ -147,17 +149,13 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             # project 2 gets finished, project 3 is observed
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -245,17 +243,13 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             # project 2 gets finished, project 3 is observed
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -343,17 +337,13 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             # project 6 becomes active
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -427,17 +417,13 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             # project 6 becomes active
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
@@ -525,17 +511,13 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.mock_contract_api_request(
                 contract_id=str(ArtBlocksContract.contract_id),
                 request_kwargs=dict(
@@ -610,9 +592,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
@@ -765,15 +745,11 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             query = '{projects(where:{curationStatus:"curated"}){projectId}}'
             http_response = {
@@ -856,15 +832,11 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             http_response = {
                 "data": {
@@ -986,15 +958,11 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -1032,7 +1000,9 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
         state = cast(BaseState, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.decided_yes_behaviour_class.auto_behaviour_id()
+        assert (
+            state.behaviour_id == self.decided_yes_behaviour_class.auto_behaviour_id()
+        )
 
     def test_decided_no(self) -> None:
         """The agent evaluated the project and decided for NO"""
@@ -1091,15 +1061,11 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -1195,15 +1161,11 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -1230,7 +1192,9 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
         state = cast(BaseState, self.behaviour.current_behaviour)
-        assert state.behaviour_id == self.decided_yes_behaviour_class.auto_behaviour_id()
+        assert (
+            state.behaviour_id == self.decided_yes_behaviour_class.auto_behaviour_id()
+        )
 
 
 class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
@@ -1271,9 +1235,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
@@ -1350,14 +1312,10 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -1429,15 +1387,11 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -1506,14 +1460,10 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -1663,15 +1613,11 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self._mock_available_tokens()
@@ -1722,15 +1668,11 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self._mock_available_tokens()
@@ -1782,9 +1724,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
@@ -1818,9 +1758,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
@@ -1867,15 +1805,11 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self._mock_available_tokens()
@@ -1928,15 +1862,11 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self._mock_available_tokens()
@@ -1994,15 +1924,11 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self._mock_available_tokens(balance=10)
@@ -2062,15 +1988,11 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self._mock_available_tokens(balance=19)
@@ -2130,15 +2052,11 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self._mock_available_tokens(bad_response=True)
@@ -2186,15 +2104,11 @@ class TestPostPayoutRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             mock_logger.assert_any_call(
                 logging.INFO,
@@ -2233,15 +2147,11 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -2285,15 +2195,11 @@ class TestProcessPurchaseRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -2348,9 +2254,7 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
@@ -2410,15 +2314,11 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -2479,15 +2379,11 @@ class TestTransferNFTRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             mock_logger.assert_any_call(
                 logging.ERROR,
@@ -2529,15 +2425,11 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -2588,15 +2480,11 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -2645,15 +2533,11 @@ class TestPostTransactionSettlementBehaviour(ElCollectooorrFSMBehaviourBaseCase)
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -2823,15 +2707,11 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             txs = [
                 dict(tx_hash="0x0", block_number=0),
@@ -2921,15 +2801,11 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(GnosisSafeContract.contract_id),
@@ -2973,15 +2849,11 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             txs = [
                 dict(tx_hash="0x0", block_number=0),
@@ -3078,15 +2950,11 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             txs = [
                 dict(tx_hash="0x0", block_number=0),
@@ -3179,16 +3047,11 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
         )
 
         assert (
-            cast(
-                BaseState, self.behaviour.current_behaviour
-            ).behaviour_id
+            cast(BaseState, self.behaviour.current_behaviour).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
-
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             txs: List = []
             self._mock_safe_tx(txs=txs)
@@ -3201,7 +3064,9 @@ class TestResyncRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
 class TestDecisionModel:
     """Tests for the Decision Model"""
 
-    def test_static_should_return_1_when_no_royalty_receiver(self) -> None:  # pylint: disable=no-self-use
+    def test_static_should_return_1_when_no_royalty_receiver(
+        self,
+    ) -> None:  # pylint: disable=no-self-use
         """Static should return 1, when there is no royalty receiver"""
 
         test_project_details = {

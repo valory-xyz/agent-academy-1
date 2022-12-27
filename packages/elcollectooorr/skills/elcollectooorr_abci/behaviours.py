@@ -902,7 +902,9 @@ class TransactionRoundBehaviour(ElcollectooorrABCIBaseState):
                 project_to_purchase = self.synchronized_data.project_to_purchase
                 project_id = int(project_to_purchase["project_id"])
                 minter = project_to_purchase["minter"]
-                value = int(project_to_purchase["price"])  # price of token in the project in wei
+                value = int(
+                    project_to_purchase["price"]
+                )  # price of token in the project in wei
                 purchase_data_str = yield from self._get_purchase_data(
                     project_id,
                     minter,

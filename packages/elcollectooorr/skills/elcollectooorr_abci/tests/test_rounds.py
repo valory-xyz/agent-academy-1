@@ -111,7 +111,8 @@ class TestObservationRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -188,7 +189,8 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -256,7 +258,8 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         payload_data = {"project_id": 123}
 
         test_round = DecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -318,7 +321,8 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = DecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         project_to_purchase: Dict = {}  # {} represents a NO decision for now
@@ -385,7 +389,8 @@ class TestTransactionRound(BaseRoundTestClass):
         test_purchase_data = "test_data"
 
         test_round = TransactionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -448,7 +453,8 @@ class TestDetailsRound(BaseRoundTestClass):
         test_details = json.dumps({"active_projects": [{"data": "more"}]})
 
         test_round = DetailsRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -510,7 +516,8 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         test_funds = {"0x0": WEI_TO_ETH}
 
         test_round = FundingRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -621,9 +628,11 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
         assert cast(SynchronizedData, state).db.get_strict("purchased_nft") == cast(
             SynchronizedData, actual_next_state
         ).db.get_strict("purchased_nft")
-        assert cast(SynchronizedData, state).db.get_strict("purchased_projects") == cast(
-            SynchronizedData, actual_next_state
-        ).db.get_strict("purchased_projects")
+        assert cast(SynchronizedData, state).db.get_strict(
+            "purchased_projects"
+        ) == cast(SynchronizedData, actual_next_state).db.get_strict(
+            "purchased_projects"
+        )
 
         assert event == Event.DONE
 
@@ -732,9 +741,11 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
 
         state, event = res
 
-        assert cast(SynchronizedData, state).db.get_strict("most_voted_tx_hash") == cast(
-            SynchronizedData, actual_next_state
-        ).db.get_strict("most_voted_tx_hash")
+        assert cast(SynchronizedData, state).db.get_strict(
+            "most_voted_tx_hash"
+        ) == cast(SynchronizedData, actual_next_state).db.get_strict(
+            "most_voted_tx_hash"
+        )
         assert cast(SynchronizedData, state).db.get_strict("users_being_paid") == cast(
             SynchronizedData, actual_next_state
         ).db.get_strict("users_being_paid")
@@ -797,7 +808,8 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
 
         self.synchronized_data.update(tx_submitter=TransactionRound.auto_round_id())
         test_round = PostTransactionSettlementRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -855,7 +867,8 @@ class TestResyncRound(BaseRoundTestClass):
         }
 
         test_round = ResyncRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [

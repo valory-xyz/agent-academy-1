@@ -130,7 +130,9 @@ def rotate_list(my_list: list, positions: int) -> List[str]:
     return my_list[positions:] + my_list[:positions]
 
 
-class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instance-attributes
+class SynchronizedData(
+    BaseSynchronizedData
+):  # pylint: disable=too-many-instance-attributes
     """
     Class to represent a synchronized data.
 
@@ -907,9 +909,7 @@ class PostTransactionSettlementRound(
 
             payload = json.loads(self.most_voted_payload)
             amount_spent = payload["amount_spent"]
-            total_amount_spent = (
-                self.synchronized_data.amount_spent + amount_spent
-            )
+            total_amount_spent = self.synchronized_data.amount_spent + amount_spent
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,

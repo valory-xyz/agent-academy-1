@@ -57,7 +57,9 @@ class Event(Enum):
     ERROR = "error"
 
 
-class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instance-attributes
+class SynchronizedData(
+    BaseSynchronizedData
+):  # pylint: disable=too-many-instance-attributes
     """
     Class to represent the synchronized data.
 
@@ -428,7 +430,7 @@ class DeployBasketAbciApp(AbciApp[Event]):
     db_post_conditions: Dict[AppState, List[str]] = {
         FinishedDeployBasketTxRound: [get_name(SynchronizedData.most_voted_tx_hash)],
         FinishedWithoutDeploymentRound: [],
-        FinishedWithBasketDeploymentSkippedRound: []
+        FinishedWithBasketDeploymentSkippedRound: [],
     }
 
 
@@ -462,8 +464,13 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
     cross_period_persisted_keys = [get_name(SynchronizedData.basket_addresses)]
     db_pre_conditions: Dict[AppState, List[str]] = {BasketAddressRound: []}
     db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedPostBasketRound: [get_name(SynchronizedData.most_voted_tx_hash), get_name(SynchronizedData.basket_addresses)],
-        FinishedPostBasketWithoutPermissionRound: [get_name(SynchronizedData.basket_addresses)],
+        FinishedPostBasketRound: [
+            get_name(SynchronizedData.most_voted_tx_hash),
+            get_name(SynchronizedData.basket_addresses),
+        ],
+        FinishedPostBasketWithoutPermissionRound: [
+            get_name(SynchronizedData.basket_addresses)
+        ],
     }
 
 

@@ -65,7 +65,9 @@ from packages.valory.skills.transaction_settlement_abci.behaviours import (
 )
 
 
-class FractionalizeFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disable=protected-access
+class FractionalizeFSMBehaviourBaseCase(
+    FSMBehaviourBaseCase
+):  # pylint: disable=protected-access
     """Base case for testing PriceEstimation FSMBehaviour."""
 
     path_to_skill = ELCOLLECTOOORR_PACKAGE_DIR
@@ -109,9 +111,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             mock_logger.assert_any_call(
@@ -120,9 +120,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self.end_round(event=Event.DECIDED_YES)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_yes_class.auto_behaviour_id()
 
     def test_over_the_budget(self) -> None:
@@ -152,9 +150,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             mock_logger.assert_any_call(
@@ -163,9 +159,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self.end_round(event=Event.DECIDED_YES)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_yes_class.auto_behaviour_id()
 
     def test_the_vault_is_inactive(self) -> None:
@@ -196,9 +190,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -222,9 +214,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self.mock_a2a_transaction()
         self.end_round(event=Event.DECIDED_YES)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_yes_class.auto_behaviour_id()
 
     def test_the_vault_has_no_tokens_left(self) -> None:
@@ -256,9 +246,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -298,9 +286,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_yes_class.auto_behaviour_id()
 
     def test_no_vault_needs_to_be_deployed(self) -> None:
@@ -332,9 +318,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -374,9 +358,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_NO)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_no_class.auto_behaviour_id()
 
     def test_bad_response_from_contract(self) -> None:
@@ -408,9 +390,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -454,9 +434,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_NO)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_no_class.auto_behaviour_id()
 
 
@@ -530,9 +508,7 @@ class TestDeployBasketTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_yes_state.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
@@ -560,9 +536,7 @@ class TestDeployBasketTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(BasketFactoryContract.contract_id),
@@ -604,9 +578,7 @@ class TestDeployBasketTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.ERROR)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.decided_no_state.auto_behaviour_id()
 
 
@@ -680,9 +652,7 @@ class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
@@ -711,9 +681,7 @@ class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
             == self.behaviour_class.auto_behaviour_id()
         )
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -757,9 +725,7 @@ class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.ERROR)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert (
             state.behaviour_id == self.behaviour_class.auto_behaviour_id()
         )  # should be in the same behaviour
@@ -801,9 +767,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(BasketFactoryContract.contract_id),
@@ -829,9 +793,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
@@ -864,9 +826,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(BasketFactoryContract.contract_id),
@@ -896,9 +856,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.ERROR)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert (
             state.behaviour_id == self.behaviour_class.auto_behaviour_id()
         )  # should stay in the same round
@@ -939,9 +897,7 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(TokenVaultFactoryContract.contract_id),
@@ -968,9 +924,7 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.DONE)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
@@ -1002,9 +956,7 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
 
         self.behaviour.act_wrapper()
 
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
             self.mock_contract_api_request(
                 contract_id=str(TokenVaultFactoryContract.contract_id),
@@ -1033,9 +985,7 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
         self._test_done_flag_set()
         self.end_round(event=Event.ERROR)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert (
             state.behaviour_id == self.behaviour_class.auto_behaviour_id()
         )  # it should stay in the same state
@@ -1129,9 +1079,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_YES)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_yes_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_valid_data_already_permissioned(self) -> None:
@@ -1183,9 +1131,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
         self._test_done_flag_set()
         self.end_round(event=Event.DECIDED_NO)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.next_no_behaviour_class.auto_behaviour_id()
 
     def test_contract_returns_invalid_data(self) -> None:
@@ -1215,9 +1161,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
             ).behaviour_id
             == self.behaviour_class.auto_behaviour_id()
         )
-        with patch.object(
-            self.behaviour.context.logger, "log"
-        ) as mock_logger:
+        with patch.object(self.behaviour.context.logger, "log") as mock_logger:
             self.behaviour.act_wrapper()
 
             self.mock_contract_api_request(
@@ -1277,7 +1221,5 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
         self._test_done_flag_set()
         self.end_round(event=Event.ERROR)
 
-        state = cast(
-            BaseState, self.behaviour.current_behaviour
-        )
+        state = cast(BaseState, self.behaviour.current_behaviour)
         assert state.behaviour_id == self.behaviour_class.auto_behaviour_id()

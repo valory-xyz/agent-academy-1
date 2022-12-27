@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiankss7mun4gw6jgbuogefmziyuvhtnjtyks3l3tmizs3llc65gtm
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
-  behaviours.py: bafybeig54twaybg6nzret2m6dyrs7mf5wd73fyvlhbaywauai4if2i2g54
+  behaviours.py: bafybeib7yktwrqr4rxuxhxexqyg7f4gk6o4r276fewntjlweizfrz3e4sy
   decision_models.py: bafybeicchjstlojkxtlvxt5atqxkpr6cqcz47xldyyn2sa64ywmz3bygsi
   dialogues.py: bafybeielsp4eu7gr7lelednobuq32bav5kp7so4geut7j2rg7bkn2wuzee
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
@@ -16,12 +16,12 @@ fingerprint:
   handlers.py: bafybeihr5jn6pfk3m4ijh5dj7v6kyr2miwxiugsumscbfll54ofqsomije
   models.py: bafybeihwwvwehjdccx2rgx3epexsqmccn7wxlayedtf3sygvpxzkur3poi
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
-  rounds.py: bafybeidztwv4jsngvwxm53ihse2ahwayirocs6wljs7jpabwczidplqq5m
+  rounds.py: bafybeickr35xsz6kmllv7zcr7mvehgf4pivtglvklnvo35zummdickprei
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
-  tests/test_behaviours.py: bafybeidqt7hgd4hfzdlvgt2wksfnqf2573lzemjvx23qsgrh2t4fuiy64q
+  tests/test_behaviours.py: bafybeifxcqavkmkb4aw7grqfbqux3jjedpkgsoosy7rbfz4xrimn5wq2aa
   tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
   tests/test_payloads.py: bafybeiarokonoz2okmdc4ktmrzckdxitoophwt6wk3at4wjnrhjvcqlabq
-  tests/test_rounds.py: bafybeifubn4lmtcozsmjaoamg2ikil46oxgn5axbdsdatfinrvzltbdbqa
+  tests/test_rounds.py: bafybeifigd6inz4wt2w3nfym32ordj545krpteijpbtjsqxwt276ypm2my
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -36,7 +36,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeiekqnkqrnpobwpwp2fkb7wpkvc4bd3yhixg42nzl6baszsh3uzh3u
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibnkpcxf2yi2pxxusk6e2hcu7keac4xv4ystxeefo6czmlv3c3do4
 - valory/abstract_round_abci:0.1.0:bafybeie4kfq3j3wlt4qoaodu3u6ggkxtcohx5uaxuvaefifncrewzebh7a
 - valory/registration_abci:0.1.0:bafybeidwxdstbi4anrsqvxbcb7vurs6d6cruvsxu24tfop3q4swzorhlzq
 - valory/reset_pause_abci:0.1.0:bafybeibr5upjmzetzg27wxugyl7mkiwyglqgvcfiupzrwd33lwvq6jthky

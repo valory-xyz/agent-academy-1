@@ -68,7 +68,8 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         payload_data = "deploy_full"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -137,7 +138,8 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         payload_data = "dont_deploy"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -204,7 +206,8 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
         payload_data = "deploy_skip_basket"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -269,7 +272,8 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         payload_data = "0x0"
 
         test_round = DeployBasketTxRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -336,7 +340,8 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         payload_data = "0x0"
 
         test_round = DeployVaultTxRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -403,7 +408,8 @@ class TestBasketAddressRound(BaseRoundTestClass):
         payload_data = [0x0, 0x1, 0x2]
 
         test_round = BasketAddressRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -471,7 +477,8 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
         payload_data = 0x0
 
         test_round = PermissionVaultFactoryRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -540,7 +547,8 @@ class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
         payload_data = "no_permissioning"
 
         test_round = PermissionVaultFactoryRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
@@ -609,7 +617,8 @@ class TestVaultAddressRound(BaseRoundTestClass):
         payload_data = [0x0, 0x1, 0x2]
 
         test_round = VaultAddressRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
+            consensus_params=self.consensus_params,
         )
 
         first_payload, *payloads = [
