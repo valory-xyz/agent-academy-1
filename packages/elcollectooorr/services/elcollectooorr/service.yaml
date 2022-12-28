@@ -17,11 +17,11 @@ type: skill
     params:
       args:
         setup: &id001
-          safe_contract_address: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:[]}
+          safe_contract_address: ${SAFE_CONTRACT_ADDRESS:list:[]}
         consensus: &id002
           max_participants: 4
         decision_model_threshold: 0.8
-        whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
+        whitelisted_investor_addresses: ${WHITELISTED_INVESTOR_ADDRESSES:list:[]}
         observation_interval: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_0:str:node0:26656}
@@ -35,7 +35,7 @@ type: skill
         setup: *id001
         consensus: *id002
         decision_model_threshold: 0.8
-        whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
+        whitelisted_investor_addresses: ${WHITELISTED_INVESTOR_ADDRESSES:list:[]}
         observation_interval: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_1:str:node1:26666}
@@ -49,7 +49,7 @@ type: skill
         setup: *id001
         consensus: *id002
         decision_model_threshold: 0.8
-        whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
+        whitelisted_investor_addresses: ${WHITELISTED_INVESTOR_ADDRESSES:list:[]}
         observation_interval: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_2:str:node2:26676}
@@ -63,7 +63,7 @@ type: skill
         setup: *id001
         consensus: *id002
         decision_model_threshold: 0.8
-        whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
+        whitelisted_investor_addresses: ${WHITELISTED_INVESTOR_ADDRESSES:list:[]}
         observation_interval: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_3:str:node3:26686}

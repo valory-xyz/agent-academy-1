@@ -86,8 +86,8 @@ These steps only work for operators registered on-chain!
       Ensure you have set the following environment variables:
 
       ```bash
-      export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS=`["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]`
-      export SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES='["YOUR_WHITELIST"]'
+      export SAFE_CONTRACT_ADDRESS=`["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]`
+      export WHITELISTED_INVESTOR_ADDRESSES='["YOUR_WHITELIST"]'
       export SERVICE_ELCOLLECTOOORR_RPC_0="YOUR_RPC_URL"
       export SERVICE_ELCOLLECTOOORR_RPC_1="YOUR_RPC_URL"
       export SERVICE_ELCOLLECTOOORR_RPC_2="YOUR_RPC_URL"
@@ -99,7 +99,7 @@ These steps only work for operators registered on-chain!
       Then fetch the service:
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeiacio2zzva3xbfnpnjsakt7dboblcrcksi553xqbqd3rjyu4nb6ri --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeiduim4rtv5pwa56uqg2hm7co2bmhffufimfsc6zs34sdhxeix3jey --service
       cd elcollectooorr
       ```
 
