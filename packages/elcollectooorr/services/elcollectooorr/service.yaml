@@ -52,7 +52,7 @@ type: skill
         whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
         observation_interval: 300
         reset_tendermint_after: 60
-        tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_1:str:node2:26676}
+        tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_2:str:node2:26676}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
@@ -66,7 +66,7 @@ type: skill
         whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
         observation_interval: 300
         reset_tendermint_after: 60
-        tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_1:str:node3:26686}
+        tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_3:str:node3:26686}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
