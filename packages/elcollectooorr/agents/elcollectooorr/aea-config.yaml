@@ -58,7 +58,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeih7rhi5zvfvwakx5ifgxsz2cfipeecsh7bm3gnudjxtvhrygpcftq
 - valory/tendermint:0.1.0:bafybeihcnjhovvyyfbkuw5sjyfx2lfd4soeocfqzxz54g67333m6nk5gxq
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeihwyzdka5m537oppikafgxspir4ga3uxvneek3p7l4lggbbpwuldm
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeianrh7u4xskzev2mgezzzedtmskotlvwpj4nm3q7p3noggpwiclxu
 - elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibntmg5ajk6mufzqemxtr54ijtse5jf3y3ds6szg5ohturwptaozq
 - valory/abstract_abci:0.1.0:bafybeibqgoxd25itxyuauou6xybiwu3nxkhqwxklggvdwcg42b7expnflq
 - valory/abstract_round_abci:0.1.0:bafybeie4kfq3j3wlt4qoaodu3u6ggkxtcohx5uaxuvaefifncrewzebh7a
@@ -111,17 +111,16 @@ public_id: valory/p2p_libp2p_client:0.1.0
 type: connection
 config:
   nodes:
-  - uri: ${P2P_URI:str:acn.staging.autonolas.tech:9005}
-    public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
+  - uri: ${str:acn.staging.autonolas.tech:9005}
+    public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
 cert_requests:
 - identifier: acn
   ledger_id: ethereum
   message_format: '{public_key}'
-  not_after: '2022-01-01'
-  not_before: '2021-01-01'
-  public_key: ${P2P_PUBLIC_KEY:str:0250827315351f6f4d3777b77d4bfd67280156240313bf221750b36404344bb35d}
-  save_path: .certs/acn_cosmos_9005.txt
-is_abstract: true
+  not_after: '2023-01-01'
+  not_before: '2022-01-01'
+  public_key: ${str:02d3a830c9d6ea1ae91936951430dee11f4662f33118b02190693be835359a9d77}
+  save_path: .certs/acn_cosmos_11000.txt
 ---
 public_id: elcollectooorr/elcollectooorr_abci:0.1.0
 type: skill
@@ -157,10 +156,11 @@ models:
       retry_timeout: 3
       round_timeout_seconds: 120.0
       service_id: el_collectooorr_1
-      service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
+      service_registry_address: ${str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       sleep_time: 1
       starting_project_id: 301
+      share_tm_config_on_startup: ${bool:false}
       tendermint_check_sleep_delay: 3
       tendermint_max_retries: 5
       tendermint_url: ${TENDERMINT_URL:str:http://localhost:26657}
