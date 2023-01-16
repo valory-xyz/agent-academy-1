@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -53,12 +53,6 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import 
 )
 from packages.valory.skills.registration_abci.rounds import RegistrationStartupRound
 from packages.valory.skills.reset_pause_abci.rounds import ResetAndPauseRound
-from packages.valory.skills.safe_deployment_abci.rounds import (
-    DeploySafeRound,
-    RandomnessSafeRound,
-    SelectKeeperSafeRound,
-    ValidateSafeRound,
-)
 
 
 TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
@@ -66,17 +60,6 @@ TARGET_PROJECT_ID = _DEFAULT_TARGET_PROJECT_ID
 REGISTRATION_CHECK_STRINGS = (
     f"Entered in the '{RegistrationStartupRound.auto_round_id()}' round for period 0",
     f"'{RegistrationStartupRound.auto_round_id()}' round is done",
-)
-
-SAFE_CHECK_STRINGS = (
-    f"Entered in the '{RandomnessSafeRound.auto_round_id()}' round for period 0",
-    f"'{RandomnessSafeRound.auto_round_id()}' round is done",
-    f"Entered in the '{SelectKeeperSafeRound.auto_round_id()}' round for period 0",
-    f"'{SelectKeeperSafeRound.auto_round_id()}' round is done",
-    f"Entered in the '{DeploySafeRound.auto_round_id()}' round for period 0",
-    f"'{DeploySafeRound.auto_round_id()}' round is done",
-    f"Entered in the '{ValidateSafeRound.auto_round_id()}' round for period 0",
-    f"'{ValidateSafeRound.auto_round_id()}' round is done",
 )
 
 BASE_ELCOLLECTOOORR_CHECK_STRINGS = (
@@ -149,7 +132,6 @@ class TestHappyPath(
     wait_to_finish = 300  # 5 min to complete
     strict_check_strings = (
         REGISTRATION_CHECK_STRINGS
-        + SAFE_CHECK_STRINGS
         + BASE_ELCOLLECTOOORR_CHECK_STRINGS
         + POST_TX_SETTLEMENT_STRINGS
         + FRACTIONALIZE_STRINGS

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ ELCOL_NET_CHAIN_ID = 31337
 TARGET_PROJECT_ID = (
     56  # id of project that we want to test the behaviour of the El Collectooorr
 )
+CONFIGURED_SAFE_CONTRACT = "0xce7AEd90271f69F863d72A3B372288DEA3443bF6"
 DEFAULT_WHITELISTED_ADDRESSES = ["0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"]
 # default hardhat key pairs (public key, private key)
 KEY_PAIRS: List[Tuple[str, str]] = [

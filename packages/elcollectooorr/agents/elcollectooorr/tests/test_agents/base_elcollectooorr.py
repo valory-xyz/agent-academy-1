@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -42,6 +42,9 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
     BASKET_FACTORY_ADDRESS as _DEFAULT_BASKET_FACTORY_ADDRESS,
 )
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    CONFIGURED_SAFE_CONTRACT as _DEFAULT_SAFE_CONTRACT_ADDRESS,
+)
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     DEFAULT_WHITELISTED_ADDRESSES as _DEFAULT_WHITELISTED_ADDRESSES,
 )
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
@@ -64,9 +67,6 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
 )
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     SAFE_CALLBACK_HANDLER as _DEFAULT_SAFE_CALLBACK_HANDLER,
-)
-from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
-    SAFE_CONTRACT_ADDRESS as _DEFAULT_SAFE_CONTRACT_ADDRESS,
 )
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     SAFE_FACTORY_ADDRESS as _DEFAULT_SAFE_FACTORY_ADDRESS,
@@ -129,6 +129,11 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
         {
             "dotted_path": f"{__args_prefix}.whitelisted_investor_addresses",
             "value": json.dumps(_DEFAULT_WHITELISTED_ADDRESSES),
+            "type_": "list",
+        },
+        {
+            "dotted_path": f"{__args_prefix}.setup.safe_contract_address",
+            "value": json.dumps([SAFE_CONTRACT_ADDRESS]),
             "type_": "list",
         },
     ]
@@ -223,22 +228,11 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
 
     def _deposit_to_safe_contract(self, timeout: int = 200) -> None:
         """This method simulates a user depositing funds into the safe contract."""
-        start = time.time()
-        while True:
-            for output in self.stdout.values():
-                safe_contract_address_parts = output.split("Safe contract address: ", 1)
-                if len(safe_contract_address_parts) > 1:
-                    target_address = (
-                        safe_contract_address_parts[1]
-                        .split(" ", 1)[0]
-                        .split("\n")[0]
-                        .strip()
-                    )
-                    instance = web3.Web3(web3.HTTPProvider(self.ELCOL_NET_HOST))
-                    sender_address, private_key = self.HARDHAT_ELCOL_KEY_PAIRS[0]
-                    raw_tx = instance.eth.send_transaction(
-                        {
-                            "to": target_address,
+        instance = web3.Web3(web3.HTTPProvider(self.ELCOL_NET_HOST))
+        sender_address, private_key = self.HARDHAT_ELCOL_KEY_PAIRS[0]
+        instance.eth.send_transaction(
+            {
+                            "to": self.SAFE_CONTRACT_ADDRESS,
                             "from": sender_address,
                             "value": Wei(ONE_ETH),
                             "chainId": self.ELCOL_NET_CHAIN_ID,
@@ -248,13 +242,3 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
                             ),
                         }
                     )
-                    signed_tx = instance.eth.account.signTransaction(
-                        raw_tx, private_key=private_key
-                    )
-                    instance.eth.sendRawTransaction(signed_tx.rawTransaction)
-                    return
-
-            if time.time() - start > timeout:
-                return
-
-            time.sleep(5)  # wait 5 sec before checking again
