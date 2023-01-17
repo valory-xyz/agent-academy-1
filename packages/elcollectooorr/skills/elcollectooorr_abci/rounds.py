@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -71,7 +71,6 @@ from packages.valory.skills.abstract_round_abci.base import (
 )
 from packages.valory.skills.registration_abci.rounds import (
     AgentRegistrationAbciApp,
-    FinishedRegistrationFFWRound,
     FinishedRegistrationRound,
     RegistrationRound,
 )
@@ -79,10 +78,6 @@ from packages.valory.skills.reset_pause_abci.rounds import (
     FinishedResetAndPauseErrorRound,
     FinishedResetAndPauseRound,
     ResetPauseAbciApp,
-)
-from packages.valory.skills.safe_deployment_abci.rounds import (
-    FinishedSafeRound,
-    SafeDeploymentAbciApp,
 )
 from packages.valory.skills.termination_abci.rounds import BackgroundRound
 from packages.valory.skills.termination_abci.rounds import Event as TerminationEvent
@@ -1063,11 +1058,9 @@ class ResyncAbciApp(AbciApp[Event]):
 
 
 el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
-    FinishedRegistrationRound: SafeDeploymentAbciApp.initial_round_cls,
-    FinishedSafeRound: DeployBasketAbciApp.initial_round_cls,
+    FinishedRegistrationRound: ResyncAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
     FinishedElCollectooorrWithoutPurchase: ResetPauseAbciApp.initial_round_cls,
-    FinishedRegistrationFFWRound: ResyncAbciApp.initial_round_cls,
     FinishedResyncRound: DeployBasketAbciApp.initial_round_cls,
     FinishedTransactionSubmissionRound: PostTransactionSettlementRound,
     FinishedDeployVaultTxRound: TransactionSubmissionAbciApp.initial_round_cls,
@@ -1095,16 +1088,9 @@ el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedResetAndPauseErrorRound: RegistrationRound,
 }
 
-AgentRegistrationAbciApp.db_post_conditions[FinishedRegistrationFFWRound].extend(
-    [
-        get_name(SynchronizedData.safe_contract_address),
-    ]
-)
-
 ElCollectooorrAbciApp = chain(
     (
         AgentRegistrationAbciApp,
-        SafeDeploymentAbciApp,
         ElcollectooorrBaseAbciApp,
         TransactionSubmissionAbciApp,
         TransactionSettlementAbciMultiplexer,

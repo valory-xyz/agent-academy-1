@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -106,9 +106,6 @@ from packages.valory.skills.registration_abci.behaviours import (
 )
 from packages.valory.skills.reset_pause_abci.behaviours import (
     ResetPauseABCIConsensusBehaviour,
-)
-from packages.valory.skills.safe_deployment_abci.behaviours import (
-    SafeDeploymentRoundBehaviour,
 )
 from packages.valory.skills.termination_abci.behaviours import (
     BackgroundBehaviour,
@@ -1588,7 +1585,6 @@ class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
     behaviours: Set[Type[BaseState]] = {
         *ResetPauseABCIConsensusBehaviour.behaviours,
         *AgentRegistrationRoundBehaviour.behaviours,
-        *SafeDeploymentRoundBehaviour.behaviours,
         *TransactionSettlementRoundBehaviour.behaviours,
         *ElCollectooorrRoundBehaviour.behaviours,
         *DeployVaultRoundBehaviour.behaviours,

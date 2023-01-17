@@ -8,7 +8,7 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeiankss7mun4gw6jgbuogefmziyuvhtnjtyks3l3tmizs3llc65gtm
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
-  behaviours.py: bafybeig54twaybg6nzret2m6dyrs7mf5wd73fyvlhbaywauai4if2i2g54
+  behaviours.py: bafybeidbzwbazt3rwzz6qmps43pc23iiufeg56wyv667cupifxabnifoiy
   decision_models.py: bafybeicchjstlojkxtlvxt5atqxkpr6cqcz47xldyyn2sa64ywmz3bygsi
   dialogues.py: bafybeielsp4eu7gr7lelednobuq32bav5kp7so4geut7j2rg7bkn2wuzee
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
@@ -16,7 +16,7 @@ fingerprint:
   handlers.py: bafybeihr5jn6pfk3m4ijh5dj7v6kyr2miwxiugsumscbfll54ofqsomije
   models.py: bafybeih373vlogve2ajn2gqkdh3j5t4g46ls32a74ud664ow4kh2o42f34
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
-  rounds.py: bafybeidztwv4jsngvwxm53ihse2ahwayirocs6wljs7jpabwczidplqq5m
+  rounds.py: bafybeie7hbjfpxtpa7spcwve6cfpbde7muy2x4vfdi3sbl4gdphhlp6fnq
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
   tests/test_behaviours.py: bafybeidqt7hgd4hfzdlvgt2wksfnqf2573lzemjvx23qsgrh2t4fuiy64q
   tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
@@ -25,24 +25,23 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeif5o3pbnncpqzsqz6zcizkigrl46veoeiw5v4aslmequokim2z35i
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeihv5iyznokbhr54afn2q5ro3fsj2vg52phs6pcv2uzefiprzfh4hq
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeihppsq6k7wxkmugwx33drgjtzpnpftjgkvjjd6ca7pbjibgngxybe
-- elcollectooorr/basket_factory:0.1.0:bafybeigxsi3xt4wxhkimowagr34fipjbumaclwuo5wi24ttsph7sddrat4
-- elcollectooorr/token_vault:0.1.0:bafybeidiejtfznrtcyz7cf22ilp6iun3tar2mdy5mnjdatjj66ggaruppa
-- elcollectooorr/token_vault_factory:0.1.0:bafybeidldxyqyln6yidq3rjjsrlrpafpem2w5bhqhrarnel63ux44ida3i
-- valory/gnosis_safe:0.1.0:bafybeich2izgpdvzzoodlmomvmob6yxadji6h7sp65dl4hz6vus7ra7jjm
-- valory/multisend:0.1.0:bafybeiaveffaomsnmsc5hx62o77u7ilma6eipox7m5lrwa56737ektva3i
+- elcollectooorr/artblocks:0.1.0:bafybeiatzpgvbeykrhcfanmvz4ieiicouu73adedgi5kl7xdrc6auc7hke
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeigunkpbjl776nlp4h6757bxmu47zt5vq7etytysiq66hzj7bvxtgq
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeihdgdmhslouz6zm6wx3vhjfmhltmwrn6miv5trxxrihquptii55ty
+- elcollectooorr/basket_factory:0.1.0:bafybeihyw7m7els2jsxygwsh4olgdglyleoyhjl6t4nisryhleodxd24yy
+- elcollectooorr/token_vault:0.1.0:bafybeic6g65dreiueoozhac4wlijjnthx7zodbjsij3hbonpcy6xkdlyt4
+- elcollectooorr/token_vault_factory:0.1.0:bafybeievp2vddd32if3boacq7ql7i54hv4z5yp4sz7j2hm5yjjxsm24xjq
+- valory/gnosis_safe:0.1.0:bafybeiamw5sluyueflxsvzukmayctl3ijc76fx5twstwnc7ons6lw2goa4
+- valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
 protocols:
-- valory/contract_api:1.0.0:bafybeiaxbrvgtbdrh4lslskuxyp4awyr4whcx3nqq5yrr6vimzsxg5dy64
+- valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeibntmg5ajk6mufzqemxtr54ijtse5jf3y3ds6szg5ohturwptaozq
-- valory/abstract_round_abci:0.1.0:bafybeie4kfq3j3wlt4qoaodu3u6ggkxtcohx5uaxuvaefifncrewzebh7a
-- valory/registration_abci:0.1.0:bafybeidwxdstbi4anrsqvxbcb7vurs6d6cruvsxu24tfop3q4swzorhlzq
-- valory/reset_pause_abci:0.1.0:bafybeibr5upjmzetzg27wxugyl7mkiwyglqgvcfiupzrwd33lwvq6jthky
-- valory/safe_deployment_abci:0.1.0:bafybeiakfyeczaiokbyxgepum25uakngjorlflqmcqk3hh7nakkintkq3a
-- valory/termination_abci:0.1.0:bafybeibmugf75zpopuvk5iyy247a3nbashimgufe2svf6e3td4k5yupnrm
-- valory/transaction_settlement_abci:0.1.0:bafybeiekrsycsnvtuwhh4wkk7t46ioalgj3eps77yzvql7sy74izrpgegm
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicu3hto3rvqle2eaoi6gtxtgb3tlzgduem4v7ponolke4wcwr7vke
+- valory/abstract_round_abci:0.1.0:bafybeibfemo6nqd5itfd2damllya56qi4jrtythwcsb7wyt55qtxtsuu3u
+- valory/registration_abci:0.1.0:bafybeih6tbs4mt6x7g642kwhthxxs3qxpzsh4cy7uavrk4att3mqul6hhu
+- valory/reset_pause_abci:0.1.0:bafybeihjsv2mkwrf55wtmawn7kjylm75thg7jjp7y4bfnezrkr3hu7jytu
+- valory/termination_abci:0.1.0:bafybeid3hyrw2tujhjvs7wrzzxe7copgzaf3vnmvvul4gfobrqca3e6a4m
+- valory/transaction_settlement_abci:0.1.0:bafybeidy4dsrzpn5pg7ikq5te4ayufjmktzv5sp7ten5g62hidcdqgfsme
 behaviours:
   main:
     args: {}
@@ -134,6 +133,8 @@ models:
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
       setup:
         safe_contract_address: []
+        all_participants:
+        - - '0x0000000000000000000000000000000000000000'
       share_tm_config_on_startup: false
       sleep_time: 1
       starting_project_id: 301
