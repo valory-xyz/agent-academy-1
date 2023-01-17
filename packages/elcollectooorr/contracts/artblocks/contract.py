@@ -232,8 +232,30 @@ class ArtBlocksContract(Contract):
             "max_invocations": max_invocations,
             "is_active": is_active and not is_paused,
         }
+    @classmethod
+    def encode_project_info(
+        cls,  # pylint: disable=unused-argument
+        ledger_api: LedgerApi,
+        contract_address: str,
+        project_id: int = None,
+    ) -> JSONLike:
+        """
+        Handler method for the 'get_active_project' requests.
 
-        return result
+        Implement this method in the sub class if you want
+        to handle the contract requests manually.
+
+        :param ledger_api: the ledger apis.
+        :param contract_address: the contract address.
+        :param project_id: the id of the project to get the info of.
+        :return: the tx  # noqa: DAR202
+        """
+        instance = cls.get_instance(ledger_api, contract_address)
+        data = instance.encodeABI(
+            fn_name="projectTokenInfo",
+            args=[project_id]
+        )
+        return dict(data=data)
 
     @classmethod
     def process_purchase_receipt(

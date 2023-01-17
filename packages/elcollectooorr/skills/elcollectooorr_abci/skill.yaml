@@ -25,18 +25,18 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeiatzpgvbeykrhcfanmvz4ieiicouu73adedgi5kl7xdrc6auc7hke
+- elcollectooorr/artblocks:0.1.0:bafybeid4i3femqi3kjssnsgk62422hk4pnxc63hijgos26lgynevtacubu
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeigunkpbjl776nlp4h6757bxmu47zt5vq7etytysiq66hzj7bvxtgq
 - elcollectooorr/artblocks_periphery:0.1.0:bafybeihdgdmhslouz6zm6wx3vhjfmhltmwrn6miv5trxxrihquptii55ty
 - elcollectooorr/basket_factory:0.1.0:bafybeihyw7m7els2jsxygwsh4olgdglyleoyhjl6t4nisryhleodxd24yy
-- elcollectooorr/token_vault:0.1.0:bafybeic6g65dreiueoozhac4wlijjnthx7zodbjsij3hbonpcy6xkdlyt4
-- elcollectooorr/token_vault_factory:0.1.0:bafybeievp2vddd32if3boacq7ql7i54hv4z5yp4sz7j2hm5yjjxsm24xjq
+- elcollectooorr/token_vault:0.1.0:bafybeicrbz4d6xfsnyvs7rszathzryayf5gtlatyr7us6do7xls55pjjpu
+- elcollectooorr/token_vault_factory:0.1.0:bafybeigfjspf5qtdx3jbucvovrj5fy4tplxb4c6uimb6vl5oqa2vlzvo5m
 - valory/gnosis_safe:0.1.0:bafybeiamw5sluyueflxsvzukmayctl3ijc76fx5twstwnc7ons6lw2goa4
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
 protocols:
 - valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicu3hto3rvqle2eaoi6gtxtgb3tlzgduem4v7ponolke4wcwr7vke
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeigkopfwzq4futwwfwxwgnff6hzrcpstf2gef2eu2fxg25o5f3u4km
 - valory/abstract_round_abci:0.1.0:bafybeibfemo6nqd5itfd2damllya56qi4jrtythwcsb7wyt55qtxtsuu3u
 - valory/registration_abci:0.1.0:bafybeih6tbs4mt6x7g642kwhthxxs3qxpzsh4cy7uavrk4att3mqul6hhu
 - valory/reset_pause_abci:0.1.0:bafybeihjsv2mkwrf55wtmawn7kjylm75thg7jjp7y4bfnezrkr3hu7jytu

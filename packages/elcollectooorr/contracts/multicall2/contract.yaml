@@ -1,18 +1,18 @@
-name: artblocks
+name: multicall2
 author: elcollectooorr
 version: 0.1.0
 type: contract
-description: The artblocks contract interface.
+description: The MakerDAO multicall2 contract.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeic4ormumf5hol3alsqybl6um2bqjze25tgtoe7ncvqlwxqb4m7zny
-  build/artblocks.json: bafybeic6sjiqbak6zfzc3hvgroz4bcvg2featpfrgzqrmhumv2lrbcanta
-  contract.py: bafybeihck6wlycx76bq44zchlaixzbn46nyieut2mkpmzor6fpqanuw7hu
+  build/multicall2.json: bafybeiccd7a7mwq4z62voom765tijsdc4qjnl6u23qg5upqepa5lo2262q
+  contract.py: bafybeifel6jac3yn676xajiif5r2easn7p4jhpm5orzxlsioutyqoxeojy
 fingerprint_ignore_patterns: []
-class_name: ArtBlocksContract
+class_name: Multicall2Contract
 contract_interface_paths:
-  ethereum: build/artblocks.json
+  ethereum: build/multicall2.json
 contracts: []
 dependencies:
   open-aea-ledger-ethereum:

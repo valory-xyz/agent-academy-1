@@ -99,7 +99,6 @@ class TestMainTokenVaultFactory(BaseTestTokenVaultFactory):
             contract_address=self.contract_address,
             settings_address=settings_address,
         )
-
         assert result["verified"], "The bytecode was incorrect."
 
     def test_pause_unpause(self) -> None:
