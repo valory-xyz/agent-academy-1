@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import BlockIdentifier, Nonce, TxParams, Wei
+
 
 PUBLIC_ID = PublicId.from_str("elcollectooorr/token_vault_factory:0.1.0")
 
@@ -707,16 +708,3 @@ class TokenVaultFactoryContract(Contract):
                 )
             )
         )
-
-    @classmethod
-    def get_owner_encoded(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-    ):
-        instance = cls.get_instance(ledger_api, contract_address)
-        data = instance.encodeABI(
-            fn_name="owner",
-            args=[],
-        )
-        return dict(data=data)

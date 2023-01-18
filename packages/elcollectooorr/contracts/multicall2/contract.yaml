@@ -6,9 +6,11 @@ description: The MakerDAO multicall2 contract.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  __init__.py: bafybeic4ormumf5hol3alsqybl6um2bqjze25tgtoe7ncvqlwxqb4m7zny
+  __init__.py: bafybeieslu5rslvrqe27mry2bujy66bscp5uznpzwmi5s6nxkv5j3gp774
   build/multicall2.json: bafybeiccd7a7mwq4z62voom765tijsdc4qjnl6u23qg5upqepa5lo2262q
-  contract.py: bafybeifel6jac3yn676xajiif5r2easn7p4jhpm5orzxlsioutyqoxeojy
+  contract.py: bafybeif2xrmkqqeutklcwdeawq7iy2cnqivufumenjk3cll7dwggbbyqki
+  tests/__init__.py: bafybeifw7pwisnee2n5jtpywjjqphbmzw4rypjgo4jwyix7ypfx6epcley
+  tests/test_contract.py: bafybeid6pnxzgaiwggga74ns3ceolm7tcpxqe6vna5vyjwf7ftlm652alq
 fingerprint_ignore_patterns: []
 class_name: Multicall2Contract
 contract_interface_paths:

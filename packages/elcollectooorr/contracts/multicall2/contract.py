@@ -18,19 +18,13 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the scaffold contract definition."""
-import asyncio
-import concurrent.futures
 import logging
-import math
-from typing import Any, List, Optional, cast
+from typing import Any, Callable, Dict, List, Tuple
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
-from aea.exceptions import enforce
-from aea_ledger_ethereum import EthereumApi
-from web3.types import BlockIdentifier
 
 
 _logger = logging.getLogger("aea.packages.elcollectooorr.contracts.multicall2.contract")
@@ -93,21 +87,57 @@ class Multicall2Contract(Contract):
         raise NotImplementedError
 
     @classmethod
-    def aggregate(
+    def encode_function_call(cls, ledger_api: LedgerApi, contract_instance: Any, fn_name: str, args: List[Any]) -> Tuple[Dict[str, Any], Callable]:
+        """
+        Encode a function call.
+
+        To be used with Multicall2.aggregate().
+
+        :param ledger_api: the ledger api.
+        :param contract_instance: an insntace of the contract whose call is getting encoded.
+        :param fn_name: the function name.
+        :param args: the function arguments.
+        :return: the target address, the data, and the output decoder function.
+        """
+        data = contract_instance.encodeABI(fn_name=fn_name, args=args)
+        for elem in contract_instance.abi:
+            if elem.get("name", "") == fn_name:
+                output_types = elem["outputs"]
+                normalized_output_types = [t["type"] for t in output_types]
+                break
+
+        def decoder(return_data: bytes) -> Any:
+            """Decode the return data."""
+            return ledger_api.api.codec.decode(normalized_output_types, return_data)
+
+        decoder_fn = decoder
+        target_address = contract_instance.address
+        call = {
+            "target": target_address,
+            "callData": data,
+        }
+        return call, decoder_fn
+
+    @classmethod
+    def aggregate_and_decode(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
-        target_addresses: List[str],
-        calldata: List[bytes],
-    ) -> JSONLike:
+        calls_and_decoders: List[Tuple[Dict[str, Any], Callable]],
+    ) -> Tuple[int, List[Any]]:
         """
         Make aggregate call.
 
         :param ledger_api: the ledger apis.
         :param contract_address: the multicall address.
-        :param kwargs: the keyword arguments.
-        :return: the tx
+        :param calls_and_decoders: the calls and their corresponding output decoders.
+        :return: block number and decoded outputs.
         """
         instance = cls.get_instance(ledger_api, contract_address)
-        res = instance.functions.aggregate(target_addresses, calldata).call()
-        return dict(res=res)
+        calls = [call[0] for call in calls_and_decoders]
+        decoders = [call[1] for call in calls_and_decoders]
+        res = instance.functions.aggregate(calls).call()
+        block_number, call_responses = res[0], res[1]
+        decoded_responses = [decoder(call_response) for decoder, call_response in zip(decoders, call_responses)]
+        block_number = ledger_api.api.eth.blockNumber
+        return block_number, decoded_responses
