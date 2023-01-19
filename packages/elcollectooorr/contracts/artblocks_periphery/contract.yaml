@@ -14,7 +14,7 @@ class_name: ArtBlocksPeripheryContract
 contract_interface_paths:
   ethereum: build/Minter.json
 contracts:
-- elcollectooorr/multicall2:0.1.0:bafybeiefsj5opvs54qtizo66jwctxfovzfrxk7ks6hfk4b4luviak65xi4
+- elcollectooorr/multicall2:0.1.0:bafybeifrxfrlsv3ufpns26tejykqcvb3nbzss5ghwhblmtvkoqr5idt3hy
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.27.0

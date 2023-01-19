@@ -571,6 +571,7 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
             multicall2_contract_address=self.params.multicall2_contract_address,
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="get_multiple_projects_info",
+            batch_size=self.params.multicall_batch_size,
             project_ids=project_ids,
             last_processed_project=last_processed_project,
         )
@@ -737,6 +738,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
             contract_address=self.params.artblocks_minter_filter,
             contract_id=str(ArtBlocksMinterFilterContract.contract_id),
             contract_callable="get_multiple_projects_minter",
+            batch_size=self.params.multicall_batch_size,
             project_ids=[p["project_id"] for p in projects],
         )
 

@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""Tests package for valory/multicall2 contract."""
+"""Tests package for elcollectooorr/multicall2 contract."""
 from pathlib import Path
 
 

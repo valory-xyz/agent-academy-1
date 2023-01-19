@@ -155,6 +155,7 @@ class ArtBlocksContract(Contract):
         multicall2_contract_address: str,
         project_ids: Optional[List[int]] = None,
         last_processed_project: Optional[int] = None,
+        batch_size: int = 50,
     ) -> JSONLike:
         """
         Get all active projects in a contract.
@@ -164,6 +165,7 @@ class ArtBlocksContract(Contract):
         :param multicall2_contract_address: the multicall2 contract address.
         :param project_ids: the ids of the projects to get the data for, if None all projects are called.
         :param last_processed_project: the project that was evaluated most recently.
+        :param batch_size: the number of calls to bundle the requests by.
         :return: the active projects
         """
         instance = cls.get_instance(ledger_api, contract_address)
@@ -197,7 +199,6 @@ class ArtBlocksContract(Contract):
         num_calls = len(project_ids)
         project_token_info_responses = []
         project_script_info_responses = []
-        batch_size = 50
         for batch in range(0, num_calls, batch_size):
             project_token_info_calls_batch = project_token_info_calls[batch:batch + batch_size]
             project_script_info_calls_batch = project_script_info_calls[batch:batch + batch_size]

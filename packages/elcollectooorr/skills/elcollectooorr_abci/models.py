@@ -101,6 +101,7 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
         self.max_retries = int(kwargs.pop("max_retries", 5))
         self.decision_model_type = self._get_decision_model_type(kwargs)
         self.multicall2_contract_address = self._ensure("multicall2_contract_address", kwargs)
+        self.multicall_batch_size: int = self._ensure("multicall_batch_size", kwargs)
 
     def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
         """Get the value of starting_project_id, or warn and return None"""

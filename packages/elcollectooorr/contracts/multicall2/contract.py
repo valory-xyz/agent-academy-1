@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the scaffold contract definition."""
+"""This module contains a wrapper around Multicall2."""
 import logging
 from typing import Any, Callable, Dict, List, Tuple
 

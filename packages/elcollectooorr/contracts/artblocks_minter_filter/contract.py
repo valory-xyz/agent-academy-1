@@ -119,29 +119,33 @@ class ArtBlocksMinterFilterContract(Contract):
 
     @classmethod
     def _batch_request(
-            cls,
-            ledger_api: LedgerApi,
-            multicall_contract_address: str,
-            calls: List[Tuple[Dict[str, Any], Callable]],
-            batch_size: int,
+        cls,
+        ledger_api: LedgerApi,
+        multicall_contract_address: str,
+        calls: List[Tuple[Dict[str, Any], Callable]],
+        batch_size: int,
     ) -> List[Any]:
         """Make batch requests to the Multicall contract."""
         responses = []
         num_calls = len(calls)
         for i in range(0, num_calls, batch_size):
             batch = calls[i:i + batch_size]
-            _block_number, batch_responses = Multicall2Contract.aggregate_and_decode(ledger_api,
-                                                                                     multicall_contract_address, batch)
+            _block_number, batch_responses = Multicall2Contract.aggregate_and_decode(
+                ledger_api,
+                multicall_contract_address,
+                batch,
+            )
             responses.extend(batch_responses)
         return responses
 
     @classmethod
     def get_multiple_projects_minter(  # pylint: disable=too-many-locals
-            cls,
-            ledger_api: LedgerApi,
-            contract_address: str,
-            multicall2_contract_address: str,
-            project_ids: Optional[List[int]] = None,
+        cls,
+        ledger_api: LedgerApi,
+        contract_address: str,
+        multicall2_contract_address: str,
+        project_ids: Optional[List[int]] = None,
+        batch_size: int = 50,
     ) -> JSONLike:
         """
         Get the minter of multiple projects.
@@ -150,6 +154,7 @@ class ArtBlocksMinterFilterContract(Contract):
         :param contract_address: the contract address.
         :param multicall2_contract_address: the multicall2 contract address.
         :param project_ids: the ids of the projects to get the details of.
+        :param batch_size: the batch size to bundle requests by.
         :return: the project minters.
         """
         if project_ids is None:
@@ -178,7 +183,6 @@ class ArtBlocksMinterFilterContract(Contract):
             )
             has_minter_calls.append(call)
 
-        batch_size = 50
         results = {}
         has_minter_responses = cls._batch_request(ledger_api, multicall2_contract_address, has_minter_calls, batch_size)
         project_ids_with_minter = []

@@ -17,7 +17,7 @@
 #
 # ------------------------------------------------------------------------------
 
-"""This module contains the support resources for the artblocks core contract."""
+"""This module contains the support resources for the multicall2 contract."""
 from pathlib import Path
 
 
