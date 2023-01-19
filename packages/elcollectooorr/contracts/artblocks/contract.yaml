@@ -14,7 +14,7 @@ class_name: ArtBlocksContract
 contract_interface_paths:
   ethereum: build/artblocks.json
 contracts:
-- elcollectooorr/multicall2:0.1.0:bafybeihyvrtu4k6p475a2drabas23ctaq6mlyuvr5srqswi6tazxeqqnee
+- elcollectooorr/multicall2:0.1.0:bafybeiefsj5opvs54qtizo66jwctxfovzfrxk7ks6hfk4b4luviak65xi4
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.27.0

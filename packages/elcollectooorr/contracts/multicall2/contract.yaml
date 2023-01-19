@@ -9,8 +9,8 @@ fingerprint:
   __init__.py: bafybeieslu5rslvrqe27mry2bujy66bscp5uznpzwmi5s6nxkv5j3gp774
   build/multicall2.json: bafybeiccd7a7mwq4z62voom765tijsdc4qjnl6u23qg5upqepa5lo2262q
   contract.py: bafybeif2xrmkqqeutklcwdeawq7iy2cnqivufumenjk3cll7dwggbbyqki
-  tests/__init__.py: bafybeifw7pwisnee2n5jtpywjjqphbmzw4rypjgo4jwyix7ypfx6epcley
-  tests/test_contract.py: bafybeid6pnxzgaiwggga74ns3ceolm7tcpxqe6vna5vyjwf7ftlm652alq
+  tests/__init__.py: bafybeiedrrp6i7lxyc7pfbie3rjdwiaruk76ts3wcbyjqmhmvrzr727fke
+  tests/test_contract.py: bafybeigxge36jygnmyepximxcw72boggg5sgwfi2info2rrzvppqmoxq6y
 fingerprint_ignore_patterns: []
 class_name: Multicall2Contract
 contract_interface_paths:

@@ -14,7 +14,7 @@ fingerprint:
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
   fsm_specification.yaml: bafybeicvno4avecvthyonwf2u2ygokkt342yrtt62ckjmdcfdlw6stz65a
   handlers.py: bafybeihr5jn6pfk3m4ijh5dj7v6kyr2miwxiugsumscbfll54ofqsomije
-  models.py: bafybeigykgtrn23l7co6ihrj6bgbm26oryvp5pepuodzdiexqksnb3famq
+  models.py: bafybeie37chf7ra4rirwai34sbjmwbrebe53lqbgnz4bivesxzcbv7wroq
   payloads.py: bafybeig7pazidnhqzaw7la7b4rlydfps5lh4yobxwip5mzbigtxq56hv7m
   rounds.py: bafybeie7hbjfpxtpa7spcwve6cfpbde7muy2x4vfdi3sbl4gdphhlp6fnq
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
@@ -25,9 +25,9 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeihol72ls2k26ajkntfcillgazjrhddqpgfb5eoer4rvcjeulnsnba
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeihmw7nt4clrqh4clsao6ol6hjyijhappt4dogwlxb56qt3naxixie
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeih2bxhrdt3vyl2cm4w3kurndfzak2smrxz37ex7mazzvcf5g453ry
+- elcollectooorr/artblocks:0.1.0:bafybeifjfzk63yfh7gus7fvcu3ozuo7tfz3wx3rgvy6jozouqjlvvs6v54
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeifeybd2prcrahazgdqxbclw6kzvf4a3hhneiaaxxzpwfxqynvkkbq
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeidoxlypnkhyu7nmum2vy72mdvc6urlrv5hadl6lw6nvcbkogevdru
 - elcollectooorr/basket_factory:0.1.0:bafybeihyw7m7els2jsxygwsh4olgdglyleoyhjl6t4nisryhleodxd24yy
 - elcollectooorr/token_vault:0.1.0:bafybeihe22wsavkkddfpejuaidltiapyhnkbx3ajswii2yfvvhi7djxy5q
 - elcollectooorr/token_vault_factory:0.1.0:bafybeid3zbbi7em6nckrwnkk7t4sth4eu7hfzlc2d7xelj6ugipvq4rn2e

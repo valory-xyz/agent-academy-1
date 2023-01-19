@@ -4,15 +4,15 @@
         "contract/elcollectooorr/token_vault_factory/0.1.0": "bafybeid3zbbi7em6nckrwnkk7t4sth4eu7hfzlc2d7xelj6ugipvq4rn2e",
         "contract/elcollectooorr/basket/0.1.0": "bafybeibfpttqgiwyhur65n5mkqlhf6kffz3nrvagoajor44wxjpvr325uy",
         "contract/elcollectooorr/token_vault/0.1.0": "bafybeihe22wsavkkddfpejuaidltiapyhnkbx3ajswii2yfvvhi7djxy5q",
-        "contract/elcollectooorr/artblocks/0.1.0": "bafybeie7rogulq65jmfefae745ms5o73ltfmy5cqmzubcr47y2djgcwnye",
-        "contract/elcollectooorr/artblocks_minter_filter/0.1.0": "bafybeia5cn2rn3cu2mevvmuzfrp4f7tmnogvnjfabz6jafd5eregiio5lu",
-        "contract/elcollectooorr/artblocks_periphery/0.1.0": "bafybeidie5r5o6q4tclosys42scal2nny2gf6mdfvabxymtjavmm4uj3dm",
+        "contract/elcollectooorr/artblocks/0.1.0": "bafybeifjfzk63yfh7gus7fvcu3ozuo7tfz3wx3rgvy6jozouqjlvvs6v54",
+        "contract/elcollectooorr/artblocks_minter_filter/0.1.0": "bafybeifeybd2prcrahazgdqxbclw6kzvf4a3hhneiaaxxzpwfxqynvkkbq",
+        "contract/elcollectooorr/artblocks_periphery/0.1.0": "bafybeidoxlypnkhyu7nmum2vy72mdvc6urlrv5hadl6lw6nvcbkogevdru",
         "skill/elcollectooorr/fractionalize_deployment_abci/0.1.0": "bafybeiexejurgq5ta2c52jxrdpujpq2h6kut7qipa2fo2hctpz2qk6odve",
-        "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeiakyq5yh7npjftdknpnjgyvaetbj34f2xqxt4ugibeumphcqw3nqa",
-        "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeie5jhp3na4xgp22lsvwimyh2bkybudw4hrqms4rv2lhbcp64q37my",
+        "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeib2ep7mwflf24jm35u2u4p24na56siyll3kbvxxjxgxqid5hygbhm",
+        "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeihepglbeczntjtii62442ad7ascccj4qg5xrtw7mwsrru4ogzuinm",
         "contract/elcollectooorr/token_settings/0.1.0": "bafybeifeqb4jtkt3uqdl24j5mos4rz4ablh537l3uefbrrkry7py2vpaky",
-        "contract/elcollectooorr/multicall2/0.1.0": "bafybeidexrcvhs3h4plfmehiru4o27xroq2prbeoxb36lkwslk7lczjndi",
-        "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeiew6aixocpmphn65xb2as5md3fak37bjqxwrwnvbemgbyz6lpdbm4"
+        "contract/elcollectooorr/multicall2/0.1.0": "bafybeiefsj5opvs54qtizo66jwctxfovzfrxk7ks6hfk4b4luviak65xi4",
+        "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeie5rtacxpqykzz2v7egn2dqurgh2mw6xhj7fvjcnzvwtb5jnmfbdi"
     },
     "third_party": {
         "protocol/valory/abci/0.1.0": "bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm",
