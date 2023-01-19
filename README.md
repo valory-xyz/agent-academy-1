@@ -99,7 +99,7 @@ These steps only work for operators registered on-chain!
       Then fetch the service:
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidzyd2yi3igjinpi7bwnyal235bmvovuyxy4qrxnitah6fqysemxq --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeigoinbqlg2yagwygdrvqq6zltmkewsuwe3mfowewipxuk5k7r73wu --service
       cd elcollectooorr
       ```
 

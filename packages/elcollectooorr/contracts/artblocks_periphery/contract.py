@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,11 +18,8 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the scaffold contract definition."""
-import asyncio
-import concurrent.futures
 import logging
-import math
-from typing import Any, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast
 
 from aea.common import JSONLike
 from aea.configurations.base import PublicId
@@ -30,6 +27,8 @@ from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
+
+from packages.elcollectooorr.contracts.multicall2.contract import Multicall2Contract
 
 
 _logger = logging.getLogger(
@@ -336,10 +335,51 @@ class ArtBlocksPeripheryContract(Contract):
         }
 
     @classmethod
+    def _get_multiple_is_mintable(cls, ledger_api: LedgerApi, instance: Any, multicall2_contract_address: str, project_ids: List[int]) -> Dict[int, Dict[str, Any]]:
+        """Check if the provided projects are mintable."""
+        minter_type = instance.functions.minterType().call()
+        is_mintable_via_contract: Optional[bool] = None
+        if minter_type not in SUPPORTED_MINTER_TYPES:
+            # this is an unknown minter, no project will be able to be minted via this contract
+            _logger.warning(
+                f"Minter of type {minter_type} deployed at address {instance.address} is not supported."
+            )
+            is_mintable_via_contract = False
+
+        elif minter_type[-2:] == "V1":
+            # V1 minters are always contract mintable
+            is_mintable_via_contract = True
+
+        if is_mintable_via_contract is not None:
+            return {
+                project_id: {
+                    "project_id": project_id,
+                    "is_mintable_via_contract": is_mintable_via_contract
+                } for project_id in project_ids
+            }
+
+        # if we reach here it means we should check each project individually
+        calls = [
+            Multicall2Contract.encode_function_call(ledger_api, instance, fn_name="contractMintable", args=[project_id])
+            for project_id in project_ids
+        ]
+        _block_number, call_responses = Multicall2Contract.aggregate_and_decode(ledger_api, multicall2_contract_address, calls)
+        results = {}
+        for project_id, call_res in zip(project_ids, call_responses):
+            # the decoded result is always a tuple, even if the function returns a single value
+            is_mintable_via_contract = call_res[0]
+            results[project_id] = {
+                "project_id": project_id,
+                "is_mintable_via_contract": is_mintable_via_contract,
+            }
+        return results
+
+    @classmethod
     def get_multiple_project_details(
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        multicall2_contract_address: str,
         project_ids: Optional[List[int]] = None,
     ) -> JSONLike:
         """
@@ -347,6 +387,7 @@ class ArtBlocksPeripheryContract(Contract):
 
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
+        :param multicall2_contract_address: the address of the multicall2 contract.
         :param project_ids: the ids of the projects to get the details of.
         :return: the active projects
         """
@@ -364,27 +405,29 @@ class ArtBlocksPeripheryContract(Contract):
 
             return {}
 
-        num_threads = math.ceil(len(project_ids) / 30)  # 30 projects per thread
-
-        with concurrent.futures.ThreadPoolExecutor(num_threads) as pool:
-            loop = asyncio.new_event_loop()
-            tasks = []
-
-            for project_id in project_ids:
-                task = loop.run_in_executor(
-                    pool,
-                    cls.get_project_details,
-                    ledger_api,
-                    contract_address,
-                    project_id,
-                )
-                tasks.append(task)
-
-            list_of_results = cast(
-                List[JSONLike], loop.run_until_complete(asyncio.gather(*tasks))
-            )
-            results = {p["project_id"]: p for p in list_of_results}
-
-            loop.close()
-
+        instance = cls.get_instance(ledger_api, contract_address)
+        results = {}
+        are_projects_mintable = cls._get_multiple_is_mintable(
+            ledger_api, instance, multicall2_contract_address, project_ids
+        )
+        price_info_calls = [
+            Multicall2Contract.encode_function_call(
+                ledger_api,
+                instance,
+                fn_name="getPriceInfo",
+                args=[project_id],
+            ) for project_id in project_ids
+        ]
+        _block_number, price_info_calls_responses = Multicall2Contract.aggregate_and_decode(ledger_api, multicall2_contract_address, price_info_calls)
+        for project_id, call_res in zip(project_ids, price_info_calls_responses):
+            price_info = {
+                "is_price_configured": call_res[0],
+                "price_per_token_in_wei": call_res[1],
+                "currency_symbol": call_res[2],
+                "currency_address": call_res[3],
+            }
+            results[project_id] = {
+                **are_projects_mintable[project_id],
+                **price_info,
+            }
         return results  # type: ignore

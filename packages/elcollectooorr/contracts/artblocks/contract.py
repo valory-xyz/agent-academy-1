@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -18,10 +18,7 @@
 # ------------------------------------------------------------------------------
 
 """This module contains the scaffold contract definition."""
-import asyncio
-import concurrent.futures
 import logging
-import math
 from typing import Any, List, Optional, cast
 
 from aea.common import JSONLike
@@ -31,6 +28,8 @@ from aea.crypto.base import LedgerApi
 from aea.exceptions import enforce
 from aea_ledger_ethereum import EthereumApi
 from web3.types import BlockIdentifier
+
+from packages.elcollectooorr.contracts.multicall2.contract import Multicall2Contract
 
 
 _logger = logging.getLogger("aea.packages.elcollectooorr.contracts.artblocks.contract")
@@ -149,22 +148,27 @@ class ArtBlocksContract(Contract):
         return result
 
     @classmethod
-    def get_multiple_projects_info(
+    def get_multiple_projects_info(  # pylint: disable=too-many-locals
         cls,
         ledger_api: LedgerApi,
         contract_address: str,
+        multicall2_contract_address: str,
         project_ids: Optional[List[int]] = None,
         last_processed_project: Optional[int] = None,
+        batch_size: int = 50,
     ) -> JSONLike:
         """
         Get all active projects in a contract.
 
         :param ledger_api: the ledger apis.
         :param contract_address: the contract address.
+        :param multicall2_contract_address: the multicall2 contract address.
         :param project_ids: the ids of the projects to get the data for, if None all projects are called.
         :param last_processed_project: the project that was evaluated most recently.
+        :param batch_size: the number of calls to bundle the requests by.
         :return: the active projects
         """
+        instance = cls.get_instance(ledger_api, contract_address)
         next_project_id = cast(
             int,
             cls.get_next_project_id(ledger_api, contract_address)["next_project_id"],
@@ -178,22 +182,54 @@ class ArtBlocksContract(Contract):
             # new projects were added, we need to check for those
             project_ids += list(range(last_processed_project + 1, next_project_id))
 
-        loop = asyncio.new_event_loop()
-        tasks = []
-        num_threads = math.ceil(len(project_ids) / 30)  # 30 projects per thread
-
-        with concurrent.futures.ThreadPoolExecutor(num_threads) as pool:
-            for project_id in project_ids:
-                task = loop.run_in_executor(
-                    pool, cls.get_project_info, ledger_api, contract_address, project_id
-                )
-                tasks.append(task)
-
-            results = cast(
-                List[JSONLike], loop.run_until_complete(asyncio.gather(*tasks))
+        project_token_info_calls = []
+        project_script_info_calls = []
+        for project_id in project_ids:
+            project_token_info_call = Multicall2Contract.encode_function_call(
+                ledger_api, instance,
+                fn_name="projectTokenInfo",
+                args=[project_id],
             )
+            project_script_info_call = Multicall2Contract.encode_function_call(
+                ledger_api, instance, fn_name="projectScriptInfo", args=[project_id]
+            )
+            project_token_info_calls.append(project_token_info_call)
+            project_script_info_calls.append(project_script_info_call)
 
-            loop.close()
+        num_calls = len(project_ids)
+        project_token_info_responses = []
+        project_script_info_responses = []
+        for batch in range(0, num_calls, batch_size):
+            project_token_info_calls_batch = project_token_info_calls[batch:batch + batch_size]
+            project_script_info_calls_batch = project_script_info_calls[batch:batch + batch_size]
+            _block_number, project_token_info_batch_responses = Multicall2Contract.aggregate_and_decode(
+                ledger_api,
+                multicall2_contract_address,
+                project_token_info_calls_batch,
+            )
+            _block_number, project_script_info_batch_responses = Multicall2Contract.aggregate_and_decode(
+                ledger_api,
+                multicall2_contract_address,
+                project_script_info_calls_batch,
+            )
+            project_token_info_responses.extend(project_token_info_batch_responses)
+            project_script_info_responses.extend(project_script_info_batch_responses)
+
+        results = []
+        for project_id, project_info, script_info in zip(project_ids, project_token_info_responses, project_script_info_responses):
+            price_per_token_in_wei = project_info[1]
+            invocations = project_info[2]
+            max_invocations = project_info[3]
+            is_active = project_info[4]
+            is_paused = script_info[5]
+            result = {
+                "project_id": project_id,
+                "price_per_token_in_wei": price_per_token_in_wei,
+                "invocations": invocations,
+                "max_invocations": max_invocations,
+                "is_active": is_active and not is_paused,
+            }
+            results.append(result)
 
         return {"results": results}
 
@@ -218,7 +254,6 @@ class ArtBlocksContract(Contract):
         instance = cls.get_instance(ledger_api, contract_address)
         project_info = instance.functions.projectTokenInfo(project_id).call()
         script_info = instance.functions.projectScriptInfo(project_id).call()
-
         price_per_token_in_wei = project_info[1]
         invocations = project_info[2]
         max_invocations = project_info[3]
@@ -232,7 +267,6 @@ class ArtBlocksContract(Contract):
             "max_invocations": max_invocations,
             "is_active": is_active and not is_paused,
         }
-
         return result
 
     @classmethod

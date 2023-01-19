@@ -568,8 +568,10 @@ class ObservationRoundBehaviour(ElcollectooorrABCIBaseState):
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=self.params.artblocks_contract,
+            multicall2_contract_address=self.params.multicall2_contract_address,
             contract_id=str(ArtBlocksContract.contract_id),
             contract_callable="get_multiple_projects_info",
+            batch_size=self.params.multicall_batch_size,
             project_ids=project_ids,
             last_processed_project=last_processed_project,
         )
@@ -706,6 +708,7 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
             contract_address=minter_address,
+            multicall2_contract_address=self.params.multicall2_contract_address,
             contract_id=str(ArtBlocksPeripheryContract.contract_id),
             contract_callable="get_multiple_project_details",
             project_ids=project_ids,
@@ -731,9 +734,11 @@ class DetailsRoundBehaviour(ElcollectooorrABCIBaseState):
         """Get the minter of all the active projects."""
         response = yield from self.get_contract_api_response(
             performative=ContractApiMessage.Performative.GET_STATE,
+            multicall2_contract_address=self.params.multicall2_contract_address,
             contract_address=self.params.artblocks_minter_filter,
             contract_id=str(ArtBlocksMinterFilterContract.contract_id),
             contract_callable="get_multiple_projects_minter",
+            batch_size=self.params.multicall_batch_size,
             project_ids=[p["project_id"] for p in projects],
         )
 

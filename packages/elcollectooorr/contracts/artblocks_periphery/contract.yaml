@@ -8,12 +8,13 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeigc7hvddoxcdqdkybwiu6bhytnlu2l3k4v4v4dbyexyzpnrkvwghi
   build/Minter.json: bafybeieqfmxzi2jdpuy6ayqpi7cs3yvb3z4lypyafxv5qunzsx5f2utl44
-  contract.py: bafybeianfpcivnzb2wcvcr3cvbztmmcvpepvjfvydut6gstavxw46c7sv4
+  contract.py: bafybeidvyrk32cpes5nj5vz7rywq5riozs4inpyanjns7asigqzauk5g74
 fingerprint_ignore_patterns: []
 class_name: ArtBlocksPeripheryContract
 contract_interface_paths:
   ethereum: build/Minter.json
-contracts: []
+contracts:
+- elcollectooorr/multicall2:0.1.0:bafybeifrxfrlsv3ufpns26tejykqcvb3nbzss5ghwhblmtvkoqr5idt3hy
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.27.0

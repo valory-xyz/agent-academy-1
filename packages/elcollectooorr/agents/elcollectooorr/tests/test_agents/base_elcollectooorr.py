@@ -24,7 +24,6 @@
 import json
 import subprocess  # nosec
 import threading
-import time
 
 import web3
 from aea.configurations.base import PublicId
@@ -61,6 +60,9 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
 )
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     MOCK_ARTBLOCKS_API_PORT as _DEFAULT_MOCK_ARTBLOCKS_API_PORT,
+)
+from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
+    MULTICALL2_ADDRESS as _DEFAULT_MULTICALL2_ADDRESS,
 )
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     MULTISEND_ADDRESS as _DEFAULT_MULTISEND_ADDRESS,
@@ -100,6 +102,8 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
     HARDHAT_ELCOL_KEY_PAIRS = _DEFAULT_HARDHAT_ELCOL_KEY_PAIRS
     ELCOL_NET_HOST = _DEFAULT_ELCOL_NET_HOST
     ELCOL_NET_CHAIN_ID = _DEFAULT_ELCOL_NET_CHAIN_ID
+    MULTICALL2_ADDRESS = _DEFAULT_MULTICALL2_ADDRESS
+
     __args_prefix = f"vendor.elcollectooorr.skills.{PublicId.from_str(skill_package).name}.models.params.args"
     extra_configs = [
         {
@@ -135,6 +139,10 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
             "dotted_path": f"{__args_prefix}.setup.safe_contract_address",
             "value": json.dumps([SAFE_CONTRACT_ADDRESS]),
             "type_": "list",
+        },
+        {
+            "dotted_path": f"{__args_prefix}.multicall2_contract_address",
+            "value": MULTICALL2_ADDRESS,
         },
     ]
 

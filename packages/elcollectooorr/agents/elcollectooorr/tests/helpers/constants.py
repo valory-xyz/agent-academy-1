@@ -61,6 +61,7 @@ TARGET_PROJECT_ID = (
     56  # id of project that we want to test the behaviour of the El Collectooorr
 )
 CONFIGURED_SAFE_CONTRACT = "0xce7AEd90271f69F863d72A3B372288DEA3443bF6"
+MULTICALL2_ADDRESS = "0x10aCcaADfB6aCEa7d02417260101642dEE173dA5"
 DEFAULT_WHITELISTED_ADDRESSES = ["0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0"]
 # default hardhat key pairs (public key, private key)
 KEY_PAIRS: List[Tuple[str, str]] = [

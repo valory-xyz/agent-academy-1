@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_deploy_transaction(
-        cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, deployer_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """
         Get deploy transaction.
@@ -59,7 +59,7 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_raw_transaction(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> Optional[JSONLike]:
         """
         Handler method for the 'GET_RAW_TRANSACTION' requests.
@@ -76,7 +76,7 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_raw_message(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> bytes:
         """
         Handler method for the 'GET_RAW_MESSAGE' requests.
@@ -93,7 +93,7 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_state(
-        cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
+            cls, ledger_api: LedgerApi, contract_address: str, **kwargs: Any
     ) -> JSONLike:
         """
         Handler method for the 'GET_STATE' requests.
@@ -110,10 +110,10 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def verify_contract(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        settings_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            settings_address: str,
     ) -> JSONLike:
         """
         Verify the contract's bytecode
@@ -174,13 +174,13 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def _handle_gas_ops(
-        cls,
-        tx_parameters: TxParams,
-        ledger_api: EthereumApi,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            tx_parameters: TxParams,
+            ledger_api: EthereumApi,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> None:
         """
         Handle gas related operations
@@ -206,9 +206,9 @@ class TokenVaultFactoryContract(Contract):
             )
 
         if (
-            gas_price is None
-            and max_fee_per_gas is None
-            and max_priority_fee_per_gas is None
+                gas_price is None
+                and max_fee_per_gas is None
+                and max_priority_fee_per_gas is None
         ):
             tx_parameters.update(ledger_api.try_get_gas_pricing())
 
@@ -217,7 +217,7 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def _handle_nonce_ops(
-        cls, tx_parameters: TxParams, ledger_api: EthereumApi, sender_address: str
+            cls, tx_parameters: TxParams, ledger_api: EthereumApi, sender_address: str
     ) -> None:
         """
         Handle gas nonce operations
@@ -239,21 +239,21 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def mint(  # pylint: disable=too-many-locals
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        name: str,
-        symbol: str,
-        token_address: str,
-        token_id: int,
-        token_supply: int,
-        list_price: int,
-        fee: int,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            name: str,
+            symbol: str,
+            token_address: str,
+            token_id: int,
+            token_supply: int,
+            list_price: int,
+            fee: int,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Mint a new vault.
@@ -306,14 +306,14 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def pause(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Pause the factory.
@@ -351,14 +351,14 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def renounce_ownership(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Renounce ownership of the factory.
@@ -398,15 +398,15 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def transfer_ownership(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        new_owner_address: str,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            new_owner_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Renounce ownership of the factory.
@@ -447,14 +447,14 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def unpause(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        sender_address: str,
-        gas: Optional[int] = None,
-        gas_price: Optional[int] = None,
-        max_fee_per_gas: Optional[int] = None,
-        max_priority_fee_per_gas: Optional[int] = None,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            sender_address: str,
+            gas: Optional[int] = None,
+            gas_price: Optional[int] = None,
+            max_fee_per_gas: Optional[int] = None,
+            max_priority_fee_per_gas: Optional[int] = None,
     ) -> JSONLike:
         """
         Unpause the factory.
@@ -494,9 +494,9 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_logic(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
     ) -> Optional[str]:
         """
         Get the address of the logic contract.
@@ -513,9 +513,9 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def is_paused(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
     ) -> Optional[bool]:
         """
         Get the address of the logic contract.
@@ -532,9 +532,9 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_owner(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
     ) -> Optional[str]:
         """
         Get the address of the logic contract.
@@ -551,9 +551,9 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_settings_address(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
     ) -> Optional[str]:
         """
         Get the address of the settings contract.
@@ -570,9 +570,9 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_vault_count(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
     ) -> Optional[int]:
         """
         Get the number of vaults.
@@ -589,10 +589,10 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_vault(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        index: int,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            index: int,
     ) -> Optional[str]:
         """
         Get the address of the vault at the given index.
@@ -610,16 +610,16 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def mint_abi(  # pylint: disable=too-many-locals
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        name: str,
-        symbol: str,
-        token_address: str,
-        token_id: int,
-        token_supply: int,
-        list_price: int,
-        fee: int,
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            name: str,
+            symbol: str,
+            token_address: str,
+            token_id: int,
+            token_supply: int,
+            list_price: int,
+            fee: int,
     ) -> JSONLike:
         """
         Mint a new vault.
@@ -646,7 +646,7 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_vault_address(
-        cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
+            cls, ledger_api: LedgerApi, contract_address: str, tx_hash: str
     ) -> Optional[JSONLike]:
         """
         Get the basket address and its creator from the events emitted by the "createBasket" transaction.
@@ -675,12 +675,12 @@ class TokenVaultFactoryContract(Contract):
 
     @classmethod
     def get_deployed_vaults(
-        cls,
-        ledger_api: LedgerApi,
-        contract_address: str,
-        token_address: str,
-        from_block: BlockIdentifier = "earliest",
-        to_block: BlockIdentifier = "latest",
+            cls,
+            ledger_api: LedgerApi,
+            contract_address: str,
+            token_address: str,
+            from_block: BlockIdentifier = "earliest",
+            to_block: BlockIdentifier = "latest",
     ) -> JSONLike:
         """
         Get created vaults from the deployer_address.
