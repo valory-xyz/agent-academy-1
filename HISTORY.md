@@ -1,5 +1,10 @@
 # Release History - `agent-academy-1`
 
+## v0.5.0 (2023-01-20)
+* initial mkdocs
+* bump to `open-autonomy@v0.7.0`
+* add multicall2 contract
+
 ## 0.4.0 (2022-12-27)
 - Update service to use 4 agents.
 - Bump to `open-autonomy@v0.6.0`.
