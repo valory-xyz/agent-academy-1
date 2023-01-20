@@ -5,8 +5,7 @@ The MintKit is a toolkit to build services with minting capabilities. For exampl
 
 !!! warning "Important"
 
-	This section is currently being reviewed.
-	We are working to update it soon.
+	This section is under active development - please report issues in the [Autonolas Discord](https://discord.com/invite/z2PT65jKqQ).
 
 Once you have {{set_up_system}} to work with the Open Autonomy framework, you can run a local demo of the El Collectooorr service as follows:
 
@@ -15,20 +14,7 @@ Once you have {{set_up_system}} to work with the Open Autonomy framework, you ca
 	```bash
 	autonomy fetch valory/elcollectooorr:0.1.0:bafybeidzyd2yi3igjinpi7bwnyal235bmvovuyxy4qrxnitah6fqysemxq --service
 	```
-      Ensure you have set the following environment variables:
 
-      ```bash
-      export SAFE_CONTRACT_ADDRESS=`["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]`
-      export WHITELISTED_INVESTOR_ADDRESSES='["YOUR_WHITELIST"]'
-      export SERVICE_ELCOLLECTOOORR_RPC_0="YOUR_RPC_URL"
-      export SERVICE_ELCOLLECTOOORR_RPC_1="YOUR_RPC_URL"
-      export SERVICE_ELCOLLECTOOORR_RPC_2="YOUR_RPC_URL"
-      export SERVICE_ELCOLLECTOOORR_RPC_3="YOUR_RPC_URL"
-      ```
-
-      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `YOUR_WHITELIST`, `YOUR_RPC_URL_0` and `YOUR_RPC_URL_1` should be replaced accordingly.
-
-Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe address of the El Collectooorr. You will be able to run the service by setting this address. However, any on-chain transaction will fail unless you have the operator keys.
 2. Build the Docker image of the service agents
 
 	```bash
@@ -63,8 +49,25 @@ Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe addre
         ]
         ```
 
-4. Build the service deployment.
+4. Prepare the environment and build the service deployment.
 
+	1. Create an `.env` file with the required environment variables.
+
+		```bash
+		export SAFE_CONTRACT_ADDRESS=`["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]`
+		export WHITELISTED_INVESTOR_ADDRESSES='["YOUR_WHITELIST"]'
+		export SERVICE_ELCOLLECTOOORR_RPC_0="YOUR_RPC_URL"
+		export SERVICE_ELCOLLECTOOORR_RPC_1="YOUR_RPC_URL"
+		export SERVICE_ELCOLLECTOOORR_RPC_2="YOUR_RPC_URL"
+		export SERVICE_ELCOLLECTOOORR_RPC_3="YOUR_RPC_URL"
+		```
+
+      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `YOUR_WHITELIST`, `YOUR_RPC_URL_0` and `YOUR_RPC_URL_1` should be replaced accordingly.
+
+		Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe address of the El Collectooorr. You will be able to run the service by setting this address. However, any on-chain transaction will fail unless you have the operator keys.	
+	
+	2. Build the service deployment.
+	
     ```bash
     autonomy deploy build keys.json --aev
     ```
