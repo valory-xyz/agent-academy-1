@@ -62,7 +62,7 @@ Once you have {{set_up_system}} to work with the Open Autonomy framework, you ca
 		export SERVICE_ELCOLLECTOOORR_RPC_3="YOUR_RPC_URL"
 		```
 
-      where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `YOUR_WHITELIST`, `YOUR_RPC_URL_0` and `YOUR_RPC_URL_1` should be replaced accordingly.
+		where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `YOUR_WHITELIST`, `YOUR_RPC_URL_0` and `YOUR_RPC_URL_1` should be replaced accordingly.
 
 		Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe address of the El Collectooorr. You will be able to run the service by setting this address. However, any on-chain transaction will fail unless you have the operator keys.	
 	
