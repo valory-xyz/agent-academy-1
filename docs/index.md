@@ -12,7 +12,7 @@ Once you have {{set_up_system}} to work with the Open Autonomy framework, you ca
 1. Fetch the El Collectooorr service.
 
 	```bash
-	autonomy fetch valory/elcollectooorr:0.1.0:bafybeidzyd2yi3igjinpi7bwnyal235bmvovuyxy4qrxnitah6fqysemxq --service
+	autonomy fetch valory/elcollectooorr:0.1.0:bafybeigoinbqlg2yagwygdrvqq6zltmkewsuwe3mfowewipxuk5k7r73wu --service
 	```
 
 2. Build the Docker image of the service agents
