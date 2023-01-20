@@ -1,6 +1,6 @@
-site_name: product/el-collectooorr #Required format to work with monorepo including a specific route in the address.
-site_url: https://docs.autonolas.network/product/el-collectooorr/
-site_description: Developer documentation of Autonolas El Collectooorr.
+site_name: product/mintkit #Required format to work with monorepo including a specific route in the address.
+site_url: https://docs.autonolas.network/product/mintkit/
+site_description: Autonolas MintKit developer documentation
 repo_url: https://github.com/valory-xyz/agent-academy-1
 site_author: developer@valory.xyz
 edit_uri: ""
@@ -29,7 +29,7 @@ extra_css:
  
 
 nav:
-  - El Collectooorr: 'index.md' 
+  - MintKit: 'index.md' 
 
   
 plugins:
