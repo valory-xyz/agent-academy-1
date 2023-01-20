@@ -63,3 +63,5 @@ fa1c5c4f9e01e22e72814a1be950d7a87f5f41e2:packages/valory/connections/abci/connec
 7f21b9ef43b5cc1c533c8cd7ece93b1ef30a3251:packages/valory/protocols/ledger_api/protocol.yaml:generic-api-key:14
 7f21b9ef43b5cc1c533c8cd7ece93b1ef30a3251:packages/valory/protocols/ledger_api/protocol.yaml:generic-api-key:15
 4c3870ca2980a57ef92c1c3ac2dae9273c5a8173:packages/elcollectooorr/agents/elcollectooorr/aea-config.yaml:generic-api-key:18
+3f80516ba845538eadb53a8d7a11558d363f2e49:docs/index.md
+
