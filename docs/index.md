@@ -5,7 +5,7 @@ The MintKit is a toolkit to build services with minting capabilities. For exampl
 
 !!! warning "Important"
 
-	This section is currently being reviewed. You might encounter some difficulty when executing some steps in the tutorial.
+	This section is currently being reviewed.
 	We are working to update it soon.
 
 Once you have {{set_up_system}} to work with the Open Autonomy framework, you can run a local demo of the El Collectooorr service as follows:
