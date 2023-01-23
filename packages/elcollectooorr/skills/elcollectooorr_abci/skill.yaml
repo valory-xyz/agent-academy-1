@@ -10,18 +10,18 @@ fingerprint:
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
   behaviours.py: bafybeign2jzibpu2lq2cyvuhazbn4p6c7bgg55drccxkemuoznn5oyivyq
   decision_models.py: bafybeicchjstlojkxtlvxt5atqxkpr6cqcz47xldyyn2sa64ywmz3bygsi
-  dialogues.py: bafybeifxpynfx3yeibry42f2ufp44k6cl2oei6wnizyheiqh62jiufwzt4
+  dialogues.py: bafybeia4hd2gnmuayynsdlvnbw4r74tdon7zwjeiej7wfiidq5rx7lm2w4
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
   fsm_specification.yaml: bafybeicvno4avecvthyonwf2u2ygokkt342yrtt62ckjmdcfdlw6stz65a
-  handlers.py: bafybeibbgiz7ueqc3crgim6knltxvl7pzlx5ph56q5rbbwklkholooewyq
+  handlers.py: bafybeifwg5wujaa3zs7qlorcshhw3xm3oaxnh5ftcz2sybtsm7px4erzby
   models.py: bafybeidpyopajq5xr5lat5425ilxgnwdkppz5tva5uqhvsjyzwmkebcnbi
-  payloads.py: bafybeidok2cw3wmomae5qzxtn6iuiwed7mqbeqczwz37esigmue22nwjsq
+  payloads.py: bafybeicobvjzi575pugn7asdtpmvumvvppvlikudstuqsrvxgydlwj3pme
   rounds.py: bafybeidhgolr4ddop2ttvl5abomx7a2v3dh76s7wme4nwv4srrf56dlbvy
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
-  tests/test_behaviours.py: bafybeicu5nhqcakvf4bsqm5wo5gehlnykugmo6wcwbkma5qhe6owd33rza
+  tests/test_behaviours.py: bafybeiblbhmqdjajcomu2itolkptfxni5orwzcsplnm2aurjovflm574xi
   tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
-  tests/test_payloads.py: bafybeied6j325kb7kvsumy672f25sw2cz2ozqnv5xpvlv5laao5hx7hlla
-  tests/test_rounds.py: bafybeihm4y645fke65eyzlsczqezxvmc6gdxfod434fvy3az3lmihthmxi
+  tests/test_payloads.py: bafybeih7ya74js3om3pks2t4zav37kctj6n7qrkzi4rea562cotl44ssou
+  tests/test_rounds.py: bafybeicvlshjkkyzqxxynxvkekxtnjlixxyywz7gh6zjezfijpchnhtjbu
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
@@ -36,7 +36,7 @@ contracts:
 protocols:
 - valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeiaqo6xwuc2xt6pzkstgqdtv5ele4fzkcrie2qhfwzg67t6q7kyga4
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeieu3kcoaknzyrvqjfm4t2u5ajftyasvbyfmpmur4qs2h4cvwg5zne
 - valory/abstract_round_abci:0.1.0:bafybeicvbxixjsu3bgjk5frqz5mq2kmv44grwd6324viz4tehw3yejfhji
 - valory/registration_abci:0.1.0:bafybeihai2otcmnb2w7k64bnwf5qagfexg5gqow74xhj3wynikgdxre3ka
 - valory/reset_pause_abci:0.1.0:bafybeifs6zpg5nbvuapmxafzo6fdhoz5ebpiujetvk243apo3iwl2rn45i
