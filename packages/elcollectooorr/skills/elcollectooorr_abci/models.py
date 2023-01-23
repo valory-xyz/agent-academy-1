@@ -21,8 +21,6 @@
 from abc import ABC
 from typing import Any, Dict, Optional, Type
 
-from aea.exceptions import enforce
-
 from packages.elcollectooorr.skills.elcollectooorr_abci.decision_models import (
     EightyPercentDecisionModel,
     NoDecisionModel,
@@ -140,12 +138,14 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
 
         return valid_types[model_type]
 
-    def _get_multisend_address(self, kwargs: dict) -> str:
+    def _get_multisend_address(self, kwargs: dict) -> str:  # pylint: disable=no-self-use
         """Get the multisend address."""
         multisend_address = kwargs.get("multisend_address")
         if multisend_address is None:
             raise ValueError("multisend_address is a required parameter")
         return multisend_address
+
+
 class Params(ElCollectooorParams, FractionalizeDeploymentParams, TerminationParams):
     """Union class for ElCollectooorr and Transaction Settlement ABCI"""
 
