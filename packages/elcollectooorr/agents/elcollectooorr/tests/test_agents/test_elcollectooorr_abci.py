@@ -23,6 +23,7 @@
 """Integration tests for the valory/price_estimation_abci skill."""
 
 import pytest
+from aea_test_autonomy.fixture_helpers import ipfs_daemon, ipfs_domain  # noqa: F401
 
 from packages.elcollectooorr.agents.elcollectooorr.tests.fixture_helpers import (
     UseHardHatElColBaseTest,
