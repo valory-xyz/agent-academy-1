@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ from packages.elcollectooorr.skills.fractionalize_deployment_abci.payloads impor
     DeployDecisionPayload,
     DeployVaultPayload,
     PermissionVaultFactoryPayload,
-    TransactionType,
     VaultAddressesPayload,
 )
 from packages.valory.skills.abstract_round_abci.base import (
@@ -159,7 +158,7 @@ class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instan
 
 
 class FractionalizeDeploymentABCIAbstractRound(
-    AbstractRound[Event, TransactionType], ABC
+    AbstractRound, ABC
 ):
     """Abstract round for the FractionalizeDeployment skill."""
 
@@ -182,8 +181,8 @@ class DeployDecisionRound(
 ):
     """Round to check whether deployment is necessary"""
 
-    allowed_tx_type = DeployDecisionPayload.transaction_type
-    payload_attribute = get_name(DeployDecisionPayload.deploy_decision)
+    payload_class = DeployDecisionPayload
+    payload_attribute = "deploy_decision"
     synchronized_data_class = SynchronizedData
     DECIDE_DEPLOY_FULL = "deploy_full"
     DECIDE_SKIP_BASKET = "deploy_skip_basket"
@@ -225,8 +224,8 @@ class DeployBasketTxRound(
 ):
     """Defines the Deploy Basket Round"""
 
-    allowed_tx_type = DeployBasketPayload.transaction_type
-    payload_attribute = get_name(DeployBasketPayload.deploy_basket)
+    payload_class = DeployBasketPayload
+    payload_attribute = "deploy_basket"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -259,8 +258,8 @@ class DeployVaultTxRound(
 ):
     """Defines the Deploy Vault Round"""
 
-    allowed_tx_type = DeployVaultPayload.transaction_type
-    payload_attribute = get_name(DeployVaultPayload.deploy_vault)
+    payload_class = DeployVaultPayload
+    payload_attribute = "deploy_vault"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -293,8 +292,8 @@ class BasketAddressRound(
 ):
     """This class represents the post basket deployment round"""
 
-    allowed_tx_type = BasketAddressesPayload.transaction_type
-    payload_attribute = get_name(BasketAddressesPayload.basket_addresses)
+    payload_class = BasketAddressesPayload
+    payload_attribute = "basket_addresses"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -324,8 +323,8 @@ class PermissionVaultFactoryRound(
 ):
     """This class represents the round where the vault factory is permission with the basket"""
 
-    allowed_tx_type = PermissionVaultFactoryPayload.transaction_type
-    payload_attribute = get_name(PermissionVaultFactoryPayload.permission_factory)
+    payload_class = PermissionVaultFactoryPayload
+    payload_attribute = "permission_factory"
     synchronized_data_class = SynchronizedData
 
     SKIP_PERMISSION = "no_permissioning"
@@ -366,8 +365,8 @@ class VaultAddressRound(
 ):
     """This class represents the post vault deployment round"""
 
-    allowed_tx_type = VaultAddressesPayload.transaction_type
-    payload_attribute = get_name(VaultAddressesPayload.vault_addresses)
+    payload_class = VaultAddressesPayload
+    payload_attribute = "vault_addresses"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:

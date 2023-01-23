@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -45,16 +45,14 @@ class FractionalizeDeploymentParams(BaseParams):
         :param *args: param args, used only in the superclass
         :param **kwargs: dict with the parameters needed for the Fractionalize Deployment
         """
-
-        super().__init__(*args, **kwargs)
-        self.settings_address = self._ensure("settings_address", kwargs)
-        self.basket_factory_address = self._ensure("basket_factory_address", kwargs)
+        self.settings_address = self._ensure("settings_address", kwargs, type_=str)
+        self.basket_factory_address = self._ensure("basket_factory_address", kwargs, type_=str)
         self.token_vault_factory_address = self._ensure(
-            "token_vault_factory_address", kwargs
+            "token_vault_factory_address", kwargs, type_=str
         )
-        self.wei_to_fraction = self._ensure("wei_to_fraction", kwargs)
-        self.budget_per_vault = self._ensure("budget_per_vault", kwargs)
-        self.multisend_address = self._ensure("multisend_address", kwargs)
+        self.wei_to_fraction = self._ensure("wei_to_fraction", kwargs, type_=int)
+        self.budget_per_vault = self._ensure("budget_per_vault", kwargs, type_=int)
+        super().__init__(*args, **kwargs)
 
 
 class Params(FractionalizeDeploymentParams, TransactionParams):

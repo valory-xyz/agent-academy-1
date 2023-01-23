@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -101,6 +101,7 @@ class ElCollectooorrFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disab
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
         super().setup(**kwargs)
+        self.behaviour.context.params.__dict__.update(dict(_frozen=False))
         self._set_default_whitelisted_address()
 
     def _set_default_whitelisted_address(self) -> None:

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     PostTxPayload,
     PurchasedNFTPayload,
     TransactionPayload,
-    TransactionType,
     TransferNFTPayload,
 )
 
@@ -52,45 +51,31 @@ def test_observation_payload() -> None:
     frozen_project_details = json.dumps(test_project_details)
 
     payload = ObservationPayload(
-        sender="sender", project_details=frozen_project_details, id_="id"
+        "sender", project_details=frozen_project_details,
     )
 
     assert payload.project_details is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(project_details=frozen_project_details)
-
-    assert str(payload.transaction_type) == str(TransactionType.OBSERVATION)
-    assert payload.transaction_type == TransactionType.OBSERVATION
 
 
 def test_decision_payload() -> None:
     """Test `DecisionPayload`"""
     test_decision = "0"
 
-    payload = DecisionPayload(sender="sender", decision=test_decision, id_="id")
+    payload = DecisionPayload("sender", decision=test_decision)
 
     assert payload.decision is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(decision=test_decision)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.DECISION)
-    assert payload.transaction_type == TransactionType.DECISION
 
 
 def test_details_payload() -> None:
     """Test `DetailsPayload`"""
     test_data = json.dumps([{"data": "more"}])
 
-    payload = DetailsPayload(sender="sender", details=test_data, id_="id")
+    payload = DetailsPayload("sender", details=test_data)
 
     assert payload.details is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(details=test_data)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.DETAILS)
-    assert payload.transaction_type == TransactionType.DETAILS
 
 
 def test_transaction_payload() -> None:
@@ -100,32 +85,22 @@ def test_transaction_payload() -> None:
     )
 
     payload = TransactionPayload(
-        sender="sender", purchase_data=test_purchase_data, id_="id"
+        "sender", purchase_data=test_purchase_data,
     )
 
     assert payload.purchase_data is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(purchase_data=test_purchase_data)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.TRANSACTION)
-    assert payload.transaction_type == TransactionType.TRANSACTION
 
 
 def test_funding_payload() -> None:
     """Test `FundingPayload`"""
     address_to_funds = json.dumps({"test": "123"})
     payload = FundingPayload(
-        sender="sender", address_to_funds=address_to_funds, id_="id"
+        "sender", address_to_funds=address_to_funds,
     )
 
     assert payload.address_to_funds is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(address_to_funds=address_to_funds)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.FUNDING)
-    assert payload.transaction_type == TransactionType.FUNDING
 
 
 def test_payout_fractions_payload() -> None:
@@ -133,16 +108,11 @@ def test_payout_fractions_payload() -> None:
     payout_fractions = json.dumps({"test": "123"})
 
     payload = PayoutFractionsPayload(
-        sender="sender", payout_fractions=payout_fractions, id_="id"
+        "sender", payout_fractions=payout_fractions,
     )
 
     assert payload.payout_fractions is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(payout_fractions=payout_fractions)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.PAYOUT_FRACTIONS)
-    assert payload.transaction_type == TransactionType.PAYOUT_FRACTIONS
 
 
 def test_paid_fractions_payload() -> None:
@@ -150,16 +120,11 @@ def test_paid_fractions_payload() -> None:
     paid_fractions = json.dumps({"test": "123"})
 
     payload = PaidFractionsPayload(
-        sender="sender", paid_fractions=paid_fractions, id_="id"
+        "sender", paid_fractions=paid_fractions,
     )
 
     assert payload.paid_fractions is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(paid_fractions=paid_fractions)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.PAID_FRACTIONS)
-    assert payload.transaction_type == TransactionType.PAID_FRACTIONS
 
 
 def test_purchased_nft_payload() -> None:
@@ -168,16 +133,11 @@ def test_purchased_nft_payload() -> None:
     purchased_nft = 123  # token purchased
 
     payload = PurchasedNFTPayload(
-        sender="sender", purchased_nft=purchased_nft, id_="id"
+        "sender", purchased_nft=purchased_nft,
     )
 
     assert payload.purchased_nft is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(purchased_nft=purchased_nft)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.PURCHASED_NFT)
-    assert payload.transaction_type == TransactionType.PURCHASED_NFT
 
 
 def test_transfer_nft_payload() -> None:
@@ -185,15 +145,10 @@ def test_transfer_nft_payload() -> None:
 
     transfer_data = "transfer_data"
 
-    payload = TransferNFTPayload(sender="sender", transfer_data=transfer_data, id_="id")
+    payload = TransferNFTPayload("sender", transfer_data=transfer_data)
 
     assert payload.transfer_data is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(transfer_data=transfer_data)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.TRANSFER_NFT)
-    assert payload.transaction_type == TransactionType.TRANSFER_NFT
 
 
 def test_post_tx_payload() -> None:
@@ -201,12 +156,7 @@ def test_post_tx_payload() -> None:
 
     post_tx_data = "post_tx_data"
 
-    payload = PostTxPayload(sender="sender", post_tx_data=post_tx_data, id_="id")
+    payload = PostTxPayload("sender", post_tx_data=post_tx_data)
 
     assert payload.post_tx_data is not None
-    assert payload.id_ == "id"
     assert payload.data == dict(post_tx_data=post_tx_data)
-    assert hash(payload) == hash(tuple(sorted(payload.data.items())))
-
-    assert str(payload.transaction_type) == str(TransactionType.POST_TX)
-    assert payload.transaction_type == TransactionType.POST_TX

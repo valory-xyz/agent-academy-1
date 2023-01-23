@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ class TestObservationRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             ObservationPayload(
-                sender=participant, project_details=json.dumps(payload_data)
+                participant, project_details=json.dumps(payload_data)
             )
             for participant in self.participants
         ]
@@ -193,7 +193,7 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             ObservationPayload(
-                sender=participant, project_details=json.dumps(payload_data)
+                participant, project_details=json.dumps(payload_data)
             )
             for participant in self.participants
         ]
@@ -260,7 +260,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DecisionPayload(sender=participant, decision=json.dumps(payload_data))
+            DecisionPayload(participant, decision=json.dumps(payload_data))
             for participant in self.participants
         ]
 
@@ -325,7 +325,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             DecisionPayload(
-                sender=participant, decision=json.dumps(project_to_purchase)
+                participant, decision=json.dumps(project_to_purchase)
             )
             for participant in self.participants
         ]
@@ -389,7 +389,7 @@ class TestTransactionRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            TransactionPayload(sender=participant, purchase_data=test_purchase_data)
+            TransactionPayload(participant, purchase_data=test_purchase_data)
             for participant in self.participants
         ]
 
@@ -452,7 +452,7 @@ class TestDetailsRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DetailsPayload(sender=participant, details=test_details)
+            DetailsPayload(participant, details=test_details)
             for participant in self.participants
         ]
 
@@ -514,7 +514,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            FundingPayload(sender=participant, address_to_funds=json.dumps(test_funds))
+            FundingPayload(participant, address_to_funds=json.dumps(test_funds))
             for participant in self.participants
         ]
 
@@ -586,7 +586,7 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            PurchasedNFTPayload(sender=participant, purchased_nft=test_nft)
+            PurchasedNFTPayload(participant, purchased_nft=test_nft)
             for participant in self.participants
         ]
 
@@ -647,7 +647,7 @@ class TestTransferNFTRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            TransferNFTPayload(sender=participant, transfer_data="0x123")
+            TransferNFTPayload(participant, transfer_data="0x123")
             for participant in self.participants
         ]
 
@@ -699,7 +699,7 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             PayoutFractionsPayload(
-                sender=participant,
+                participant,
                 payout_fractions=json.dumps({"encoded": "0x0", "raw": {"0x0": 123}}),
             )
             for participant in self.participants
@@ -802,7 +802,7 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             PostTxPayload(
-                sender=participant, post_tx_data=json.dumps(test_payload_data)
+                participant, post_tx_data=json.dumps(test_payload_data)
             )
             for participant in self.participants
         ]
@@ -859,7 +859,7 @@ class TestResyncRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            ResyncPayload(sender=participant, resync_data=json.dumps(test_payload_data))
+            ResyncPayload(participant, resync_data=json.dumps(test_payload_data))
             for participant in self.participants
         ]
 
@@ -926,13 +926,13 @@ def test_synchronized_data() -> None:  # pylint: disable=too-many-locals
     period_setup_params = {}  # type: ignore
     participant_to_randomness = {
         participant: RandomnessPayload(
-            sender=participant, randomness=RANDOMNESS, round_id=0
+            participant, randomness=RANDOMNESS, round_id=0
         )
         for participant in participants
     }
     most_voted_randomness = "0xabcd"
     participant_to_selection = {
-        participant: SelectKeeperPayload(sender=participant, keepers="keeper")
+        participant: SelectKeeperPayload(participant, keepers="keeper")
         for participant in participants
     }
     most_voted_keeper_address = "keeper"
