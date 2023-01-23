@@ -101,6 +101,7 @@ class ElCollectooorrFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disab
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
         super().setup(**kwargs)
+        self.behaviour.context.params.__dict__.update(dict(_frozen=False))
         self._set_default_whitelisted_address()
 
     def _set_default_whitelisted_address(self) -> None:
