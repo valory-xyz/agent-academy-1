@@ -21,6 +21,8 @@
 from abc import ABC
 from typing import Any, Dict, Optional, Type
 
+from aea.exceptions import enforce
+
 from packages.elcollectooorr.skills.elcollectooorr_abci.decision_models import (
     EightyPercentDecisionModel,
     NoDecisionModel,
@@ -95,7 +97,7 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
         self.decision_model_type = self._get_decision_model_type(kwargs)
         self.multicall2_contract_address = self._ensure("multicall2_contract_address", kwargs, type_=str)
         self.multicall_batch_size: int = self._ensure("multicall_batch_size", kwargs, type_=int)
-        self.multisend_address = kwargs.get("multisend_address")
+        self.multisend_address: str = kwargs.get("multisend_address")
         super().__init__(*args, **kwargs)
 
     def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
@@ -138,7 +140,12 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
 
         return valid_types[model_type]
 
-
+    def _get_multisend_address(self, kwargs: dict) -> str:
+        """Get the multisend address."""
+        multisend_address = kwargs.get("multisend_address")
+        if multisend_address is None:
+            raise ValueError("multisend_address is a required parameter")
+        return multisend_address
 class Params(ElCollectooorParams, FractionalizeDeploymentParams, TerminationParams):
     """Union class for ElCollectooorr and Transaction Settlement ABCI"""
 
