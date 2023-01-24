@@ -71,14 +71,13 @@ jobs:
 
 
       - name: Docker login
-        runs-on: ${{ matrix.os }}
         env:
           DOCKER_USER: ${{secrets.DOCKER_USER}}
           DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
         run: |
-          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+            ls
+            echo  $DOCKER_PASSWORD | docker login -u $DOCKER_USER -p --password-stdin 
       - name: Docker Push
-        runs-on: ${{ matrix.os }}
         run: |
           source env.sh
           docker push $DOCKER_USER/oar-$SERVICE:$VERSION
