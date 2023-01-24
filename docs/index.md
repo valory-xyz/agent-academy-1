@@ -1,5 +1,5 @@
 ![MintKit](images/el-collectooorr.png){ align=left width="150" }
-The MintKit is a toolkit to build services with minting capabilities. For example, El Collectooorr service, which is based on the MintKit, aims to autonomously create collections of NFTs by minting them as they drop on Art Blocks. It uses complex logic to decide which mints to participate in and what prices to bid at, so users don’t have to. The service is fueled by the community of users who fund collections. Each collection is designed to have its own unique ERC-20 token, for users to vote and collectively decide on what happens to the collection.
+The MintKit is a toolkit to build services with minting capabilities. For example, El Collectooorr service, which is based on the MintKit, aims to autonomously create collections of NFTs by minting them as they drop on Art Blocks. It uses complex logic to decide which mints to participate in and what prices to bid at, so users don’t have to. The service is fuelled by the community of users who fund collections. Each collection is designed to have its own unique ERC-20 token, for users to vote and collectively decide on what happens to the collection.
 
 ## Demo
 
@@ -12,7 +12,7 @@ Once you have {{set_up_system}} to work with the Open Autonomy framework, you ca
 1. Fetch the El Collectooorr service.
 
 	```bash
-	autonomy fetch valory/elcollectooorr:0.1.0:bafybeigoinbqlg2yagwygdrvqq6zltmkewsuwe3mfowewipxuk5k7r73wu --service
+	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeigoinbqlg2yagwygdrvqq6zltmkewsuwe3mfowewipxuk5k7r73wu --service
 	```
 
 2. Build the Docker image of the service agents

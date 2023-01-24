@@ -1,9 +1,9 @@
 # Release History - `agent-academy-1`
 
 ## v0.5.0 (2023-01-20)
-* initial mkdocs
+* initial MkDocs
 * bump to `open-autonomy@v0.7.0`
-* add multicall2 contract
+* add Multicall 2 contract
 
 ## 0.4.0 (2022-12-27)
 - Update service to use 4 agents.
@@ -20,7 +20,7 @@
 
 - Removed 3rd party sub-modules and `node.js` dependency.
 - Bump to open-autonomy `v0.3.0`.
-- Update service to handle environment vars.
+- Update service to handle environment variables.
 
 ## 0.2.2 (2022-08-28)
 
@@ -47,16 +47,16 @@
 
 ## 0.1.0.post3 (2022-08-09)
 
-- Use all available gas for safe txs. 
+- Use all available gas for safe transactions. 
 
 ## 0.1.0.post2 (2022-08-08)
 
-- Remove configured gas for safe txs.   
+- Remove configured gas for safe transactions.   
 
 ## 0.1.0.post1 (2022-08-08)
 
 - Adds package metadata.
-- Handles resync case when no safe txs have been made.
+- Handles resync case when no safe transactions have been made.
 
 ## 0.1.0 (2022-08-05)
 

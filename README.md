@@ -132,7 +132,7 @@ as `make common-checks-1`. To run all tests use `make test`. Or simply use `tox`
 
 ### Running a fork of Ethereum
 
-You can run a fork of Ethereum Mainnet via [ganache](https://github.com/trufflesuite/ganache) in the following way:
+You can run a fork of Ethereum Mainnet via [Ganache](https://github.com/trufflesuite/ganache) in the following way:
 ```
 ganache --fork.network mainnet
 ```

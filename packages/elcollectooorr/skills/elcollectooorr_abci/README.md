@@ -1,5 +1,5 @@
-# El collectooorr ABCI skill
+# El Collectooorr ABCI skill
 
 ## Description
 
-This skill implements the El collectooorr business logic.
+This skill implements the El Collectooorr business logic.
