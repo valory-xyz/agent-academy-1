@@ -57,10 +57,10 @@ jobs:
         with:
             image: valory/open-autonomy-user:latest
             options: -v ${{ github.workspace }}:/work
+            entrypoint: "/bin/bash"
             run: |
                 echo "Building Docker Images"
-                cd /work
-                cat env.sh
+                source env.sh
                 echo "Building images for $AUTHOR for service $SERVICE"
                 autonomy fetch $AUTHOR/$SERVICE --service --local
                 cd $SERVICE
