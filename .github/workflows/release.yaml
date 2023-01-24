@@ -31,7 +31,7 @@ jobs:
     name: Publish Docker Images
     runs-on: ${{ matrix.os }}
     needs:
-      - publish-packages
+      - "publish-packages"
     strategy:
       matrix:
         os: [ubuntu-latest]
