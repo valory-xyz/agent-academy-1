@@ -1,7 +1,7 @@
 name: Release Flow
 
 on:
-  publish:
+  release:
     types: [published]
 
 jobs:
