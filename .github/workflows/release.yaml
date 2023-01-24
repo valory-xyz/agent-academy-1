@@ -1,6 +1,7 @@
 name: Release Flow
 
 on:
+  push: 
   release:
     types: [published]
 
@@ -88,6 +89,8 @@ jobs:
       - name: Docker Push
         run: |
           source env.sh
+          echo "Pushing $DOCKER_USER/$SERVICE:$VERSION"
+          echo "Pushing $DOCKER_USER/$SERVICE:$DEFAULT_IMAGE_TAG"
           docker push $DOCKER_USER/oar-$SERVICE:$VERSION
           docker push $DOCKER_USER/oar-$SERVICE:$DEFAULT_IMAGE_TAG
 
