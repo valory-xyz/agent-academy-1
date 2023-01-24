@@ -1,5 +1,8 @@
 # Release History - `agent-academy-1`
 
+## v0.6.0 (2023-01-24)
+* bump to `open-autonomy@v0.8.0`
+
 ## v0.5.0 (2023-01-20)
 * initial MkDocs
 * bump to `open-autonomy@v0.7.0`
