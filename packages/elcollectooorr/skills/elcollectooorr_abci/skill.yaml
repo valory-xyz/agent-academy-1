@@ -6,7 +6,7 @@ description: ABCI application for demonstation.
 license: Apache-2.0
 aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
-  README.md: bafybeiankss7mun4gw6jgbuogefmziyuvhtnjtyks3l3tmizs3llc65gtm
+  README.md: bafybeidcl3rncjj6tsaiylzgptoumt7nyuhlnvbv4333ntgr2wqo73odyy
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
   behaviours.py: bafybeign2jzibpu2lq2cyvuhazbn4p6c7bgg55drccxkemuoznn5oyivyq
   decision_models.py: bafybeicchjstlojkxtlvxt5atqxkpr6cqcz47xldyyn2sa64ywmz3bygsi
