@@ -59,6 +59,7 @@ jobs:
             options: -v ${{ github.workspace }}:/work
             run: |
                 echo "Building Docker Images"
+                cd /work
                 cat env.sh
                 echo "Building images for $AUTHOR for service $SERVICE"
                 autonomy fetch $AUTHOR/$SERVICE --service --local
