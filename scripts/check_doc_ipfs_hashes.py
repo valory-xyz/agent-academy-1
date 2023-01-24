@@ -51,8 +51,7 @@ FULL_PACKAGE_REGEX = rf"(?P<full_package>(?:{VENDOR_REGEX}\/{PACKAGE_REGEX}:{VER
 PACKAGE_TABLE_REGEX = rf"\|\s*{PACKAGE_TYPE_REGEX}\/{VENDOR_REGEX}\/{PACKAGE_REGEX}\/{VERSION_REGEX}\s*\|\s*`(?P<hash>{IPFS_HASH_REGEX})`\s*\|"
 
 ROOT_DIR = Path(__file__).parent.parent
-HASH_SKIPS = (
-)
+HASH_SKIPS = ()
 
 
 def read_file(filepath: str) -> str:
