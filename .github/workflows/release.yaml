@@ -1,7 +1,6 @@
 name: Release Flow
 
 on:
-  push: 
   release:
     types: [published]
 
