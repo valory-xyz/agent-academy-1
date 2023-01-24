@@ -64,9 +64,9 @@ jobs:
                 source env.sh
                 echo "Building images for $AUTHOR for service $SERVICE"
                 autonomy fetch $AUTHOR/$SERVICE --service --local
-                cd $SERVICE
-                autonomy build-image --version $VERSION 
-                autonomy build-image 
+                # cd $SERVICE
+                # autonomy build-image --version $VERSION 
+                # autonomy build-image 
 
 
         #       - uses: addnab/docker-run-action@v3
