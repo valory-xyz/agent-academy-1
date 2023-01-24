@@ -8,11 +8,11 @@
         "contract/elcollectooorr/artblocks_minter_filter/0.1.0": "bafybeifcdziejgp4cpc6bj3sqayo6msw623puxb34pud4pxzyzapadkf7u",
         "contract/elcollectooorr/artblocks_periphery/0.1.0": "bafybeigqfwkdcxhj2ivr6mhvrygf3unqho3gockjwuesxntagye6akskmm",
         "skill/elcollectooorr/fractionalize_deployment_abci/0.1.0": "bafybeieu3kcoaknzyrvqjfm4t2u5ajftyasvbyfmpmur4qs2h4cvwg5zne",
-        "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeigieeyylnodwckndvl5xy3siys2xrhl6huzjy4dkbn5lwgxxntob4",
-        "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeiclyb2e7pjlhxxlwqaoxpngxyawbbl2zxtnktejg5c7sqbh357pjy",
+        "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeic23nmpmviw36wvvyfla2e2loal4joo5jowmgv627rpmrgxubje7m",
+        "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeif2nyrg3oweklaaciq6el75ihxq2qkwmxb3qddfqafaruuzcesp64",
         "contract/elcollectooorr/token_settings/0.1.0": "bafybeih4jk4feafcuulegdnzfe7e4mkli4v5z3omzekq5om3qyixnm4aie",
         "contract/elcollectooorr/multicall2/0.1.0": "bafybeicjieisv3dw6vbm4odhffkfikz3sztfotaj7eddj26sqgh2zzz4va",
-        "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeiefvblbvaw6fh25cdbqvxp2khiginuzc4yx6vfygpuy2dwspv5ihe"
+        "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeicvcajpylaooarzpcprm6spy46rgltdjqqvciuuse65hygz62s6yy"
     },
     "third_party": {
         "protocol/valory/abci/0.1.0": "bafybeihkgako44fzgurcv4hgbems4ptdtosae4lopnnr75eczb6kx3x2lm",

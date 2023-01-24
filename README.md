@@ -99,7 +99,7 @@ These steps only work for operators registered on-chain!
       Then fetch the service:
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeiefvblbvaw6fh25cdbqvxp2khiginuzc4yx6vfygpuy2dwspv5ihe --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeicvcajpylaooarzpcprm6spy46rgltdjqqvciuuse65hygz62s6yy --service
       cd elcollectooorr
       ```
 
@@ -132,7 +132,7 @@ as `make common-checks-1`. To run all tests use `make test`. Or simply use `tox`
 
 ### Running a fork of Ethereum
 
-You can run a fork of Ethereum Mainnet via [ganache](https://github.com/trufflesuite/ganache) in the following way:
+You can run a fork of Ethereum Mainnet via [Ganache](https://github.com/trufflesuite/ganache) in the following way:
 ```
 ganache --fork.network mainnet
 ```
