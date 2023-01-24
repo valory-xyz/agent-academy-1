@@ -60,6 +60,7 @@ jobs:
             shell: bash
             run: |
               echo "Building Docker Images"
+              cd /work
               source env.sh || exit 1
               # echo "Building images for $AUTHOR for service $SERVICE"
               # autonomy fetch $AUTHOR/$SERVICE --service --local
