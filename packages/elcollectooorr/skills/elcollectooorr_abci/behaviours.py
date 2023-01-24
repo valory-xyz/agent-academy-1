@@ -1604,8 +1604,3 @@ class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
         *TerminationAbciBehaviours.behaviours,
     }
     background_behaviour_cls = BackgroundBehaviour
-
-    def setup(self) -> None:
-        """Set up the behaviour."""
-        super().setup()
-        self.context.benchmark_tool.logger = self.context.logger

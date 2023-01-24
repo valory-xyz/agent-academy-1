@@ -55,9 +55,7 @@ BenchmarkTool = BaseBenchmarkTool
 class SharedState(BaseSharedState):
     """Keep the current shared state of the skill."""
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Initialize the state."""
-        super().__init__(*args, abci_app_cls=ElCollectooorrAbciApp, **kwargs)
+    abci_app_cls = ElCollectooorrAbciApp
 
     def setup(self) -> None:
         """Set up."""
@@ -81,27 +79,24 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
         :param **kwargs: dict with the parameters needed for the El Collectooorr
         """
 
-        super().__init__(*args, **kwargs)
-        self.artblocks_contract = self._ensure("artblocks_contract", kwargs)
-        self.artblocks_graph_url = self._ensure("artblocks_graph_url", kwargs)
-        self.artblocks_minter_filter = self._ensure("artblocks_minter_filter", kwargs)
+        self.artblocks_contract = self._ensure("artblocks_contract", kwargs, type_=str)
+        self.artblocks_graph_url = self._ensure("artblocks_graph_url", kwargs, type_=str)
+        self.artblocks_minter_filter = self._ensure("artblocks_minter_filter", kwargs, type_=str)
         self.enforce_investor_whitelisting = self._ensure(
-            "enforce_investor_whitelisting", kwargs
+            "enforce_investor_whitelisting", kwargs, type_=bool
         )
         self.whitelisted_investor_addresses = self._ensure(
-            "whitelisted_investor_addresses", kwargs
+            "whitelisted_investor_addresses", kwargs, type_=list
         )
         self.starting_project_id = self._get_starting_project_id(kwargs)
-        self.max_purchase_per_project = int(
-            self._ensure("max_purchase_per_project", kwargs)
-        )
-        self.decision_model_threshold = float(
-            self._ensure("decision_model_threshold", kwargs)
-        )
-        self.max_retries = int(kwargs.pop("max_retries", 5))
+        self.max_purchase_per_project = self._ensure("max_purchase_per_project", kwargs, type_=int)
+        self.decision_model_threshold: int = self._ensure("decision_model_threshold", kwargs, type_=float)
+        self.max_retries = self._ensure("max_retries", kwargs, type_=int)
         self.decision_model_type = self._get_decision_model_type(kwargs)
-        self.multicall2_contract_address = self._ensure("multicall2_contract_address", kwargs)
-        self.multicall_batch_size: int = self._ensure("multicall_batch_size", kwargs)
+        self.multicall2_contract_address = self._ensure("multicall2_contract_address", kwargs, type_=str)
+        self.multicall_batch_size: int = self._ensure("multicall_batch_size", kwargs, type_=int)
+        self.multisend_address: str = self._get_multisend_address(kwargs)
+        super().__init__(*args, **kwargs)
 
     def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
         """Get the value of starting_project_id, or warn and return None"""
@@ -142,6 +137,13 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
         model_type = str(model_type).lower()
 
         return valid_types[model_type]
+
+    def _get_multisend_address(self, kwargs: dict) -> str:  # pylint: disable=no-self-use
+        """Get the multisend address."""
+        multisend_address = kwargs.get("multisend_address")
+        if multisend_address is None:
+            raise ValueError("multisend_address is a required parameter")
+        return multisend_address
 
 
 class Params(ElCollectooorParams, FractionalizeDeploymentParams, TerminationParams):

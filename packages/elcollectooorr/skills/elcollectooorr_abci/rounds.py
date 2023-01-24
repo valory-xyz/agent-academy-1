@@ -36,7 +36,6 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     ResetPayload,
     ResyncPayload,
     TransactionPayload,
-    TransactionType,
     TransferNFTPayload,
 )
 from packages.elcollectooorr.skills.fractionalize_deployment_abci.rounds import (
@@ -339,7 +338,7 @@ class SynchronizedData(BaseSynchronizedData):  # pylint: disable=too-many-instan
         return cast(str, self.db.get_strict("most_voted_tx_hash"))
 
 
-class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC):
+class ElcollectooorrABCIAbstractRound(AbstractRound, ABC):
     """Abstract round for the El Collectooorr skill."""
 
     @property
@@ -359,8 +358,8 @@ class ElcollectooorrABCIAbstractRound(AbstractRound[Event, TransactionType], ABC
 class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the base reset round."""
 
-    allowed_tx_type = ResetPayload.transaction_type
-    payload_attribute = get_name(ResetPayload.period_count)
+    payload_class = ResetPayload
+    payload_attribute = "period_count"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -392,8 +391,8 @@ class BaseResetRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractR
 class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Observation Round"""
 
-    allowed_tx_type = ObservationPayload.transaction_type
-    payload_attribute = get_name(ObservationPayload.project_details)
+    payload_class = ObservationPayload
+    payload_attribute = "project_details"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -438,8 +437,8 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Details Round"""
 
-    allowed_tx_type = DetailsPayload.transaction_type
-    payload_attribute = get_name(DetailsPayload.details)
+    payload_class = DetailsPayload
+    payload_attribute = "details"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -465,8 +464,8 @@ class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
 class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Decision Round"""
 
-    allowed_tx_type = DecisionPayload.transaction_type
-    payload_attribute = get_name(DecisionPayload.decision)
+    payload_class = DecisionPayload
+    payload_attribute = "decision"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -497,8 +496,8 @@ class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRo
 class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """Defines the Transaction Round"""
 
-    allowed_tx_type = TransactionPayload.transaction_type
-    payload_attribute = get_name(TransactionPayload.purchase_data)
+    payload_class = TransactionPayload
+    payload_attribute = "purchase_data"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -594,8 +593,8 @@ class ProcessPurchaseRound(
 ):
     """Round to process the purchase of the token on artblocks"""
 
-    allowed_tx_type = PurchasedNFTPayload.transaction_type
-    payload_attribute = get_name(PurchasedNFTPayload.purchased_nft)
+    payload_class = PurchasedNFTPayload
+    payload_attribute = "purchased_nft"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -628,8 +627,8 @@ class ProcessPurchaseRound(
 class TransferNFTRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """A round in which the NFT is transferred from the safe to the basket"""
 
-    allowed_tx_type = TransferNFTPayload.transaction_type
-    payload_attribute = get_name(TransferNFTPayload.transfer_data)
+    payload_class = TransferNFTPayload
+    payload_attribute = "transfer_data"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -708,8 +707,8 @@ class TransferNFTAbciApp(AbciApp[Event]):
 class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """A round in which the funding logic gets exceuted"""
 
-    allowed_tx_type = FundingPayload.transaction_type
-    payload_attribute = get_name(FundingPayload.address_to_funds)
+    payload_class = FundingPayload
+    payload_attribute = "address_to_funds"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -735,8 +734,8 @@ class PayoutFractionsRound(
 ):
     """This class represents the post vault deployment round"""
 
-    allowed_tx_type = PayoutFractionsPayload.transaction_type
-    payload_attribute = get_name(PayoutFractionsPayload.payout_fractions)
+    payload_class = PayoutFractionsPayload
+    payload_attribute = "payout_fractions"
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:
@@ -811,8 +810,8 @@ class BankAbciApp(AbciApp[Event]):
 class PostPayoutRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the post payout round"""
 
-    allowed_tx_type = PaidFractionsPayload.transaction_type
-    payload_attribute = get_name(PaidFractionsPayload.paid_fractions)
+    payload_class = PaidFractionsPayload
+    payload_attribute = "paid_fractions"
     synchronized_data_class = SynchronizedData
 
     @staticmethod
@@ -876,8 +875,8 @@ class PostTransactionSettlementRound(
 ):
     """After tx settlement via the safe contract."""
 
-    allowed_tx_type = PostTxPayload.transaction_type
-    payload_attribute = get_name(PostTxPayload.post_tx_data)
+    payload_class = PostTxPayload
+    payload_attribute = "post_tx_data"
     synchronized_data_class = SynchronizedData
 
     round_id_to_event = {
@@ -1001,8 +1000,8 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
 class ResyncRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRound):
     """This class represents the round used to sync the agent upon reset."""
 
-    allowed_tx_type = ResyncPayload.transaction_type
-    payload_attribute = get_name(ResyncPayload.resync_data)
+    payload_class = ResyncPayload
+    payload_attribute = 'resync_data'
     synchronized_data_class = SynchronizedData
 
     def end_block(self) -> Optional[Tuple[BaseSynchronizedData, Event]]:

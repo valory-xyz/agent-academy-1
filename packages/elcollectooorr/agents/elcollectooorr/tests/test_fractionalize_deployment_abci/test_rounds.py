@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -72,7 +72,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployDecisionPayload(sender=participant, deploy_decision=payload_data)
+            DeployDecisionPayload(participant, deploy_decision=payload_data)
             for participant in self.participants
         ]
 
@@ -141,7 +141,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployDecisionPayload(sender=participant, deploy_decision=payload_data)
+            DeployDecisionPayload(participant, deploy_decision=payload_data)
             for participant in self.participants
         ]
 
@@ -208,7 +208,7 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployDecisionPayload(sender=participant, deploy_decision=payload_data)
+            DeployDecisionPayload(participant, deploy_decision=payload_data)
             for participant in self.participants
         ]
 
@@ -273,7 +273,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployBasketPayload(sender=participant, deploy_basket=payload_data)
+            DeployBasketPayload(participant, deploy_basket=payload_data)
             for participant in self.participants
         ]
 
@@ -340,7 +340,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         )
 
         first_payload, *payloads = [
-            DeployVaultPayload(sender=participant, deploy_vault=payload_data)
+            DeployVaultPayload(participant, deploy_vault=payload_data)
             for participant in self.participants
         ]
 
@@ -408,7 +408,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             BasketAddressesPayload(
-                sender=participant, basket_addresses=json.dumps(payload_data)
+                participant, basket_addresses=json.dumps(payload_data)
             )
             for participant in self.participants
         ]
@@ -476,7 +476,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             PermissionVaultFactoryPayload(
-                sender=participant, permission_factory=str(payload_data)
+                participant, permission_factory=str(payload_data)
             )
             for participant in self.participants
         ]
@@ -545,7 +545,7 @@ class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             PermissionVaultFactoryPayload(
-                sender=participant, permission_factory=str(payload_data)
+                participant, permission_factory=str(payload_data)
             )
             for participant in self.participants
         ]
@@ -614,7 +614,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
 
         first_payload, *payloads = [
             VaultAddressesPayload(
-                sender=participant, vault_addresses=json.dumps(payload_data)
+                participant, vault_addresses=json.dumps(payload_data)
             )
             for participant in self.participants
         ]
