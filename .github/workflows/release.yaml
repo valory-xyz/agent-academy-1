@@ -70,28 +70,15 @@ jobs:
               autonomy build-image --version $VERSION || exit 1
 
 
-        #       - uses: addnab/docker-run-action@v3
-        #         with:
-        #             image: valory/open-autonomy-user:latest
-        #             options: -v ${{ github.workspace }}:/work
-        #             run: |
-        #               echo "Building Service"
-        #               cd /work
-        #   
-        #           docker build -t valory/open-autonomy-docs:$TAG -f deployments/Dockerfiles/documentation/Dockerfile .
-        #       - name: Tag to latest
-        #         run:  |
-        #           source env.sh
-        #           docker tag valory/open-autonomy-docs:$TAG valory/open-autonomy-docs:latest
-        #       - name: Docker login
-        #         env:
-        #           DOCKER_USER: ${{secrets.DOCKER_USER}}
-        #           DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
-        #         run: |
-        #           docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
-        #       - name: Docker Push
-        #         run: |
-        #           source env.sh
-        #           docker push valory/open-autonomy-docs:$TAG 
-        #           docker push valory/open-autonomy-docs:latest
-        #   
+      - name: Docker login
+        env:
+          DOCKER_USER: ${{secrets.DOCKER_USER}}
+          DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+        run: |
+          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD 
+      - name: Docker Push
+        run: |
+          source env.sh
+          docker push $DOCKER_USER/oar-$SERVICE:$VERSION
+          docker push $DOCKER_USER/oar-$SERVICE:$DEFAULT_IMAGE_TAG
+        
