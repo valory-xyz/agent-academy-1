@@ -1,12 +1,9 @@
 name: Release Flow
 
 on:
-    push:
-# 
-# on:
-#   publish:
-#     types: [published]
-# 
+  publish:
+    types: [published]
+
 jobs:
   publish-packages:
     name: Push Packages
@@ -33,6 +30,8 @@ jobs:
   publish-images:
     name: Publish Docker Images
     runs-on: ${{ matrix.os }}
+    needs:
+      - publish-packages
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -81,4 +80,4 @@ jobs:
           source env.sh
           docker push $DOCKER_USER/oar-$SERVICE:$VERSION
           docker push $DOCKER_USER/oar-$SERVICE:$DEFAULT_IMAGE_TAG
-        
+
