@@ -48,7 +48,15 @@ jobs:
             run: |
               echo "Setting Tag Images"
               cd /work
-              echo VERSION=$VERSION > env.sh
+              apt-get update && apt-get install git -y || exit 1
+              export TAG=$(git describe --tags --abbrev=0 | sed 's/^v//')
+              if git tag --points-at HEAD | grep -q "^$TAG\$"; then
+                  echo "You are on tag $TAG"
+              else
+                  echo "You are not on the most recent tag";
+                  exit 1
+              fi
+              echo VERSION=$TAG> env.sh
               echo AUTHOR=$(grep 'service' packages/packages.json | awk -F/ '{print $2}' | head -1) >> env.sh
               echo SERVICE=$(grep 'service' packages/packages.json | awk -F/ '{print $3}' | head -1) >> env.sh
               echo DEFAULT_IMAGE_TAG=$(cat packages/packages.json | grep agent | awk -F: '{print $2}' | tr -d '", ') >> env.sh
