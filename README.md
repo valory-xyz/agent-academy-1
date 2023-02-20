@@ -3,7 +3,7 @@
 
 [El Collectooorr](https://www.elcollectooorr.art/) is an autonomous service that watches for new Art Blocks drops and intelligently collects new works for you. This agent service has been created using the Autonolas stack as part of Valory's Agent Academy 1.
 
-This repository holds the code for the [FSM apps](https://docs.autonolas.network/fsm_app_introduction) used in the El Collectooorr.
+This repository holds the code for the [FSM apps](https://docs.autonolas.network/open-autonomy/key_concepts/fsm_app_introduction/) used in the El Collectooorr.
 
 ## Cloning
 
