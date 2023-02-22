@@ -79,6 +79,7 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     TOKEN_VAULT_FACTORY_ADDRESS as _DEFAULT_TOKEN_VAULT_FACTORY_ADDRESS,
 )
+from packages.valory.skills.abstract_round_abci.models import MIN_OBSERVATION_INTERVAL
 
 
 ONE_ETH = 10 ** 18
@@ -144,6 +145,10 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
             "dotted_path": f"{__args_prefix}.multicall2_contract_address",
             "value": MULTICALL2_ADDRESS,
         },
+        {
+            "dotted_path": f"{__args_prefix}.observation_interval",
+            "value": MIN_OBSERVATION_INTERVAL,
+        }
     ]
 
     def test_run(self, nb_nodes: int) -> None:

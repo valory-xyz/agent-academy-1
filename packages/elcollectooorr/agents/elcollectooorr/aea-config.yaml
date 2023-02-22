@@ -20,7 +20,7 @@ fingerprint:
   tests/helpers/hardhat/hardhat.config.js: bafybeiag3rxhb2luzd4nr6whsti7wtlnvzlm32gctq45p6xfwmsyijpe54
   tests/helpers/hardhat/package.json: bafybeifjyofuzq66sjjtxdynvy4be5rxzkiuwyntjibrjvsrly5ddeai64
   tests/test_agents/__init__.py: bafybeifocm5xbm4nryrzkmzot4bzfnrcnc7nggepgsywterkgw4f44awfi
-  tests/test_agents/base_elcollectooorr.py: bafybeidbkjm33eu67lop2hh2oj5sobdut2kdit6fat5bjonjsylxwzx664
+  tests/test_agents/base_elcollectooorr.py: bafybeiach6fjttmwc5dyofszml5mytzxrnckfbhdhcozhoqxmoeg63vsdy
   tests/test_agents/test_elcollectooorr_abci.py: bafybeiecsznoutrwxoftf4iu2sesezfxuyzvpyahsv5wnl54hb5xvsp5wa
   tests/test_fractionalize_deployment_abci/__init__.py: bafybeifpwsaub3khxsixvj6yc2b7zlmkpt3h6m2q65x2zmmo6uvcbpdgpm
   tests/test_fractionalize_deployment_abci/test_behaviours.py: bafybeid74vtqghw3uykuufsso5xxtin57v7s4d2p4euxqyiw7q4cop5qqy
@@ -136,10 +136,12 @@ models:
       budget_per_vault: 10500000000000000000
       cleanup_history_depth: 1
       consensus:
-        max_participants: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_CONSENSUS_MAX_PARTICIPANTS:int:1}
+        max_participants: ${MAX_PARTICIPANTS:int:1}
       decision_model_threshold: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_DECISION_MODEL_THRESHOLD:float:0.0}
       setup:
-        safe_contract_address: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_SETUP_SAFE_CONTRACT_ADDRESS:list:[]}
+        safe_contract_address: ${list:[]}
+        all_participants: ${list:[]}
+        consensus_threshold: ${list:[null]}
       decision_model_type: 'yes'
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       enforce_investor_whitelisting: true
