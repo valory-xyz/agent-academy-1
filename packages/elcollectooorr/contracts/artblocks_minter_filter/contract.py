@@ -26,7 +26,7 @@ from aea.configurations.base import PublicId
 from aea.contracts.base import Contract
 from aea.crypto.base import LedgerApi
 
-from packages.elcollectooorr.contracts.multicall2.contract import Multicall2Contract
+from packages.valory.contracts.multicall2.contract import Multicall2Contract
 
 
 _logger = logging.getLogger(

@@ -16,13 +16,13 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-# pylint: skip-file
+# pylint: skip-file; # noqa: B028
 
 """Test the base.py module of the skill."""
 import json
 import logging  # noqa: F401
 from copy import deepcopy
-from typing import Dict, FrozenSet, cast
+from typing import Dict, Tuple, cast
 
 from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
@@ -54,6 +54,7 @@ from packages.elcollectooorr.skills.elcollectooorr_abci.rounds import (
     rotate_list,
 )
 from packages.valory.skills.abstract_round_abci.base import AbciAppDB as StateDB
+from packages.valory.skills.abstract_round_abci.base import CollectionRound
 from packages.valory.skills.abstract_round_abci.test_tools.rounds import (
     BaseRoundTestClass as ExternalBaseRoundTestClass,
 )
@@ -70,9 +71,10 @@ MAX_PARTICIPANTS: int = 4
 RANDOMNESS: str = "d1c29dce46f979f9748210d24bce4eae8be91272f5ca1a6aea2832d3dd676f51"
 
 
-def get_participants() -> FrozenSet[str]:
+def get_participants() -> Tuple[str]:
     """Participants"""
-    return frozenset([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
+    participants = tuple([f"agent_{i}" for i in range(MAX_PARTICIPANTS)])
+    return cast(Tuple[str], participants)
 
 
 class BaseRoundTestClass(ExternalBaseRoundTestClass):
@@ -111,7 +113,7 @@ class TestObservationRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -137,7 +139,7 @@ class TestObservationRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.synchronized_data.update(
-            participant_to_project=test_round.collection,
+            participant_to_project=test_round.serialize_collection(test_round.collection),
             most_voted_project=test_round.most_voted_payload,
             most_recent_project=123,
             inactive_projects=inactive_projects,
@@ -188,7 +190,7 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -214,7 +216,7 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.synchronized_data.update(
-            participant_to_project=test_round.collection,
+            participant_to_project=test_round.serialize_collection(test_round.collection),
             most_voted_project=test_round.most_voted_payload,
             most_recent_project=123,
             inactive_projects=inactive_projects,
@@ -256,7 +258,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         payload_data = {"project_id": 123}
 
         test_round = DecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -280,7 +282,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.synchronized_data.update(
-            participant_to_decision=test_round.collection,
+            participant_to_decision=test_round.serialize_collection(test_round.collection),
             most_voted_decision=test_round.most_voted_payload,
         )
 
@@ -318,7 +320,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = DecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         project_to_purchase: Dict = {}  # {} represents a NO decision for now
@@ -346,7 +348,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.synchronized_data.update(
-            participant_to_decision=test_round.collection,
+            participant_to_decision=test_round.serialize_collection(test_round.collection),
             most_voted_decision=test_round.most_voted_payload,
         )
 
@@ -385,7 +387,7 @@ class TestTransactionRound(BaseRoundTestClass):
         test_purchase_data = "test_data"
 
         test_round = TransactionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -409,7 +411,7 @@ class TestTransactionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.synchronized_data.update(
-            participant_to_purchase_data=test_round.collection,
+            participant_to_purchase_data=test_round.serialize_collection(test_round.collection),
             most_voted_purchase_data=test_round.most_voted_payload,
         )
 
@@ -448,7 +450,7 @@ class TestDetailsRound(BaseRoundTestClass):
         test_details = json.dumps({"active_projects": [{"data": "more"}]})
 
         test_round = DetailsRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -472,7 +474,7 @@ class TestDetailsRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.synchronized_data.update(
-            participant_to_details=test_round.collection,
+            participant_to_details=test_round.serialize_collection(test_round.collection),
             active_projects=test_round.most_voted_payload,
         )
 
@@ -510,7 +512,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         test_funds = {"0x0": WEI_TO_ETH}
 
         test_round = FundingRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -534,7 +536,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
             test_round.process_payload(payload)
 
         actual_next_state = self.synchronized_data.update(
-            participant_to_funds=test_round.collection,
+            participant_to_funds=test_round.serialize_collection(test_round.collection),
             most_voted_funds=test_round.most_voted_payload,
         )
 
@@ -582,7 +584,7 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
         )
 
         test_round = ProcessPurchaseRound(
-            synchronized_data=initial_state, consensus_params=self.consensus_params
+            synchronized_data=initial_state,
         )
 
         first_payload, *payloads = [
@@ -643,7 +645,7 @@ class TestTransferNFTRound(BaseRoundTestClass):
         )
 
         test_round = TransferNFTRound(
-            synchronized_data=initial_state, consensus_params=self.consensus_params
+            synchronized_data=initial_state,
         )
 
         first_payload, *payloads = [
@@ -694,7 +696,7 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
         initial_state = deepcopy(self.synchronized_data)
 
         test_round = PayoutFractionsRound(
-            synchronized_data=initial_state, consensus_params=self.consensus_params
+            synchronized_data=initial_state,
         )
 
         first_payload, *payloads = [
@@ -760,7 +762,7 @@ class TestPostPayoutRound(BaseRoundTestClass):
             )
         )
         test_round = PostPayoutRound(
-            synchronized_data=initial_state, consensus_params=self.consensus_params
+            synchronized_data=initial_state,
         )
 
         # NOTE: No payload for this round.
@@ -797,7 +799,7 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
 
         self.synchronized_data.update(tx_submitter=TransactionRound.auto_round_id())
         test_round = PostTransactionSettlementRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -855,7 +857,7 @@ class TestResyncRound(BaseRoundTestClass):
         }
 
         test_round = ResyncRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -944,16 +946,16 @@ def test_synchronized_data() -> None:  # pylint: disable=too-many-locals
                     participants=participants,
                     period_count=period_count,
                     period_setup_params=period_setup_params,
-                    participant_to_randomness=participant_to_randomness,
+                    participant_to_randomness=CollectionRound.serialize_collection(participant_to_randomness),
                     most_voted_randomness=most_voted_randomness,
-                    participant_to_selection=participant_to_selection,
+                    participant_to_selection=CollectionRound.serialize_collection(participant_to_selection),
                     most_voted_keeper_address=most_voted_keeper_address,
                 )
             ),
         )
     )
 
-    assert synchronized_data.participants == participants
+    assert synchronized_data.participants == frozenset(participants)
     assert synchronized_data.period_count == period_count
     assert synchronized_data.participant_to_randomness == participant_to_randomness
     assert synchronized_data.most_voted_randomness == most_voted_randomness

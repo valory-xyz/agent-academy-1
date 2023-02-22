@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# pylint: disable=consider-iterating-dictionary
 
 """This module contains the data classes for the El Collectooorr ABCI application."""
 import json
@@ -414,7 +415,7 @@ class ObservationRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_project=self.collection,
+                participant_to_project=self.serialize_collection(self.collection),
                 finished_projects=finished_projects,
                 active_projects=active_projects,
                 inactive_projects=inactive_projects,
@@ -450,7 +451,7 @@ class DetailsRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_details=self.collection,
+                participant_to_details=self.serialize_collection(self.collection),
                 active_projects=payload["active_projects"],
             )
             return state, Event.DONE
@@ -480,7 +481,7 @@ class DecisionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRo
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_decision=self.collection,
+                participant_to_decision=self.serialize_collection(self.collection),
                 project_to_purchase=project_to_purchase,
             )
 
@@ -508,7 +509,7 @@ class TransactionRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstrac
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_voted_tx_hash=self.collection,
+                participant_to_voted_tx_hash=self.serialize_collection(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
             )
@@ -574,17 +575,17 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = [
+    cross_period_persisted_keys = {
         get_name(SynchronizedData.finished_projects),
         get_name(SynchronizedData.active_projects),
         get_name(SynchronizedData.inactive_projects),
         get_name(SynchronizedData.most_recent_project),
         get_name(SynchronizedData.purchased_projects),
-    ]
-    db_pre_conditions: Dict[AppState, List[str]] = {ObservationRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedElCollectoorBaseRound: [get_name(SynchronizedData.most_voted_tx_hash)],
-        FinishedElCollectooorrWithoutPurchase: [],
+    }
+    db_pre_conditions: Dict[AppState, Set[str]] = {ObservationRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedElCollectoorBaseRound: {get_name(SynchronizedData.most_voted_tx_hash)},
+        FinishedElCollectooorrWithoutPurchase: set(),
     }
 
 
@@ -695,12 +696,12 @@ class TransferNFTAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = [get_name(SynchronizedData.purchased_projects)]
-    db_pre_conditions: Dict[AppState, List[str]] = {ProcessPurchaseRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FailedPurchaseProcessingRound: [],
-        FinishedWithTransferRound: [],
-        FinishedWithoutTransferRound: [],
+    cross_period_persisted_keys = {get_name(SynchronizedData.purchased_projects)}
+    db_pre_conditions: Dict[AppState, Set[str]] = {ProcessPurchaseRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FailedPurchaseProcessingRound: set(),
+        FinishedWithTransferRound: set(),
+        FinishedWithoutTransferRound: set(),
     }
 
 
@@ -717,7 +718,7 @@ class FundingRound(CollectSameUntilThresholdRound, ElcollectooorrABCIAbstractRou
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
                 most_voted_funds=json.loads(self.most_voted_payload),
-                participant_to_funding_round=self.collection,
+                participant_to_funding_round=self.serialize_collection(self.collection),
             )
             return state, Event.DONE
 
@@ -750,7 +751,7 @@ class PayoutFractionsRound(
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_voted_tx_hash=self.collection,
+                participant_to_voted_tx_hash=self.serialize_collection(self.collection),
                 most_voted_tx_hash=tx_hash,
                 users_being_paid=users_being_paid,
                 tx_submitter=self.round_id,
@@ -799,11 +800,11 @@ class BankAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = [get_name(SynchronizedData.most_voted_funds)]
-    db_pre_conditions: Dict[AppState, List[str]] = {FundingRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedBankWithPayoutsRounds: [get_name(SynchronizedData.most_voted_tx_hash)],
-        FinishedBankWithoutPayoutsRounds: [],
+    cross_period_persisted_keys = {get_name(SynchronizedData.most_voted_funds)}
+    db_pre_conditions: Dict[AppState, Set[str]] = {FundingRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedBankWithPayoutsRounds: {get_name(SynchronizedData.most_voted_tx_hash)},
+        FinishedBankWithoutPayoutsRounds: set(),
     }
 
 
@@ -863,10 +864,10 @@ class PostFractionPayoutAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = [get_name(SynchronizedData.paid_users)]
-    db_pre_conditions: Dict[AppState, List[str]] = {PostPayoutRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedPostPayoutRound: [],
+    cross_period_persisted_keys = {get_name(SynchronizedData.paid_users)}
+    db_pre_conditions: Dict[AppState, Set[str]] = {PostPayoutRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedPostPayoutRound: set(),
     }
 
 
@@ -984,16 +985,16 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = [get_name(SynchronizedData.amount_spent)]
-    db_pre_conditions: Dict[AppState, List[str]] = {PostTransactionSettlementRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        ErrorneousRound: [],
-        FinishedVaultTxRound: [],
-        FinishedBasketTxRound: [],
-        FinishedElcollectooorrTxRound: [],
-        FinishedBasketPermissionTxRound: [],
-        FinishedPayoutTxRound: [],
-        FinishedTransferNftTxRound: [],
+    cross_period_persisted_keys = {get_name(SynchronizedData.amount_spent)}
+    db_pre_conditions: Dict[AppState, Set[str]] = {PostTransactionSettlementRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        ErrorneousRound: set(),
+        FinishedVaultTxRound: set(),
+        FinishedBasketTxRound: set(),
+        FinishedElcollectooorrTxRound: set(),
+        FinishedBasketPermissionTxRound: set(),
+        FinishedPayoutTxRound: set(),
+        FinishedTransferNftTxRound: set(),
     }
 
 
@@ -1050,9 +1051,9 @@ class ResyncAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    db_pre_conditions: Dict[AppState, List[str]] = {ResyncRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedResyncRound: [],
+    db_pre_conditions: Dict[AppState, Set[str]] = {ResyncRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedResyncRound: set(),
     }
 
 

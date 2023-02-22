@@ -16,6 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
+# flake8: noqa: B028; pylint: disable=consider-iterating-dictionary
 
 """This module contains the shared state for the 'elcollectooorr_abci' application."""
 from abc import ABC

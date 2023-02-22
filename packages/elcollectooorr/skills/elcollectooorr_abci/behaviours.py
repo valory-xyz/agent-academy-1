@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# pylint: disable=consider-iterating-dictionary
 """This module contains the behaviour_classes for the 'elcollectooorr_abci' skill."""
 
 import json

@@ -193,7 +193,7 @@ class DeployDecisionRound(
         if self.threshold_reached:
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_deploy_decision=self.collection,
+                participant_to_deploy_decision=self.serialize_collection(self.collection),
                 most_voted_deploy_decision=self.most_voted_payload,
             )
 
@@ -236,7 +236,7 @@ class DeployBasketTxRound(
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_voted_tx_hash=self.collection,
+                participant_to_voted_tx_hash=self.serialize_collection(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
             )
@@ -270,7 +270,7 @@ class DeployVaultTxRound(
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_voted_tx_hash=self.collection,
+                participant_to_voted_tx_hash=self.serialize_collection(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
             )
@@ -306,7 +306,7 @@ class BasketAddressRound(
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_basket_addresses=self.collection,
+                participant_to_basket_addresses=self.serialize_collection(self.collection),
                 basket_addresses=basket_addresses,
             )
 
@@ -339,7 +339,7 @@ class PermissionVaultFactoryRound(
 
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_voted_tx_hash=self.collection,
+                participant_to_voted_tx_hash=self.serialize_collection(self.collection),
                 most_voted_tx_hash=self.most_voted_payload,
                 tx_submitter=self.round_id,
             )
@@ -378,7 +378,7 @@ class VaultAddressRound(
             vault_addresses = cast(Dict[str, int], json.loads(self.most_voted_payload))
             state = self.synchronized_data.update(
                 synchronized_data_class=self.synchronized_data_class,
-                participant_to_voted_tx_hash=self.collection,
+                participant_to_voted_tx_hash=self.serialize_collection(self.collection),
                 vault_addresses=vault_addresses,
             )
 
@@ -423,11 +423,11 @@ class DeployBasketAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    db_pre_conditions: Dict[AppState, List[str]] = {DeployDecisionRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedDeployBasketTxRound: [get_name(SynchronizedData.most_voted_tx_hash)],
-        FinishedWithoutDeploymentRound: [],
-        FinishedWithBasketDeploymentSkippedRound: []
+    db_pre_conditions: Dict[AppState, Set[str]] = {DeployDecisionRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedDeployBasketTxRound: {get_name(SynchronizedData.most_voted_tx_hash)},
+        FinishedWithoutDeploymentRound: set(),
+        FinishedWithBasketDeploymentSkippedRound: set()
     }
 
 
@@ -458,11 +458,11 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = [get_name(SynchronizedData.basket_addresses)]
-    db_pre_conditions: Dict[AppState, List[str]] = {BasketAddressRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedPostBasketRound: [get_name(SynchronizedData.most_voted_tx_hash), get_name(SynchronizedData.basket_addresses)],
-        FinishedPostBasketWithoutPermissionRound: [get_name(SynchronizedData.basket_addresses)],
+    cross_period_persisted_keys = {get_name(SynchronizedData.basket_addresses)}
+    db_pre_conditions: Dict[AppState, Set[str]] = {BasketAddressRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedPostBasketRound: {get_name(SynchronizedData.most_voted_tx_hash), get_name(SynchronizedData.basket_addresses)},
+        FinishedPostBasketWithoutPermissionRound: {get_name(SynchronizedData.basket_addresses)},
     }
 
 
@@ -485,9 +485,9 @@ class DeployVaultAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    db_pre_conditions: Dict[AppState, List[str]] = {DeployVaultTxRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedDeployVaultTxRound: [get_name(SynchronizedData.most_voted_tx_hash)],
+    db_pre_conditions: Dict[AppState, Set[str]] = {DeployVaultTxRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedDeployVaultTxRound: {get_name(SynchronizedData.most_voted_tx_hash)},
     }
 
 
@@ -510,8 +510,8 @@ class PostVaultDeploymentAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = [get_name(SynchronizedData.vault_addresses)]
-    db_pre_conditions: Dict[AppState, List[str]] = {VaultAddressRound: []}
-    db_post_conditions: Dict[AppState, List[str]] = {
-        FinishedPostVaultRound: [get_name(SynchronizedData.vault_addresses)],
+    cross_period_persisted_keys = {get_name(SynchronizedData.vault_addresses)}
+    db_pre_conditions: Dict[AppState, Set[str]] = {VaultAddressRound: set()}
+    db_post_conditions: Dict[AppState, Set[str]] = {
+        FinishedPostVaultRound: {get_name(SynchronizedData.vault_addresses)},
     }
