@@ -9,7 +9,7 @@ The MintKit is a toolkit to build services with minting capabilities. For exampl
 
 In order to run a local demo of the El Collectooorr service:
 
-1. [Set up your system](https://docs.autonolas.network/open-autonomy/guides/set_up/) to work with the Open Autonomy. We recommend that you use these commands:
+1. [Set up your system](https://docs.autonolas.network/open-autonomy/guides/set_up/) to work with the Open Autonomy framework. We recommend that you use these commands:
 
     ```bash
     mkdir your_workspace && cd your_workspace
