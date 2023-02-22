@@ -69,7 +69,7 @@ Once you have {{set_up_system}} to work with the Open Autonomy framework, you ca
 	2. Build the service deployment.
 	
     ```bash
-    autonomy deploy build keys.json --aev
+    autonomy deploy build keys.json --aev -ltm
     ```
 
 5. Run the service.
