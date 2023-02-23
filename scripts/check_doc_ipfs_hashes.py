@@ -17,7 +17,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# flake8: noqa: B028
 
 """This module contains the tools for autoupdating ipfs hashes in the documentation."""
 
@@ -240,7 +240,7 @@ class PackageHashManager:
 
 
 def check_ipfs_hashes(  # pylint: disable=too-many-locals,too-many-statements
-    paths: List[Path] = None, fix: bool = False
+    paths: Optional[List[Path]] = None, fix: bool = False
 ) -> None:
     """Fix ipfs hashes in the docs"""
 

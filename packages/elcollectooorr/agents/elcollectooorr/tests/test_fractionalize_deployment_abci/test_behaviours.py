@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 """Tests for valory/fractionalize_deployment_abci skill's behaviours."""
 import logging
 from enum import Enum
-from typing import List, Optional, cast
+from typing import Any, List, Optional, cast
 from unittest.mock import patch
 
 from aea.helpers.transaction.base import State
@@ -70,6 +70,17 @@ class FractionalizeFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disabl
 
     path_to_skill = ELCOLLECTOOORR_PACKAGE_DIR
 
+    setup_params = {
+        "consensus_threshold": None,
+        "all_participants": ["0x0000000000000000000000000000000000000000"],
+        "participants": ["0x0000000000000000000000000000000000000000"],
+    }
+
+    def setup(self, **kwargs: Any) -> None:
+        """Set up the test case."""
+        self.behaviour.background_behaviour_cls = None
+        super().setup(**kwargs)
+
     def end_round(self, event: Optional[Enum] = None) -> None:  # type: ignore
         """End the test round."""
         done_event = event or Event.DONE
@@ -94,6 +105,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             amount_spent=amount_spent,
                         ),
                     )
@@ -136,6 +148,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             vault_addresses=["0x0"],  # a vault exists
                             amount_spent=amount_spent,
                         ),
@@ -180,6 +193,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             vault_addresses=vault_addresses,
                             amount_spent=amount_spent,
                         ),
@@ -239,6 +253,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             vault_addresses=vault_addresses,
                             amount_spent=amount_spent,
                             safe_contract_address="0x0",
@@ -315,6 +330,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             vault_addresses=vault_addresses,
                             amount_spent=amount_spent,
                             safe_contract_address="0x0",
@@ -391,6 +407,7 @@ class TestDeployDecisionRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             vault_addresses=vault_addresses,
                             amount_spent=amount_spent,
                             safe_contract_address="0x0",
@@ -626,6 +643,7 @@ class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": ["0x0"],
                         },
@@ -695,6 +713,7 @@ class TestDeployTokenVaultTxRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": ["0x0"],
                         },
@@ -781,6 +800,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": ["0x0"],
                             "vault_addresses": ["0x0"],
@@ -844,6 +864,7 @@ class TestBasketAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": ["0x0"],
                             "vault_addresses": ["0x0"],
@@ -920,6 +941,7 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": ["0x0"],
                             "final_tx_hash": "0x0",
@@ -983,6 +1005,7 @@ class TestVaultAddressesRoundBehaviour(FractionalizeFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": ["0x0"],
                             "final_tx_hash": "0x0",
@@ -1058,6 +1081,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": [
                                 "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
@@ -1144,6 +1168,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": [
                                 "0x1CD623a86751d4C4f20c96000FEC763941f098A2"
@@ -1198,6 +1223,7 @@ class TestPermissionVaultFactoryRoundBehaviour(FractionalizeFSMBehaviourBaseCase
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "basket_addresses": [
                                 "0x1CD623a86751d4C4f20c96000FEC763941f098A2"

@@ -8,40 +8,40 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   README.md: bafybeidcl3rncjj6tsaiylzgptoumt7nyuhlnvbv4333ntgr2wqo73odyy
   __init__.py: bafybeif7ztzzy2u4irp22i44qw45lv2cepsq7qbzwy5fdbnt6eajvbsc4m
-  behaviours.py: bafybeign2jzibpu2lq2cyvuhazbn4p6c7bgg55drccxkemuoznn5oyivyq
-  decision_models.py: bafybeicchjstlojkxtlvxt5atqxkpr6cqcz47xldyyn2sa64ywmz3bygsi
+  behaviours.py: bafybeid3vl4jtdipf35djdwh4sprpsuo6eglj2zv23nflgetzlzu4vcidi
+  decision_models.py: bafybeierk7cnwhryulvb3y6lbddzzh3nqsgvmffoilpzcsfhhhmccvnr6m
   dialogues.py: bafybeia4hd2gnmuayynsdlvnbw4r74tdon7zwjeiej7wfiidq5rx7lm2w4
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
   fsm_specification.yaml: bafybeicvno4avecvthyonwf2u2ygokkt342yrtt62ckjmdcfdlw6stz65a
   handlers.py: bafybeifwg5wujaa3zs7qlorcshhw3xm3oaxnh5ftcz2sybtsm7px4erzby
-  models.py: bafybeib7hl6ygnnaoao7cfbknfyyppjfc2do2yggmkalvpmxg3dlsngz4u
+  models.py: bafybeigfwpfx3a4umxxdnw2uitktl25r4e7lwla7hmawzmh6naw3xrwt34
   payloads.py: bafybeicobvjzi575pugn7asdtpmvumvvppvlikudstuqsrvxgydlwj3pme
-  rounds.py: bafybeidhgolr4ddop2ttvl5abomx7a2v3dh76s7wme4nwv4srrf56dlbvy
+  rounds.py: bafybeiahzvy73drab7fj4t5ccsy66b2jjmermjwjl3j4ubnnxduvewpgfy
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
-  tests/test_behaviours.py: bafybeiblbhmqdjajcomu2itolkptfxni5orwzcsplnm2aurjovflm574xi
+  tests/test_behaviours.py: bafybeib6tb5zlzuu5ptfczxkx3o2mmqq5kxnm5wjeq6cpi7yupkzbrjqi4
   tests/test_dialogues.py: bafybeidyiwadabscffprui7ykdid7xyscrtrnv4m3kixhnztqnfi3m6gvu
   tests/test_payloads.py: bafybeih7ya74js3om3pks2t4zav37kctj6n7qrkzi4rea562cotl44ssou
-  tests/test_rounds.py: bafybeicvlshjkkyzqxxynxvkekxtnjlixxyywz7gh6zjezfijpchnhtjbu
+  tests/test_rounds.py: bafybeia3vsptf5j6gyl7qe5av2p43azhjcuq6c53n3p44dlgllxlg3alau
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeih6rzrn3rsxxp3o7iuwp7qkmqpcu63wpx5ws6ol5jvk2j5zv7loue
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeifcdziejgp4cpc6bj3sqayo6msw623puxb34pud4pxzyzapadkf7u
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeigqfwkdcxhj2ivr6mhvrygf3unqho3gockjwuesxntagye6akskmm
-- elcollectooorr/basket_factory:0.1.0:bafybeiepd3w3qbwrqgdu42t6uk6mxyrdpf5t3l2r62jlq2zgnzxr25g5wy
-- elcollectooorr/token_vault:0.1.0:bafybeievwctfsgenafisj4simdgctavboxrdyjyerrif6bywoniw4arize
-- elcollectooorr/token_vault_factory:0.1.0:bafybeig4lgim3aevwrddcd7duk5geoqkvwhzyhfc5yedzmn445w6xsl2ba
-- valory/gnosis_safe:0.1.0:bafybeiefwo2ddyhjxcpy2rlchcubv6bj35e5x4kstxwfyvyvdvcpvcoe5q
+- elcollectooorr/artblocks:0.1.0:bafybeify3iw3s4sann3zk6y2ui5nlzg75z374tnngrg35wkdzvrghmbrei
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeic3wi6v3hkfxmffyu3l7hzr3zh5qbt3jd32gcfzo7pr654ikj4acu
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeicdg5eoraievqajkhqa34pl5wsbyrx6mcy2uu5bvt6as74sztfooa
+- elcollectooorr/basket_factory:0.1.0:bafybeigj3yq2vc3my4f4zmlj6x3zdohgu6k4el626nurb6ddljfthvk4tq
+- elcollectooorr/token_vault:0.1.0:bafybeicso2mbwrzzc3cuaupistkbkv4irc6zx2id6d7w7iskozoubey7xi
+- elcollectooorr/token_vault_factory:0.1.0:bafybeiab7pdrhybrjh5jfybu4afna6gwtptzme6cui232i7b242liyckhe
+- valory/gnosis_safe:0.1.0:bafybeihwwv5aodluykglsbuhhrwusvjof6vvnr37rznwvlutmfwtvoju34
 - valory/multisend:0.1.0:bafybeigjywkl7hydjsrkogob3xebj2ifhqwmfhhxoeyrndzhhxi5u6amey
 protocols:
-- valory/contract_api:1.0.0:bafybeif32nchkgn6yet7e5gt4auhf7lsahxnj4t36kxbw55p3gi7qpeuxq
+- valory/contract_api:1.0.0:bafybeidv6wxpjyb2sdyibnmmum45et4zcla6tl63bnol6ztyoqvpl4spmy
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeieu3kcoaknzyrvqjfm4t2u5ajftyasvbyfmpmur4qs2h4cvwg5zne
-- valory/abstract_round_abci:0.1.0:bafybeicvbxixjsu3bgjk5frqz5mq2kmv44grwd6324viz4tehw3yejfhji
-- valory/registration_abci:0.1.0:bafybeihai2otcmnb2w7k64bnwf5qagfexg5gqow74xhj3wynikgdxre3ka
-- valory/reset_pause_abci:0.1.0:bafybeifs6zpg5nbvuapmxafzo6fdhoz5ebpiujetvk243apo3iwl2rn45i
-- valory/termination_abci:0.1.0:bafybeib3pxsbvjwqqedfdujs42mzwe7asjepsdx5n3bomsp4zz56cfycnu
-- valory/transaction_settlement_abci:0.1.0:bafybeib3dkmogar5q5ggfbgi3bfrjqb74nd7tc7zxl6rpt2qucdv6i3bpy
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeic357nobk4yd6ax5iu42lmh6iigxmoyl5cpighgrzyw7m6q2qkqay
+- valory/abstract_round_abci:0.1.0:bafybeiami2y2uwvtmjf76hl3jvfahujdir5docjby6erdyjl66ekoblesi
+- valory/registration_abci:0.1.0:bafybeieaggf6mc43tses5k7fg3pyxca43wsmfvnnzszzucohp5ebg3umwq
+- valory/reset_pause_abci:0.1.0:bafybeic6ayed23np6ngkawsf2you6nnfuvbq4smcepdvvcrw5wxn5jaevy
+- valory/termination_abci:0.1.0:bafybeigg4eyjaeidojnvxdenztaywb7ijtjdtjirpc6pvhglscfqdhfupe
+- valory/transaction_settlement_abci:0.1.0:bafybeiajvxzaeeeamvb3guxtihlrj7xoyrmfeuo5chp4f3pdd2sgiecayq
 behaviours:
   main:
     args: {}
@@ -148,6 +148,8 @@ models:
         safe_contract_address: []
         all_participants:
         - - '0x0000000000000000000000000000000000000000'
+        consensus_threshold:
+        - null
       share_tm_config_on_startup: false
       sleep_time: 1
       starting_project_id: 301
@@ -166,9 +168,9 @@ models:
   randomness_api:
     args:
       api_id: cloudflare
-      headers: []
+      headers: {}
       method: GET
-      parameters: []
+      parameters: {}
       response_key: null
       response_type: dict
       retries: 5

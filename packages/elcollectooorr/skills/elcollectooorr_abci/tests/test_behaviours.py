@@ -92,6 +92,12 @@ class ElCollectooorrFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disab
 
     path_to_skill = Path(__file__).parent.parent
 
+    setup_params = {
+        "consensus_threshold": None,
+        "all_participants": ["0x0000000000000000000000000000000000000000"],
+        "participants": ["0x0000000000000000000000000000000000000000"],
+    }
+
     def setup(self, **kwargs: Any) -> None:
         """
         Set up the test method.
@@ -100,6 +106,8 @@ class ElCollectooorrFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disab
 
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
+        # set background behaviour to None, to avoid interference with the test
+        self.behaviour.background_behaviour_cls = None
         super().setup(**kwargs)
         self.behaviour.context.params.__dict__.update(dict(_frozen=False))
         self._set_default_whitelisted_address()
@@ -137,6 +145,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             finished_projects=finished_projects,
                             active_projects=active_projects,
                             inactive_projects=inactive_projects,
@@ -235,6 +244,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             finished_projects=finished_projects,
                             active_projects=active_projects,
                             inactive_projects=inactive_projects,
@@ -333,6 +343,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             finished_projects=finished_projects,
                             active_projects=active_projects,
                             inactive_projects=inactive_projects,
@@ -417,6 +428,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             finished_projects=finished_projects,
                             active_projects=active_projects,
                             inactive_projects=inactive_projects,
@@ -515,6 +527,7 @@ class TestObservationRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             finished_projects=finished_projects,
                             active_projects=active_projects,
                             inactive_projects=inactive_projects,
@@ -603,6 +616,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             active_projects=active_projects,
                         ),
                     )
@@ -758,6 +772,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             active_projects=active_projects,
                         )
                     ),
@@ -849,6 +864,7 @@ class TestDetailsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             active_projects=active_projects,
                         ),
                     )
@@ -976,6 +992,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
                             active_projects=active_projects,
                             purchased_projects=[active_projects[-1]],
@@ -1081,6 +1098,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
                             active_projects=active_projects,
                             purchased_projects=active_projects,
@@ -1185,6 +1203,7 @@ class TestDecisionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         dict(
+                            **self.setup_params,
                             safe_contract_address="0xde771104C0C44123d22D39bB716339cD0c3333a1",
                             active_projects=active_projects,
                             purchased_projects=[active_projects[-1]],
@@ -1260,6 +1279,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "project_to_purchase": test_project,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "most_voted_details": json.dumps(
@@ -1339,6 +1359,7 @@ class TestTransactionRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "project_to_purchase": test_project,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                             "most_voted_details": json.dumps(
@@ -1422,6 +1443,7 @@ class TestFundingRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x1CD623a86751d4C4f20c96000FEC763941f098A3",
                         },
                     ),
@@ -1647,6 +1669,7 @@ class TestPayoutFractionsRoundBehaviour(ElCollectooorrFSMBehaviourBaseCase):
                 StateDB(
                     setup_data=StateDB.data_to_lists(
                         {
+                            **self.setup_params,
                             "safe_contract_address": "0x0",
                             "vault_addresses": ["0x0"],
                             "paid_users": {},  # no user has yet been paid

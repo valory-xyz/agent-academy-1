@@ -16,7 +16,7 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
+# pylint: disable=consider-iterating-dictionary
 """This module contains the class to connect to an ERC721 Token Vault Factory contract."""
 import logging
 from typing import Any, Optional, cast

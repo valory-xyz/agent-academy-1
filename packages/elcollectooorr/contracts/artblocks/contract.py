@@ -29,7 +29,7 @@ from aea.exceptions import enforce
 from aea_ledger_ethereum import EthereumApi
 from web3.types import BlockIdentifier
 
-from packages.elcollectooorr.contracts.multicall2.contract import Multicall2Contract
+from packages.valory.contracts.multicall2.contract import Multicall2Contract
 
 
 _logger = logging.getLogger("aea.packages.elcollectooorr.contracts.artblocks.contract")
@@ -238,7 +238,7 @@ class ArtBlocksContract(Contract):
         cls,  # pylint: disable=unused-argument
         ledger_api: LedgerApi,
         contract_address: str,
-        project_id: int = None,
+        project_id: Optional[int] = None,
     ) -> JSONLike:
         """
         Handler method for the 'get_active_project' requests.

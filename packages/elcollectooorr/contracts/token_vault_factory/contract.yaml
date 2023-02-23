@@ -9,7 +9,7 @@ fingerprint:
   README.md: bafybeibunypsax2ynyhetktuwehvn6ast7tn4ga7t4z7uwe2jmysx6foki
   __init__.py: bafybeibto4ar2ljo4mtsq6hl7i524ignnxpzhwpbfftueihdnpqvmcw3vi
   build/ERC721VaultFactory.json: bafybeiedxlmem43q36q4kcymefbs2luxhylb5xg7ebc7bx7yqjvwulffju
-  contract.py: bafybeibbfammd7d4kruf3bwxgz2srwz424i4552ywrbxh6vlp7oosgl6bu
+  contract.py: bafybeiajd23zzdx7gqgyd44iotknwqatdwada4ysxtxpzdrhkxy75nhsku
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: TokenVaultFactoryContract
@@ -17,7 +17,7 @@ contract_interface_paths:
   ethereum: build/ERC721VaultFactory.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.28.0.post1
+    version: ==1.29.0
   py-eth-sig-utils: {}
   web3:
     version: ==5.25.0

@@ -68,7 +68,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         payload_data = "deploy_full"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -94,7 +94,7 @@ class TestDeployDecisionRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_deploy_decision=test_round.collection,
+                participant_to_deploy_decision=test_round.serialize_collection(test_round.collection),
                 most_voted_deploy_decision=payload_data,
                 amount_spent=0,
             ),
@@ -137,7 +137,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         payload_data = "dont_deploy"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -163,7 +163,7 @@ class TestNoDeployDecisionRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_deploy_decision=test_round.collection,
+                participant_to_deploy_decision=test_round.serialize_collection(test_round.collection),
                 most_voted_deploy_decision=payload_data,
                 amount_spent=WEI_TO_ETH,
             ),
@@ -204,7 +204,7 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
         payload_data = "deploy_skip_basket"
 
         test_round = DeployDecisionRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -230,7 +230,7 @@ class TestSkipDeployDecisionRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_deploy_decision=test_round.collection,
+                participant_to_deploy_decision=test_round.serialize_collection(test_round.collection),
                 most_voted_deploy_decision=payload_data,
                 amount_spent=WEI_TO_ETH,
             ),
@@ -269,7 +269,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         payload_data = "0x0"
 
         test_round = DeployBasketTxRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -295,7 +295,7 @@ class TestDeployBasketTxRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_voted_tx_hash=test_round.collection,
+                participant_to_voted_tx_hash=test_round.serialize_collection(test_round.collection),
                 most_voted_tx_hash=payload_data,
                 tx_submitter=DeployBasketTxRound.auto_round_id(),
             ),
@@ -336,7 +336,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         payload_data = "0x0"
 
         test_round = DeployVaultTxRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -362,7 +362,7 @@ class TestDeployVaultTxRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_voted_tx_hash=test_round.collection,
+                participant_to_voted_tx_hash=test_round.serialize_collection(test_round.collection),
                 most_voted_tx_hash=payload_data,
                 tx_submitter=DeployVaultTxRound.auto_round_id(),
             ),
@@ -403,7 +403,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
         payload_data = [0x0, 0x1, 0x2]
 
         test_round = BasketAddressRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -431,7 +431,7 @@ class TestBasketAddressRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_basket_addresses=test_round.collection,
+                participant_to_basket_addresses=test_round.serialize_collection(test_round.collection),
                 basket_addresses=payload_data,
             ),
         )
@@ -471,7 +471,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
         payload_data = 0x0
 
         test_round = PermissionVaultFactoryRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -499,7 +499,7 @@ class TestPermissionVaultFactoryRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_voted_tx_hash=test_round.collection,
+                participant_to_voted_tx_hash=test_round.serialize_collection(test_round.collection),
                 most_voted_tx_hash=payload_data,
                 tx_submitter=PermissionVaultFactoryRound.auto_round_id(),
             ),
@@ -540,7 +540,7 @@ class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
         payload_data = "no_permissioning"
 
         test_round = PermissionVaultFactoryRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -568,7 +568,7 @@ class TestSkipPermissionVaultFactoryRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_voted_tx_hash=test_round.collection,
+                participant_to_voted_tx_hash=test_round.serialize_collection(test_round.collection),
                 most_voted_tx_hash=payload_data,
                 tx_submitter=PermissionVaultFactoryRound.auto_round_id(),
             ),
@@ -609,7 +609,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
         payload_data = [0x0, 0x1, 0x2]
 
         test_round = VaultAddressRound(
-            synchronized_data=self.synchronized_data, consensus_params=self.consensus_params
+            synchronized_data=self.synchronized_data,
         )
 
         first_payload, *payloads = [
@@ -637,7 +637,7 @@ class TestVaultAddressRound(BaseRoundTestClass):
         actual_next_state = cast(
             SynchronizedData,
             self.synchronized_data.update(
-                participant_to_vault_addresses=test_round.collection,
+                participant_to_vault_addresses=test_round.serialize_collection(test_round.collection),
                 vault_addresses=payload_data,
             ),
         )

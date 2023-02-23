@@ -28,7 +28,7 @@ from aea.crypto.base import LedgerApi
 from aea_ledger_ethereum import EthereumApi
 from web3.types import Nonce, TxParams, Wei
 
-from packages.elcollectooorr.contracts.multicall2.contract import Multicall2Contract
+from packages.valory.contracts.multicall2.contract import Multicall2Contract
 
 
 _logger = logging.getLogger(
