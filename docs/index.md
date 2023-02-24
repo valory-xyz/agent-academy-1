@@ -22,7 +22,7 @@ In order to run a local demo of the El Collectooorr service:
 2. Fetch the El Collectooorr service.
 
 	```bash
-	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidtgf5qbukqzq54dqusl5lot76wh66gff5a4yzagvhtkjf7yhteeq --service
+	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeiawi2fozigz4okouycysmvzypns4sfy5b23jfyqfk2ddhjaeszte4 --service
 	```
 
 3. Build the Docker image of the service agents
@@ -59,28 +59,32 @@ In order to run a local demo of the El Collectooorr service:
         ]
         ```
 
-5. Prepare the environment and build the service deployment.
+   5. Prepare the environment and build the service deployment.
 
-	1. Create an `.env` file with the required environment variables.
+       1. Export the required environment variables.
 
-		```bash
-		SAFE_CONTRACT_ADDRESS=`["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]`
-		WHITELISTED_INVESTOR_ADDRESSES='["YOUR_WHITELIST"]'
-		SERVICE_ELCOLLECTOOORR_RPC_0="YOUR_RPC_URL"
-		SERVICE_ELCOLLECTOOORR_RPC_1="YOUR_RPC_URL"
-		SERVICE_ELCOLLECTOOORR_RPC_2="YOUR_RPC_URL"
-		SERVICE_ELCOLLECTOOORR_RPC_3="YOUR_RPC_URL"
-		```
-
-		where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `YOUR_WHITELIST`, `YOUR_RPC_URL_0` and `YOUR_RPC_URL_1` should be replaced accordingly.
-
-		Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe address of the El Collectooorr. You will be able to run the service by setting this address. However, any on-chain transaction will fail unless you have the operator keys.	
+           ```bash
+           export SAFE_CONTRACT_ADDRESS='["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]'
+           export WHITELISTED_INVESTOR_ADDRESSES='["YOUR_WHITELISTED_ADDRESS"]'
+           export SERVICE_ELCOLLECTOOORR_RPC_0="YOUR_RPC_URL"
+           export SERVICE_ELCOLLECTOOORR_RPC_1="YOUR_RPC_URL"
+           export SERVICE_ELCOLLECTOOORR_RPC_2="YOUR_RPC_URL"
+           export SERVICE_ELCOLLECTOOORR_RPC_3="YOUR_RPC_URL"
+           export ALL_PARTICIPANTS='[["0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65","0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc","0x976EA74026E726554dB657fA54763abd0C3a0aa9","0x14dC79964da2C08b23698B3D3cc7Ca32193d9955"]]'
+          ```
+           
+            where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `YOUR_WHITELISTED_ADDRESS`, `YOUR_RPC_URL` should be replaced accordingly.
+            Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe address of the El Collectooorr. You will be able to run the service by setting this address. However, any on-chain transaction will fail unless you have the operator keys.	
+   
+            !!! warning "Important" 
 	
-	2. Build the service deployment.
+		       The keys provided in this example are for testing purposes. You must ensure to use your own keys in the `keys.json` file, and ensure that the environment variable `ALL_PARTICIPANTS` matches their addresses.
+   
+       2. Build the service deployment.
 	
-    ```bash
-    autonomy deploy build keys.json --aev -ltm
-    ```
+          ```bash
+          autonomy deploy build keys.json --aev -ltm
+          ```
 
 6. Run the service.
 

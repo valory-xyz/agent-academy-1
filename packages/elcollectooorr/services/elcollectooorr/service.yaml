@@ -18,6 +18,7 @@ type: skill
       args:
         setup: &id001
           safe_contract_address: ${SAFE_CONTRACT_ADDRESS:list:[]}
+          all_participants: ${ALL_PARTICIPANTS:list:[["0x0000000000000000000000000000000000000000"]]}
         consensus: &id002
           max_participants: 4
         decision_model_threshold: 0.8
