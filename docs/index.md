@@ -15,14 +15,14 @@ In order to run a local demo of the El Collectooorr service:
     mkdir your_workspace && cd your_workspace
     touch Pipfile && pipenv --python 3.10 && pipenv shell
 
-    pipenv install open-autonomy[all]==0.9.0
+    pipenv install open-autonomy[all]==0.9.1
     autonomy init --remote --ipfs --reset --author=your_name
     ```
 
 2. Fetch the El Collectooorr service.
 
 	```bash
-	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeihtdv5dyi7tguz73m4rbwqvs4b4mydj5uri4vqivypysreicf45je --service
+	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidtgf5qbukqzq54dqusl5lot76wh66gff5a4yzagvhtkjf7yhteeq --service
 	```
 
 3. Build the Docker image of the service agents
