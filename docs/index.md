@@ -77,7 +77,8 @@ In order to run a local demo of the El Collectooorr service:
             Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe address of the El Collectooorr. You will be able to run the service by setting this address. However, any on-chain transaction will fail unless you have the operator keys.	
    
 		!!! warning "Important" 
-		The keys provided in this example are for testing purposes. You must ensure to use your own keys in the `keys.json` file, and ensure that the environment variable `ALL_PARTICIPANTS` matches their addresses.
+		
+			The keys provided in this example are for testing purposes. You must ensure to use your own keys in the `keys.json` file, and ensure that the environment variable `ALL_PARTICIPANTS` matches their addresses.
    
        2. Build the service deployment.
 	
