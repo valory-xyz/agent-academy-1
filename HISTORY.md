@@ -1,5 +1,8 @@
 # Release History - `agent-academy-1`
 
+## v0.7.0 (2023-02-24)
+* bump to `open-autonomy@v0.9.1`
+
 ## v0.6.0 (2023-01-24)
 * bump to `open-autonomy@v0.8.0`
 
