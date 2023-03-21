@@ -63,8 +63,10 @@ jobs:
           sudo apt-get autoclean
           pip install tomte[tox]==0.2.2
           pip install --upgrade setuptools==60.10.0
-      - name: Check copyright
+      - name: Check copyright headers
         run: tox -e check-copyright
+      - name: License compatibility check
+        run: tox -e liccheck
       - name: Check readme
         run: tox -e check-readme
       - name: Check doc links and IPFS hashes
@@ -126,7 +128,7 @@ jobs:
         run: tox -e pylint
       - name: Check spelling
         run: tox -e spell-check
-      
+
   scan:
     name: gitleaks
     runs-on: ubuntu-latest
