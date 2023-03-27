@@ -79,7 +79,7 @@ from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants impor
 from packages.elcollectooorr.agents.elcollectooorr.tests.helpers.constants import (
     TOKEN_VAULT_FACTORY_ADDRESS as _DEFAULT_TOKEN_VAULT_FACTORY_ADDRESS,
 )
-from packages.valory.skills.abstract_round_abci.models import MIN_OBSERVATION_INTERVAL
+from packages.valory.skills.abstract_round_abci.models import MIN_RESET_PAUSE_DURATION
 
 
 ONE_ETH = 10 ** 18
@@ -138,16 +138,15 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
         },
         {
             "dotted_path": f"{__args_prefix}.setup.safe_contract_address",
-            "value": json.dumps([SAFE_CONTRACT_ADDRESS]),
-            "type_": "list",
+            "value": SAFE_CONTRACT_ADDRESS,
         },
         {
             "dotted_path": f"{__args_prefix}.multicall2_contract_address",
             "value": MULTICALL2_ADDRESS,
         },
         {
-            "dotted_path": f"{__args_prefix}.observation_interval",
-            "value": MIN_OBSERVATION_INTERVAL,
+            "dotted_path": f"{__args_prefix}.reset_pause_duration",
+            "value": MIN_RESET_PAUSE_DURATION,
         }
     ]
 

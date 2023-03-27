@@ -7,8 +7,9 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeidf5guoqk6nwmu4adoq3egd5nmr3ojfwmkr4yighjwm5ap2xsvkfq
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeib63vuivigdd5vccw2ri6eahmrrxjvwhghcq2lbwkwxdqbodybn6e
 number_of_agents: 4
+deployment: {}
 ---
 public_id: elcollectooorr/elcollectooorr_abci:0.1.0
 type: skill
@@ -17,60 +18,60 @@ type: skill
     params:
       args:
         setup: &id001
-          safe_contract_address: ${SAFE_CONTRACT_ADDRESS:list:[]}
-          all_participants: ${ALL_PARTICIPANTS:list:[["0x0000000000000000000000000000000000000000"]]}
-        consensus: &id002
-          max_participants: 4
+          safe_contract_address: ${SAFE_CONTRACT_ADDRESS:str:"0x0000000000000000000000000000000000000000"}
+          all_participants: ${ALL_PARTICIPANTS:list:["0x0000000000000000000000000000000000000000"]}
+          consensus_threshold: ${CONSENSUS_THRESHOLD:int:null}
         decision_model_threshold: 0.8
         whitelisted_investor_addresses: ${WHITELISTED_INVESTOR_ADDRESSES:list:[]}
-        observation_interval: 300
+        reset_pause_duration: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_0:str:node0:26656}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
+        use_termination: ${ENABLE_TERMINATION:bool:true}
 1:
   models:
     params:
       args:
         setup: *id001
-        consensus: *id002
         decision_model_threshold: 0.8
         whitelisted_investor_addresses: ${WHITELISTED_INVESTOR_ADDRESSES:list:[]}
-        observation_interval: 300
+        reset_pause_duration: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_1:str:node1:26666}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
+        use_termination: ${ENABLE_TERMINATION:bool:true}
 2:
   models:
     params:
       args:
         setup: *id001
-        consensus: *id002
         decision_model_threshold: 0.8
         whitelisted_investor_addresses: ${WHITELISTED_INVESTOR_ADDRESSES:list:[]}
-        observation_interval: 300
+        reset_pause_duration: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_2:str:node2:26676}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
+        use_termination: ${ENABLE_TERMINATION:bool:true}
 3:
   models:
     params:
       args:
         setup: *id001
-        consensus: *id002
         decision_model_threshold: 0.8
         whitelisted_investor_addresses: ${WHITELISTED_INVESTOR_ADDRESSES:list:[]}
-        observation_interval: 300
+        reset_pause_duration: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_3:str:node3:26686}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
+        use_termination: ${ENABLE_TERMINATION:bool:true}
 ---
 public_id: valory/ledger:0.19.0
 type: connection

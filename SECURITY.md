@@ -6,9 +6,10 @@ This document outlines security procedures and general policies for the `agent-a
 
 The following table shows which versions of `agent-academy-1` are currently being supported with security updates.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| `0.1.0` | :white_check_mark: |
+| Version    | Supported          |
+|------------| ------------------ |
+| `v0.8.0`   | :white_check_mark: |
+| `< v0.8.0` | :x:                |
 
 ## Reporting a Vulnerability
 
