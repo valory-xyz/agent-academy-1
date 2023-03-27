@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeibh67i5kihv42bv5mqexl6ihx65rsz2od4qdqvoad5rg273gytaom
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeib63vuivigdd5vccw2ri6eahmrrxjvwhghcq2lbwkwxdqbodybn6e
 number_of_agents: 4
 deployment: {}
 ---
@@ -29,7 +29,7 @@ type: skill
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
-        use_termination: ${ENABLE_TERMINATION:true}
+        use_termination: ${ENABLE_TERMINATION:bool:true}
 1:
   models:
     params:
