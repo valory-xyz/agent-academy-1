@@ -86,7 +86,7 @@ These steps only work for operators registered on-chain!
       Ensure you have set the following environment variables:
 
       ```bash
-      export SAFE_CONTRACT_ADDRESS=`["0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"]`
+      export SAFE_CONTRACT_ADDRESS="0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a"
       export WHITELISTED_INVESTOR_ADDRESSES='["YOUR_WHITELIST"]'
       export SERVICE_ELCOLLECTOOORR_RPC_0="YOUR_RPC_URL"
       export SERVICE_ELCOLLECTOOORR_RPC_1="YOUR_RPC_URL"

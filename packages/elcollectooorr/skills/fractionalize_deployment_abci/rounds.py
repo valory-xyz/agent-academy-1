@@ -458,7 +458,7 @@ class PostBasketDeploymentAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = {get_name(SynchronizedData.basket_addresses)}
+    cross_period_persisted_keys = frozenset({get_name(SynchronizedData.basket_addresses)})
     db_pre_conditions: Dict[AppState, Set[str]] = {BasketAddressRound: set()}
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedPostBasketRound: {get_name(SynchronizedData.most_voted_tx_hash), get_name(SynchronizedData.basket_addresses)},
@@ -510,7 +510,7 @@ class PostVaultDeploymentAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = {get_name(SynchronizedData.vault_addresses)}
+    cross_period_persisted_keys = frozenset({get_name(SynchronizedData.vault_addresses)})
     db_pre_conditions: Dict[AppState, Set[str]] = {VaultAddressRound: set()}
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedPostVaultRound: {get_name(SynchronizedData.vault_addresses)},

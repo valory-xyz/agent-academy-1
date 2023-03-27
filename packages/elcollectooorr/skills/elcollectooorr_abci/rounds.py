@@ -530,7 +530,7 @@ class FinishedElCollectoorBaseRound(DegenerateRound):
     """This class represents the finished round during operation."""
 
 
-class FinishedElCollectooorrWithoutPurchase(DegenerateRound):
+class FinishedElCollectooorrWithoutPurchaseRound(DegenerateRound):
     """This class represents the end of the Elcollectooorr Base ABCI App when there is no purchase to be made."""
 
 
@@ -541,7 +541,7 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
     transition_function: AbciAppTransitionFunction = {
         ObservationRound: {
             Event.DONE: DetailsRound,
-            Event.NO_ACTIVE_PROJECTS: FinishedElCollectooorrWithoutPurchase,
+            Event.NO_ACTIVE_PROJECTS: FinishedElCollectooorrWithoutPurchaseRound,
             Event.ROUND_TIMEOUT: ObservationRound,
             Event.NO_MAJORITY: ObservationRound,
             Event.ERROR: ObservationRound,
@@ -550,13 +550,13 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
             Event.DONE: DecisionRound,
             Event.ROUND_TIMEOUT: DecisionRound,
             Event.NO_MAJORITY: DecisionRound,
-            Event.ERROR: FinishedElCollectooorrWithoutPurchase,
+            Event.ERROR: FinishedElCollectooorrWithoutPurchaseRound,
         },
         DecisionRound: {
             Event.DECIDED_YES: TransactionRound,
-            Event.DECIDED_NO: FinishedElCollectooorrWithoutPurchase,
-            Event.ROUND_TIMEOUT: FinishedElCollectooorrWithoutPurchase,
-            Event.NO_MAJORITY: FinishedElCollectooorrWithoutPurchase,
+            Event.DECIDED_NO: FinishedElCollectooorrWithoutPurchaseRound,
+            Event.ROUND_TIMEOUT: FinishedElCollectooorrWithoutPurchaseRound,
+            Event.NO_MAJORITY: FinishedElCollectooorrWithoutPurchaseRound,
         },
         TransactionRound: {
             Event.DONE: FinishedElCollectoorBaseRound,
@@ -565,27 +565,27 @@ class ElcollectooorrBaseAbciApp(AbciApp[Event]):
             Event.ERROR: ObservationRound,
         },
         FinishedElCollectoorBaseRound: {},
-        FinishedElCollectooorrWithoutPurchase: {},
+        FinishedElCollectooorrWithoutPurchaseRound: {},
     }
     final_states: Set[AppState] = {
         FinishedElCollectoorBaseRound,
-        FinishedElCollectooorrWithoutPurchase,
+        FinishedElCollectooorrWithoutPurchaseRound,
     }
     event_to_timeout: Dict[Event, float] = {
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = {
+    cross_period_persisted_keys = frozenset({
         get_name(SynchronizedData.finished_projects),
         get_name(SynchronizedData.active_projects),
         get_name(SynchronizedData.inactive_projects),
         get_name(SynchronizedData.most_recent_project),
         get_name(SynchronizedData.purchased_projects),
-    }
+    })
     db_pre_conditions: Dict[AppState, Set[str]] = {ObservationRound: set()}
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedElCollectoorBaseRound: {get_name(SynchronizedData.most_voted_tx_hash)},
-        FinishedElCollectooorrWithoutPurchase: set(),
+        FinishedElCollectooorrWithoutPurchaseRound: set(),
     }
 
 
@@ -696,7 +696,7 @@ class TransferNFTAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = {get_name(SynchronizedData.purchased_projects)}
+    cross_period_persisted_keys = frozenset({get_name(SynchronizedData.purchased_projects)})
     db_pre_conditions: Dict[AppState, Set[str]] = {ProcessPurchaseRound: set()}
     db_post_conditions: Dict[AppState, Set[str]] = {
         FailedPurchaseProcessingRound: set(),
@@ -800,7 +800,7 @@ class BankAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = {get_name(SynchronizedData.most_voted_funds)}
+    cross_period_persisted_keys = frozenset({get_name(SynchronizedData.most_voted_funds)})
     db_pre_conditions: Dict[AppState, Set[str]] = {FundingRound: set()}
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedBankWithPayoutsRounds: {get_name(SynchronizedData.most_voted_tx_hash)},
@@ -864,7 +864,7 @@ class PostFractionPayoutAbciApp(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = {get_name(SynchronizedData.paid_users)}
+    cross_period_persisted_keys = frozenset({get_name(SynchronizedData.paid_users)})
     db_pre_conditions: Dict[AppState, Set[str]] = {PostPayoutRound: set()}
     db_post_conditions: Dict[AppState, Set[str]] = {
         FinishedPostPayoutRound: set(),
@@ -985,7 +985,7 @@ class TransactionSettlementAbciMultiplexer(AbciApp[Event]):
         Event.ROUND_TIMEOUT: 30.0,
         Event.RESET_TIMEOUT: 30.0,
     }
-    cross_period_persisted_keys = {get_name(SynchronizedData.amount_spent)}
+    cross_period_persisted_keys = frozenset({get_name(SynchronizedData.amount_spent)})
     db_pre_conditions: Dict[AppState, Set[str]] = {PostTransactionSettlementRound: set()}
     db_post_conditions: Dict[AppState, Set[str]] = {
         ErrorneousRound: set(),
@@ -1060,7 +1060,7 @@ class ResyncAbciApp(AbciApp[Event]):
 el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedRegistrationRound: ResyncAbciApp.initial_round_cls,
     FinishedElCollectoorBaseRound: TransactionSubmissionAbciApp.initial_round_cls,
-    FinishedElCollectooorrWithoutPurchase: ResetPauseAbciApp.initial_round_cls,
+    FinishedElCollectooorrWithoutPurchaseRound: ResetPauseAbciApp.initial_round_cls,
     FinishedResyncRound: DeployBasketAbciApp.initial_round_cls,
     FinishedTransactionSubmissionRound: PostTransactionSettlementRound,
     FinishedDeployVaultTxRound: TransactionSubmissionAbciApp.initial_round_cls,

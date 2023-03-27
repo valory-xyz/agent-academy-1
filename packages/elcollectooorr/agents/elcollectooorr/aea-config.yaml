@@ -105,8 +105,8 @@ public_id: valory/abci:0.1.0
 type: connection
 config:
   target_skill_id: elcollectooorr/elcollectooorr_abci:0.1.0
-  host: ${ABCI_HOST:str:localhost}
-  port: ${ABCI_PORT:int:26658}
+  host: ${str:localhost}
+  port: ${int:26658}
   use_tendermint: ${ABCI_USE_TENDERMINT:bool:false}
 ---
 public_id: valory/p2p_libp2p_client:0.1.0
@@ -135,13 +135,11 @@ models:
       basket_factory_address: '0xde771104C0C44123d22D39bB716339cD0c3333a1'
       budget_per_vault: 10500000000000000000
       cleanup_history_depth: 1
-      consensus:
-        max_participants: ${MAX_PARTICIPANTS:int:1}
       decision_model_threshold: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_DECISION_MODEL_THRESHOLD:float:0.0}
       setup:
-        safe_contract_address: ${list:[]}
+        safe_contract_address: ${str:null}
         all_participants: ${list:[]}
-        consensus_threshold: ${list:[null]}
+        consensus_threshold: ${int:null}
       decision_model_type: 'yes'
       drand_public_key: 868f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31
       enforce_investor_whitelisting: true
@@ -153,7 +151,7 @@ models:
       max_purchase_per_project: 1
       max_retries: 5
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
-      observation_interval: 300
+      reset_pause_duration: 300
       on_chain_service_id: 1
       reset_tendermint_after: 60
       retry_attempts: 400
@@ -172,6 +170,7 @@ models:
       tendermint_p2p_url: ${str:localhost:26656}
       tendermint_com_url: ${TENDERMINT_COM_URL:str:http://localhost:8080}
       token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
+      use_termination: ${bool:false}
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
       whitelisted_investor_addresses: ${SKILL_ELCOLLECTOOORR_ABCI_MODELS_PARAMS_ARGS_WHITELISTED_INVESTOR_ADDRESSES:list:[]}
