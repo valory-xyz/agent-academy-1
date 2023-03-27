@@ -14,7 +14,7 @@ class_name: ArtBlocksContract
 contract_interface_paths:
   ethereum: build/artblocks.json
 contracts:
-- valory/multicall2:0.1.0:bafybeiaegx2j5w6le2fhvzmx7stzujuezqfvicvnyqebtipivkek2cgh7m
+- valory/multicall2:0.1.0:bafybeih5dd66eslm7rvcewoo6wqwu2flpo7zjygr4zvldfkicoqjq5nhpi
 dependencies:
   open-aea-ledger-ethereum:
     version: ==1.31.0
