@@ -1,5 +1,8 @@
 # Release History - `agent-academy-1`
 
+## v0.8.0.post1 (2023-03-27)
+* Bumps to `open-autonomy@v0.10.0.post2` #198
+  
 ## v0.8.0 (2023-03-27)
 * Bumps to `open-autonomy@v0.10.0.post1`, `open-aea@1.31.0` and `tomte@0.2.4` #198
 * Adds licence check #197
