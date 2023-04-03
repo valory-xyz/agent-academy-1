@@ -1,0 +1,17 @@
+token_id-"component_id"
+23-"contract/elcollectooorr/artblocks:0.1.0"
+24-"contract/elcollectooorr/artblocks_minter_filter:0.1.0"
+25-"contract/elcollectooorr/artblocks_periphery:0.1.0"
+26-"contract/elcollectooorr/basket_factory:0.1.0"
+27-"contract/elcollectooorr/basket:0.1.0"
+28-"contract/elcollectooorr/token_settings:0.1.0"
+29-"contract/elcollectooorr/token_vault_factory:0.1.0"
+30-"contract/elcollectooorr/token_vault:0.1.0"
+31-"skill/elcollectooorr/fractionalize_deployment_abci:0.1.0"
+32-"skill/elcollectooorr/elcollectooorr_abci:0.1.0"
+---
+token_id-"agent_id"
+2-"agent/elcollectooorr/elcollectooorr/0.1.0"
+---
+token_id-"service_id"
+1-"service/elcollectooorr/elcollectooorr/0.1.0"
