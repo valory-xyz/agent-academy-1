@@ -152,7 +152,7 @@ models:
       max_retries: 5
       multisend_address: '0xA238CBeb142c10Ef7Ad8442C6D1f9E89e07e7761'
       reset_pause_duration: 300
-      on_chain_service_id: 1
+      on_chain_service_id: ${int:1}
       reset_tendermint_after: 60
       retry_attempts: 400
       retry_timeout: 3
