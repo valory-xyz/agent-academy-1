@@ -78,9 +78,9 @@ jobs:
               autonomy init --reset --author $AUTHOR --ipfs --remote
               autonomy fetch $AUTHOR/$SERVICE --service --local || exit 1
               cd $SERVICE || exit 1
-              autonomy build-image || exit 1
-              autonomy build-image --version $VERSION || exit 1
-
+              autonomy build-image --image-author $DOCKER_USER || exit 1
+              docker tag $DOCKER_USER/oar-$SERVICE:$DEFAULT_IMAGE_TAG $DOCKER_USER/oar-$SERVICE:$VERSION || exit 1
+              docker tag $DOCKER_USER/oar-$SERVICE:$DEFAULT_IMAGE_TAG $DOCKER_USER/oar-$SERVICE:latest || exit 1
 
       - name: Docker login
         run: |
@@ -88,8 +88,9 @@ jobs:
       - name: Docker Push
         run: |
           source env.sh
-          echo "Pushing $DOCKER_USER/$SERVICE:$VERSION"
-          echo "Pushing $DOCKER_USER/$SERVICE:$DEFAULT_IMAGE_TAG"
-          docker push $DOCKER_USER/oar-$SERVICE:$VERSION
-          docker push $DOCKER_USER/oar-$SERVICE:$DEFAULT_IMAGE_TAG
-
+          for TAG in $VERSION $DEFAULT_IMAGE_TAG latest
+          do
+              IMAGE_NAME="$DOCKER_USER/oar-$SERVICE:$TAG"
+              echo "Pushing $IMAGE_NAME"
+              docker push $IMAGE_NAME
+          done
