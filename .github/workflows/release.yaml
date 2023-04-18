@@ -79,7 +79,7 @@ jobs:
               autonomy init --reset --author $AUTHOR --ipfs --remote
               autonomy fetch $AUTHOR/$SERVICE --service --local || exit 1
               cd $SERVICE || exit 1
-              autonomy build-image --image-author $DOCKER_USER || exit 1
+              autonomy build-image --image-author valory || exit 1
 
       - name: Docker login
         run: |
