@@ -1,5 +1,21 @@
 # Release History - `agent-academy-1`
 
+## v0.9.2 (2023-05-08)
+
+* Bumps to `open-autonomy@v0.10.3` #210
+
+## v0.9.1 (2023-04-25)
+
+* Bumps to `open-autonomy@v0.10.2` #207
+
+## v0.9.0 (2023-04-18)
+
+* Bumps to `open-autonomy@v0.10.1` #206
+* Fixes release workflow #205
+
+## v0.8.0.post2 (2023-04-11)
+* Makes `on_chain_service_id` configurable #204
+
 ## v0.8.0.post1 (2023-03-31)
 * Bumps to `open-autonomy@v0.10.0.post2` #203
   
