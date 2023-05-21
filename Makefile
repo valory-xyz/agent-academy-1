@@ -64,7 +64,7 @@ code-checks:
 # bandit: security linter
 .PHONY: security
 security:
-	tomte safety
+	tomte check-security
 
 # generate latest abci docstrings
 # generate latest hashes for updated packages
