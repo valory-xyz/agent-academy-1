@@ -129,7 +129,7 @@ jobs:
       - name: Pylint
         run: tox -e pylint
       - name: Check spelling
-        run: tox -e spell-check
+        run: tomte check-spelling
 
   scan:
     name: gitleaks
