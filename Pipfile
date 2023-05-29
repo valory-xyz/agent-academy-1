@@ -25,7 +25,7 @@ open-aea-ledger-cosmos = "==1.33.0"
 open-aea-cli-ipfs = "==1.33.0"
 open-aea-test-autonomy = "==0.10.3"
 open-autonomy = {version = "==0.10.3", extras = ["all"]}
-tomte = {version = "==0.2.4", extras = ["tox", "tests"]}
+tomte = {version = "==0.2.11", extras = ["tests", "cli"]}
 
 [requires]
 python_version = "3.10"

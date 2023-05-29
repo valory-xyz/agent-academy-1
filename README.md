@@ -8,6 +8,7 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 ## Cloning
 
 - Clone the repository:
+
     ```bash
     git clone git@github.com:valory-xyz/agent-academy-1.git
     ```
@@ -18,12 +19,14 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 
 - Pull pre-built images:
 
-      docker pull node:16.7.0
-      docker pull trufflesuite/ganache:beta
-      docker pull valory/elcollectooorr-network:latest
-      docker pull valory/open-autonomy-tendermint:latest
-      docker pull valory/open-autonomy:latest
-      docker pull valory/open-autonomy-user:latest
+    ```bash
+    docker pull node:16.7.0
+    docker pull trufflesuite/ganache:beta
+    docker pull valory/elcollectooorr-network:latest
+    docker pull valory/open-autonomy-tendermint:latest
+    docker pull valory/open-autonomy:latest
+    docker pull valory/open-autonomy-user:latest
+    ```
 
 - Create a virtual environment with all development dependencies:
 
@@ -39,12 +42,15 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
 
 - Fetch packages:
 
-      autonomy packages sync --update-packages
+    ```bash
+    autonomy packages sync --update-packages
+    ```
 
 - Optionally: run all checks 
 
-      tox
-      
+    ```bash
+    tox
+    ```
 
 ## Running El Collectooorr as a service
 
@@ -133,6 +139,6 @@ as `make common-checks-1`. To run all tests use `make test`. Or simply use `tox`
 ### Running a fork of Ethereum
 
 You can run a fork of Ethereum Mainnet via [Ganache](https://github.com/trufflesuite/ganache) in the following way:
-```
+```bash
 ganache --fork.network mainnet
 ```
