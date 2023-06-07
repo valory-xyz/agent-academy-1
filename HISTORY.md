@@ -1,7 +1,9 @@
 # Release History - `agent-academy-1`
 
-## (TBD)
+## 0.9.3 (2023-06-07)
 
+* Bumps to `open-autonomy@v0.10.5.post2` #214
+* Bumps to `open-aea@v1.34.0` && `open-autonomy@v0.10.5.post1` #213
 * Bumps to `tomte@v0.2.11` #212
 
 ## v0.9.2 (2023-05-08)

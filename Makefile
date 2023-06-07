@@ -72,9 +72,10 @@ security:
 .PHONY: generators
 generators:
 	tox -e abci-docstrings
-	tomte fixformat-copyright --author elcollectooorr
+	tomte format-copyright --author elcollectooorr
 	autonomy hash all
 	autonomy packages lock
+	tox -e fix-doc-hashes
 
 .PHONY: common-checks-1
 common-checks-1:

@@ -8,8 +8,8 @@ The following table shows which versions of `agent-academy-1` are currently bein
 
 | Version    | Supported          |
 |------------|--------------------|
-| `v0.9.0`   | :white_check_mark: |
-| `< v0.9.0` | :x:                |
+| `v0.9.3`   | :white_check_mark: |
+| `< v0.9.3` | :x:                |
 
 ## Reporting a Vulnerability
 
