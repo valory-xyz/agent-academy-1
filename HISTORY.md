@@ -1,5 +1,10 @@
 # Release History - `agent-academy-1`
 
+## 0.9.5 (2023-06-26)
+
+* Bumps to `open-aea@v1.35.0` && `open-autonomy@v0.10.7` #217
+* Fixes olas links #216
+
 ## 0.9.4 (2023-06-19)
 
 * Bumps to `open-autonomy@v0.10.6` #215
