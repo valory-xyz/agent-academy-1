@@ -2,6 +2,7 @@
 
 ## 0.9.5 (2023-06-26)
 
+* Fixes `web3` dependency #218
 * Bumps to `open-aea@v1.35.0` && `open-autonomy@v0.10.7` #217
 * Fixes olas links #216
 
