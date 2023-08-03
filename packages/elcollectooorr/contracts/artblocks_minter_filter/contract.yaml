@@ -17,6 +17,6 @@ contracts:
 - valory/multicall2:0.1.0:bafybeiey2nftajodtjwxhdcjhyhedn4nipixfvccrewiu4aebh3sbdqqm4
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.35.0
+    version: ==1.37.0
   web3:
     version: ==5.31.4
