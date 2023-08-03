@@ -14,7 +14,7 @@ fingerprint:
   tests/test_contract.py: bafybeigopcgatpmvxk7exysrocbp36axrlnvti5rx75l2px2eq6jxzhwvm
 fingerprint_ignore_patterns: []
 contracts:
-- elcollectooorr/basket_factory:0.1.0:bafybeie27vulj6frw6mvz546blnyeda6v3y6cvkmuyjcm4y7tmvrifvlay
+- elcollectooorr/basket_factory:0.1.0:bafybeib6i2uhb7euis6ocpbpe2hedrs4t67rfmupe7lashyffho266ffjy
 class_name: BasketContract
 contract_interface_paths:
   ethereum: build/Basket.json
