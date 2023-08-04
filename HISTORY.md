@@ -1,5 +1,9 @@
 # Release History - `agent-academy-1`
 
+## 0.9.6 (2023-08-03)
+
+* Bumps to `open-aea@v1.37.0` && `open-autonomy@v0.10.10.post1` #219
+
 ## 0.9.5 (2023-06-26)
 
 * Fixes `web3` dependency #218

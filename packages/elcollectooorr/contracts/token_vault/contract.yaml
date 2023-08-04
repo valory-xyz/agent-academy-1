@@ -12,13 +12,13 @@ fingerprint:
   contract.py: bafybeigtduehmywbipyr465i7gleb653lw3rg7gnb7hzaftdwxfle7pdpi
 fingerprint_ignore_patterns: []
 contracts:
-- elcollectooorr/token_vault_factory:0.1.0:bafybeihyjwan2jbrbvokb776d2wjujp6nl6qi52arxbpjwhilshvprv5oi
+- elcollectooorr/token_vault_factory:0.1.0:bafybeiatj6mo2clnhv3hlncstzdwp33gvds552pon43vqy22oj36cimx5i
 class_name: TokenVaultContract
 contract_interface_paths:
   ethereum: build/TokenVault.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.35.0
+    version: ==1.37.0
   py-eth-sig-utils: {}
   web3:
     version: ==5.31.4

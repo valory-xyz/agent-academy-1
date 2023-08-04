@@ -19,7 +19,7 @@ contract_interface_paths:
   ethereum: build/BasketFactory.json
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.35.0
+    version: ==1.37.0
   py-eth-sig-utils: {}
   web3:
     version: ==5.31.4
