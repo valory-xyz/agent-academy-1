@@ -9,10 +9,10 @@ fingerprint:
   README.md: bafybeihkxnnr72tylr2wk3gwsj2ugqcv64vwwac3njhyz4g7vuq6ttod44
   __init__.py: bafybeibto4ar2ljo4mtsq6hl7i524ignnxpzhwpbfftueihdnpqvmcw3vi
   build/TokenVault.json: bafybeih27h2cvvfhymipkfgma7poctswwrbzwunfsf2y26pbnti566pxvu
-  contract.py: bafybeigtduehmywbipyr465i7gleb653lw3rg7gnb7hzaftdwxfle7pdpi
+  contract.py: bafybeihcrjjfgkvqpmcq3jdcsmbipho4wmrd5wkhda2pjxblfecq44sfby
 fingerprint_ignore_patterns: []
 contracts:
-- elcollectooorr/token_vault_factory:0.1.0:bafybeicuzqrksvkxo3sjzpgy76kmbq6bsqggpcprhzpbda6v7o4ptonvae
+- elcollectooorr/token_vault_factory:0.1.0:bafybeidxm4elfgl4omf6wlaevvcuyrkmpst3k3klonmp7foubsx2x7cmea
 class_name: TokenVaultContract
 contract_interface_paths:
   ethereum: build/TokenVault.json

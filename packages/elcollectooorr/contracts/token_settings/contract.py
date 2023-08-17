@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -168,7 +168,7 @@ class TokenSettingsContract(Contract):
 
         transaction_dict = settings_contract.functions.transferOwnership(
             new_owner_address
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return transaction_dict
 
@@ -234,7 +234,7 @@ class TokenSettingsContract(Contract):
 
         raw_tx = settings_contract.functions.setFeeReceiver(
             new_receiver_address
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 

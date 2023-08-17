@@ -300,7 +300,7 @@ class TokenVaultFactoryContract(Contract):
             token_supply,
             list_price,
             fee,
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -345,7 +345,7 @@ class TokenVaultFactoryContract(Contract):
             sender_address,
         )
 
-        raw_tx = token_vault_contract.functions.pause().buildTransaction(tx_parameters)
+        raw_tx = token_vault_contract.functions.pause().build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -390,7 +390,7 @@ class TokenVaultFactoryContract(Contract):
             sender_address,
         )
 
-        raw_tx = token_vault_contract.functions.renounceOwnership().buildTransaction(
+        raw_tx = token_vault_contract.functions.renounceOwnership().build_transaction(
             tx_parameters
         )
 
@@ -441,7 +441,7 @@ class TokenVaultFactoryContract(Contract):
 
         raw_tx = token_vault_contract.functions.transferOwnership(
             new_owner_address
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -486,7 +486,7 @@ class TokenVaultFactoryContract(Contract):
             sender_address,
         )
 
-        raw_tx = token_vault_contract.functions.unpause().buildTransaction(
+        raw_tx = token_vault_contract.functions.unpause().build_transaction(
             tx_parameters
         )
 
@@ -658,8 +658,8 @@ class TokenVaultFactoryContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         contract = cls.get_instance(ledger_api, contract_address)
-        receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
-        logs = contract.events.Mint().processReceipt(receipt)
+        receipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
+        logs = contract.events.Mint().process_receipt(receipt)
 
         if len(logs) == 0:
             _logger.error(f"No 'Mint' events were emitted in the tx={tx_hash}")

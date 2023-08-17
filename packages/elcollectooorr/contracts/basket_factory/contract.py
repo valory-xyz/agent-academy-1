@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ class BasketFactoryContract(Contract):
         if nonce is None:
             raise ValueError("No nonce returned.")  # pragma: nocover
 
-        raw_tx = factory_contract.functions.createBasket().buildTransaction(
+        raw_tx = factory_contract.functions.createBasket().build_transaction(
             tx_parameters
         )
 
@@ -167,8 +167,8 @@ class BasketFactoryContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         contract = cls.get_instance(ledger_api, contract_address)
-        receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
-        logs = contract.events.NewBasket().processReceipt(receipt)
+        receipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
+        logs = contract.events.NewBasket().process_receipt(receipt)
 
         if len(logs) == 0:
             _logger.error(f"No 'NewBasket' events were emitted in the tx={tx_hash}")

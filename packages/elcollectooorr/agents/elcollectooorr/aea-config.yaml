@@ -7,11 +7,11 @@ aea_version: '>=1.0.0, <2.0.0'
 fingerprint:
   __init__.py: bafybeidulnstm63bgmfo34rd74xqcvf36o7ly7w7s4bylr4afbclnogn6q
   tests/__init__.py: bafybeiek3wepzhlahicjtjqrnxg7zis5cdy4y6ixemjklisocxtbgnpkqm
-  tests/conftest.py: bafybeihrv4kjnm653qlwocnbv66y7ufxipvsihpzgpdjyx76dx3qjpsdtm
+  tests/conftest.py: bafybeig5kczh6oi6lzdvug4ost2konoox75ki4jymeujsjozzqctqhngwa
   tests/data/json_server/data.json: bafybeibg6rfceitizdby4o2dhvpnlc64tdeustfxawliodviomrdltqrg4
   tests/fixture_helpers.py: bafybeiftrapue6wb6dv6wfsdhuaxc2prn6fzltcdbrynnvbpvyqkzzvyau
   tests/helpers/__init__.py: bafybeifzu3wezqxxzwznjug3xwqlumu76fmdvj7aiywutqgrakbxzimu3i
-  tests/helpers/artblocks_utils.py: bafybeid7gcxt7t42oc5k74ddpx5cpyciwkfegmjrdcbrcfoqq3c4wxfquy
+  tests/helpers/artblocks_utils.py: bafybeibcyv4mp5xrkepsqlhgq5okz2hbjlose6w6wra75exhoxzcbdfkbi
   tests/helpers/constants.py: bafybeidzusrogrrpltcvbth6t7ceuhzkotcj6aqy77ew3mnxsd6midntcm
   tests/helpers/docker/__init__.py: bafybeidakk3cxongkwm6pkuokufzpqr2ms2fvnecmdpxdm5lk7d2ko244q
   tests/helpers/docker/elcol_net.py: bafybeia3rzjwwc3isxqnzh6b33lf2m3psuzxj4jlrx7zwomzctxzy6sqoy
@@ -20,7 +20,7 @@ fingerprint:
   tests/helpers/hardhat/hardhat.config.js: bafybeiag3rxhb2luzd4nr6whsti7wtlnvzlm32gctq45p6xfwmsyijpe54
   tests/helpers/hardhat/package.json: bafybeifjyofuzq66sjjtxdynvy4be5rxzkiuwyntjibrjvsrly5ddeai64
   tests/test_agents/__init__.py: bafybeifocm5xbm4nryrzkmzot4bzfnrcnc7nggepgsywterkgw4f44awfi
-  tests/test_agents/base_elcollectooorr.py: bafybeie5kyqqrroitn24bgtjfyjoejncttsjog7cplc4zefoxgd7rjiw6a
+  tests/test_agents/base_elcollectooorr.py: bafybeiefd5ojyjvujjitygp5s5z6eryi7fbfikhsu27fqqtx6up6dmaoyi
   tests/test_agents/test_elcollectooorr_abci.py: bafybeiecsznoutrwxoftf4iu2sesezfxuyzvpyahsv5wnl54hb5xvsp5wa
   tests/test_fractionalize_deployment_abci/__init__.py: bafybeifpwsaub3khxsixvj6yc2b7zlmkpt3h6m2q65x2zmmo6uvcbpdgpm
   tests/test_fractionalize_deployment_abci/test_behaviours.py: bafybeid74vtqghw3uykuufsso5xxtin57v7s4d2p4euxqyiw7q4cop5qqy
@@ -39,13 +39,13 @@ connections:
 - valory/ledger:0.19.0:bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a
 - valory/p2p_libp2p_client:0.1.0:bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeih45mi4rp5bjxcfdpl7pshrckrkx2i6epp3lmkkl3n2fj6x3ov7yi
+- elcollectooorr/artblocks:0.1.0:bafybeifdyj3eqy65smqscqqbsamr4q6e4ebfs3jj54au6tw3gezqqrz4zm
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeicanahpmwfcglreyxwgpb6utvsknia7dgcqrtz4giqxyejopla4vm
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeiadvorgnioqh7aazkz6yml72fpep6k2fzlvvtqtlyadbnvehiyzza
-- elcollectooorr/basket:0.1.0:bafybeiewzytr3qsr7fzuw7i75pawt5xrfrudq7oejwqk7oahtojl5qk2hq
-- elcollectooorr/basket_factory:0.1.0:bafybeihkdhwrowx7r7qrp4z2v2dgyoljx55q2r3uzvszc6z6brf6435gje
-- elcollectooorr/token_vault:0.1.0:bafybeiet54mciulkz4kfc4l4gmuyleewxg2vmvdxb4snfufciyshjcnvsy
-- elcollectooorr/token_vault_factory:0.1.0:bafybeicuzqrksvkxo3sjzpgy76kmbq6bsqggpcprhzpbda6v7o4ptonvae
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeieugvwntqpyelm22v6grzaxjv6ijaw6nq3elhuzvarv3exjmlqebe
+- elcollectooorr/basket:0.1.0:bafybeiacdg2lvo7yq3phse44vbncvfw4mj2kkwuvdbndxtuvg7bucnhp3e
+- elcollectooorr/basket_factory:0.1.0:bafybeiaulnlpxjikrzdehhp6tnogzajscip36t7ftlpvadiem2o47labn4
+- elcollectooorr/token_vault:0.1.0:bafybeihm5352dvty56cnpa2d24aejm5rkky2236ncsncakarnw5p4334ee
+- elcollectooorr/token_vault_factory:0.1.0:bafybeidxm4elfgl4omf6wlaevvcuyrkmpst3k3klonmp7foubsx2x7cmea
 - valory/gnosis_safe:0.1.0:bafybeigaeon5qhgdwhduw4wtjt7x7o3hpz62aifr5a7522ynll3nps3qnm
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeihuyxtxqp5f5sviid5hgtpuncd545hiurp3pjdbhqbs3u4kag4a2a
 - valory/multicall2:0.1.0:bafybeiffhnnk3ibb3z53jxg4rfwcgjl657f56v3ld4rgafgavxxys3h74y
@@ -61,8 +61,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
 - valory/tendermint:0.1.0:bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeibmbrp5ftzwmuivz73lukchudxy6d7rfsin5kohgxcizygjaakpri
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeia7eaqfensnivqlybhsgonwapffqld3udymf5jkm6lgfkbb42hg7m
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeiflxuycml6g3d7bgo2bwbvonbn4oyfe44f67c2fphrqrb7ttb6quq
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeiclvd7kd2hykcczujbijaqtc6qpnnbodryom5dcm2miwkeofl5j74
 - valory/abstract_abci:0.1.0:bafybeibcemiz3qxoordadxwkxkjp7g7rerbfwap6wqxiepcms22ocb3v7i
 - valory/abstract_round_abci:0.1.0:bafybeicyy4g3x6ol6x2ayzcdkg2wstubqecp6ycgo6f2c2bhjnhwdjs3qa
 - valory/registration_abci:0.1.0:bafybeigexg5mw5sh35qkhlaeegycgtkd2ym5o4marjc5o7gl7t352hohiu
