@@ -25,18 +25,18 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections: []
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeifdyj3eqy65smqscqqbsamr4q6e4ebfs3jj54au6tw3gezqqrz4zm
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeicanahpmwfcglreyxwgpb6utvsknia7dgcqrtz4giqxyejopla4vm
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeieugvwntqpyelm22v6grzaxjv6ijaw6nq3elhuzvarv3exjmlqebe
-- elcollectooorr/basket_factory:0.1.0:bafybeiaulnlpxjikrzdehhp6tnogzajscip36t7ftlpvadiem2o47labn4
-- elcollectooorr/token_vault:0.1.0:bafybeihm5352dvty56cnpa2d24aejm5rkky2236ncsncakarnw5p4334ee
-- elcollectooorr/token_vault_factory:0.1.0:bafybeidxm4elfgl4omf6wlaevvcuyrkmpst3k3klonmp7foubsx2x7cmea
+- elcollectooorr/artblocks:0.1.0:bafybeiepiixv6hj7ixn3ulthrlqbqmajo64bgtofdwkxitqgk25k3n65f4
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeih3ipynxlvxnbo23uicvgboxaju56cmeqiwlhpf43x2usgj7ht3ou
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeihmrifd62j3b2qddxyo5y2h3mtidhaikqcgyjrht3dhqv4kxlelka
+- elcollectooorr/basket_factory:0.1.0:bafybeibpvhb6k6klcut7drszoffe3o4whb4rxxrhbnr6uh5mea6h6vnqim
+- elcollectooorr/token_vault:0.1.0:bafybeigw3jkb5hjc4n3lcteq3m5ts2vvaxei2pg435mj22lenulcjo5oby
+- elcollectooorr/token_vault_factory:0.1.0:bafybeia5vkbr6hpvrp2xvpcoaqcajo7eszvlne73ouxvcki73pdd6bmuzy
 - valory/gnosis_safe:0.1.0:bafybeigvqg4lapdaa23dpc3pv67rdptdhey6e435mxqsw2gb2u74yw4yei
 - valory/multisend:0.1.0:bafybeie7m7pjbnw7cccpbvmbgkut24dtlt4cgvug3tbac7gej37xvwbv3a
 protocols:
 - valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeihpyumgrjc5dy2zrbgoytzhbwo6mjksoflyj6sbhm4t47a7uslq54
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicx65zanvm6u63xgxic7n72gqmlbhpw3clxfq6ncgtkqra3oqzesu
 - valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
 - valory/registration_abci:0.1.0:bafybeibc4kczqbh23sc6tufrzn3axmhp3vjav7fa3u6cnpvolrbbc2fd7i
 - valory/reset_pause_abci:0.1.0:bafybeid445uy6wwvugf3byzl7r73c7teu6xr5ezxb4h7cxbenghg3copvy
