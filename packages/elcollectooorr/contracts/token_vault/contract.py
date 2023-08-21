@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -273,7 +273,7 @@ class TokenVaultContract(Contract):
 
         raw_tx = token_vault_contract.functions.kickCurator(
             curator_address
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -327,7 +327,7 @@ class TokenVaultContract(Contract):
 
         raw_tx = token_vault_contract.functions.transfer(
             receiver_address, amount
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -352,7 +352,7 @@ class TokenVaultContract(Contract):
         """
 
         instance = cls.get_instance(ledger_api, contract_address)
-        receiver_address = ledger_api.api.toChecksumAddress(receiver_address)
+        receiver_address = ledger_api.api.to_checksum_address(receiver_address)
         data = instance.encodeABI(fn_name="transfer", args=[receiver_address, amount])
 
         return {"data": data}

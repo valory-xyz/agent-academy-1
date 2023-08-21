@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -290,20 +290,20 @@ def setup_artblocks_contract(
     with open(ARTBLOCKS_MINTER_FILTER_FILE) as minter_filter_file:
         minter_filter = json.load(minter_filter_file)
         artblocks_minter_filter = instance.eth.contract(
-            address=instance.toChecksumAddress(ARTBLOCKS_FILTER_ADDRESS),
+            address=instance.to_checksum_address(ARTBLOCKS_FILTER_ADDRESS),
             abi=minter_filter["abi"],
         )
 
     with open(ARTBLOCKS_CORE_FILE) as artblocks_file:
         artblocks = json.load(artblocks_file)
         artblocks_core = instance.eth.contract(
-            address=instance.toChecksumAddress(ARTBLOCKS_ADDRESS), abi=artblocks["abi"]
+            address=instance.to_checksum_address(ARTBLOCKS_ADDRESS), abi=artblocks["abi"]
         )
 
     with open(ARTBLOCKS_PERIPHERY_FILE) as artblocks_periphery_file:
         artblocks_periphery = json.load(artblocks_periphery_file)
         artblocks_periphery = instance.eth.contract(
-            address=instance.toChecksumAddress(ARTBLOCKS_SET_PRICE_MINTER),
+            address=instance.to_checksum_address(ARTBLOCKS_SET_PRICE_MINTER),
             abi=artblocks_periphery["abi"],
         )
 

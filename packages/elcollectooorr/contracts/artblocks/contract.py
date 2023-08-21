@@ -286,8 +286,8 @@ class ArtBlocksContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         contract = cls.get_instance(ledger_api, contract_address)
-        receipt = ledger_api.api.eth.getTransactionReceipt(tx_hash)
-        logs = contract.events.Mint().processReceipt(receipt)
+        receipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
+        logs = contract.events.Mint().process_receipt(receipt)
 
         if len(logs) == 0:
             _logger.error(f"No 'Mint' events were emitted in the tx={tx_hash}")
@@ -326,8 +326,8 @@ class ArtBlocksContract(Contract):
         :return: the tx  # noqa: DAR202
         """
         instance = cls.get_instance(ledger_api, contract_address)
-        from_address = ledger_api.api.toChecksumAddress(from_address)
-        to_address = ledger_api.api.toChecksumAddress(to_address)
+        from_address = ledger_api.api.to_checksum_address(from_address)
+        to_address = ledger_api.api.to_checksum_address(to_address)
         data = instance.encodeABI(
             fn_name="safeTransferFrom",
             args=[

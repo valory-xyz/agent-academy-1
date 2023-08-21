@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -226,7 +226,7 @@ class BasketContract(Contract):
         raw_tx = basket.functions.approve(
             operator_address,
             token_id,
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -278,7 +278,7 @@ class BasketContract(Contract):
         raw_tx = basket.functions.setApprovalForAll(
             operator_address,
             is_approved,
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -330,7 +330,7 @@ class BasketContract(Contract):
         raw_tx = basket.functions.withdrawERC721(
             token_address,
             token_id,
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -382,7 +382,7 @@ class BasketContract(Contract):
         raw_tx = basket.functions.withdrawERC721Unsafe(
             token_address,
             token_id,
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -427,7 +427,7 @@ class BasketContract(Contract):
             sender_address,
         )
 
-        raw_tx = basket.functions.withdrawETH().buildTransaction(tx_parameters)
+        raw_tx = basket.functions.withdrawETH().build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -476,7 +476,7 @@ class BasketContract(Contract):
 
         raw_tx = basket.functions.withdrawERC20(
             token_address,
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -531,7 +531,7 @@ class BasketContract(Contract):
             sender_address,
             new_owner_address,
             token_id,
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -584,7 +584,7 @@ class BasketContract(Contract):
             sender_address,
             new_owner_address,
             token_id,
-        ).buildTransaction(tx_parameters)
+        ).build_transaction(tx_parameters)
 
         return raw_tx
 
@@ -779,7 +779,7 @@ class BasketContract(Contract):
         """
         ledger_api = cast(EthereumApi, ledger_api)
         basket = cls.get_instance(ledger_api, contract_address)
-        operator_address = ledger_api.api.toChecksumAddress(operator_address)
+        operator_address = ledger_api.api.to_checksum_address(operator_address)
 
         data = basket.encodeABI(
             fn_name="approve",

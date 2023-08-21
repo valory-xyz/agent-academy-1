@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ def create_project(
 ) -> Any:
     """Create an artblocks project."""
     return artblocks_core_contract.functions.addProject(
-        project_name, instance.toChecksumAddress(artist_address), price_in_wei, dyanmic
+        project_name, instance.to_checksum_address(artist_address), price_in_wei, dyanmic
     )
 
 
@@ -74,7 +74,7 @@ def add_mint_whitelisted(
 ) -> Any:
     """Whitelist a mint in the core arblocks contract."""
     return artblocks_core_contract.functions.addMintWhitelisted(
-        instance.toChecksumAddress(address),
+        instance.to_checksum_address(address),
     )
 
 
@@ -97,7 +97,7 @@ def add_approved_minter(
     """Whitelist a minter on the MinterFilter contract."""
 
     return artblocks_minter_filter.functions.addApprovedMinter(
-        instance.toChecksumAddress(minter_address),
+        instance.to_checksum_address(minter_address),
     )
 
 
@@ -108,7 +108,7 @@ def set_minter_for_project(
 
     return artblocks_minter_filter.functions.setMinterForProject(
         project_id,
-        instance.toChecksumAddress(minter_address),
+        instance.to_checksum_address(minter_address),
     )
 
 
@@ -149,15 +149,15 @@ def toggle_contract_mintable(
 def send_tx(instance: Any, private_key: str, sender_address: str, tx: Any) -> None:
     """Send the provided tx."""
 
-    raw_tx = tx.buildTransaction(
+    raw_tx = tx.build_transaction(
         {
             "from": sender_address,
             "chainId": ELCOL_NET_CHAIN_ID,
             "gasPrice": instance.eth.gas_price,
-            "nonce": instance.eth.getTransactionCount(
-                instance.toChecksumAddress(sender_address)
+            "nonce": instance.eth.get_transaction_count(
+                instance.to_checksum_address(sender_address)
             ),
         }
     )
-    signed_tx = instance.eth.account.signTransaction(raw_tx, private_key=private_key)
-    instance.eth.sendRawTransaction(signed_tx.rawTransaction)
+    signed_tx = instance.eth.account.sign_transaction(raw_tx, private_key=private_key)
+    instance.eth.send_raw_transaction(signed_tx.rawTransaction)

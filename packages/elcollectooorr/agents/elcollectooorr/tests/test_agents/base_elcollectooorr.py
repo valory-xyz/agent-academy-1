@@ -249,8 +249,8 @@ class BaseTestElCollectooorrEnd2End(BaseTestEnd2End):
                             "value": Wei(ONE_ETH),
                             "chainId": self.ELCOL_NET_CHAIN_ID,
                             "gasPrice": instance.eth.gas_price,
-                            "nonce": instance.eth.getTransactionCount(
-                                instance.toChecksumAddress(sender_address)
+                            "nonce": instance.eth.get_transaction_count(
+                                instance.to_checksum_address(sender_address)
                             ),
                         }
                     )

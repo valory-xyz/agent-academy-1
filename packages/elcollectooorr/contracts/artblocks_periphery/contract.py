@@ -213,7 +213,7 @@ class ArtBlocksPeripheryContract(Contract):
             sender_address,
         )
 
-        raw_tx = contract.functions.purchaseTo(to_address, project_id).buildTransaction(
+        raw_tx = contract.functions.purchaseTo(to_address, project_id).build_transaction(
             tx_parameters
         )
 
