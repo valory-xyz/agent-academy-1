@@ -13,8 +13,8 @@ fingerprint:
   dialogues.py: bafybeia4hd2gnmuayynsdlvnbw4r74tdon7zwjeiej7wfiidq5rx7lm2w4
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
   fsm_specification.yaml: bafybeifvr4yrh2ahkayepxa7cjm6vxaf2vmljswxoh4y2fs6jeqxr2g4ai
-  handlers.py: bafybeifwg5wujaa3zs7qlorcshhw3xm3oaxnh5ftcz2sybtsm7px4erzby
-  models.py: bafybeigqushpxhh3gsl3shhgwwlk53vjfj2g5fuu4z6wdzhen55f3zdpeu
+  handlers.py: bafybeibnwtn3s7xktduwjzqshpzxhnymnv24nn2n6bnt2txcfmraerjcn4
+  models.py: bafybeiassk2kjqbulabgfbi324knpbrhzkfqog6g4cxwcuoig5lmm4uscu
   payloads.py: bafybeicobvjzi575pugn7asdtpmvumvvppvlikudstuqsrvxgydlwj3pme
   rounds.py: bafybeidnfhpwhuremqdqswlqdosg77ebinidzvmhc2bduh3225zyyoxbjy
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
@@ -31,17 +31,17 @@ contracts:
 - elcollectooorr/basket_factory:0.1.0:bafybeibpvhb6k6klcut7drszoffe3o4whb4rxxrhbnr6uh5mea6h6vnqim
 - elcollectooorr/token_vault:0.1.0:bafybeigw3jkb5hjc4n3lcteq3m5ts2vvaxei2pg435mj22lenulcjo5oby
 - elcollectooorr/token_vault_factory:0.1.0:bafybeia5vkbr6hpvrp2xvpcoaqcajo7eszvlne73ouxvcki73pdd6bmuzy
-- valory/gnosis_safe:0.1.0:bafybeigvqg4lapdaa23dpc3pv67rdptdhey6e435mxqsw2gb2u74yw4yei
+- valory/gnosis_safe:0.1.0:bafybeico7dp6q32xpijawzcr6v3khx6s4tryh7tgp6g2rcvmibt53bguda
 - valory/multisend:0.1.0:bafybeie7m7pjbnw7cccpbvmbgkut24dtlt4cgvug3tbac7gej37xvwbv3a
 protocols:
 - valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicx65zanvm6u63xgxic7n72gqmlbhpw3clxfq6ncgtkqra3oqzesu
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeigpykjnfq7hpc6hwjyylppjedcc4v7ocv36q2xqro25d7mwznqo6i
 - valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
 - valory/registration_abci:0.1.0:bafybeibc4kczqbh23sc6tufrzn3axmhp3vjav7fa3u6cnpvolrbbc2fd7i
 - valory/reset_pause_abci:0.1.0:bafybeid445uy6wwvugf3byzl7r73c7teu6xr5ezxb4h7cxbenghg3copvy
-- valory/termination_abci:0.1.0:bafybeiguy7pkrcptg6c754ioig4mlkr7truccym3fpv6jwpjx2tmpdbzhi
-- valory/transaction_settlement_abci:0.1.0:bafybeidpsnguxizkpihtkqzojr3em7yy7c6qc7gxpbh5vglmwws5wke7bi
+- valory/termination_abci:0.1.0:bafybeieq4j6veq5jworp5zq2gfs7zgpjjiosxdo6b5dgmacwf632hrz6ly
+- valory/transaction_settlement_abci:0.1.0:bafybeidvmhoqglxtf6ylt55wagc33rhn4t274wmon5ou4my5y2dqjhdmcm
 behaviours:
   main:
     args: {}
@@ -139,6 +139,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
+      service_endpoint_base: https://dummy_service.autonolas.tech/
       service_id: el_collectooorr_1
       service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
@@ -162,7 +163,6 @@ models:
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
       whitelisted_investor_addresses: []
-      service_endpoint_base: https://dummy_service.autonolas.tech/
     class_name: Params
   randomness_api:
     args:

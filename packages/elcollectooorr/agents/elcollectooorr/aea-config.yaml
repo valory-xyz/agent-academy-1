@@ -33,6 +33,7 @@ fingerprint:
   tests/test_token_vault_factory/test_contract.py: bafybeibpcizflmxkpi4ik7pnqwxhzjxrin2hret55lvrikigqhv5ptr3dm
 fingerprint_ignore_patterns: []
 connections:
+- fetchai/http_server:0.22.0:bafybeihp5umafxzx45aad5pj7s3343se2wjkgnbirt4pybrape22swm6de
 - valory/abci:0.1.0:bafybeicasheudousm2unmh5qmy5n3qdq5hmkg2j42fxfm2crxmgq3nzjkq
 - valory/http_client:0.23.0:bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y
 - valory/ipfs:0.1.0:bafybeiau32pzy55ta6ugl2bebevlxudal6pnlfomhplfm5mph6reaw3krq
@@ -46,7 +47,7 @@ contracts:
 - elcollectooorr/basket_factory:0.1.0:bafybeibpvhb6k6klcut7drszoffe3o4whb4rxxrhbnr6uh5mea6h6vnqim
 - elcollectooorr/token_vault:0.1.0:bafybeigw3jkb5hjc4n3lcteq3m5ts2vvaxei2pg435mj22lenulcjo5oby
 - elcollectooorr/token_vault_factory:0.1.0:bafybeia5vkbr6hpvrp2xvpcoaqcajo7eszvlne73ouxvcki73pdd6bmuzy
-- valory/gnosis_safe:0.1.0:bafybeigvqg4lapdaa23dpc3pv67rdptdhey6e435mxqsw2gb2u74yw4yei
+- valory/gnosis_safe:0.1.0:bafybeico7dp6q32xpijawzcr6v3khx6s4tryh7tgp6g2rcvmibt53bguda
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeie4iivrxcd5dcwzj3y2t66mc5mdvtsuqu426gk2kcdc6fxbki6neu
 - valory/multicall2:0.1.0:bafybeiffhnnk3ibb3z53jxg4rfwcgjl657f56v3ld4rgafgavxxys3h74y
 - valory/multisend:0.1.0:bafybeie7m7pjbnw7cccpbvmbgkut24dtlt4cgvug3tbac7gej37xvwbv3a
@@ -61,14 +62,14 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
 - valory/tendermint:0.1.0:bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeigszeyoid5fz7xocougw4jkhrgcpheox42dzde3a7hmmu762dd7xy
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicx65zanvm6u63xgxic7n72gqmlbhpw3clxfq6ncgtkqra3oqzesu
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeibwq62g7wmg62a7gkt6rat62x2r2xm4ibsb3ge5xl5sgvci2zb64i
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeigpykjnfq7hpc6hwjyylppjedcc4v7ocv36q2xqro25d7mwznqo6i
 - valory/abstract_abci:0.1.0:bafybeicg7dv7cff34nv2k2z47c4yp4kddsxp3wozonzow6tnvfvwndz3cy
 - valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
 - valory/registration_abci:0.1.0:bafybeibc4kczqbh23sc6tufrzn3axmhp3vjav7fa3u6cnpvolrbbc2fd7i
 - valory/reset_pause_abci:0.1.0:bafybeid445uy6wwvugf3byzl7r73c7teu6xr5ezxb4h7cxbenghg3copvy
-- valory/termination_abci:0.1.0:bafybeiguy7pkrcptg6c754ioig4mlkr7truccym3fpv6jwpjx2tmpdbzhi
-- valory/transaction_settlement_abci:0.1.0:bafybeidpsnguxizkpihtkqzojr3em7yy7c6qc7gxpbh5vglmwws5wke7bi
+- valory/termination_abci:0.1.0:bafybeieq4j6veq5jworp5zq2gfs7zgpjjiosxdo6b5dgmacwf632hrz6ly
+- valory/transaction_settlement_abci:0.1.0:bafybeidvmhoqglxtf6ylt55wagc33rhn4t274wmon5ou4my5y2dqjhdmcm
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -190,4 +191,4 @@ public_id: fetchai/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfez
 type: connection
 config:
   host: 0.0.0.0
-  target_skill_id: valory/el_collectooorr_abci:0.1.0
+  target_skill_id: elcollectooorr/elcollectooorr_abci:0.1.0

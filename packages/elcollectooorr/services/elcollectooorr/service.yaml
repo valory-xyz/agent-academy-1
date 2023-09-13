@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeifz2cax7nglf3s3u5se55hbx4liwsvqdatofytu4uxpc33dmwmd2m
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeie4qcjk7trumzwrrddtqafbonspntd7sveyjl5idulx6corbvm6oy
 number_of_agents: 4
 deployment: {}
 ---
@@ -30,6 +30,7 @@ type: skill
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
         use_termination: ${ENABLE_TERMINATION:bool:true}
+        service_endpoint_base: ${SERVICE_ENDPOINT_BASE:str:https://dummy_service.autonolas.tech/}
 1:
   models:
     params:
@@ -44,6 +45,7 @@ type: skill
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
         use_termination: ${ENABLE_TERMINATION:bool:true}
+        service_endpoint_base: ${SERVICE_ENDPOINT_BASE:str:https://dummy_service.autonolas.tech/}
 2:
   models:
     params:
@@ -58,6 +60,7 @@ type: skill
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
         use_termination: ${ENABLE_TERMINATION:bool:true}
+        service_endpoint_base: ${SERVICE_ENDPOINT_BASE:str:https://dummy_service.autonolas.tech/}
 3:
   models:
     params:
@@ -72,6 +75,7 @@ type: skill
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
         use_termination: ${ENABLE_TERMINATION:bool:true}
+        service_endpoint_base: ${SERVICE_ENDPOINT_BASE:str:https://dummy_service.autonolas.tech/}
 ---
 public_id: valory/ledger:0.19.0
 type: connection
