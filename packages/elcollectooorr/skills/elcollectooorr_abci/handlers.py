@@ -150,7 +150,7 @@ class HttpHandler(BaseHttpHandler):
             if method not in methods:
                 continue
 
-            for route in routes:
+            for route in routes:  # type: ignore
                 # Routes are tuples like (route_regex, handle_method)
                 m = re.match(route[0], url)
                 if m:
