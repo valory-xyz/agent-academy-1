@@ -22,7 +22,7 @@ In order to run a local demo of the El Collectooorr service:
 2. Fetch the El Collectooorr service.
 
 	```bash
-	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeidanjipvcrs3bfffzktip72jgiv4lk2v7pxgmuntoalsmbblwsyci --service
+	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeie5wq5cg5m77omtok4ic6lhppunabmzfjo3hfek7aciu5cctjs7pq --service
 	```
 
 3. Build the Docker image of the service agents
@@ -74,15 +74,15 @@ In order to run a local demo of the El Collectooorr service:
           ```
 
           where `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` should match the correct address from the on-chain service deployment, and `YOUR_WHITELISTED_ADDRESS`, `YOUR_RPC_URL` should be replaced accordingly.
-          Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe address of the El Collectooorr. You will be able to run the service by setting this address. However, any on-chain transaction will fail unless you have the operator keys.	
+          Note that `0x123a3d66cf688b676f9b7a6bcc3991f62fec7f0a` is the mainnet safe address of the El Collectooorr. You will be able to run the service by setting this address. However, any on-chain transaction will fail unless you have the operator keys.
 
 
-        !!! warning "Important" 
+        !!! warning "Important"
 
             The keys provided in this example are for testing purposes. You must ensure to use your own keys in the `keys.json` file, and ensure that the environment variable `ALL_PARTICIPANTS` matches their addresses.
-   
+
        2. Build the service deployment.
-	
+
           ```bash
           autonomy deploy build keys.json --aev -ltm
           ```
