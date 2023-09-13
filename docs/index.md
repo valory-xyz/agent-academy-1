@@ -22,7 +22,7 @@ In order to run a local demo of the El Collectooorr service:
 2. Fetch the El Collectooorr service.
 
 	```bash
-	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeihcyw75vfhqcn4abkabdamfqf5dmp5uhakf3d2vlpupaiu7ldx2xq --service
+	autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeicjbf7rf3zrbw2gpm52fufweadrhpghz3ezhzjld3ylkh2lamboru --service
 	```
 
 3. Build the Docker image of the service agents
