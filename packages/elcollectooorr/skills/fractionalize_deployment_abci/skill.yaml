@@ -21,12 +21,12 @@ contracts:
 - elcollectooorr/basket_factory:0.1.0:bafybeibpvhb6k6klcut7drszoffe3o4whb4rxxrhbnr6uh5mea6h6vnqim
 - elcollectooorr/token_vault:0.1.0:bafybeigw3jkb5hjc4n3lcteq3m5ts2vvaxei2pg435mj22lenulcjo5oby
 - elcollectooorr/token_vault_factory:0.1.0:bafybeia5vkbr6hpvrp2xvpcoaqcajo7eszvlne73ouxvcki73pdd6bmuzy
-- valory/gnosis_safe:0.1.0:bafybeico7dp6q32xpijawzcr6v3khx6s4tryh7tgp6g2rcvmibt53bguda
+- valory/gnosis_safe:0.1.0:bafybeigvqg4lapdaa23dpc3pv67rdptdhey6e435mxqsw2gb2u74yw4yei
 protocols:
 - valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
 skills:
 - valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
-- valory/transaction_settlement_abci:0.1.0:bafybeidvmhoqglxtf6ylt55wagc33rhn4t274wmon5ou4my5y2dqjhdmcm
+- valory/transaction_settlement_abci:0.1.0:bafybeidpsnguxizkpihtkqzojr3em7yy7c6qc7gxpbh5vglmwws5wke7bi
 behaviours:
   main:
     args: {}
