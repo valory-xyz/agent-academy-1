@@ -174,6 +174,7 @@ models:
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
       whitelisted_investor_addresses: ${list:[]}
+      service_endpoint_base: ${str:https://dummy_service.autonolas.tech/}
 ---
 public_id: valory/ledger:0.19.0
 type: connection
@@ -184,3 +185,9 @@ config:
       chain_id: ${int:31337}
       poa_chain: ${bool:false}
       default_gas_price_strategy: ${str:eip1559}
+---
+public_id: fetchai/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+type: connection
+config:
+  host: 0.0.0.0
+  target_skill_id: valory/el_collectooorr_abci:0.1.0

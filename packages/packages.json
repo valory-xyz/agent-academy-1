@@ -37,6 +37,7 @@
         "skill/valory/reset_pause_abci/0.1.0": "bafybeid445uy6wwvugf3byzl7r73c7teu6xr5ezxb4h7cxbenghg3copvy",
         "skill/valory/termination_abci/0.1.0": "bafybeiguy7pkrcptg6c754ioig4mlkr7truccym3fpv6jwpjx2tmpdbzhi",
         "protocol/valory/ipfs/0.1.0": "bafybeibjzhsengtxfofqpxy6syamplevp35obemwfp4c5lhag3v2bvgysa",
-        "connection/valory/ipfs/0.1.0": "bafybeiau32pzy55ta6ugl2bebevlxudal6pnlfomhplfm5mph6reaw3krq"
+        "connection/valory/ipfs/0.1.0": "bafybeiau32pzy55ta6ugl2bebevlxudal6pnlfomhplfm5mph6reaw3krq",
+        "connection/fetchai/http_server/0.22.0": "bafybeihp5umafxzx45aad5pj7s3343se2wjkgnbirt4pybrape22swm6de"
     }
 }

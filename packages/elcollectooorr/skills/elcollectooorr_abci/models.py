@@ -97,6 +97,7 @@ class ElCollectooorParams(BaseParams):  # pylint: disable=too-many-instance-attr
         self.multicall2_contract_address = self._ensure("multicall2_contract_address", kwargs, type_=str)
         self.multicall_batch_size: int = self._ensure("multicall_batch_size", kwargs, type_=int)
         self.multisend_address: str = self._get_multisend_address(kwargs)
+        self.service_endpoint_base = self._ensure("service_endpoint_base", kwargs, str)
         super().__init__(*args, **kwargs)
 
     def _get_starting_project_id(self, kwargs: dict) -> Optional[int]:
