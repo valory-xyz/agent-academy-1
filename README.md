@@ -46,7 +46,7 @@ This repository holds the code for the [FSM apps](https://docs.autonolas.network
     autonomy packages sync --update-packages
     ```
 
-- Optionally: run all checks 
+- Optionally: run all checks
 
     ```bash
     tox
@@ -105,7 +105,7 @@ These steps only work for operators registered on-chain!
       Then fetch the service:
 
       ```bash
-      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeibqtdhopa6tihudojalrkucub2tfcc4misqzevk5zlxrlr3ww5xoe --service
+      autonomy fetch elcollectooorr/elcollectooorr:0.1.0:bafybeicjbf7rf3zrbw2gpm52fufweadrhpghz3ezhzjld3ylkh2lamboru --service
       cd elcollectooorr
       ```
 

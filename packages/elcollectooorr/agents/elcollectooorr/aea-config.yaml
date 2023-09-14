@@ -33,6 +33,7 @@ fingerprint:
   tests/test_token_vault_factory/test_contract.py: bafybeibpcizflmxkpi4ik7pnqwxhzjxrin2hret55lvrikigqhv5ptr3dm
 fingerprint_ignore_patterns: []
 connections:
+- fetchai/http_server:0.22.0:bafybeihp5umafxzx45aad5pj7s3343se2wjkgnbirt4pybrape22swm6de
 - valory/abci:0.1.0:bafybeicasheudousm2unmh5qmy5n3qdq5hmkg2j42fxfm2crxmgq3nzjkq
 - valory/http_client:0.23.0:bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y
 - valory/ipfs:0.1.0:bafybeiau32pzy55ta6ugl2bebevlxudal6pnlfomhplfm5mph6reaw3krq
@@ -61,7 +62,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
 - valory/tendermint:0.1.0:bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeigszeyoid5fz7xocougw4jkhrgcpheox42dzde3a7hmmu762dd7xy
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeibxo7x4lsqjublwput7c74wa4aonbet6gcforyio3sgg6pmggwane
 - elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicx65zanvm6u63xgxic7n72gqmlbhpw3clxfq6ncgtkqra3oqzesu
 - valory/abstract_abci:0.1.0:bafybeicg7dv7cff34nv2k2z47c4yp4kddsxp3wozonzow6tnvfvwndz3cy
 - valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
@@ -174,6 +175,7 @@ models:
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
       whitelisted_investor_addresses: ${list:[]}
+      service_endpoint_base: ${str:https://dummy_service.autonolas.tech/}
 ---
 public_id: valory/ledger:0.19.0
 type: connection
@@ -184,3 +186,9 @@ config:
       chain_id: ${int:31337}
       poa_chain: ${bool:false}
       default_gas_price_strategy: ${str:eip1559}
+---
+public_id: fetchai/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+type: connection
+config:
+  host: 0.0.0.0
+  target_skill_id: elcollectooorr/elcollectooorr_abci:0.1.0

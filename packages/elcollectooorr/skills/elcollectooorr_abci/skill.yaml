@@ -13,8 +13,8 @@ fingerprint:
   dialogues.py: bafybeia4hd2gnmuayynsdlvnbw4r74tdon7zwjeiej7wfiidq5rx7lm2w4
   fsm_composition_specification.yaml: bafybeidu767bpfsrcuhgx26urveengqcnzzfzgzeldi2qwayw2ghsealv4
   fsm_specification.yaml: bafybeifvr4yrh2ahkayepxa7cjm6vxaf2vmljswxoh4y2fs6jeqxr2g4ai
-  handlers.py: bafybeifwg5wujaa3zs7qlorcshhw3xm3oaxnh5ftcz2sybtsm7px4erzby
-  models.py: bafybeigqushpxhh3gsl3shhgwwlk53vjfj2g5fuu4z6wdzhen55f3zdpeu
+  handlers.py: bafybeiagpfdbzgwtqntndlf3mxd57krqpy3qpke5uikqexsjiubpeslyfm
+  models.py: bafybeiassk2kjqbulabgfbi324knpbrhzkfqog6g4cxwcuoig5lmm4uscu
   payloads.py: bafybeicobvjzi575pugn7asdtpmvumvvppvlikudstuqsrvxgydlwj3pme
   rounds.py: bafybeidnfhpwhuremqdqswlqdosg77ebinidzvmhc2bduh3225zyyoxbjy
   tests/__init__.py: bafybeihgzzglbycef3pcrmun2tq44ngysgj7fln2k66g5zvsnvon7n7mfy
@@ -23,7 +23,8 @@ fingerprint:
   tests/test_payloads.py: bafybeih7ya74js3om3pks2t4zav37kctj6n7qrkzi4rea562cotl44ssou
   tests/test_rounds.py: bafybeia3vsptf5j6gyl7qe5av2p43azhjcuq6c53n3p44dlgllxlg3alau
 fingerprint_ignore_patterns: []
-connections: []
+connections:
+- fetchai/http_server:0.22.0:bafybeihp5umafxzx45aad5pj7s3343se2wjkgnbirt4pybrape22swm6de
 contracts:
 - elcollectooorr/artblocks:0.1.0:bafybeiepiixv6hj7ixn3ulthrlqbqmajo64bgtofdwkxitqgk25k3n65f4
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeih3ipynxlvxnbo23uicvgboxaju56cmeqiwlhpf43x2usgj7ht3ou
@@ -35,6 +36,7 @@ contracts:
 - valory/multisend:0.1.0:bafybeie7m7pjbnw7cccpbvmbgkut24dtlt4cgvug3tbac7gej37xvwbv3a
 protocols:
 - valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
+- valory/http:1.0.0:bafybeia5bxdua2i6chw6pg47bvoljzcpuqxzy4rdrorbdmcbnwmnfdobtu
 skills:
 - elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicx65zanvm6u63xgxic7n72gqmlbhpw3clxfq6ncgtkqra3oqzesu
 - valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
@@ -139,6 +141,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
+      service_endpoint_base: https://dummy_service.autonolas.tech/
       service_id: el_collectooorr_1
       service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
