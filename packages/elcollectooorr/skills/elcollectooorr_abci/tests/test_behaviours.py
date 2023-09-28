@@ -107,7 +107,7 @@ class ElCollectooorrFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disab
         :param kwargs: the keyword arguments passed to _prepare_skill
         """
         # set background behaviour to None, to avoid interference with the test
-        self.behaviour.background_behaviour_cls = None
+        self.behaviour.background_behaviours_cls = {None}  # type: ignore
         super().setup(**kwargs)
         self.behaviour.context.params.__dict__.update(dict(_frozen=False))
         self._set_default_whitelisted_address()
