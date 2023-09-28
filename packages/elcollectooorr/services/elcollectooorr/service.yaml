@@ -31,6 +31,11 @@ type: skill
         share_tm_config_on_startup: ${USE_ACN:bool:false}
         use_termination: ${ENABLE_TERMINATION:bool:true}
         service_endpoint_base: ${SERVICE_ENDPOINT_BASE:str:https://dummy_service.autonolas.tech/}
+        use_slashing: ${USE_SLASHING:bool:false}
+        slash_cooldown_hours: ${SLASH_COOLDOWN_HOURS:int:3}
+        slash_threshold_amount: ${SLASH_THRESHOLD_AMOUNT:int:10000000000000000}
+        light_slash_unit_amount: ${LIGHT_SLASH_UNIT_AMOUNT:int:5000000000000000}
+        serious_slash_unit_amount: ${SERIOUS_SLASH_UNIT_AMOUNT:int:8000000000000000}
 1:
   models:
     params:
@@ -46,6 +51,11 @@ type: skill
         share_tm_config_on_startup: ${USE_ACN:bool:false}
         use_termination: ${ENABLE_TERMINATION:bool:true}
         service_endpoint_base: ${SERVICE_ENDPOINT_BASE:str:https://dummy_service.autonolas.tech/}
+        use_slashing: ${USE_SLASHING:bool:false}
+        slash_cooldown_hours: ${SLASH_COOLDOWN_HOURS:int:3}
+        slash_threshold_amount: ${SLASH_THRESHOLD_AMOUNT:int:10000000000000000}
+        light_slash_unit_amount: ${LIGHT_SLASH_UNIT_AMOUNT:int:5000000000000000}
+        serious_slash_unit_amount: ${SERIOUS_SLASH_UNIT_AMOUNT:int:8000000000000000}
 2:
   models:
     params:
@@ -61,6 +71,11 @@ type: skill
         share_tm_config_on_startup: ${USE_ACN:bool:false}
         use_termination: ${ENABLE_TERMINATION:bool:true}
         service_endpoint_base: ${SERVICE_ENDPOINT_BASE:str:https://dummy_service.autonolas.tech/}
+        use_slashing: ${USE_SLASHING:bool:false}
+        slash_cooldown_hours: ${SLASH_COOLDOWN_HOURS:int:3}
+        slash_threshold_amount: ${SLASH_THRESHOLD_AMOUNT:int:10000000000000000}
+        light_slash_unit_amount: ${LIGHT_SLASH_UNIT_AMOUNT:int:5000000000000000}
+        serious_slash_unit_amount: ${SERIOUS_SLASH_UNIT_AMOUNT:int:8000000000000000}
 3:
   models:
     params:
@@ -76,6 +91,11 @@ type: skill
         share_tm_config_on_startup: ${USE_ACN:bool:false}
         use_termination: ${ENABLE_TERMINATION:bool:true}
         service_endpoint_base: ${SERVICE_ENDPOINT_BASE:str:https://dummy_service.autonolas.tech/}
+        use_slashing: ${USE_SLASHING:bool:false}
+        slash_cooldown_hours: ${SLASH_COOLDOWN_HOURS:int:3}
+        slash_threshold_amount: ${SLASH_THRESHOLD_AMOUNT:int:10000000000000000}
+        light_slash_unit_amount: ${LIGHT_SLASH_UNIT_AMOUNT:int:5000000000000000}
+        serious_slash_unit_amount: ${SERIOUS_SLASH_UNIT_AMOUNT:int:8000000000000000}
 ---
 public_id: valory/ledger:0.19.0
 type: connection

@@ -105,6 +105,11 @@ models:
       tendermint_url: http://localhost:26657
       token_vault_factory_address: '0x85aa7f78bdb2de8f3e0c0010d99ad5853ffcfc63'
       use_termination: false
+      use_slashing: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
+      light_slash_unit_amount: 5000000000000000
+      serious_slash_unit_amount: 8000000000000000
     class_name: Params
   randomness_api:
     args:

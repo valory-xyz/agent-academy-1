@@ -176,6 +176,11 @@ models:
       wei_to_fraction: 10500000000000000
       whitelisted_investor_addresses: ${list:[]}
       service_endpoint_base: ${str:https://dummy_service.autonolas.tech/}
+      use_slashing: ${bool:false}
+      slash_cooldown_hours: ${int:3}
+      slash_threshold_amount: ${int:10000000000000000}
+      light_slash_unit_amount: ${int:5000000000000000}
+      serious_slash_unit_amount: ${int:8000000000000000}
 ---
 public_id: valory/ledger:0.19.0
 type: connection

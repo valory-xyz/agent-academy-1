@@ -1603,4 +1603,4 @@ class ElCollectooorrFullRoundBehaviour(AbstractRoundBehaviour):
         *ResyncAbciBehaviour.behaviours,
         *TerminationAbciBehaviours.behaviours,
     }
-    background_behaviour_cls = BackgroundBehaviour
+    background_behaviours_cls = {BackgroundBehaviour}
