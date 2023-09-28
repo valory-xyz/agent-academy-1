@@ -78,7 +78,7 @@ class FractionalizeFSMBehaviourBaseCase(FSMBehaviourBaseCase):  # pylint: disabl
 
     def setup(self, **kwargs: Any) -> None:
         """Set up the test case."""
-        self.behaviour.background_behaviours_cls = {None}  # type: ignore
+        self.behaviour.background_behaviours_cls = {}  # type: ignore
         super().setup(**kwargs)
 
     def end_round(self, event: Optional[Enum] = None) -> None:  # type: ignore
