@@ -64,6 +64,7 @@ from packages.valory.skills.abstract_round_abci.base import (
     AbciAppTransitionFunction,
     AbstractRound,
     AppState,
+    BackgroundAppConfig,
     BaseSynchronizedData,
     CollectSameUntilThresholdRound,
     DegenerateRound,
@@ -1088,6 +1089,12 @@ el_collectooorr_app_transition_mapping: AbciAppTransitionMapping = {
     FinishedResetAndPauseErrorRound: RegistrationRound,
 }
 
+termination_config = BackgroundAppConfig(
+    round_cls=BackgroundRound,
+    start_event=TerminationEvent.TERMINATE,
+    abci_app=TerminationAbciApp,
+)
+
 ElCollectooorrAbciApp = chain(
     (
         AgentRegistrationAbciApp,
@@ -1105,8 +1112,4 @@ ElCollectooorrAbciApp = chain(
         ResetPauseAbciApp,
     ),
     el_collectooorr_app_transition_mapping,
-).add_termination(
-    background_round_cls=BackgroundRound,
-    termination_event=TerminationEvent.TERMINATE,
-    termination_abci_app=TerminationAbciApp,
-)
+).add_background_app(termination_config)

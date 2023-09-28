@@ -23,10 +23,10 @@ fingerprint:
   tests/test_agents/base_elcollectooorr.py: bafybeiefd5ojyjvujjitygp5s5z6eryi7fbfikhsu27fqqtx6up6dmaoyi
   tests/test_agents/test_elcollectooorr_abci.py: bafybeiecsznoutrwxoftf4iu2sesezfxuyzvpyahsv5wnl54hb5xvsp5wa
   tests/test_fractionalize_deployment_abci/__init__.py: bafybeifpwsaub3khxsixvj6yc2b7zlmkpt3h6m2q65x2zmmo6uvcbpdgpm
-  tests/test_fractionalize_deployment_abci/test_behaviours.py: bafybeid74vtqghw3uykuufsso5xxtin57v7s4d2p4euxqyiw7q4cop5qqy
+  tests/test_fractionalize_deployment_abci/test_behaviours.py: bafybeie5xi22lae6wkkrarqdvmigc5quxx7ocq67h4dt2mi7bal4fy4zum
   tests/test_fractionalize_deployment_abci/test_dialogues.py: bafybeihea5tjndkyr2a5ezys26mxw3bcrsyrhqdd75egux35ydtvadndva
   tests/test_fractionalize_deployment_abci/test_payloads.py: bafybeidmsyb6ejirhr3o4f7yflxp54mnbhjp64rwbcd2oyu7wcz4pxvsh4
-  tests/test_fractionalize_deployment_abci/test_rounds.py: bafybeie673kjeejmeenvy6figj6pdhlhdvtlppxkilrih6ro5viw4chn6q
+  tests/test_fractionalize_deployment_abci/test_rounds.py: bafybeidje5lpztfu5vcknpfhrj4n5l65oasf56c6gorou2xhapostupgha
   tests/test_token_vault/__init__.py: bafybeiav66mysea6p62i7hg4vukzqgxp2khzftxxhjyjlq34fzkjyvbaba
   tests/test_token_vault/test_contract.py: bafybeifbgxr5pclftalkyzz7cyauiq7kqxdvsipacgq65yjuvpry32etjq
   tests/test_token_vault_factory/__init__.py: bafybeibvzzcxfah75gtx6wlvc6k2lfsbwo572bltjxwg2orlv3oqhj5yrq
@@ -34,24 +34,24 @@ fingerprint:
 fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_server:0.22.0:bafybeihp5umafxzx45aad5pj7s3343se2wjkgnbirt4pybrape22swm6de
-- valory/abci:0.1.0:bafybeicasheudousm2unmh5qmy5n3qdq5hmkg2j42fxfm2crxmgq3nzjkq
+- valory/abci:0.1.0:bafybeib3exj2vkz4u76rc2amtwz6veeozipr6zdgzlaqsovu3dorppcina
 - valory/http_client:0.23.0:bafybeieoeuy4brzimtnubmokwirhrx27ezls6cdnl5qik4rkykfle3nn2y
-- valory/ipfs:0.1.0:bafybeiau32pzy55ta6ugl2bebevlxudal6pnlfomhplfm5mph6reaw3krq
+- valory/ipfs:0.1.0:bafybeidu3xd6rd5zysv2due2cnrc3sxx5vss2usxwaxxtxxuyha2kuhd3e
 - valory/ledger:0.19.0:bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a
 - valory/p2p_libp2p_client:0.1.0:bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeiepiixv6hj7ixn3ulthrlqbqmajo64bgtofdwkxitqgk25k3n65f4
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeih3ipynxlvxnbo23uicvgboxaju56cmeqiwlhpf43x2usgj7ht3ou
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeihmrifd62j3b2qddxyo5y2h3mtidhaikqcgyjrht3dhqv4kxlelka
+- elcollectooorr/artblocks:0.1.0:bafybeidtkk3vvzcrtaerhp4hqx2n6u3jsez42wdkuwx36o26vmujgqmsea
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeif4tzf2nejkc2sgdycewjaslnvgcp76atxpxcn2i35yea3qnassum
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeifh6x4gkkkpcs5gw5g7aavqtukvp26nkhz6dpobd2b3lpspzut7nm
 - elcollectooorr/basket:0.1.0:bafybeibaghl7z7xhr4fot5kghbmgnbjr6yuyc7o2uthhore2i3fn2kov34
 - elcollectooorr/basket_factory:0.1.0:bafybeibpvhb6k6klcut7drszoffe3o4whb4rxxrhbnr6uh5mea6h6vnqim
 - elcollectooorr/token_vault:0.1.0:bafybeigw3jkb5hjc4n3lcteq3m5ts2vvaxei2pg435mj22lenulcjo5oby
 - elcollectooorr/token_vault_factory:0.1.0:bafybeia5vkbr6hpvrp2xvpcoaqcajo7eszvlne73ouxvcki73pdd6bmuzy
-- valory/gnosis_safe:0.1.0:bafybeigvqg4lapdaa23dpc3pv67rdptdhey6e435mxqsw2gb2u74yw4yei
-- valory/gnosis_safe_proxy_factory:0.1.0:bafybeie4iivrxcd5dcwzj3y2t66mc5mdvtsuqu426gk2kcdc6fxbki6neu
-- valory/multicall2:0.1.0:bafybeiffhnnk3ibb3z53jxg4rfwcgjl657f56v3ld4rgafgavxxys3h74y
-- valory/multisend:0.1.0:bafybeie7m7pjbnw7cccpbvmbgkut24dtlt4cgvug3tbac7gej37xvwbv3a
-- valory/service_registry:0.1.0:bafybeif6x4zvsokwcetbrjdb4uyv4l3pqx756cg2ohv2zgcky5yuiwuqvi
+- valory/gnosis_safe:0.1.0:bafybeih6d3vxz3jlgodxm5b2qcwsmansqj4xobuyd6hjnhzremuvd65yrm
+- valory/gnosis_safe_proxy_factory:0.1.0:bafybeid6glyjikjxmefwmhn62cxiofophegjmg2z5vqqsvk6tmyunwc274
+- valory/multicall2:0.1.0:bafybeigdldsklrlwiz4qa76oadbo5digvk6ndjmh56pob4hc3mmpls7bw4
+- valory/multisend:0.1.0:bafybeieg4tywd5lww2vygvpkilg3hcepa4rmhehjuamyvdf6vazt554v6u
+- valory/service_registry:0.1.0:bafybeige6pubafkiqmaiyuql6pcojm6fvh5thvhrsapi53au2rhuumqymu
 protocols:
 - open_aea/signing:1.0.0:bafybeifuxs7gdg2okbn7uofymenjlmnih2wxwkym44lsgwmklgwuckxm2m
 - valory/abci:0.1.0:bafybeigootsvqpk6th5xpdtzanxum3earifrrezfyhylfrit7yvqdrtgpe
@@ -62,14 +62,14 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
 - valory/tendermint:0.1.0:bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeibxo7x4lsqjublwput7c74wa4aonbet6gcforyio3sgg6pmggwane
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeicx65zanvm6u63xgxic7n72gqmlbhpw3clxfq6ncgtkqra3oqzesu
-- valory/abstract_abci:0.1.0:bafybeicg7dv7cff34nv2k2z47c4yp4kddsxp3wozonzow6tnvfvwndz3cy
-- valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
-- valory/registration_abci:0.1.0:bafybeibc4kczqbh23sc6tufrzn3axmhp3vjav7fa3u6cnpvolrbbc2fd7i
-- valory/reset_pause_abci:0.1.0:bafybeid445uy6wwvugf3byzl7r73c7teu6xr5ezxb4h7cxbenghg3copvy
-- valory/termination_abci:0.1.0:bafybeiguy7pkrcptg6c754ioig4mlkr7truccym3fpv6jwpjx2tmpdbzhi
-- valory/transaction_settlement_abci:0.1.0:bafybeidpsnguxizkpihtkqzojr3em7yy7c6qc7gxpbh5vglmwws5wke7bi
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeigqs5hcyc4sqtdtr2uxerlpz2h6tb6c7c5vfgy57zltbl2vmjcr24
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeihzu5sfnqqglt4okp54sgiwzxjra3ahwb3yrhsvrhaxszkagyhx2e
+- valory/abstract_abci:0.1.0:bafybeigafjci7m7ezwzasav5xqo7v2mbxxn7qb4y7vnuc2wr2irzvn7wsy
+- valory/abstract_round_abci:0.1.0:bafybeih2fyfb6kkf7r45pvdk7pyyebr5xloia4xiqxtb3qsrasnstqmepq
+- valory/registration_abci:0.1.0:bafybeibndt6vxiwc2edgtaxpjbhwto3eyu33ujz3zmvtygvo2qz7xme5li
+- valory/reset_pause_abci:0.1.0:bafybeigeoc363gv3wp2rrmk6p2fdxney33nxd3owtpfugzapgruwe4klyu
+- valory/termination_abci:0.1.0:bafybeigqpij2sgrpnilqjljfciixop4fldq5qceixc7534q6af4potdmdm
+- valory/transaction_settlement_abci:0.1.0:bafybeia7rzsbea3ch4gcafyp3z6uvqh4npws2xpdwbkkdbrqqpjops7nui
 default_ledger: ethereum
 required_ledgers:
 - ethereum
@@ -176,6 +176,11 @@ models:
       wei_to_fraction: 10500000000000000
       whitelisted_investor_addresses: ${list:[]}
       service_endpoint_base: ${str:https://dummy_service.autonolas.tech/}
+      use_slashing: ${bool:false}
+      slash_cooldown_hours: ${int:3}
+      slash_threshold_amount: ${int:10000000000000000}
+      light_slash_unit_amount: ${int:5000000000000000}
+      serious_slash_unit_amount: ${int:8000000000000000}
 ---
 public_id: valory/ledger:0.19.0
 type: connection

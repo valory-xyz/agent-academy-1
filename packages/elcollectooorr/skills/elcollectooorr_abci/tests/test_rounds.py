@@ -23,6 +23,7 @@ import json
 import logging  # noqa: F401
 from copy import deepcopy
 from typing import Dict, Tuple, cast
+from unittest import mock
 
 from packages.elcollectooorr.skills.elcollectooorr_abci.payloads import (
     DecisionPayload,
@@ -113,7 +114,7 @@ class TestObservationRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -190,7 +191,7 @@ class TestObservationNoActiveProjectsRound(BaseRoundTestClass):
         }
 
         test_round = ObservationRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -258,7 +259,7 @@ class TestPositiveDecisionRound(BaseRoundTestClass):
         payload_data = {"project_id": 123}
 
         test_round = DecisionRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -320,7 +321,7 @@ class TestNegativeDecisionRound(BaseRoundTestClass):
         """Run tests."""
 
         test_round = DecisionRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         project_to_purchase: Dict = {}  # {} represents a NO decision for now
@@ -387,7 +388,7 @@ class TestTransactionRound(BaseRoundTestClass):
         test_purchase_data = "test_data"
 
         test_round = TransactionRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -450,7 +451,7 @@ class TestDetailsRound(BaseRoundTestClass):
         test_details = json.dumps({"active_projects": [{"data": "more"}]})
 
         test_round = DetailsRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -512,7 +513,7 @@ class TestFundingDecisionRound(BaseRoundTestClass):
         test_funds = {"0x0": WEI_TO_ETH}
 
         test_round = FundingRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -584,7 +585,7 @@ class TestProcessPurchaseRound(BaseRoundTestClass):
         )
 
         test_round = ProcessPurchaseRound(
-            synchronized_data=initial_state,
+            synchronized_data=initial_state, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -645,7 +646,7 @@ class TestTransferNFTRound(BaseRoundTestClass):
         )
 
         test_round = TransferNFTRound(
-            synchronized_data=initial_state,
+            synchronized_data=initial_state, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -696,7 +697,7 @@ class TestPayoutFractionsRound(BaseRoundTestClass):
         initial_state = deepcopy(self.synchronized_data)
 
         test_round = PayoutFractionsRound(
-            synchronized_data=initial_state,
+            synchronized_data=initial_state, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -762,7 +763,7 @@ class TestPostPayoutRound(BaseRoundTestClass):
             )
         )
         test_round = PostPayoutRound(
-            synchronized_data=initial_state,
+            synchronized_data=initial_state, context=mock.MagicMock()
         )
 
         # NOTE: No payload for this round.
@@ -799,7 +800,7 @@ class TestPostTransactionSettlementRound(BaseRoundTestClass):
 
         self.synchronized_data.update(tx_submitter=TransactionRound.auto_round_id())
         test_round = PostTransactionSettlementRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [
@@ -857,7 +858,7 @@ class TestResyncRound(BaseRoundTestClass):
         }
 
         test_round = ResyncRound(
-            synchronized_data=self.synchronized_data,
+            synchronized_data=self.synchronized_data, context=mock.MagicMock()
         )
 
         first_payload, *payloads = [

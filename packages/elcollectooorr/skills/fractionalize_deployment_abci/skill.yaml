@@ -21,12 +21,12 @@ contracts:
 - elcollectooorr/basket_factory:0.1.0:bafybeibpvhb6k6klcut7drszoffe3o4whb4rxxrhbnr6uh5mea6h6vnqim
 - elcollectooorr/token_vault:0.1.0:bafybeigw3jkb5hjc4n3lcteq3m5ts2vvaxei2pg435mj22lenulcjo5oby
 - elcollectooorr/token_vault_factory:0.1.0:bafybeia5vkbr6hpvrp2xvpcoaqcajo7eszvlne73ouxvcki73pdd6bmuzy
-- valory/gnosis_safe:0.1.0:bafybeigvqg4lapdaa23dpc3pv67rdptdhey6e435mxqsw2gb2u74yw4yei
+- valory/gnosis_safe:0.1.0:bafybeih6d3vxz3jlgodxm5b2qcwsmansqj4xobuyd6hjnhzremuvd65yrm
 protocols:
 - valory/contract_api:1.0.0:bafybeiasywsvax45qmugus5kxogejj66c5taen27h4voriodz7rgushtqa
 skills:
-- valory/abstract_round_abci:0.1.0:bafybeigxjcci53vwytymzlhr37436yvenh7jup4astrn7dgyixo24aq2pq
-- valory/transaction_settlement_abci:0.1.0:bafybeidpsnguxizkpihtkqzojr3em7yy7c6qc7gxpbh5vglmwws5wke7bi
+- valory/abstract_round_abci:0.1.0:bafybeih2fyfb6kkf7r45pvdk7pyyebr5xloia4xiqxtb3qsrasnstqmepq
+- valory/transaction_settlement_abci:0.1.0:bafybeia7rzsbea3ch4gcafyp3z6uvqh4npws2xpdwbkkdbrqqpjops7nui
 behaviours:
   main:
     args: {}
@@ -105,6 +105,11 @@ models:
       tendermint_url: http://localhost:26657
       token_vault_factory_address: '0x85aa7f78bdb2de8f3e0c0010d99ad5853ffcfc63'
       use_termination: false
+      use_slashing: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
+      light_slash_unit_amount: 5000000000000000
+      serious_slash_unit_amount: 8000000000000000
     class_name: Params
   randomness_api:
     args:
