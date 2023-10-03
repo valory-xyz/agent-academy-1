@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeigo6ior2o6uwteed4hjwjxjbyf7sxy4sprdu7snuycj5hzpqjppee
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeicqhf5hxzp6ykryp5axebt2jyjlu6hhot33l2a3r2wozr3u44di5e
 number_of_agents: 4
 deployment: {}
 ---
@@ -26,6 +26,7 @@ type: skill
         reset_pause_duration: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_0:str:node0:26656}
+        sleep_time: ${SLEEP_TIME:int:5}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
@@ -46,6 +47,7 @@ type: skill
         reset_pause_duration: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_1:str:node1:26666}
+        sleep_time: ${SLEEP_TIME:int:5}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
@@ -66,6 +68,7 @@ type: skill
         reset_pause_duration: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_2:str:node2:26676}
+        sleep_time: ${SLEEP_TIME:int:5}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}
@@ -86,6 +89,7 @@ type: skill
         reset_pause_duration: 300
         reset_tendermint_after: 60
         tendermint_p2p_url: ${TM_P2P_ENDPOINT_NODE_3:str:node3:26686}
+        sleep_time: ${SLEEP_TIME:int:5}
         service_registry_address: ${SERVICE_REGISTRY_ADDRESS:str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
         on_chain_service_id: ${ON_CHAIN_SERVICE_ID:int:1}
         share_tm_config_on_startup: ${USE_ACN:bool:false}

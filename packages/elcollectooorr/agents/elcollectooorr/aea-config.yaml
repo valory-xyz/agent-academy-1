@@ -40,13 +40,13 @@ connections:
 - valory/ledger:0.19.0:bafybeigfoz7d7si7s4jehvloq2zmiiocpbxcaathl3bxkyarxoerxq7g3a
 - valory/p2p_libp2p_client:0.1.0:bafybeihdnfdth3qgltefgrem7xyi4b3ejzaz67xglm2hbma2rfvpl2annq
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeidtkk3vvzcrtaerhp4hqx2n6u3jsez42wdkuwx36o26vmujgqmsea
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeif4tzf2nejkc2sgdycewjaslnvgcp76atxpxcn2i35yea3qnassum
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeifh6x4gkkkpcs5gw5g7aavqtukvp26nkhz6dpobd2b3lpspzut7nm
-- elcollectooorr/basket:0.1.0:bafybeibaghl7z7xhr4fot5kghbmgnbjr6yuyc7o2uthhore2i3fn2kov34
-- elcollectooorr/basket_factory:0.1.0:bafybeibpvhb6k6klcut7drszoffe3o4whb4rxxrhbnr6uh5mea6h6vnqim
-- elcollectooorr/token_vault:0.1.0:bafybeigw3jkb5hjc4n3lcteq3m5ts2vvaxei2pg435mj22lenulcjo5oby
-- elcollectooorr/token_vault_factory:0.1.0:bafybeia5vkbr6hpvrp2xvpcoaqcajo7eszvlne73ouxvcki73pdd6bmuzy
+- elcollectooorr/artblocks:0.1.0:bafybeic7in6vjw65sjaghdk3iofre7bfdhlvg6lg3tet5lxijry5yi4qo4
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeigne5ljxl6dfhfdtfti2xaycpqxhgos6n7kgnm6trj2vcsmwthcvy
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeiapcir44wc7ee5cyxtjfvbypszaepap6qxsbqwrtpynbr7eioco6u
+- elcollectooorr/basket:0.1.0:bafybeid23asxhnkjg3tc6utlnroyv7mx2xbkvcqeqi6rg4bdyvilwpuywu
+- elcollectooorr/basket_factory:0.1.0:bafybeifvarrqoxu7k4hqpw4hfaboo2va4fnuc6cfn6uhz2wf4k4i7rjfom
+- elcollectooorr/token_vault:0.1.0:bafybeieynndej3arx3jqajp4kavzeogh3mbqullqimbzn5bgnxlnev5qum
+- elcollectooorr/token_vault_factory:0.1.0:bafybeibnlqocumviwqbhsrrllmma6rchbnszh7bom75i6vzhoixk4ldfjm
 - valory/gnosis_safe:0.1.0:bafybeih6d3vxz3jlgodxm5b2qcwsmansqj4xobuyd6hjnhzremuvd65yrm
 - valory/gnosis_safe_proxy_factory:0.1.0:bafybeid6glyjikjxmefwmhn62cxiofophegjmg2z5vqqsvk6tmyunwc274
 - valory/multicall2:0.1.0:bafybeigdldsklrlwiz4qa76oadbo5digvk6ndjmh56pob4hc3mmpls7bw4
@@ -62,8 +62,8 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeigsvceac33asd6ecbqev34meyyjwu3rangenv6xp5rkxyz4krvcby
 - valory/tendermint:0.1.0:bafybeidjqmwvgi4rqgp65tbkhmi45fwn2odr5ecezw6q47hwitsgyw4jpa
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeigqs5hcyc4sqtdtr2uxerlpz2h6tb6c7c5vfgy57zltbl2vmjcr24
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeihzu5sfnqqglt4okp54sgiwzxjra3ahwb3yrhsvrhaxszkagyhx2e
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeia5ksflyxvp4uas4pschoiddstg7mt63gbj33k7jpwdb42oejubru
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeib4zfdeo7m2w2tyhw2l62cmnuzbn3o2ribuqx4lafqq35o6zz4w7q
 - valory/abstract_abci:0.1.0:bafybeigafjci7m7ezwzasav5xqo7v2mbxxn7qb4y7vnuc2wr2irzvn7wsy
 - valory/abstract_round_abci:0.1.0:bafybeih2fyfb6kkf7r45pvdk7pyyebr5xloia4xiqxtb3qsrasnstqmepq
 - valory/registration_abci:0.1.0:bafybeibndt6vxiwc2edgtaxpjbhwto3eyu33ujz3zmvtygvo2qz7xme5li
@@ -162,7 +162,7 @@ models:
       multicall_batch_size: ${int:50}
       service_registry_address: ${str:0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA}
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
-      sleep_time: 1
+      sleep_time: ${int:1}
       starting_project_id: 301
       share_tm_config_on_startup: ${bool:false}
       tendermint_check_sleep_delay: 3
