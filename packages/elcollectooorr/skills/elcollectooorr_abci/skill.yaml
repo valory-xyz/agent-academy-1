@@ -26,19 +26,19 @@ fingerprint_ignore_patterns: []
 connections:
 - fetchai/http_server:0.22.0:bafybeihvscddpxjbtqsetngmxo3kiht2wqhosmwiyuh3f6zjti3x3byu5u
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeihlweycss65tqocrm2u4yq3wsrq5ff3ubk6appr6awlecjchhmfcm
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeic3odx2arqpl3mpcpt2pshyhhhh2yfv6xjogxqmgaq7fk4pnje6m4
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeicwaweatbbt3wfzcw5rkufctf7eajtfa5vpvwpaou7i3t627expd4
-- elcollectooorr/basket_factory:0.1.0:bafybeiapwoxv4gy5doweslnbstpttfseobmoc5tjmjshkoks6qhqzgay6i
-- elcollectooorr/token_vault:0.1.0:bafybeianr4yona7jluctasttzeduconfg2ocxk2sm2dmr4iuxtt6ljokhe
-- elcollectooorr/token_vault_factory:0.1.0:bafybeigqmmyv7p3n3tyztxxbmku5le3z2yi2hd56ynpxqnzxciqgr4c3fa
+- elcollectooorr/artblocks:0.1.0:bafybeiayhn2sg3kp4qhr37cxi2ydt6xz6wlh3c3gzxyts7ync5pbap7nga
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeictnaaeczndh37kxdks2jst5kabobz22lmbweirgoq2m6ybojeqvq
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeicgajc2v7wiet7xsmfd6zycguvm5ovbd7jgkd3wlws44ck3g6b56e
+- elcollectooorr/basket_factory:0.1.0:bafybeidk67lhaqxoputg7sl3cuhdff4rgnj5fiyrdwlxgg6dgb7mj462lq
+- elcollectooorr/token_vault:0.1.0:bafybeib5fcsqmvepllpdsmpg7qmqkpesgvlddvsrdr2c5eaz2wqfj4jumm
+- elcollectooorr/token_vault_factory:0.1.0:bafybeiecwdaf5fk37l6ydv426mgtqfoc7ziins6ckxfqbkgvk2rjz6rx6q
 - valory/gnosis_safe:0.1.0:bafybeibt7arvjzz4ah24omst74f4sfjpzrdef76yti6ml7dopsauhdzeci
 - valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
 protocols:
 - valory/contract_api:1.0.0:bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka
 - valory/http:1.0.0:bafybeiejoqgv7finfxo3rcvvovrlj5ccrbgxodjq43uo26ylpowsa3llfe
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeig5kwujjra4t7fo5d2jcysjxys3jpl2qvfnlsilvawehqciadjgmy
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeie5yf2qvhc5o6g2mekwvlrgn2fo2nllsskjno63q7la2i4crq6ehq
 - valory/abstract_round_abci:0.1.0:bafybeid7neqpxxe4ualp23gxgrtpf6r5u3myr2mmc4uvwameyqshfdoydq
 - valory/registration_abci:0.1.0:bafybeidbirkdjus6wbpynmyv6ffb6uevsi3zeuhokiqokuw42o7ar5j7hm
 - valory/reset_pause_abci:0.1.0:bafybeicpxn2khtaesuf4cq6ypwdmdmonlqroj2q2i6cxvpizc2y4cw66pe
