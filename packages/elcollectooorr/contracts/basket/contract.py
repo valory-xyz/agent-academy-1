@@ -108,6 +108,7 @@ class BasketContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
+        contract_address = ledger_api.api.to_checksum_address(contract_address)
         deployed_bytecode = ledger_api.api.eth.get_code(contract_address).hex()
         local_bytecode = cls.contract_interface["ethereum"]["deployedBytecode"]
         verified = deployed_bytecode == local_bytecode

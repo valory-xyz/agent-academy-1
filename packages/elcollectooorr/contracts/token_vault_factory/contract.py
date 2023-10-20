@@ -124,6 +124,7 @@ class TokenVaultFactoryContract(Contract):
         :return: the verified status
         """
         ledger_api = cast(EthereumApi, ledger_api)
+        contract_address = ledger_api.api.to_checksum_address(contract_address)
         deployed_bytecode = cls._process_deployed_bytecode(
             ledger_api.api.eth.get_code(contract_address).hex(),
         )
@@ -657,8 +658,9 @@ class TokenVaultFactoryContract(Contract):
         :return: basket contract address and the address of the creator
         """
         ledger_api = cast(EthereumApi, ledger_api)
+        contract_address = ledger_api.api.to_checksum_address(contract_address)
         contract = cls.get_instance(ledger_api, contract_address)
-        receipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)
+        receipt = ledger_api.api.eth.get_transaction_receipt(tx_hash)  # type: ignore
         logs = contract.events.Mint().process_receipt(receipt)
 
         if len(logs) == 0:

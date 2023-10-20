@@ -125,7 +125,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
 
         assert self.contract_address is not None
         result = self.contract.verify_contract(
-            ledger_api=self.ledger_api,
+            ledger_api=self.ledger_api,  # type: ignore
             contract_address=self.contract_address,
             expected_owner_address=new_receiver.address,
         )

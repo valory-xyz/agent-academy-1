@@ -9,9 +9,9 @@ fingerprint:
   README.md: bafybeigrh2epuprtrmwcofpgdbvd35nsnf6cqopekoxqw5mxmzbolnp4sq
   __init__.py: bafybeifjptgrg7eco2pubk6dmo6bihomttudza37c6jluz4gse7dkhnqwy
   build/TokenSettings.json: bafybeiefchbpv5ckkqpsxi3x2bjufg7f4qsxr6tkhzlcggryvzh5alvdta
-  contract.py: bafybeifbpeypm4wkgmygkxyncucpud7ijgdszmwywrfvucu2krv5pai2im
+  contract.py: bafybeidx5pre4b3lfzysbpvsagmdgtyvwsnqqllj4gwnkmspsnrqa2et3y
   tests/__init__.py: bafybeifw7pwisnee2n5jtpywjjqphbmzw4rypjgo4jwyix7ypfx6epcley
-  tests/test_contract.py: bafybeia5qvm5w3u3d7du7aws6z6m5zr4zrfqgr5tlhmsl4wz7dlfhizpum
+  tests/test_contract.py: bafybeihw4geakxhumgtgcvw76zwljms42iovj3zgvyzfupcylt2au3yzha
 fingerprint_ignore_patterns: []
 contracts: []
 class_name: TokenSettingsContract
