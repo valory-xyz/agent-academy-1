@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------------------------
 #
-#   Copyright 2021-2022 Valory AG
+#   Copyright 2021-2023 Valory AG
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -125,7 +125,7 @@ class TestTokenSettingsFactory(BaseGanacheContractTest):
 
         assert self.contract_address is not None
         result = self.contract.verify_contract(
-            ledger_api=self.ledger_api,
+            ledger_api=self.ledger_api,  # type: ignore
             contract_address=self.contract_address,
             expected_owner_address=new_receiver.address,
         )
