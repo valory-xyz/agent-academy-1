@@ -38,7 +38,7 @@ protocols:
 - valory/contract_api:1.0.0:bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka
 - valory/http:1.0.0:bafybeiejoqgv7finfxo3rcvvovrlj5ccrbgxodjq43uo26ylpowsa3llfe
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeigqqouu3x5umla7qjrfwrmaayrctcentc2nr3guda4b63r3vstzki
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeidgik5kdzx65jnnvrz54kqfdsz47wypogxmo26jefy323md7kbdui
 - valory/abstract_round_abci:0.1.0:bafybeid7neqpxxe4ualp23gxgrtpf6r5u3myr2mmc4uvwameyqshfdoydq
 - valory/registration_abci:0.1.0:bafybeidbirkdjus6wbpynmyv6ffb6uevsi3zeuhokiqokuw42o7ar5j7hm
 - valory/reset_pause_abci:0.1.0:bafybeicpxn2khtaesuf4cq6ypwdmdmonlqroj2q2i6cxvpizc2y4cw66pe
@@ -125,6 +125,7 @@ models:
       init_fallback_gas: 0
       keeper_allowed_retries: 3
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_attempts: 10
       max_healthcheck: 120
       max_purchase_per_project: 1
@@ -141,6 +142,7 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 120.0
+      serious_slash_unit_amount: 8000000000000000
       service_endpoint_base: https://dummy_service.autonolas.tech/
       service_id: el_collectooorr_1
       service_registry_address: '0x48b6af7B12C71f09e2fC8aF4855De4Ff54e775cA'
@@ -151,6 +153,8 @@ models:
         - '0x0000000000000000000000000000000000000000'
         consensus_threshold: null
       share_tm_config_on_startup: false
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
       starting_project_id: 301
       tendermint_check_sleep_delay: 3
@@ -161,15 +165,11 @@ models:
       termination_sleep: 900
       token_vault_factory_address: '0x85Aa7f78BdB2DE8F3e0c0010d99AD5853fFcfC63'
       tx_timeout: 10.0
+      use_slashing: false
       use_termination: false
       validate_timeout: 1205
       wei_to_fraction: 10500000000000000
       whitelisted_investor_addresses: []
-      use_slashing: false
-      slash_cooldown_hours: 3
-      slash_threshold_amount: 10000000000000000
-      light_slash_unit_amount: 5000000000000000
-      serious_slash_unit_amount: 8000000000000000
     class_name: Params
   randomness_api:
     args:

@@ -7,11 +7,11 @@
         "contract/elcollectooorr/artblocks/0.1.0": "bafybeicjgrinympyeyzd6qdxqxvqcqgyhayifmhlt2vmeotwqvsocf5tra",
         "contract/elcollectooorr/artblocks_minter_filter/0.1.0": "bafybeictnaaeczndh37kxdks2jst5kabobz22lmbweirgoq2m6ybojeqvq",
         "contract/elcollectooorr/artblocks_periphery/0.1.0": "bafybeicgajc2v7wiet7xsmfd6zycguvm5ovbd7jgkd3wlws44ck3g6b56e",
-        "skill/elcollectooorr/fractionalize_deployment_abci/0.1.0": "bafybeigqqouu3x5umla7qjrfwrmaayrctcentc2nr3guda4b63r3vstzki",
-        "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeicndxetxedup6y3bhdziqk6ozgewbqdqam2lrcrzotd5qc5xovdfi",
-        "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeiazi65bi7q2dqzqdhvvneopdnio6yt5uqi7cqbrmd6klc436t2pk4",
-        "contract/elcollectooorr/token_settings/0.1.0": "bafybeifbe43ljgtf3od4j7pp7xs3j2auudayi7hreln6bpjb7q2axp7ym4",
-        "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeihorzcmcaghvjvtj4kewc7tx4jlcgqqtqdektxxgxdg7xrs5skmha"
+        "skill/elcollectooorr/fractionalize_deployment_abci/0.1.0": "bafybeidgik5kdzx65jnnvrz54kqfdsz47wypogxmo26jefy323md7kbdui",
+        "skill/elcollectooorr/elcollectooorr_abci/0.1.0": "bafybeid2tepuker3cklxlujdjvr2lz4upcgywqix6ph35lebybj7gbvthe",
+        "agent/elcollectooorr/elcollectooorr/0.1.0": "bafybeias2b3s5wzwvkm666kps374yncvebic6q2nlahzxlci7cngk6puke",
+        "contract/elcollectooorr/token_settings/0.1.0": "bafybeiefa3xxv5eedamt6ciphkeoja47u6rifxvbghllg5g3fhc67siku4",
+        "service/elcollectooorr/elcollectooorr/0.1.0": "bafybeih4f66q7oe6cn4xnfeem6dlyfwk3x26zbz2qdwnqnucshp2dnu5ri"
     },
     "third_party": {
         "protocol/valory/abci/0.1.0": "bafybeihmzlmmb4pdo3zkhg6ehuyaa4lhw7bfpclln2o2z7v3o6fcep26iu",

@@ -87,6 +87,7 @@ models:
           version: {}
         voting_power: '10'
       keeper_timeout: 30.0
+      light_slash_unit_amount: 5000000000000000
       max_healthcheck: 120
       max_retries: 5
       period_setup: {}
@@ -95,8 +96,11 @@ models:
       retry_attempts: 400
       retry_timeout: 3
       round_timeout_seconds: 30.0
+      serious_slash_unit_amount: 8000000000000000
       service_id: frationalize_deployment_1
       settings_address: '0xE0FC79183a22106229B84ECDd55cA017A07eddCa'
+      slash_cooldown_hours: 3
+      slash_threshold_amount: 10000000000000000
       sleep_time: 1
       starting_project_id: null
       tendermint_check_sleep_delay: 3
@@ -104,12 +108,8 @@ models:
       tendermint_max_retries: 5
       tendermint_url: http://localhost:26657
       token_vault_factory_address: '0x85aa7f78bdb2de8f3e0c0010d99ad5853ffcfc63'
-      use_termination: false
       use_slashing: false
-      slash_cooldown_hours: 3
-      slash_threshold_amount: 10000000000000000
-      light_slash_unit_amount: 5000000000000000
-      serious_slash_unit_amount: 8000000000000000
+      use_termination: false
     class_name: Params
   randomness_api:
     args:
