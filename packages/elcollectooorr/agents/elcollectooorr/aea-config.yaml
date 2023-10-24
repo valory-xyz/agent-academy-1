@@ -62,7 +62,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
 - valory/tendermint:0.1.0:bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeid2tepuker3cklxlujdjvr2lz4upcgywqix6ph35lebybj7gbvthe
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeih2bv7tdlpgayqoyjf4g4gzuolzfkxabwpydrpze2quxnx3mtenje
 - elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeidgik5kdzx65jnnvrz54kqfdsz47wypogxmo26jefy323md7kbdui
 - valory/abstract_abci:0.1.0:bafybeihgemn2gwjc2wyxuh7rttg5pk5gec7dxhet3ih2tmg75vsdbgad7a
 - valory/abstract_round_abci:0.1.0:bafybeid7neqpxxe4ualp23gxgrtpf6r5u3myr2mmc4uvwameyqshfdoydq
@@ -99,7 +99,8 @@ logging_config:
       - console
       propagate: false
 dependencies:
-  open-aea-ledger-ethereum: {}
+  open-aea-ledger-ethereum:
+    version: ==1.41.0
 default_connection: null
 ---
 public_id: valory/abci:0.1.0
