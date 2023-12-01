@@ -33,7 +33,7 @@ fingerprint:
   tests/test_token_vault_factory/test_contract.py: bafybeibpcizflmxkpi4ik7pnqwxhzjxrin2hret55lvrikigqhv5ptr3dm
 fingerprint_ignore_patterns: []
 connections:
-- fetchai/http_server:0.22.0:bafybeihvscddpxjbtqsetngmxo3kiht2wqhosmwiyuh3f6zjti3x3byu5u
+- valory/http_server:0.22.0:bafybeiesafy2af2wakqvsal4hz6ldycb73j5w62szhwy25iyhlf2wgyg44
 - valory/abci:0.1.0:bafybeiejo5uyurbmafretedivyci2ktastxclbmgrkwcwc2yt36jftyqgm
 - valory/http_client:0.23.0:bafybeiddrfvomrmgvh5yuv2coq7ci72wcdf663stayi3m5aawnj4srggce
 - valory/ipfs:0.1.0:bafybeihx7wb5hngjobw2salzqqryrhxvmxfuw7o2npjyqd2talmh2flqeq
@@ -62,7 +62,7 @@ protocols:
 - valory/ledger_api:1.0.0:bafybeige5agrztgzfevyglf7mb4o7pzfttmq4f6zi765y4g2zvftbyowru
 - valory/tendermint:0.1.0:bafybeig6g6twajlwssfbfp5rlnu5mwzuu5kgak5cs4fich7rlkx6whesnu
 skills:
-- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeibagg6tomwcw75edmpojcgwimf2jcpfvwotelc7c6qn2rwqkbwy4q
+- elcollectooorr/elcollectooorr_abci:0.1.0:bafybeih5qj6xidw6v4mxfqourvbmhwzcthbyxyr3v6yccb6sd2omttqlii
 - elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeig4daby3qxbwbl2345bwp4nc5ioalj4rkdsdzjtvfwrasyvekw7my
 - valory/abstract_abci:0.1.0:bafybeiflcfufixmsrhobf56bn5745m2iipcfqyulwk2qegtnagb3kvaaxi
 - valory/abstract_round_abci:0.1.0:bafybeiaqcl7h2famylusiffigwem7tevkcsyocdu5xd42jkmgq6kvowzgq
@@ -193,7 +193,7 @@ config:
       poa_chain: ${bool:false}
       default_gas_price_strategy: ${str:eip1559}
 ---
-public_id: fetchai/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
+public_id: valory/http_server:0.22.0:bafybeicblltx7ha3ulthg7bzfccuqqyjmihhrvfeztlgrlcoxhr7kf6nbq
 type: connection
 config:
   host: 0.0.0.0

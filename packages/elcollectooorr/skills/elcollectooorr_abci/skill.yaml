@@ -24,7 +24,7 @@ fingerprint:
   tests/test_rounds.py: bafybeidwyuqykmcsd62tm57joxhfue4vl5pvqastuveueyqgqubwpvqe3a
 fingerprint_ignore_patterns: []
 connections:
-- fetchai/http_server:0.22.0:bafybeihvscddpxjbtqsetngmxo3kiht2wqhosmwiyuh3f6zjti3x3byu5u
+- valory/http_server:0.22.0:bafybeiesafy2af2wakqvsal4hz6ldycb73j5w62szhwy25iyhlf2wgyg44
 contracts:
 - elcollectooorr/artblocks:0.1.0:bafybeie26fs6k6fw6ynac3ypvjvttwuht7p64khwwifveixei3fj6evpxq
 - elcollectooorr/artblocks_minter_filter:0.1.0:bafybeigroyqcbe6oo6zbs54idbz6yntqn2xpslotbpdnpc6csns4bemsuy
