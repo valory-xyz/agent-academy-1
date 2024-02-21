@@ -14,9 +14,9 @@ class_name: ArtBlocksMinterFilterContract
 contract_interface_paths:
   ethereum: build/MinterFilter.json
 contracts:
-- valory/multicall2:0.1.0:bafybeih6m3xj47t4z4r6a4oi4n7wlg7os6wqkrhyz3xg6j3eghqwryg5de
+- valory/multicall2:0.1.0:bafybeigi47jlga5dsv7ew332ukccxnmbez5nqnkpbyqmm366llrvjxua4i
 dependencies:
   open-aea-ledger-ethereum:
-    version: ==1.42.0
+    version: ==1.47.0
   web3:
     version: <7,>=6.0.0

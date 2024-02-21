@@ -24,26 +24,26 @@ fingerprint:
   tests/test_rounds.py: bafybeidwyuqykmcsd62tm57joxhfue4vl5pvqastuveueyqgqubwpvqe3a
 fingerprint_ignore_patterns: []
 connections:
-- valory/http_server:0.22.0:bafybeiesafy2af2wakqvsal4hz6ldycb73j5w62szhwy25iyhlf2wgyg44
+- valory/http_server:0.22.0:bafybeihpgu56ovmq4npazdbh6y6ru5i7zuv6wvdglpxavsckyih56smu7m
 contracts:
-- elcollectooorr/artblocks:0.1.0:bafybeie26fs6k6fw6ynac3ypvjvttwuht7p64khwwifveixei3fj6evpxq
-- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeigroyqcbe6oo6zbs54idbz6yntqn2xpslotbpdnpc6csns4bemsuy
-- elcollectooorr/artblocks_periphery:0.1.0:bafybeih2pd37ji4sonzhr4jerzqeprzco2dntjg4bg5v4rlf6zsh53h6v4
-- elcollectooorr/basket_factory:0.1.0:bafybeiaznf3btnhz3ooqexgr74g2onzjdxcubrz62vrjnogb4gxtfn4mhi
-- elcollectooorr/token_vault:0.1.0:bafybeifz4rniepr2evm33lzdp2rb62vjxb33yhshuwktznptzlsg7p6b3i
-- elcollectooorr/token_vault_factory:0.1.0:bafybeiaf5kxydbahxzyl5ibjnbwc5iszdrkysxllieusrn5pwmvs3nobim
-- valory/gnosis_safe:0.1.0:bafybeidll7frtdsq2ckiluazkwk4zpkp7natt4kdejjehwvykqwzyuf6ei
+- elcollectooorr/artblocks:0.1.0:bafybeidddkxscvadugcdmlexny5rnaekphkzxpuei2r2euxxa4tqzih5lq
+- elcollectooorr/artblocks_minter_filter:0.1.0:bafybeiaax6ehgjtw5mpezpbkjyllsyendi6cky7isdcofjiwl65obutpta
+- elcollectooorr/artblocks_periphery:0.1.0:bafybeihwebyh235tybahv5omde6auflwrqfmquxkpbtjmw4ozfxffip54u
+- elcollectooorr/basket_factory:0.1.0:bafybeihql7n4nqxjkg6b4nq33j3wn7yn6xatmmgu26ljtlse3mlf7ce35y
+- elcollectooorr/token_vault:0.1.0:bafybeidttmtr7khtejsg63jeze75am3jhlrnh42kck6jymiswgezbny7w4
+- elcollectooorr/token_vault_factory:0.1.0:bafybeifknhf35ojcybg3ddj2uv6qo3ikibab7fultuk5tu7safxunmq43a
+- valory/gnosis_safe:0.1.0:bafybeia2m32xfpsddrww7j3unkhcijuitlixffg66igrdyt6kgh5jvvwum
 - valory/multisend:0.1.0:bafybeig5byt5urg2d2bsecufxe5ql7f4mezg3mekfleeh32nmuusx66p4y
 protocols:
-- valory/contract_api:1.0.0:bafybeialhbjvwiwcnqq3ysxcyemobcbie7xza66gaofcvla5njezkvhcka
-- valory/http:1.0.0:bafybeiejoqgv7finfxo3rcvvovrlj5ccrbgxodjq43uo26ylpowsa3llfe
+- valory/contract_api:1.0.0:bafybeidgu7o5llh26xp3u3ebq3yluull5lupiyeu6iooi2xyymdrgnzq5i
+- valory/http:1.0.0:bafybeifugzl63kfdmwrxwphrnrhj7bn6iruxieme3a4ntzejf6kmtuwmae
 skills:
-- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeig4daby3qxbwbl2345bwp4nc5ioalj4rkdsdzjtvfwrasyvekw7my
-- valory/abstract_round_abci:0.1.0:bafybeiaqcl7h2famylusiffigwem7tevkcsyocdu5xd42jkmgq6kvowzgq
-- valory/registration_abci:0.1.0:bafybeic2ynseiak7jpta7jfwuqwyp453b4p7lolr4wihxmpn633uekv5am
-- valory/reset_pause_abci:0.1.0:bafybeidzajbe3erygeh2xbd6lrjv7nsptznjuzrt24ykgvhgotdeyhfnba
-- valory/termination_abci:0.1.0:bafybeie4zvjfxvdu7qrulmur3chpjz3kpj5m4bjsxvpk4gvj5zbyyayfaa
-- valory/transaction_settlement_abci:0.1.0:bafybeiaefgqbs7zsn5xe5kdwrujj7ivygkn3ujpw6crnvi3knvxw75qmja
+- elcollectooorr/fractionalize_deployment_abci:0.1.0:bafybeiejywuarc2q5wlyzijdvxtfoa42u6nqkfaoogkqdicv4nitz25dwe
+- valory/abstract_round_abci:0.1.0:bafybeib3te5ami7gi7vh6v2rvq7mjmatyqdzqwkqpn7qh6mzfmpc4ikq4q
+- valory/registration_abci:0.1.0:bafybeigeferybxvqw4fl2cu2mcmfhfpxdruw3jtsswlmvhag3pav47ia5e
+- valory/reset_pause_abci:0.1.0:bafybeig2fb6i66uq5g3kzcd32rmv4z4xqjsslteqpz44adwxjd6op54uxq
+- valory/termination_abci:0.1.0:bafybeihn5gc2uf7gnnjwwpgbgvbcivhac7hgzq54zlr4mj3vmsblhl2fna
+- valory/transaction_settlement_abci:0.1.0:bafybeib4qqbpcdbfba23jm4c3ki7imo4wn5wtsja3tqrsrdlulh3lnixby
 behaviours:
   main:
     args: {}
