@@ -7,7 +7,7 @@ license: Apache-2.0
 fingerprint:
   README.md: bafybeiheuht3rkoreuimqcyqcdfcp6rjtegvor77xthlb6s2dw5sv4x4uu
 fingerprint_ignore_patterns: []
-agent: elcollectooorr/elcollectooorr:0.1.0:bafybeih6rgenmrmhiotfblqjzcepkp7ifjiol2u53lgsbcqpbauzhcswm4
+agent: elcollectooorr/elcollectooorr:0.1.0:bafybeig55hxmji2arkk5yrhxmoe4tnm5eo3lk5cvfbj2wgdmh65wzcsrqy
 number_of_agents: 4
 deployment: {}
 ---
@@ -37,6 +37,7 @@ type: skill
         slash_threshold_amount: ${SLASH_THRESHOLD_AMOUNT:int:10000000000000000}
         light_slash_unit_amount: ${LIGHT_SLASH_UNIT_AMOUNT:int:5000000000000000}
         serious_slash_unit_amount: ${SERIOUS_SLASH_UNIT_AMOUNT:int:8000000000000000}
+        termination_from_block: ${TERMINATION_FROM_BLOCK:int:0}
 1:
   models:
     params:
@@ -58,6 +59,7 @@ type: skill
         slash_threshold_amount: ${SLASH_THRESHOLD_AMOUNT:int:10000000000000000}
         light_slash_unit_amount: ${LIGHT_SLASH_UNIT_AMOUNT:int:5000000000000000}
         serious_slash_unit_amount: ${SERIOUS_SLASH_UNIT_AMOUNT:int:8000000000000000}
+        termination_from_block: ${TERMINATION_FROM_BLOCK:int:0}
 2:
   models:
     params:
@@ -79,6 +81,7 @@ type: skill
         slash_threshold_amount: ${SLASH_THRESHOLD_AMOUNT:int:10000000000000000}
         light_slash_unit_amount: ${LIGHT_SLASH_UNIT_AMOUNT:int:5000000000000000}
         serious_slash_unit_amount: ${SERIOUS_SLASH_UNIT_AMOUNT:int:8000000000000000}
+        termination_from_block: ${TERMINATION_FROM_BLOCK:int:0}
 3:
   models:
     params:
@@ -100,6 +103,7 @@ type: skill
         slash_threshold_amount: ${SLASH_THRESHOLD_AMOUNT:int:10000000000000000}
         light_slash_unit_amount: ${LIGHT_SLASH_UNIT_AMOUNT:int:5000000000000000}
         serious_slash_unit_amount: ${SERIOUS_SLASH_UNIT_AMOUNT:int:8000000000000000}
+        termination_from_block: ${TERMINATION_FROM_BLOCK:int:0}
 ---
 public_id: valory/ledger:0.19.0
 type: connection
